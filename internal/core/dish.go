@@ -19,6 +19,8 @@ const (
 	TypeArrayBuffer DishType = "ArrayBuffer"
 	// TypeNumber treats the bytes as the ASCII representation of a number.
 	TypeNumber DishType = "number"
+	// TypeJSON treats the bytes as JSON text.
+	TypeJSON DishType = "JSON"
 )
 
 // Dish is the data container passed between operations. It holds canonical
@@ -47,7 +49,7 @@ func (d *Dish) String() string { return string(d.data) }
 // parsed from the ASCII representation.
 func (d *Dish) Get(typ DishType) (any, error) {
 	switch typ {
-	case TypeString:
+	case TypeString, TypeJSON:
 		return string(d.data), nil
 	case TypeByteArray, TypeArrayBuffer:
 		return d.data, nil
@@ -66,12 +68,15 @@ func (d *Dish) Get(typ DishType) (any, error) {
 // rendered to their ASCII representation.
 func (d *Dish) Set(value any, typ DishType) error {
 	switch typ {
-	case TypeString:
-		s, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("expected string for type %q, got %T", typ, value)
+	case TypeString, TypeJSON:
+		switch v := value.(type) {
+		case string:
+			d.data = []byte(v)
+		case []byte:
+			d.data = v
+		default:
+			return fmt.Errorf("expected string or []byte for type %q, got %T", typ, value)
 		}
-		d.data = []byte(s)
 	case TypeByteArray, TypeArrayBuffer:
 		b, ok := value.([]byte)
 		if !ok {

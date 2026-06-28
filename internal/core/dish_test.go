@@ -71,6 +71,24 @@ func TestDishSet(t *testing.T) {
 	}
 }
 
+func TestDishJSON(t *testing.T) {
+	// JSON is text-backed: Get returns the JSON string, Set accepts string or bytes.
+	d := NewDish([]byte(`{"a":1}`), TypeJSON)
+	got, err := d.Get(TypeJSON)
+	if err != nil || got.(string) != `{"a":1}` {
+		t.Fatalf("Get(JSON) = %v, %v", got, err)
+	}
+	if err := d.Set(`[1,2]`, TypeJSON); err != nil || d.String() != `[1,2]` {
+		t.Fatalf("Set(JSON) string: %v, %q", err, d.String())
+	}
+	if err := d.Set([]byte(`true`), TypeJSON); err != nil || d.String() != "true" {
+		t.Fatalf("Set(JSON) bytes: %v, %q", err, d.String())
+	}
+	if d.Type() != TypeJSON {
+		t.Fatalf("Type() = %v, want JSON", d.Type())
+	}
+}
+
 func TestDishBytes(t *testing.T) {
 	raw := []byte{0x00, 0xff, 0x10}
 	d := NewDish(raw, TypeByteArray)

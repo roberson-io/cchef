@@ -6,6 +6,8 @@ Operations for encoding and decoding data between common textual representations
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| AMF Decode | `amf-decode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
+| AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | From Base32 | `from-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | From Base64 | `from-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
@@ -16,6 +18,56 @@ Operations for encoding and decoding data between common textual representations
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 | URL Encode | `url-encode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
+
+---
+
+## AMF Decode
+
+Deserializes Action Message Format (AMF) binary data into JSON. AMF is a binary
+format used to serialize object graphs, e.g. between an Adobe Flash client and a
+remote service.
+
+Backed by the [`github.com/elobuff/goamf`](https://github.com/elobuff/goamf)
+library (CyberChef likewise wraps an AMF library); the JSON representation of
+decoded values follows that library.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--format` | option | `AMF3` | AMF version: `AMF0` or `AMF3`. |
+
+**Simple example**
+
+```bash
+$ cchef from-hex --delimiter None -i 0200026869 | cchef amf-decode --format AMF0
+"hi"
+```
+
+## AMF Encode
+
+Serializes JSON into Action Message Format (AMF) binary data. The output is raw
+bytes, so pipe through `to-hex` to view it.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--format` | option | `AMF3` | AMF version: `AMF0` or `AMF3`. |
+
+**Simple example**
+
+```bash
+$ cchef amf-encode -i '{"a":1,"b":true}' | cchef to-hex --delimiter None
+0a230103610362053ff000000000000003
+```
+
+**Round trip (encode then decode)**
+
+```bash
+$ printf '[1,2,3]' | cchef amf-encode | cchef amf-decode
+[1,2,3]
+```
 
 ---
 

@@ -26,6 +26,30 @@ For an operation named e.g. `To Base45`:
 - **Category:** find which category lists the op in
   `../CyberChef/src/core/config/Categories.json`. This determines the `docs/` file.
 
+## 1a. Decide whether it's a straight port — STOP and flag if not
+
+Most operations are self-contained ports of the `.mjs` `run()` plus `lib/`
+helpers. Some are not. **Before writing any code**, check for these and, if any
+apply, surface the situation to the user with options rather than silently
+implementing a half-faithful version:
+
+- **External-library-backed:** the `.mjs` is a thin wrapper around an npm package
+  (e.g. AMF wraps `@astronautlabs/amf`) — there is no logic in CyberChef to port.
+  Options: add a Go library dependency (note it cuts against the low-dependency
+  goal), reimplement from scratch, or defer.
+- **No test fixtures:** no `tests/operations/tests/<Op>.mjs`. You cannot transcribe
+  authoritative cases. You may still author spec-authoritative vectors (e.g.
+  hand-computed bytes from a format spec) plus round-trip tests, but flag the
+  reduced fidelity — output may not be byte-identical to CyberChef.
+- **Needs a new Dish type or engine feature:** e.g. `inputType`/`outputType` of
+  `JSON`, `BigNumber`, or `List<File>` not yet in `core` (add the type test-first,
+  like `TypeJSON` was added for AMF), or a flow-control op needing non-linear
+  `Recipe.Execute`.
+
+When you add a dependency, run `go mod tidy` and check for **transitive** deps it
+drags in; mention them. When fidelity is reduced (different backing library, no
+fixtures), say so explicitly and update the PLAN/docs notes accordingly.
+
 ## 2. Write the test FIRST (red)
 
 Create `internal/ops/<name>_test.go` and transcribe the relevant fixture cases
@@ -78,7 +102,10 @@ Data types (`InputType`/`OutputType`): `TypeString`, `TypeByteArray`,
 In the matching `docs/<category>.md` (e.g. `data-format.md`):
 
 - Add the op to the category summary table **and** as a detailed section, both in
-  **alphabetical order by operation name**.
+  **alphabetical order by operation name**. To find the slot, insert the new
+  detailed section immediately before the next operation's `##` heading (or the
+  trailing `---` separator) that sorts after it; insert the table row before the
+  first existing row that sorts after the new op.
 - Include: an external reference link (the op's `infoURL`), an options table, a
   **simple example**, and — for ops with several options — a **complex example**.
 - **Verify every example** by running it: `make build` then
@@ -89,9 +116,18 @@ In the matching `docs/<category>.md` (e.g. `data-format.md`):
 
 ## 6. Update PLAN.md status
 
-In `PLAN.md` under **Operation implementation status**, flip the op's `[ ]` to
-`[x]`, bump that category's `implemented/total` count, and update the unique-count
-note in the section intro if needed.
+In `PLAN.md` under **Operation implementation status**, make **all** of these
+edits (it is easy to miss one):
+
+1. Flip the op's `[ ]` to `[x]`.
+2. Bump that category's `### <Category> (implemented/total)` count in the heading.
+3. Update the **unique-count note** in the section intro (e.g. "**N unique**
+   CyberChef operations are covered (M directly plus `SHA2`...)").
+4. Update the operation counts in the **Current status** section near the top of
+   PLAN.md (the "curated set of N operations" sentence and the "**N operations**
+   (`internal/ops/`)" bullet) — these count cchef subcommands, which may differ
+   from the unique-op count (e.g. `sha256`/`sha512` are two subcommands but one
+   CyberChef `SHA2` op).
 
 ## 7. Final checks
 

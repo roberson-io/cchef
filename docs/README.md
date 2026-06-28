@@ -56,7 +56,7 @@ Within each category, operations are listed alphabetically.
 
 | Category | Operations |
 | --- | --- |
-| [Data format](data-format.md) | From Base32, From Base64, From Hex, From Octal, To Base32, To Base64, To Hex, To Octal, URL Decode, URL Encode |
+| [Data format](data-format.md) | AMF Decode, AMF Encode, From Base32, From Base64, From Hex, From Octal, To Base32, To Base64, To Hex, To Octal, URL Decode, URL Encode |
 | [Encryption / Encoding](encryption-encoding.md) | ROT13, ROT47, XOR |
 | [Hashing](hashing.md) | MD5, SHA1, SHA256, SHA512 |
 | [Utils](utils.md) | Reverse, To Lower case, To Upper case |

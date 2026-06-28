@@ -10,12 +10,13 @@ CyberChef's "Chef" text format), and recipes round-trip to a shareable
 `gchq.github.io/CyberChef` URL.
 
 Development is **test-driven** (test → stub → implement), reusing CyberChef's own
-fixture cases for parity, and reduces external dependencies (cobra is the only
-third-party dependency).
+fixture cases for parity, and keeps external dependencies minimal: `cobra` for the
+CLI, plus `github.com/elobuff/goamf` to back the AMF operations (which CyberChef
+also implements via an external AMF library).
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 20
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 22
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -28,7 +29,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **20 operations** (`internal/ops/`), each a faithful port with tests
+- **22 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -37,8 +38,8 @@ below).
 - **Docs** (`docs/`): per-category pages with options tables, simple + complex
   examples, and external reference links; operations listed alphabetically.
 - **Tooling**: `Makefile` (alphabetised targets: build/test/fmt/vet/lint +
-  `sbom`/`sbom-scan`/`sbom-audit` via cyclonedx-gomod + grype), `.gitignore`,
-  cobra-only `go.mod`. `make test`, `make vet`, and `make lint` are clean.
+  `sbom`/`sbom-scan`/`sbom-audit` via cyclonedx-gomod + grype), `.gitignore`.
+  `make test`, `make vet`, and `make lint` are clean.
 
 ## Architecture (as built)
 
@@ -63,7 +64,8 @@ cchef/
     url.go         EncodeURIFragment / BuildURL
     naming.go      Kebab (op name -> subcommand)
   internal/ops/
-    base64.go base32.go hex.go urlcode.go xor.go rot.go hashes.go case.go reverse.go
+    base64.go base32.go hex.go octal.go urlcode.go xor.go rot.go hashes.go
+    case.go reverse.go amf.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
@@ -101,7 +103,8 @@ cchef list                                   # discover operations
 
 - Implement more operations from the checklist below, prioritising common
   Data format / Encryption / Hashing ops.
-- Additional Dish types as needed (e.g. BigNumber, JSON) for ops that require them.
+- Additional Dish types as needed (e.g. BigNumber) for ops that require them.
+  (`JSON` was added for the AMF operations.)
 - Flow control operations (Fork, Merge, Conditional Jump) need engine support
   beyond the current linear `Recipe.Execute`.
 - A repo-root `README.md` and CI wiring for lint/test/SBOM.
@@ -118,13 +121,13 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **19 unique** CyberChef operations are covered (18 directly plus
+Currently **21 unique** CyberChef operations are covered (20 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
-### Data format (10/78)
+### Data format (12/78)
 
-- [ ] AMF Decode
-- [ ] AMF Encode
+- [x] AMF Decode
+- [x] AMF Encode
 - [ ] Avro to JSON
 - [ ] Caret/M-decode
 - [ ] CBOR Decode
