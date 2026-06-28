@@ -1,0 +1,111 @@
+# cchef
+
+**CyberChef on the command line.** `cchef` is a Go port of the data-transformation
+engine of [CyberChef](https://gchq.github.io/CyberChef/) — the "Cyber Swiss Army
+Knife" — built for the terminal. Every operation is a subcommand that reads input
+and writes output, so operations chain together through Unix pipes or as a single
+recipe, and any recipe can be turned into a shareable CyberChef URL.
+
+> **Status:** a curated, growing subset — **40 operations** so far, each a
+> faithful, test-driven port. See [PLAN.md](PLAN.md) for the full implementation
+> status against all 486 CyberChef operations.
+
+## Install
+
+```bash
+make build      # produces ./dist/cchef
+```
+
+Requires Go 1.26+.
+
+## Quickstart
+
+```bash
+# An operation reads from a positional arg, -i, --in-file, or stdin:
+cchef to-base64 hello                 # aGVsbG8=
+cchef to-base64 -i hello              # aGVsbG8=
+echo -n hello | cchef to-base64       # aGVsbG8=
+
+# Chain operations with pipes:
+echo -n hello | cchef to-base64 | cchef to-hex
+# 61 47 56 73 62 47 38 3d
+
+# Hash something:
+cchef sha256 -i 'Hello, World!'
+# dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
+
+# Run a whole recipe at once (JSON or compact "Chef" format):
+echo -n hello | cchef bake -e "To_Base64()To_Hex()"
+
+# Turn a recipe into a CyberChef share URL:
+cchef url -e "ROT13()" -i hello
+# https://gchq.github.io/CyberChef/#recipe=ROT13()&input=aGVsbG8
+
+# Discover what's available:
+cchef list
+```
+
+Output is byte-exact when piped or redirected (so chaining is lossless); a
+trailing newline is added only when writing to a terminal.
+
+## Operations
+
+The 40 operations are grouped using the same categories as CyberChef. Each page
+documents options, examples, and reference links:
+
+- [Data format](docs/data-format.md) — Base/Base32/45/58/62/64/85/92, Hex, Octal,
+  URL encode/decode, AMF.
+- [Encryption / Encoding](docs/encryption-encoding.md) — XOR, ROT13, ROT47.
+- [Hashing](docs/hashing.md) — MD5, SHA-1, SHA-2 (224/256/384/512), SHA-3, Keccak,
+  HMAC, Adler-32.
+- [Utils](docs/utils.md) — Reverse, To Upper/Lower case.
+
+See [docs/](docs/README.md) for the full documentation index, and
+[docs/recipes-and-urls.md](docs/recipes-and-urls.md) for `bake`, `url`, and
+`recipe convert`.
+
+## Recipes
+
+A recipe is an ordered list of operations, expressible in two formats (auto-detected):
+
+- **JSON:** `[{"op":"To Base64","args":["A-Za-z0-9+/="]}, ...]`
+- **Chef** (compact): `To_Base64('A-Za-z0-9+/=')To_Hex('Space')`
+
+Run one with `cchef bake -e <recipe>` / `-r <file>`, convert between formats with
+`cchef recipe convert`, or share it with `cchef url`.
+
+## Development
+
+```bash
+make test     # run all unit tests
+make vet      # go vet
+make lint     # golangci-lint (make install-tools to install it)
+make fmt      # gofmt
+make sbom-audit   # generate + scan a CycloneDX SBOM
+```
+
+Operations are developed **test-first**, with test cases transcribed from
+CyberChef's own fixtures (`../CyberChef/tests/operations/tests/*.mjs`) for
+byte-for-byte parity. The repeatable workflow for porting a new operation is
+captured in the [`/add-operation`](.claude/skills/add-operation/SKILL.md) skill.
+
+### Dependencies
+
+Kept deliberately small:
+
+- [`spf13/cobra`](https://github.com/spf13/cobra) — CLI framework.
+- [`elobuff/goamf`](https://github.com/elobuff/goamf) — backs the AMF operations.
+- [`golang.org/x/crypto`](https://pkg.go.dev/golang.org/x/crypto) — legacy-Keccak
+  hashers for Keccak-256/512.
+
+## License
+
+Released under the [MIT License](LICENSE). `cchef` is an independent
+reimplementation; the upstream CyberChef project it ports is licensed
+Apache-2.0 (see Credits).
+
+## Credits
+
+`cchef` is an independent port of [CyberChef](https://github.com/gchq/CyberChef)
+by GCHQ (Crown Copyright, Apache-2.0). All operation semantics and test vectors
+derive from that project.
