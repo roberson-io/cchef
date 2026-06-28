@@ -9,9 +9,11 @@ Operations for encoding and decoding data between common textual representations
 | From Base32 | `from-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | From Base64 | `from-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
+| From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | To Base32 | `to-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | To Base64 | `to-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | To Hex | `to-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
+| To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 | URL Encode | `url-encode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 
@@ -75,6 +77,23 @@ Hello
 
 ```bash
 $ cchef from-hex --delimiter 'Auto' -i '48:65,6c-6c6f'
+Hello
+```
+
+## From Octal
+
+Converts an octal byte string back into its raw value.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+
+**Simple example**
+
+```bash
+$ cchef from-octal -i '110 145 154 154 157'
 Hello
 ```
 
@@ -147,6 +166,30 @@ $ cchef to-hex --delimiter 'Colon' -i 'Hello'
 
 $ cchef to-hex --delimiter '0x with comma' -i 'abc'
 0x61,0x62,0x63
+```
+
+## To Octal
+
+Converts the input to octal bytes separated by the chosen delimiter.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+
+**Simple example**
+
+```bash
+$ cchef to-octal -i 'Hello'
+110 145 154 154 157
+```
+
+**Alternative delimiter**
+
+```bash
+$ cchef to-octal --delimiter 'Comma' -i 'Hello'
+110,145,154,154,157
 ```
 
 ---

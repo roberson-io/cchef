@@ -15,7 +15,7 @@ third-party dependency).
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 18
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 20
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -28,7 +28,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **18 operations** (`internal/ops/`), each a faithful port with tests
+- **20 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -118,10 +118,10 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **17 unique** CyberChef operations are covered (16 directly plus
+Currently **19 unique** CyberChef operations are covered (18 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
-### Data format (8/78)
+### Data format (10/78)
 
 - [ ] AMF Decode
 - [ ] AMF Encode
@@ -156,7 +156,7 @@ Currently **17 unique** CyberChef operations are covered (16 directly plus
 - [ ] From HTML Entity
 - [ ] From MessagePack
 - [ ] From Modhex
-- [ ] From Octal
+- [x] From Octal
 - [ ] From Punycode
 - [ ] From Quoted Printable
 - [ ] Hex to PEM
@@ -194,7 +194,7 @@ Currently **17 unique** CyberChef operations are covered (16 directly plus
 - [ ] To HTML Entity
 - [ ] To MessagePack
 - [ ] To Modhex
-- [ ] To Octal
+- [x] To Octal
 - [ ] To Punycode
 - [ ] To Quoted Printable
 - [ ] Unescape Unicode Characters
