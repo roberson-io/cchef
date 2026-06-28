@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 40
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 47
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **40 operations** (`internal/ops/`), each a faithful port with tests
+- **47 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -71,7 +71,8 @@ cchef/
     naming.go      Kebab (op name -> subcommand)
   internal/ops/
     base64.go base32.go base45.go base58.go base62.go base85.go base92.go
-    base_generic.go hex.go octal.go urlcode.go xor.go rot.go hashes.go
+    base_generic.go binary.go decimal.go charcode.go swapendianness.go
+    hex.go octal.go urlcode.go xor.go rot.go hashes.go
     case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
     fixtures_test.go (+ per-op _test.go)
   docs/
@@ -131,10 +132,10 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **37 unique** CyberChef operations are covered (36 directly plus
+Currently **44 unique** CyberChef operations are covered (43 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
-### Data format (24/78)
+### Data format (31/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -158,10 +159,10 @@ Currently **37 unique** CyberChef operations are covered (36 directly plus
 - [x] From Base92
 - [ ] From BCD
 - [ ] From Bech32
-- [ ] From Binary
+- [x] From Binary
 - [ ] From Braille
-- [ ] From Charcode
-- [ ] From Decimal
+- [x] From Charcode
+- [x] From Decimal
 - [ ] From Float
 - [x] From Hex
 - [ ] From Hex Content
@@ -183,7 +184,7 @@ Currently **37 unique** CyberChef operations are covered (36 directly plus
 - [ ] Rison Decode
 - [ ] Rison Encode
 - [ ] Show Base64 offsets
-- [ ] Swap endianness
+- [x] Swap endianness
 - [ ] Text Encoding Brute Force
 - [ ] Text-Integer Conversion
 - [x] To Base
@@ -196,10 +197,10 @@ Currently **37 unique** CyberChef operations are covered (36 directly plus
 - [x] To Base92
 - [ ] To BCD
 - [ ] To Bech32
-- [ ] To Binary
+- [x] To Binary
 - [ ] To Braille
-- [ ] To Charcode
-- [ ] To Decimal
+- [x] To Charcode
+- [x] To Decimal
 - [ ] To Float
 - [x] To Hex
 - [ ] To Hex Content
@@ -420,7 +421,7 @@ Currently **37 unique** CyberChef operations are covered (36 directly plus
 - [ ] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
-### Utils (3/52)
+### Utils (4/52)
 
 - [ ] Add line numbers
 - [ ] Alternating Caps
@@ -463,7 +464,7 @@ Currently **37 unique** CyberChef operations are covered (36 directly plus
 - [ ] Sort
 - [ ] Split
 - [ ] Swap case
-- [ ] Swap endianness
+- [x] Swap endianness
 - [ ] Tail
 - [ ] Take bytes
 - [ ] Take nth bytes

@@ -16,8 +16,12 @@ Operations for encoding and decoding data between common textual representations
 | From Base64 | `from-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | From Base85 | `from-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
 | From Base92 | `from-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
+| From Binary | `from-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
+| From Charcode | `from-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
+| From Decimal | `from-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
+| Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | To Base32 | `to-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | To Base45 | `to-base45` | [Base45](https://wikipedia.org/wiki/Base45) |
@@ -26,6 +30,9 @@ Operations for encoding and decoding data between common textual representations
 | To Base64 | `to-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | To Base85 | `to-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
 | To Base92 | `to-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
+| To Binary | `to-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
+| To Charcode | `to-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
+| To Decimal | `to-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | To Hex | `to-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
@@ -223,6 +230,60 @@ $ cchef from-base92 -i "G'_DW[B"
 ietf!
 ```
 
+## From Binary
+
+Converts a binary string back into its raw form.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`, `None`. |
+| `--byte-length` | number | `8` | Number of bits per byte. |
+
+**Simple example**
+
+```bash
+$ cchef from-binary -i '01001000 01101001'
+Hi
+```
+
+## From Charcode
+
+Converts unicode character codes (in the given base) back into text.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+| `--base` | number | `16` | Radix of the character codes (2–36). |
+
+**Simple example**
+
+```bash
+$ cchef from-charcode -i '41 42'
+AB
+```
+
+## From Decimal
+
+Converts a delimited list of decimal byte values back into raw bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+| `--support-signed-values` | bool | `false` | Interpret negative values as their unsigned byte equivalents. |
+
+**Simple example**
+
+```bash
+$ cchef from-decimal -i '72 73'
+HI
+```
+
 ## From Hex
 
 Converts a hexadecimal byte string back into its raw value.
@@ -265,6 +326,32 @@ Hello
 ```
 
 ---
+
+## Swap endianness
+
+Reverses the byte order within fixed-length words.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--data-format` | option | `Hex` | `Hex` or `Raw`. Hex output is space-delimited. |
+| `--word-length-bytes` | number | `4` | Bytes per word. |
+| `--pad-incomplete-words` | bool | `true` | Zero-pad a trailing word shorter than the word length. |
+
+**Simple example**
+
+```bash
+$ cchef swap-endianness --data-format Hex --word-length-bytes 4 -i 0a0b0c0d
+0d 0c 0b 0a
+```
+
+**Raw data**
+
+```bash
+$ cchef swap-endianness --data-format Raw --word-length-bytes 2 -i ABCD
+BADC
+```
 
 ## To Base
 
@@ -428,6 +515,67 @@ options.
 ```bash
 $ cchef to-base92 -i 'Hello!!'
 ;K_$aOTo&
+```
+
+## To Binary
+
+Displays the input as a binary string, each byte zero-padded to the given length.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`, `None`. |
+| `--byte-length` | number | `8` | Number of bits per byte. |
+
+**Simple example**
+
+```bash
+$ cchef to-binary -i 'Hi'
+01001000 01101001
+```
+
+## To Charcode
+
+Converts text to its unicode character codes, in the given base.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+| `--base` | number | `16` | Radix of the character codes (2–36). |
+
+**Simple example**
+
+```bash
+$ cchef to-charcode -i 'AB'
+41 42
+```
+
+**Base 10**
+
+```bash
+$ cchef to-charcode --base 10 -i 'AB'
+65 66
+```
+
+## To Decimal
+
+Converts the input to a delimited list of decimal byte values.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+| `--support-signed-values` | bool | `false` | Treat each byte as a signed value (−128…127). |
+
+**Simple example**
+
+```bash
+$ cchef to-decimal -i 'ABC'
+65 66 67
 ```
 
 ## To Hex
