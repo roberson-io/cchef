@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 47
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 55
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **47 operations** (`internal/ops/`), each a faithful port with tests
+- **55 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -74,6 +74,7 @@ cchef/
     base_generic.go binary.go decimal.go charcode.go swapendianness.go
     hex.go octal.go urlcode.go xor.go rot.go hashes.go
     case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
+    utils_simple.go findreplace.go utils_lines.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
@@ -132,7 +133,7 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **44 unique** CyberChef operations are covered (43 directly plus
+Currently **52 unique** CyberChef operations are covered (51 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 ### Data format (31/78)
@@ -421,7 +422,7 @@ Currently **44 unique** CyberChef operations are covered (43 directly plus
 - [ ] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
-### Utils (4/52)
+### Utils (12/52)
 
 - [ ] Add line numbers
 - [ ] Alternating Caps
@@ -438,8 +439,8 @@ Currently **44 unique** CyberChef operations are covered (43 directly plus
 - [ ] Escape string
 - [ ] Expand alphabet range
 - [ ] File Tree
-- [ ] Filter
-- [ ] Find / Replace
+- [x] Filter
+- [x] Find / Replace
 - [ ] From Case Insensitive Regex
 - [ ] Fuzzy Match
 - [ ] Get All Casings
@@ -447,7 +448,7 @@ Currently **44 unique** CyberChef operations are covered (43 directly plus
 - [ ] Head
 - [ ] Levenshtein Distance
 - [ ] Offset checker
-- [ ] Pad lines
+- [x] Pad lines
 - [ ] Parse colour code
 - [ ] Parse ObjectID timestamp
 - [ ] Parse UNIX file permissions
@@ -455,15 +456,15 @@ Currently **44 unique** CyberChef operations are covered (43 directly plus
 - [ ] Regular expression
 - [ ] Remove ANSI Escape Codes
 - [ ] Remove line numbers
-- [ ] Remove null bytes
-- [ ] Remove whitespace
+- [x] Remove null bytes
+- [x] Remove whitespace
 - [x] Reverse
 - [ ] Show on map
 - [ ] Shuffle
 - [ ] Sleep
-- [ ] Sort
+- [x] Sort
 - [ ] Split
-- [ ] Swap case
+- [x] Swap case
 - [x] Swap endianness
 - [ ] Tail
 - [ ] Take bytes
@@ -473,7 +474,7 @@ Currently **44 unique** CyberChef operations are covered (43 directly plus
 - [ ] To Table
 - [x] To Upper case
 - [ ] Unescape string
-- [ ] Unique
+- [x] Unique
 - [ ] Wrap
 
 ### Date / Time (0/10)
