@@ -30,6 +30,25 @@ func TestSort(t *testing.T) {
 			core.Recipe{{Op: "Sort", Args: []any{"Line feed", false, "Length"}}}},
 		{"Sort IP address", "192.168.1.10\n192.168.1.2\n10.0.0.1", "10.0.0.1\n192.168.1.2\n192.168.1.10",
 			core.Recipe{{Op: "Sort", Args: []any{"Line feed", false, "IP address"}}}},
+		{"Sort IP with invalid (valid first)", "1.2.3.4\nnotanip\n1.2.3.5", "1.2.3.4\n1.2.3.5\nnotanip",
+			core.Recipe{{Op: "Sort", Args: []any{"Line feed", false, "IP address"}}}},
+		{"Sort numeric natural", "file10\nfile2\nfile1", "file1\nfile2\nfile10",
+			core.Recipe{{Op: "Sort", Args: []any{"Line feed", false, "Numeric"}}}},
+		{"Sort hexadecimal", "ff\n10\n2\na", "2\na\n10\nff",
+			core.Recipe{{Op: "Sort", Args: []any{"Line feed", false, "Numeric (hexadecimal)"}}}},
+		// Comma delimiter and the "Nothing (separate chars)" delimiter.
+		{"Sort comma delimited", "banana,apple,cherry", "apple,banana,cherry",
+			core.Recipe{{Op: "Sort", Args: []any{"Comma", false, "Alphabetical (case sensitive)"}}}},
+	})
+}
+
+func TestFilterAndUniqueDelimiters(t *testing.T) {
+	runCases(t, []opCase{
+		// "Nothing (separate chars)" splits into individual characters.
+		{"Filter separate chars", "a1b2c3", "123",
+			core.Recipe{{Op: "Filter", Args: []any{"Nothing (separate chars)", `\d`, false}}}},
+		{"Unique comma delimited", "a,b,a,c,b", "a,b,c",
+			core.Recipe{{Op: "Unique", Args: []any{"Comma", false}}}},
 	})
 }
 

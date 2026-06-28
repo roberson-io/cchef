@@ -30,5 +30,14 @@ func TestFindReplace(t *testing.T) {
 			core.Recipe{{Op: "Find / Replace", Args: []any{regex(`(\w+) (\w+)`), "$2 $1", true, false, true, false}}}},
 		{"Extended escapes", "a\tb", "a b",
 			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\t`), " ", true, false, true, false}}}},
+		{"Extended newline", "a\nb", "a-b",
+			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\n`), "-", true, false, true, false}}}},
+		{"Extended hex escape", "aAb", "a_b",
+			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\x41`), "_", true, false, true, false}}}},
+		{"No match leaves input unchanged", "abc", "abc",
+			core.Recipe{{Op: "Find / Replace", Args: []any{regex("z"), "_", false, false, true, false}}}},
+		// In Extended mode an unrecognised escape becomes the literal char (\d -> d).
+		{"Extended literal fallback", "d1d", "X1X",
+			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\d`), "X", true, false, true, false}}}},
 	})
 }

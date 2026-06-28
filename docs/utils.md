@@ -6,19 +6,136 @@ General-purpose text utilities.
 
 | Operation | Subcommand |
 | --- | --- |
+| Add line numbers | `add-line-numbers` |
+| Alternating Caps | `alternating-caps` |
+| Count occurrences | `count-occurrences` |
+| Drop bytes | `drop-bytes` |
+| Drop nth bytes | `drop-nth-bytes` |
+| Expand alphabet range | `expand-alphabet-range` |
 | Filter | `filter` |
 | Find / Replace | `find-replace` |
+| Head | `head` |
 | Pad lines | `pad-lines` |
+| Remove ANSI Escape Codes | `remove-ansi-escape-codes` |
+| Remove line numbers | `remove-line-numbers` |
 | Remove null bytes | `remove-null-bytes` |
 | Remove whitespace | `remove-whitespace` |
 | Reverse | `reverse` |
 | Sort | `sort` |
+| Split | `split` |
 | Swap case | `swap-case` |
+| Tail | `tail` |
+| Take bytes | `take-bytes` |
+| Take nth bytes | `take-nth-bytes` |
 | To Lower case | `to-lower-case` |
 | To Upper case | `to-upper-case` |
 | Unique | `unique` |
 
 ---
+
+## Add line numbers
+
+Adds a right-aligned line number to the start of each line.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--offset` | number | `0` | Added to each line number. |
+
+**Simple example**
+
+```bash
+$ printf 'a\nb\nc' | cchef add-line-numbers
+1 a
+2 b
+3 c
+```
+
+## Alternating Caps
+
+Applies aLtErNaTiNg capitalisation, starting with lower case (non-letters are
+left unchanged). Takes no options.
+
+**Simple example**
+
+```bash
+$ cchef alternating-caps -i 'hello world'
+hElLo WoRlD
+```
+
+## Count occurrences
+
+Counts how many times a search term appears. Output is the count.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--search-string` | string | (empty) | The term to count. |
+| `--search-string-type` | option | `Regex` | `Regex` (case-insensitive), `Extended (\n, \t, \x...)`, or `Simple string`. |
+
+**Simple example**
+
+```bash
+$ cchef count-occurrences --search-string foo --search-string-type 'Simple string' -i 'foofoofoo'
+3
+```
+
+## Drop bytes
+
+Deletes a range of bytes from the input.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--start` | number | `0` | Start offset (negative counts from the end). |
+| `--length` | number | `5` | Number of bytes to drop. |
+| `--apply-to-each-line` | bool | `false` | Apply per line. |
+
+**Simple example**
+
+```bash
+$ cchef drop-bytes --start 0 --length 6 -i 'Hello World'
+World
+```
+
+## Drop nth bytes
+
+Drops every nth byte, starting at a given offset.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--drop-every` | number | `4` | Drop every nth byte. |
+| `--starting-at` | number | `0` | Offset to start from. |
+| `--apply-to-each-line` | bool | `false` | Reset the count per line. |
+
+**Simple example**
+
+```bash
+$ cchef drop-nth-bytes --drop-every 2 -i '0123456789'
+13579
+```
+
+## Expand alphabet range
+
+Expands an alphabet range specification into its characters.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | string | (empty) | Delimiter to join the expanded characters with. |
+
+**Simple example**
+
+```bash
+$ cchef expand-alphabet-range -i 'a-j'
+abcdefghij
+```
 
 ## Filter
 
@@ -72,6 +189,26 @@ $ cchef find-replace --find '(\w+) (\w+)' --find-type Regex --replace '$2 $1' -i
 Smith John
 ```
 
+## Head
+
+Keeps only the first N sections (lines) of the input. A negative N drops the
+last |N| sections.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Line feed` | `Line feed`, `CRLF`, `Space`, `Comma`, `Semi-colon`, `Colon`, `Nothing (separate chars)`. |
+| `--number` | number | `10` | Number of sections to keep. |
+
+**Simple example**
+
+```bash
+$ printf 'a\nb\nc\nd\ne' | cchef head --number 2
+a
+b
+```
+
 ## Pad lines
 
 Adds padding characters to the start or end of each line.
@@ -90,6 +227,32 @@ Adds padding characters to the start or end of each line.
 $ printf 'ab\ncd' | cchef pad-lines --position Start --length 2 --character '*'
 **ab
 **cd
+```
+
+## Remove ANSI Escape Codes
+
+Removes ANSI escape codes (e.g. terminal colour codes) from the input. Takes no
+options.
+
+**Simple example**
+
+```bash
+$ printf '\x1b[31mred\x1b[0m text' | cchef remove-ansi-escape-codes
+red text
+```
+
+## Remove line numbers
+
+Removes line numbers from the beginning of each line, where they can be found.
+Takes no options.
+
+**Simple example**
+
+```bash
+$ printf '1 a\n2 b\n3 c' | cchef remove-line-numbers
+a
+b
+c
 ```
 
 ## Remove null bytes
@@ -174,6 +337,27 @@ $ printf '10\n2\n1\n20' | cchef sort --order Numeric
 20
 ```
 
+## Split
+
+Splits the input on one delimiter and rejoins the parts with another. Delimiters
+support escape sequences (e.g. `\n`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--split-delimiter` | string | `,` | Delimiter to split on. |
+| `--join-delimiter` | string | `\n` | Delimiter to join with. |
+
+**Simple example**
+
+```bash
+$ cchef split --split-delimiter ',' --join-delimiter '\n' -i 'a,b,c'
+a
+b
+c
+```
+
 ## Swap case
 
 Converts uppercase characters to lowercase and vice versa. Takes no options.
@@ -183,6 +367,64 @@ Converts uppercase characters to lowercase and vice versa. Takes no options.
 ```bash
 $ cchef swap-case -i 'Hello, World!'
 hELLO, wORLD!
+```
+
+## Tail
+
+Keeps only the last N sections (lines) of the input. A negative N drops the
+first |N| sections.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Line feed` | `Line feed`, `CRLF`, `Space`, `Comma`, `Semi-colon`, `Colon`, `Nothing (separate chars)`. |
+| `--number` | number | `10` | Number of sections to keep. |
+
+**Simple example**
+
+```bash
+$ printf 'a\nb\nc\nd\ne' | cchef tail --number 2
+d
+e
+```
+
+## Take bytes
+
+Keeps only a range of bytes from the input.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--start` | number | `0` | Start offset (negative counts from the end). |
+| `--length` | number | `5` | Number of bytes to keep. |
+| `--apply-to-each-line` | bool | `false` | Apply per line. |
+
+**Simple example**
+
+```bash
+$ cchef take-bytes --start 0 --length 5 -i 'Hello World'
+Hello
+```
+
+## Take nth bytes
+
+Keeps every nth byte, starting at a given offset.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--take-every` | number | `4` | Keep every nth byte. |
+| `--starting-at` | number | `0` | Offset to start from. |
+| `--apply-to-each-line` | bool | `false` | Reset the count per line. |
+
+**Simple example**
+
+```bash
+$ cchef take-nth-bytes --take-every 2 -i '0123456789'
+02468
 ```
 
 ## To Lower case

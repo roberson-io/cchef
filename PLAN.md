@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 55
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 68
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **55 operations** (`internal/ops/`), each a faithful port with tests
+- **68 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -74,7 +74,7 @@ cchef/
     base_generic.go binary.go decimal.go charcode.go swapendianness.go
     hex.go octal.go urlcode.go xor.go rot.go hashes.go
     case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
-    utils_simple.go findreplace.go utils_lines.go
+    utils_simple.go findreplace.go utils_lines.go utils_slice.go utils_text2.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
@@ -133,7 +133,7 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **52 unique** CyberChef operations are covered (51 directly plus
+Currently **65 unique** CyberChef operations are covered (64 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 ### Data format (31/78)
@@ -422,22 +422,22 @@ Currently **52 unique** CyberChef operations are covered (51 directly plus
 - [ ] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
-### Utils (12/52)
+### Utils (25/52)
 
-- [ ] Add line numbers
-- [ ] Alternating Caps
+- [x] Add line numbers
+- [x] Alternating Caps
 - [ ] Convert area
 - [ ] Convert co-ordinate format
 - [ ] Convert data units
 - [ ] Convert distance
 - [ ] Convert mass
 - [ ] Convert speed
-- [ ] Count occurrences
+- [x] Count occurrences
 - [ ] Diff
-- [ ] Drop bytes
-- [ ] Drop nth bytes
+- [x] Drop bytes
+- [x] Drop nth bytes
 - [ ] Escape string
-- [ ] Expand alphabet range
+- [x] Expand alphabet range
 - [ ] File Tree
 - [x] Filter
 - [x] Find / Replace
@@ -445,7 +445,7 @@ Currently **52 unique** CyberChef operations are covered (51 directly plus
 - [ ] Fuzzy Match
 - [ ] Get All Casings
 - [ ] Hamming Distance
-- [ ] Head
+- [x] Head
 - [ ] Levenshtein Distance
 - [ ] Offset checker
 - [x] Pad lines
@@ -454,8 +454,8 @@ Currently **52 unique** CyberChef operations are covered (51 directly plus
 - [ ] Parse UNIX file permissions
 - [ ] Pseudo-Random Number Generator
 - [ ] Regular expression
-- [ ] Remove ANSI Escape Codes
-- [ ] Remove line numbers
+- [x] Remove ANSI Escape Codes
+- [x] Remove line numbers
 - [x] Remove null bytes
 - [x] Remove whitespace
 - [x] Reverse
@@ -463,12 +463,12 @@ Currently **52 unique** CyberChef operations are covered (51 directly plus
 - [ ] Shuffle
 - [ ] Sleep
 - [x] Sort
-- [ ] Split
+- [x] Split
 - [x] Swap case
 - [x] Swap endianness
-- [ ] Tail
-- [ ] Take bytes
-- [ ] Take nth bytes
+- [x] Tail
+- [x] Take bytes
+- [x] Take nth bytes
 - [ ] To Case Insensitive Regex
 - [x] To Lower case
 - [ ] To Table

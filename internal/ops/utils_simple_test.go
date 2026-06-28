@@ -39,5 +39,8 @@ func TestPadLines(t *testing.T) {
 			core.Recipe{{Op: "Pad lines", Args: []any{"Start", 3, "*"}}}},
 		{"Pad lines end", "ab\ncd", "ab***\ncd***",
 			core.Recipe{{Op: "Pad lines", Args: []any{"End", 3, "*"}}}},
+		// Multi-character pad pattern repeats then truncates to the length.
+		{"Pad lines multi-char", "x", "ababax",
+			core.Recipe{{Op: "Pad lines", Args: []any{"Start", 5, "ab"}}}},
 	})
 }
