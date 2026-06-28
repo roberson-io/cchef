@@ -1,0 +1,95 @@
+package core
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// DishType identifies how the bytes in a Dish should be interpreted. It mirrors
+// CyberChef's Dish types (src/core/Dish.mjs). All byte-backed types share the
+// same canonical storage ([]byte); conversions only matter at the edges.
+type DishType string
+
+const (
+	// TypeString treats the bytes as a UTF-8 string.
+	TypeString DishType = "string"
+	// TypeByteArray treats the bytes as a raw byte array.
+	TypeByteArray DishType = "byteArray"
+	// TypeArrayBuffer is CyberChef's binary hub type; identical storage to byteArray.
+	TypeArrayBuffer DishType = "ArrayBuffer"
+	// TypeNumber treats the bytes as the ASCII representation of a number.
+	TypeNumber DishType = "number"
+)
+
+// Dish is the data container passed between operations. It holds canonical
+// []byte storage plus a type tag describing the current interpretation.
+type Dish struct {
+	data []byte
+	typ  DishType
+}
+
+// NewDish builds a Dish from raw bytes and a type tag.
+func NewDish(data []byte, typ DishType) *Dish {
+	return &Dish{data: data, typ: typ}
+}
+
+// Type returns the dish's current type tag.
+func (d *Dish) Type() DishType { return d.typ }
+
+// Bytes returns the canonical byte storage.
+func (d *Dish) Bytes() []byte { return d.data }
+
+// String returns the dish data as a UTF-8 string.
+func (d *Dish) String() string { return string(d.data) }
+
+// Get returns the dish value converted to the requested type. String,
+// byteArray and ArrayBuffer are byte-backed and convert trivially; number is
+// parsed from the ASCII representation.
+func (d *Dish) Get(typ DishType) (any, error) {
+	switch typ {
+	case TypeString:
+		return string(d.data), nil
+	case TypeByteArray, TypeArrayBuffer:
+		return d.data, nil
+	case TypeNumber:
+		n, err := strconv.ParseFloat(string(d.data), 64)
+		if err != nil {
+			return nil, fmt.Errorf("cannot interpret dish as number: %w", err)
+		}
+		return n, nil
+	default:
+		return nil, fmt.Errorf("unknown dish type %q", typ)
+	}
+}
+
+// Set replaces the dish value. Byte-backed values are stored as-is; numbers are
+// rendered to their ASCII representation.
+func (d *Dish) Set(value any, typ DishType) error {
+	switch typ {
+	case TypeString:
+		s, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("expected string for type %q, got %T", typ, value)
+		}
+		d.data = []byte(s)
+	case TypeByteArray, TypeArrayBuffer:
+		b, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("expected []byte for type %q, got %T", typ, value)
+		}
+		d.data = b
+	case TypeNumber:
+		switch n := value.(type) {
+		case float64:
+			d.data = []byte(strconv.FormatFloat(n, 'f', -1, 64))
+		case int:
+			d.data = []byte(strconv.Itoa(n))
+		default:
+			return fmt.Errorf("expected number for type %q, got %T", typ, value)
+		}
+	default:
+		return fmt.Errorf("unknown dish type %q", typ)
+	}
+	d.typ = typ
+	return nil
+}

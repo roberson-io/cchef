@@ -1,0 +1,115 @@
+package core
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"regexp"
+	"strings"
+)
+
+// These regexes are direct ports of CyberChef's Utils.mjs recipe handling.
+var (
+	reDoubleQuoted = regexp.MustCompile(`"((?:[^"\\]|\\.)*)"`)
+	reRecipeOp     = regexp.MustCompile(`([^(]+)\(((?:'[^'\\]*(?:\\.[^'\\]*)*'|[^)/'])*)(/[^)]+)?\)`)
+	reOpenQuote    = regexp.MustCompile(`(^|,|\{|:)'`)
+	reCloseQuote   = regexp.MustCompile(`([^\\]|(?:\\\\)+)'(,|:|\}|$)`)
+)
+
+// marshalNoEscapeHTML marshals v to JSON without escaping <, > and & (matching
+// JavaScript's JSON.stringify behaviour).
+func marshalNoEscapeHTML(v any) (string, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return "", err
+	}
+	return strings.TrimRight(buf.String(), "\n"), nil
+}
+
+// chefArgs renders a recipe step's arguments in Chef format: JSON values with
+// the enclosing [] removed and double-quoted strings rewritten as single-quoted.
+func chefArgs(args []any) (string, error) {
+	if len(args) == 0 {
+		return "", nil
+	}
+	s, err := marshalNoEscapeHTML(args)
+	if err != nil {
+		return "", err
+	}
+	s = s[1 : len(s)-1] // strip surrounding [ ]
+	s = strings.ReplaceAll(s, "'", `\'`)
+	s = reDoubleQuoted.ReplaceAllString(s, "'$1'")
+	s = strings.ReplaceAll(s, `\"`, `"`)
+	return s, nil
+}
+
+// GeneratePrettyRecipe serialises a recipe to CyberChef's compact "Chef" text
+// format, e.g. To_Base64('A-Za-z0-9+/='). Ported from Utils.generatePrettyRecipe.
+func GeneratePrettyRecipe(r Recipe, newline bool) string {
+	var sb strings.Builder
+	for _, op := range r {
+		name := strings.ReplaceAll(op.Op, " ", "_")
+		args, err := chefArgs(op.Args)
+		if err != nil {
+			args = ""
+		}
+		sb.WriteString(name)
+		sb.WriteString("(")
+		sb.WriteString(args)
+		if op.Disabled {
+			sb.WriteString("/disabled")
+		}
+		if op.Breakpoint {
+			sb.WriteString("/breakpoint")
+		}
+		sb.WriteString(")")
+		if newline {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
+}
+
+// ParseRecipeConfig parses a recipe given as either a JSON array or the Chef
+// text format, auto-detecting by a leading "[". Ported from Utils.parseRecipeConfig.
+func ParseRecipeConfig(recipe string) (Recipe, error) {
+	recipe = strings.TrimSpace(recipe)
+	if recipe == "" {
+		return Recipe{}, nil
+	}
+	if recipe[0] == '[' {
+		var r Recipe
+		if err := json.Unmarshal([]byte(recipe), &r); err != nil {
+			return nil, fmt.Errorf("parse JSON recipe: %w", err)
+		}
+		return r, nil
+	}
+
+	recipe = strings.ReplaceAll(recipe, "\n", "")
+	out := Recipe{}
+	for _, m := range reRecipeOp.FindAllStringSubmatch(recipe, -1) {
+		args := m[2]
+		args = strings.ReplaceAll(args, `"`, `\"`)          // escape double quotes
+		args = reOpenQuote.ReplaceAllString(args, `$1"`)    // opening ' -> "
+		args = reCloseQuote.ReplaceAllString(args, `$1"$2`) // closing ' -> "
+		args = strings.ReplaceAll(args, `\'`, "'")          // unescape single quotes
+		args = "[" + args + "]"
+
+		var parsed []any
+		if err := json.Unmarshal([]byte(args), &parsed); err != nil {
+			return nil, fmt.Errorf("parse args for %q: %w", m[1], err)
+		}
+
+		step := RecipeOp{Op: strings.ReplaceAll(m[1], "_", " "), Args: parsed}
+		if strings.Contains(m[3], "disabled") {
+			step.Disabled = true
+		}
+		if strings.Contains(m[3], "breakpoint") {
+			step.Breakpoint = true
+		}
+		out = append(out, step)
+	}
+	return out, nil
+}
