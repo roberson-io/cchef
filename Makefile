@@ -4,7 +4,7 @@ BINARY  := cchef
 DIST    := dist
 
 .DEFAULT_GOAL := all
-.PHONY: all build clean fmt install-tools lint sbom sbom-audit sbom-scan test vet
+.PHONY: all build clean cover fmt install-tools lint sbom sbom-audit sbom-scan test vet
 
 ## all: format, vet, test, and build
 all: fmt vet test build
@@ -16,7 +16,11 @@ build:
 
 ## clean: remove build artifacts
 clean:
-	rm -rf $(DIST)
+	rm -rf $(DIST) coverage.out
+
+## cover: run tests and write a cross-package coverage profile
+cover:
+	$(GO) test -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
 
 ## fmt: format all Go source
 fmt:

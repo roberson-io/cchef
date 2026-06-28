@@ -116,7 +116,8 @@ cchef list                                   # discover operations
   beyond the current linear `Recipe.Execute`.
 - `CRC Checksum` (parameterised over many algorithms via an argSelector) is
   deferred as a larger-than-straight-port effort.
-- CI wiring (GitHub Actions) for lint/test/SBOM. (A repo-root `README.md` now exists.)
+- (Done: a repo-root `README.md` and GitHub Actions CI running fmt/vet/test/lint
+  plus an SBOM scan now exist.)
 
 ## Verification
 
