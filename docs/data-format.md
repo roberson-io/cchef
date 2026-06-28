@@ -8,12 +8,24 @@ Operations for encoding and decoding data between common textual representations
 | --- | --- | --- |
 | AMF Decode | `amf-decode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
+| From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | From Base32 | `from-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
+| From Base45 | `from-base45` | [Base45](https://wikipedia.org/wiki/Base45) |
+| From Base58 | `from-base58` | [Base58](https://wikipedia.org/wiki/Binary-to-text_encoding#Base58) |
+| From Base62 | `from-base62` | [Base62](https://wikipedia.org/wiki/Base62) |
 | From Base64 | `from-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
+| From Base85 | `from-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
+| From Base92 | `from-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
+| To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | To Base32 | `to-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
+| To Base45 | `to-base45` | [Base45](https://wikipedia.org/wiki/Base45) |
+| To Base58 | `to-base58` | [Base58](https://wikipedia.org/wiki/Binary-to-text_encoding#Base58) |
+| To Base62 | `to-base62` | [Base62](https://wikipedia.org/wiki/Base62) |
 | To Base64 | `to-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
+| To Base85 | `to-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
+| To Base92 | `to-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
 | To Hex | `to-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
@@ -71,6 +83,24 @@ $ printf '[1,2,3]' | cchef amf-encode | cchef amf-decode
 
 ---
 
+## From Base
+
+Converts a number from a given numerical base (radix 2–36) to decimal. Only
+integer values are supported.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--radix` | number | `36` | The base of the input number (2–36). |
+
+**Simple example**
+
+```bash
+$ cchef from-base --radix 16 -i ff
+255
+```
+
 ## From Base32
 
 Decodes a Base32 string back into its raw byte value.
@@ -87,6 +117,59 @@ Decodes a Base32 string back into its raw byte value.
 ```bash
 $ cchef from-base32 -i 'JBSWY3DP'
 Hello
+```
+
+## From Base45
+
+Decodes a Base45 string back into its raw byte value (RFC 9285).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `` 0-9A-Z $%*+\-./: `` | The Base45 alphabet. |
+| `--remove-non-alphabet-chars` | bool | `true` | Strip characters outside the alphabet before decoding. |
+
+**Simple example**
+
+```bash
+$ cchef from-base45 -i 'QED8WEX0'
+ietf!
+```
+
+## From Base58
+
+Decodes a Base58 string back into its raw byte value.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | Bitcoin alphabet | The 58-character alphabet (Bitcoin by default; Ripple also common). |
+| `--remove-non-alphabet-chars` | bool | `true` | Skip characters outside the alphabet. |
+
+**Simple example**
+
+```bash
+$ cchef from-base58 -i 'StV1DL6CwTryKyV'
+hello world
+```
+
+## From Base62
+
+Decodes a Base62 string back into its raw byte value.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `0-9A-Za-z` | The Base62 alphabet. |
+
+**Simple example**
+
+```bash
+$ cchef from-base62 -i '1wJfrzvdbtXUOlUjUf'
+Hello, World!
 ```
 
 ## From Base64
@@ -106,6 +189,38 @@ Decodes data from an ASCII Base64 string back into its raw form.
 ```bash
 $ cchef from-base64 -i 'SGVsbG8sIFdvcmxkIQ=='
 Hello, World!
+```
+
+## From Base85
+
+Decodes a Base85 (Ascii85) string back into its raw byte value.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `!-u` | The 85-character alphabet (Standard, Z85, or IPv6). |
+| `--remove-non-alphabet-chars` | bool | `true` | Skip characters outside the alphabet. |
+| `--all-zero-group-char` | string | `z` | Character representing an all-zero 4-byte group. |
+
+**Simple example**
+
+```bash
+$ cchef from-base85 -i '9jqo^'
+Man
+```
+
+(Delimited input like `<~9jqo^~>` is also accepted.)
+
+## From Base92
+
+Decodes a Base92 string back into its raw byte value. Takes no options.
+
+**Simple example**
+
+```bash
+$ cchef from-base92 -i "G'_DW[B"
+ietf!
 ```
 
 ## From Hex
@@ -151,6 +266,30 @@ Hello
 
 ---
 
+## To Base
+
+Converts a decimal number to a different numerical base (radix 2–36).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--radix` | number | `36` | The target base (2–36). |
+
+**Simple example**
+
+```bash
+$ cchef to-base --radix 16 -i 255
+ff
+```
+
+**Binary**
+
+```bash
+$ cchef to-base --radix 2 -i 255
+11111111
+```
+
 ## To Base32
 
 Base32 encodes arbitrary byte data using a restricted symbol set (usually `A-Z`
@@ -167,6 +306,66 @@ and `2-7`).
 ```bash
 $ cchef to-base32 -i 'Hello'
 JBSWY3DP
+```
+
+## To Base45
+
+Base45 encodes arbitrary byte data, used notably in QR codes (RFC 9285).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `` 0-9A-Z $%*+\-./: `` | The Base45 alphabet. |
+
+**Simple example**
+
+```bash
+$ cchef to-base45 -i 'Hello!!'
+%69 VD92EX0
+```
+
+## To Base58
+
+Base58 encodes arbitrary byte data using an alphabet that omits easily-confused
+characters. Commonly used for cryptocurrency addresses.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | Bitcoin alphabet | The 58-character alphabet. |
+
+**Simple example**
+
+```bash
+$ cchef to-base58 -i 'hello world'
+StV1DL6CwTryKyV
+```
+
+**Ripple alphabet**
+
+```bash
+$ cchef to-base58 --alphabet 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz' -i 'hello world'
+StVrDLaUATiyKyV
+```
+
+## To Base62
+
+Base62 encodes arbitrary byte data using alphanumeric characters by treating the
+data as a large integer.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `0-9A-Za-z` | The Base62 alphabet. |
+
+**Simple example**
+
+```bash
+$ cchef to-base62 -i 'Hello, World!'
+1wJfrzvdbtXUOlUjUf
 ```
 
 ## To Base64
@@ -191,6 +390,44 @@ SGVsbG8sIFdvcmxkIQ==
 ```bash
 $ printf '\xfb\xff' | cchef to-base64 --alphabet 'A-Za-z0-9-_'
 -_8
+```
+
+## To Base85
+
+Base85 (Ascii85) encodes arbitrary byte data using 85 printable ASCII
+characters, more space-efficient than Base64.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `!-u` | The 85-character alphabet (Standard, Z85, or IPv6). |
+| `--include-delimiter` | bool | `false` | Wrap the output in `<~` … `~>` delimiters. |
+
+**Simple example**
+
+```bash
+$ cchef to-base85 -i 'Man '
+9jqo^
+```
+
+**With delimiters**
+
+```bash
+$ cchef to-base85 --include-delimiter -i 'Man '
+<~9jqo^~>
+```
+
+## To Base92
+
+Base92 encodes arbitrary byte data using 91 printable ASCII characters. Takes no
+options.
+
+**Simple example**
+
+```bash
+$ cchef to-base92 -i 'Hello!!'
+;K_$aOTo&
 ```
 
 ## To Hex

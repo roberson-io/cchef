@@ -21,6 +21,8 @@ const (
 	TypeNumber DishType = "number"
 	// TypeJSON treats the bytes as JSON text.
 	TypeJSON DishType = "JSON"
+	// TypeBigNumber treats the bytes as the decimal text of an arbitrary-precision number.
+	TypeBigNumber DishType = "BigNumber"
 )
 
 // Dish is the data container passed between operations. It holds canonical
@@ -49,7 +51,7 @@ func (d *Dish) String() string { return string(d.data) }
 // parsed from the ASCII representation.
 func (d *Dish) Get(typ DishType) (any, error) {
 	switch typ {
-	case TypeString, TypeJSON:
+	case TypeString, TypeJSON, TypeBigNumber:
 		return string(d.data), nil
 	case TypeByteArray, TypeArrayBuffer:
 		return d.data, nil
@@ -68,7 +70,7 @@ func (d *Dish) Get(typ DishType) (any, error) {
 // rendered to their ASCII representation.
 func (d *Dish) Set(value any, typ DishType) error {
 	switch typ {
-	case TypeString, TypeJSON:
+	case TypeString, TypeJSON, TypeBigNumber:
 		switch v := value.(type) {
 		case string:
 			d.data = []byte(v)

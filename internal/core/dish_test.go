@@ -89,6 +89,21 @@ func TestDishJSON(t *testing.T) {
 	}
 }
 
+func TestDishBigNumber(t *testing.T) {
+	// BigNumber is text-backed: the decimal string representation.
+	d := NewDish([]byte("255"), TypeBigNumber)
+	got, err := d.Get(TypeBigNumber)
+	if err != nil || got.(string) != "255" {
+		t.Fatalf("Get(BigNumber) = %v, %v", got, err)
+	}
+	if err := d.Set("4096", TypeBigNumber); err != nil || d.String() != "4096" {
+		t.Fatalf("Set(BigNumber): %v, %q", err, d.String())
+	}
+	if d.Type() != TypeBigNumber {
+		t.Fatalf("Type() = %v, want BigNumber", d.Type())
+	}
+}
+
 func TestDishBytes(t *testing.T) {
 	raw := []byte{0x00, 0xff, 0x10}
 	d := NewDish(raw, TypeByteArray)

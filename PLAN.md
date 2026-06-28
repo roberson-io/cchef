@@ -16,7 +16,7 @@ also implements via an external AMF library).
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 22
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 34
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -29,7 +29,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **22 operations** (`internal/ops/`), each a faithful port with tests
+- **34 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -64,7 +64,8 @@ cchef/
     url.go         EncodeURIFragment / BuildURL
     naming.go      Kebab (op name -> subcommand)
   internal/ops/
-    base64.go base32.go hex.go octal.go urlcode.go xor.go rot.go hashes.go
+    base64.go base32.go base45.go base58.go base62.go base85.go base92.go
+    base_generic.go hex.go octal.go urlcode.go xor.go rot.go hashes.go
     case.go reverse.go amf.go
     fixtures_test.go (+ per-op _test.go)
   docs/
@@ -103,8 +104,8 @@ cchef list                                   # discover operations
 
 - Implement more operations from the checklist below, prioritising common
   Data format / Encryption / Hashing ops.
-- Additional Dish types as needed (e.g. BigNumber) for ops that require them.
-  (`JSON` was added for the AMF operations.)
+- Additional Dish types as needed for ops that require them.
+  (`JSON` was added for AMF; `BigNumber` for the generic To/From Base.)
 - Flow control operations (Fork, Merge, Conditional Jump) need engine support
   beyond the current linear `Recipe.Execute`.
 - A repo-root `README.md` and CI wiring for lint/test/SBOM.
@@ -121,10 +122,10 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **21 unique** CyberChef operations are covered (20 directly plus
+Currently **33 unique** CyberChef operations are covered (32 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
-### Data format (12/78)
+### Data format (24/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -138,14 +139,14 @@ Currently **21 unique** CyberChef operations are covered (20 directly plus
 - [ ] Encode text
 - [ ] Escape Smart Characters
 - [ ] Escape Unicode Characters
-- [ ] From Base
+- [x] From Base
 - [x] From Base32
-- [ ] From Base45
-- [ ] From Base58
-- [ ] From Base62
+- [x] From Base45
+- [x] From Base58
+- [x] From Base62
 - [x] From Base64
-- [ ] From Base85
-- [ ] From Base92
+- [x] From Base85
+- [x] From Base92
 - [ ] From BCD
 - [ ] From Bech32
 - [ ] From Binary
@@ -176,14 +177,14 @@ Currently **21 unique** CyberChef operations are covered (20 directly plus
 - [ ] Swap endianness
 - [ ] Text Encoding Brute Force
 - [ ] Text-Integer Conversion
-- [ ] To Base
+- [x] To Base
 - [x] To Base32
-- [ ] To Base45
-- [ ] To Base58
-- [ ] To Base62
+- [x] To Base45
+- [x] To Base58
+- [x] To Base62
 - [x] To Base64
-- [ ] To Base85
-- [ ] To Base92
+- [x] To Base85
+- [x] To Base92
 - [ ] To BCD
 - [ ] To Bech32
 - [ ] To Binary
