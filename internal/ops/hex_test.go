@@ -29,6 +29,16 @@ func TestHexFixtures(t *testing.T) {
 
 		{"To Hex 0x with comma", "abc", "0x61,0x62,0x63",
 			core.Recipe{{Op: "To Hex", Args: []any{"0x with comma"}}}},
+		{"To Hex Percent (prepended)", "abc", "%61%62%63",
+			core.Recipe{{Op: "To Hex", Args: []any{"Percent"}}}},
+		{"To Hex Semi-colon", "abc", "61;62;63",
+			core.Recipe{{Op: "To Hex", Args: []any{"Semi-colon"}}}},
+		{"To Hex Comma", "abc", "61,62,63",
+			core.Recipe{{Op: "To Hex", Args: []any{"Comma"}}}},
+		{"To Hex None", "abc", "616263",
+			core.Recipe{{Op: "To Hex", Args: []any{"None"}}}},
+		{"To Hex backslash-x (prepended)", "abc", "\\x61\\x62\\x63",
+			core.Recipe{{Op: "To Hex", Args: []any{"\\x"}}}},
 
 		{"Hex round trip", "Hello, World!", "Hello, World!",
 			core.Recipe{

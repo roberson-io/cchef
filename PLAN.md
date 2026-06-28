@@ -1,183 +1,690 @@
-# CyberChef CLI (`cchef`) — Implementation Plan
+# CyberChef CLI (`cchef`) — Plan & Status
 
 ## Context
 
-We want a Go CLI named `cchef` that ports the data-transformation engine of CyberChef
-(cloned at `../CyberChef`, a JS project with 485+ operations) to the terminal. The goal
-is a Unix-friendly tool where each operation is a subcommand, operations chain into
-recipes (via pipes, JSON, or CyberChef's "Chef" text format), and recipes round-trip to a
-shareable `gchq.github.io/CyberChef` URL.
+`cchef` is a Go CLI port of the data-transformation engine of
+[CyberChef](https://gchq.github.io/CyberChef/) (cloned at `../CyberChef`, a JS
+project with 486 operations). The goal is a Unix-friendly tool where each
+operation is a subcommand, operations chain into recipes (via pipes, JSON, or
+CyberChef's "Chef" text format), and recipes round-trip to a shareable
+`gchq.github.io/CyberChef` URL.
 
-This first effort delivers the **core engine + recipe/URL machinery + a curated set of
-~18 operations** that exercises every part of the architecture. The remaining operations
-are added later, one hand-written file at a time, against the same interfaces. Development
-is **test-driven**: write the test, stub to compile, implement to green.
+Development is **test-driven** (test → stub → implement), reusing CyberChef's own
+fixture cases for parity, and reduces external dependencies (cobra is the only
+third-party dependency).
 
-Decisions confirmed with the user:
-- **Scope:** curated starter set (framework proven end-to-end), not all 485.
-- **Chaining:** all three — per-op subcommands over stdin/stdout pipes, *and* a `bake`
-  command that runs a JSON or Chef recipe.
-- **Op implementation:** hand-written Go files, self-registering in a registry (no codegen).
+## Current status
 
-## How CyberChef works (the model we replicate)
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 18
+operations** are implemented, tested, and documented. The remaining CyberChef
+operations are added incrementally against the same interfaces (see the
+[Operation implementation status](#operation-implementation-status) checklist
+below).
 
-Confirmed by reading the source:
+**Done:**
 
-- **Operation** (`../CyberChef/src/core/Operation.mjs`, e.g. `operations/ToBase64.mjs`,
-  `operations/ROT13.mjs`): metadata (`name`, `module`, `description`, `infoURL`,
-  `inputType`, `outputType`) + `args[]` ingredient definitions + a `run(input, args)`.
-- **Ingredient/arg types** (`Ingredient.mjs`): `string`, `binaryString`, `toggleString`
-  (`{string, option}` with `toggleValues` e.g. Hex/UTF8/Base64/Latin1), `number`,
-  `boolean`, `option` (`[]string` dropdown), `editableOption`. Starter ops only need
-  string/number/boolean/option/editableOption/toggleString.
-- **Dish** (`Dish.mjs`): data container with a type tag; all types convert through
-  `ArrayBuffer` as the hub. Relevant types: `string`, `byteArray`, `ArrayBuffer`, `number`.
-- **Recipe** (`Recipe.mjs`): ordered list of `{op, args, disabled?, breakpoint?}`; executes
-  sequentially, converting the dish to each op's `inputType` before `run()`. `config` getter
-  emits the JSON form `[{op:"To Base64", args:[...]}, ...]`.
-- **Chef text format & parsing** (`Utils.generatePrettyRecipe` / `Utils.parseRecipeConfig`,
-  `Utils.mjs` ~line 978): `To_Base64('A-Za-z0-9+/=')` with spaces→`_`, args are JSON with
-  `[]` stripped and `"`→`'`; optional `/disabled` `/breakpoint` flags. We port these two
-  functions (and their regexes) faithfully.
-- **URL** (`web/waiters/ControlsWaiter.mjs` + `Utils.encodeURIFragment`): fragment
-  `#recipe=<encoded pretty recipe>&input=<base64 of input, then fragment-encoded>`.
-  `encodeURIFragment` = `encodeURIComponent` then un-escape the safe set `-._~!$'()*,;:@/?`,
-  keeping `&`,`+`,`=` escaped.
+- **Core engine** (`internal/core/`): `Dish` (byte-backed type hub),
+  `Operation` interface + `ArgDef`/`ToggleString` ingredient model, self-registering
+  `Registry`, sequential `Recipe.Execute`, faithful ports of
+  `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
+  `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
+- **18 operations** (`internal/ops/`), each a faithful port with tests
+  transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
+- **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
+  defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
+  resolves `--in-file` > `-i/--input` > positional args > stdin; output is
+  byte-exact when piped and adds a trailing newline only on a TTY.
+- **Docs** (`docs/`): per-category pages with options tables, simple + complex
+  examples, and external reference links; operations listed alphabetically.
+- **Tooling**: `Makefile` (alphabetised targets: build/test/fmt/vet/lint +
+  `sbom`/`sbom-scan`/`sbom-audit` via cyclonedx-gomod + grype), `.gitignore`,
+  cobra-only `go.mod`. `make test`, `make vet`, and `make lint` are clean.
 
-## Go package layout
+## Architecture (as built)
 
 ```
 cchef/
-  go.mod                       module github.com/<user>/cchef (cobra only dep)
   main.go                      thin entry -> cmd.Execute()
-  Makefile
+  Makefile  .gitignore  go.mod
   cmd/
-    root.go                    root cobra cmd, global flags (-i/--input, --in-file, -o)
-    bake.go                    `cchef bake` — run JSON/Chef recipe (-r file / -e expr)
-    url.go                     `cchef url` — emit CyberChef URL for a recipe (+input)
-    recipe.go                  `cchef recipe convert` — JSON <-> Chef format
-    list.go                    `cchef list` — list ops + categories
+    root.go                    root cobra command
     register_ops.go            builds one subcommand per registered op (flags from ArgDefs)
+    io.go                      input resolution (--in-file > -i > positional > stdin) + output
+    bake.go                    `cchef bake` — run a JSON/Chef recipe (-e expr / -r file)
+    url.go                     `cchef url` — emit a CyberChef share URL
+    recipe.go                  `cchef recipe convert` — JSON <-> Chef
+    list.go                    `cchef list` — list ops by module
   internal/core/
-    dish.go        Dish{ data []byte; typ DishType }, Get(DishType)->any, conversions
-    operation.go   Operation interface, ArgDef, ArgType consts, ArgValue coercion
-    registry.go    Register(Operation) / Get(name) / All(); ops self-register via init()
-    recipe.go      RecipeOp{Op,Args,Disabled,Breakpoint}, Recipe.Execute(input)->Dish
-    chef.go        GeneratePrettyRecipe / ParseRecipeConfig (port from Utils.mjs)
-    url.go         EncodeURIFragment, BuildURL(recipe, input)
+    dish.go        Dish{ data []byte; typ DishType } + conversions
+    operation.go   Operation interface, ArgDef, ArgType, ToggleString, arg coercion
+    registry.go    Register / Get / All; ops self-register via init()
+    recipe.go      RecipeOp{Op,Args,Disabled,Breakpoint}, Recipe.Execute
+    chef.go        GeneratePrettyRecipe / ParseRecipeConfig
+    url.go         EncodeURIFragment / BuildURL
+    naming.go      Kebab (op name -> subcommand)
   internal/ops/
-    base64.go hex.go base32.go url.go xor.go rot.go case.go reverse.go hashes.go
-    ops_test.go (+ per-file _test.go)
+    base64.go base32.go hex.go urlcode.go xor.go rot.go hashes.go case.go reverse.go
+    fixtures_test.go (+ per-op _test.go)
+  docs/
+    README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
 ```
 
-## Core engine details
+## Recipe formats & URLs
 
-- **Dish** holds canonical `[]byte`. `Get("string")`→`string(data)`, `Get("byteArray")`→
-  `[]byte`, `Get("ArrayBuffer")`→`[]byte`, `Get("number")`→parse. `New(value, typ)` builds.
-  String/byteArray/ArrayBuffer are all byte-backed, so conversions are trivial for the
-  starter set; `number` does strconv. Keep the hub design so new types slot in.
-- **Operation interface** (hand-written ops implement it; metadata via small embedded
-  `Base` struct to cut boilerplate):
-  ```go
-  type Operation interface {
-      Meta() OpMeta            // Name, Module, Description, InfoURL, InputType, OutputType
-      Args() []ArgDef
-      Run(in *Dish, args []ArgValue) (*Dish, error)
-  }
-  ```
-- **ArgDef**: `{Name, Type ArgType, Value any, Min,Max *float64, ToggleValues []string}`.
-  `ArgType` consts mirror CyberChef: `string`, `number`, `boolean`, `option`,
-  `editableOption`, `toggleString`.
-- **Registry**: `init()` in each ops file calls `core.Register(&ToBase64{})`. Imported for
-  side effects via a blank import in `cmd/register_ops.go`.
-- **Recipe.Execute**: for each non-disabled op, look up by name, coerce its `Args` to the
-  ArgDefs, convert dish to `InputType`, call `Run`, set output as `OutputType`. Errors stop
-  execution with op name context. `breakpoint` halts and returns the intermediate dish.
+- **JSON**: `[{"op":"To Base64","args":["A-Za-z0-9+/="]}, ...]`
+- **Chef** (compact): `To_Base64('A-Za-z0-9+/=')To_Hex('Space')`; auto-detected by
+  a leading `[`. Optional `/disabled` `/breakpoint` flags.
+- **URL**: `https://gchq.github.io/CyberChef/#recipe=<chef>&input=<base64,fragment-encoded>`.
 
-## CLI behavior
+## Usage
 
-- **Input resolution** (shared helper): `--in-file` > `-i/--input` > stdin. Output to stdout
-  (or `-o` file). This makes `cchef to-base64 | cchef to-hex` work.
-- **Per-op subcommands** (`register_ops.go`): for each registered op, derive a cobra command
-  named as kebab-case of the op (e.g. `To Base64` → `to-base64`). Map each ArgDef to a flag:
-  boolean→`Bool`, number→`Int`/`Float`, string/editableOption→`String`, option→`String`
-  with allowed-value validation, toggleString→two flags (`--<arg>` + `--<arg>-type`).
-  Flag defaults come from `ArgDef.Value`. The command builds a 1-op Recipe and runs it.
-- **`cchef bake`**: `-r recipe.json` / `-r recipe.chef` (auto-detect by leading `[`), or
-  `-e "<chef expr>"`. Parses to `[]RecipeOp`, executes against resolved input.
-- **`cchef url`**: same recipe inputs as `bake`, but emits the CyberChef share URL instead
-  of running it (input base64+fragment-encoded, recipe pretty+fragment-encoded).
-- **`cchef recipe convert`**: read a recipe in one format, write the other (JSON<->Chef).
-- **`cchef list`**: print ops grouped by module/category with descriptions.
+```bash
+make build                                   # -> ./dist/cchef
+echo -n hello | cchef to-base64 | cchef to-hex
+cchef rot13 "Have a nice day."               # positional input
+cchef bake -e "To_Base64()To_Hex()" -i hello # multi-op recipe
+cchef url  -e "ROT13()" -i hello             # share link
+cchef list                                   # discover operations
+```
 
-## Curated starter operations (~18)
+## How to add a new operation (the repeatable pattern)
 
-Chosen to cover every arg type and both string and byteArray flows. Each is a faithful port
-of the matching `../CyberChef/src/core/operations/*.mjs`:
+1. Write `internal/ops/<name>_test.go` first, transcribing the matching cases
+   from `../CyberChef/tests/operations/tests/<Op>.mjs` into the shared
+   `opCase` table runner.
+2. Add a stub type implementing `core.Operation` that compiles but fails (`make test` red).
+3. Port the `run()` logic from `../CyberChef/src/core/operations/<Op>.mjs` until
+   green. Register it in `init()` and add a docs entry in the relevant
+   `docs/<category>.md` (alphabetised) with options + examples.
 
-- **Data format:** To/From Base64 (`editableOption` alphabet), To/From Hex (`option`
-  delimiter), To/From Base32, URL Encode/Decode.
-- **Ciphers:** XOR (`toggleString` key + `option` scheme), ROT13 (`boolean`×3 + `number`),
-  ROT47 (`number`).
-- **Hashing:** MD5, SHA1, SHA256, SHA512 (Go stdlib `crypto/*` — zero new deps).
-- **Utils:** Reverse, To Upper case, To Lower case.
+## Remaining / future work
 
-All hashing/encoding uses the Go standard library; `encoding/base32`, `encoding/base64`,
-`encoding/hex`, `crypto/*`. No third-party crypto.
+- Implement more operations from the checklist below, prioritising common
+  Data format / Encryption / Hashing ops.
+- Additional Dish types as needed (e.g. BigNumber, JSON) for ops that require them.
+- Flow control operations (Fork, Merge, Conditional Jump) need engine support
+  beyond the current linear `Recipe.Execute`.
+- A repo-root `README.md` and CI wiring for lint/test/SBOM.
 
-## TDD workflow (per the user's requirement)
+## Verification
 
-For each op and each core component, in order:
-1. Write a `_test.go` with expected I/O (use CyberChef's own examples as fixtures, e.g.
-   `hello`→`aGVsbG8=`; for hashes/XOR compute expected via CyberChef or known vectors).
-2. Stub the type/function so the package compiles and the test fails.
-3. Implement until green. Run `make test` between steps.
+- `make test` (unit tests, fixtures), `make vet`, `make lint` — all clean.
+- End-to-end: `printf 'hello' | ./dist/cchef to-base64` → `aGVsbG8=`;
+  `printf 'hello' | ./dist/cchef md5` → `5d41402abc4b2a76b9719d911017c592`;
+  `./dist/cchef url -e "To_Hex()" -i hello` → opens the recipe + input in CyberChef.
 
-Golden tests for `chef.go` and `url.go` assert byte-exact parity with strings produced by
-the JS `Utils.generatePrettyRecipe` / `encodeURIFragment` for a few sample recipes.
+## Operation implementation status
 
-## Makefile targets
+All 486 CyberChef operations, grouped by CyberChef category and listed
+alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
+count is `implemented/total`; some operations appear in more than one category.
+Currently **17 unique** CyberChef operations are covered (16 directly plus
+`SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
-Mirrors common Go project conventions plus the Mattermost-style SBOM targets (the template
-uses `cyclonedx-gomod` for generation and `grype` for scanning):
+### Data format (8/78)
 
-- `build` — `go build -o dist/cchef .`
-- `test` — `go test ./...`
-- `fmt` — `gofmt -w` / `go vet`
-- `lint` — `golangci-lint run` (`install-tools` installs it)
-- `install-tools` — `go install` golangci-lint, `github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest`, and grype
-- `sbom` — `mkdir -p dist/sbom && cyclonedx-gomod mod -json -output dist/sbom/cchef-sbom.json`
-- `sbom-scan` — `grype sbom:dist/sbom/cchef-sbom.json --output table --fail-on high`
-- `sbom-audit` — `sbom sbom-scan`
-- `clean` — remove `dist/`
+- [ ] AMF Decode
+- [ ] AMF Encode
+- [ ] Avro to JSON
+- [ ] Caret/M-decode
+- [ ] CBOR Decode
+- [ ] CBOR Encode
+- [ ] Change IP format
+- [ ] CSV to JSON
+- [ ] Decode text
+- [ ] Encode text
+- [ ] Escape Smart Characters
+- [ ] Escape Unicode Characters
+- [ ] From Base
+- [x] From Base32
+- [ ] From Base45
+- [ ] From Base58
+- [ ] From Base62
+- [x] From Base64
+- [ ] From Base85
+- [ ] From Base92
+- [ ] From BCD
+- [ ] From Bech32
+- [ ] From Binary
+- [ ] From Braille
+- [ ] From Charcode
+- [ ] From Decimal
+- [ ] From Float
+- [x] From Hex
+- [ ] From Hex Content
+- [ ] From Hexdump
+- [ ] From HTML Entity
+- [ ] From MessagePack
+- [ ] From Modhex
+- [ ] From Octal
+- [ ] From Punycode
+- [ ] From Quoted Printable
+- [ ] Hex to PEM
+- [ ] JSON to CSV
+- [ ] JSON to YAML
+- [ ] MIME Decoding
+- [ ] Normalise Unicode
+- [ ] Parse ASN.1 hex string
+- [ ] Parse TLV
+- [ ] PEM to Hex
+- [ ] Rison Decode
+- [ ] Rison Encode
+- [ ] Show Base64 offsets
+- [ ] Swap endianness
+- [ ] Text Encoding Brute Force
+- [ ] Text-Integer Conversion
+- [ ] To Base
+- [x] To Base32
+- [ ] To Base45
+- [ ] To Base58
+- [ ] To Base62
+- [x] To Base64
+- [ ] To Base85
+- [ ] To Base92
+- [ ] To BCD
+- [ ] To Bech32
+- [ ] To Binary
+- [ ] To Braille
+- [ ] To Charcode
+- [ ] To Decimal
+- [ ] To Float
+- [x] To Hex
+- [ ] To Hex Content
+- [ ] To Hexdump
+- [ ] To HTML Entity
+- [ ] To MessagePack
+- [ ] To Modhex
+- [ ] To Octal
+- [ ] To Punycode
+- [ ] To Quoted Printable
+- [ ] Unescape Unicode Characters
+- [x] URL Decode
+- [x] URL Encode
+- [ ] YAML to JSON
 
-(Local env: Go 1.26 present; golangci-lint, cyclonedx-gomod, grype not yet installed —
-`install-tools` covers them.)
+### Encryption / Encoding (3/84)
 
-## Build order (milestones)
+- [ ] A1Z26 Cipher Decode
+- [ ] A1Z26 Cipher Encode
+- [ ] AES Decrypt
+- [ ] AES Encrypt
+- [ ] AES Key Unwrap
+- [ ] AES Key Wrap
+- [ ] Affine Cipher Decode
+- [ ] Affine Cipher Encode
+- [ ] Atbash Cipher
+- [ ] Bacon Cipher Decode
+- [ ] Bacon Cipher Encode
+- [ ] Bcrypt
+- [ ] Bifid Cipher Decode
+- [ ] Bifid Cipher Encode
+- [ ] Blowfish Decrypt
+- [ ] Blowfish Encrypt
+- [ ] Bombe
+- [ ] Caesar Box Cipher
+- [ ] Cetacean Cipher Decode
+- [ ] Cetacean Cipher Encode
+- [ ] ChaCha
+- [ ] CipherSaber2 Decrypt
+- [ ] CipherSaber2 Encrypt
+- [ ] Citrix CTX1 Decode
+- [ ] Citrix CTX1 Encode
+- [ ] Colossus
+- [ ] Derive EVP key
+- [ ] Derive HKDF key
+- [ ] Derive PBKDF2 key
+- [ ] DES Decrypt
+- [ ] DES Encrypt
+- [ ] Enigma
+- [ ] Fernet Decrypt
+- [ ] Fernet Encrypt
+- [ ] Flask Session Decode
+- [ ] Flask Session Sign
+- [ ] Flask Session Verify
+- [ ] From Morse Code
+- [ ] GOST Decrypt
+- [ ] GOST Encrypt
+- [ ] GOST Key Unwrap
+- [ ] GOST Key Wrap
+- [ ] GOST Sign
+- [ ] GOST Verify
+- [ ] JWT Decode
+- [ ] JWT Sign
+- [ ] JWT Verify
+- [ ] Lorenz
+- [ ] LS47 Decrypt
+- [ ] LS47 Encrypt
+- [ ] Multiple Bombe
+- [ ] Pseudo-Random Number Generator
+- [ ] Rabbit
+- [ ] Rail Fence Cipher Decode
+- [ ] Rail Fence Cipher Encode
+- [ ] RC2 Decrypt
+- [ ] RC2 Encrypt
+- [ ] RC4
+- [ ] RC4 Drop
+- [ ] RC6 Decrypt
+- [ ] RC6 Encrypt
+- [ ] ROR13
+- [x] ROT13
+- [ ] ROT13 Brute Force
+- [x] ROT47
+- [ ] ROT47 Brute Force
+- [ ] ROT8000
+- [ ] Salsa20
+- [ ] Scrypt
+- [ ] SIGABA
+- [ ] SM4 Decrypt
+- [ ] SM4 Encrypt
+- [ ] Substitute
+- [ ] To Morse Code
+- [ ] Triple DES Decrypt
+- [ ] Triple DES Encrypt
+- [ ] Typex
+- [ ] Vigenère Decode
+- [ ] Vigenère Encode
+- [x] XOR
+- [ ] XOR Brute Force
+- [ ] XSalsa20
+- [ ] XXTEA Decrypt
+- [ ] XXTEA Encrypt
 
-1. `go mod init`, add cobra, Makefile, `main.go` + empty `cmd.Execute()`. `make build` works.
-2. Core: `dish.go`, `operation.go`, `registry.go` + tests. Then `recipe.go` + tests.
-3. First two ops (To/From Base64) hand-written + tests → prove Recipe + registry green.
-4. `register_ops.go` auto-builds subcommands; wire stdin/stdout input resolution. Manual
-   pipe test passes.
-5. `chef.go` (+golden tests), then `bake` command (JSON + Chef).
-6. `url.go` (+golden tests), then `url` and `recipe convert` commands.
-7. Fill in remaining curated ops (hex, base32, url, xor, rot, hashes, case, reverse), each
-   TDD. `list` command.
-8. SBOM Makefile targets + `make lint sbom-audit` clean.
+### Public Key (0/31)
 
-## Verification (end-to-end)
+- [ ] ECDSA Sign
+- [ ] ECDSA Signature Conversion
+- [ ] ECDSA Verify
+- [ ] Generate ECDSA Key Pair
+- [ ] Generate PGP Key Pair
+- [ ] Generate RSA Key Pair
+- [ ] Hex to Object Identifier
+- [ ] Hex to PEM
+- [ ] JWK to PEM
+- [ ] Object Identifier to Hex
+- [ ] Parse ASN.1 hex string
+- [ ] Parse CSR
+- [ ] Parse SSH Host Key
+- [ ] Parse X.509 certificate
+- [ ] Parse X.509 CRL
+- [ ] PEM to Hex
+- [ ] PEM to JWK
+- [ ] PGP Decrypt
+- [ ] PGP Decrypt and Verify
+- [ ] PGP Encrypt
+- [ ] PGP Encrypt and Sign
+- [ ] PGP Sign
+- [ ] PGP Verify
+- [ ] Public Key from Certificate
+- [ ] Public Key from Private Key
+- [ ] RSA Decrypt
+- [ ] RSA Encrypt
+- [ ] RSA Sign
+- [ ] RSA Verify
+- [ ] SM2 Decrypt
+- [ ] SM2 Encrypt
 
-- `make test` green; `make lint` clean.
-- Pipes: `printf 'hello' | dist/cchef to-base64` → `aGVsbG8=`;
-  `printf 'hello' | dist/cchef to-base64 | dist/cchef to-hex`.
-- Hash: `printf 'hello' | dist/cchef md5` → `5d41402abc4b2a76b9719d911017c592`.
-- bake JSON: `echo '[{"op":"To Base64","args":["A-Za-z0-9+/="]}]' > r.json;
-  printf 'hello' | dist/cchef bake -r r.json` → `aGVsbG8=`.
-- bake Chef: `printf 'hello' | dist/cchef bake -e "To_Base64()"`.
-- url: `printf 'hello' | dist/cchef url -e "To_Hex()"`
-  → a `https://gchq.github.io/CyberChef/#recipe=To_Hex()&input=aGVsbG8` URL; open it and
-  confirm it loads the recipe + input in CyberChef online.
-- recipe convert: round-trip a recipe JSON↔Chef and diff back to the original.
-- Cross-check a couple of op outputs against the actual CyberChef web app for parity.
+### Arithmetic / Logic (2/30)
+
+- [ ] ADD
+- [ ] AND
+- [ ] Bit shift left
+- [ ] Bit shift right
+- [ ] Cartesian Product
+- [ ] Divide
+- [ ] Extended GCD
+- [ ] Mean
+- [ ] Median
+- [ ] Modular Exponentiation
+- [ ] Modular Inverse
+- [ ] Multiply
+- [ ] NOT
+- [ ] OR
+- [ ] Power Set
+- [ ] ROR13
+- [x] ROT13
+- [ ] ROT8000
+- [ ] Rotate left
+- [ ] Rotate right
+- [ ] Set Difference
+- [ ] Set Intersection
+- [ ] Set Union
+- [ ] Standard Deviation
+- [ ] SUB
+- [ ] Subtract
+- [ ] Sum
+- [ ] Symmetric Difference
+- [x] XOR
+- [ ] XOR Brute Force
+
+### Networking (2/38)
+
+- [ ] Change IP format
+- [ ] Dechunk HTTP response
+- [ ] Decode NetBIOS Name
+- [ ] Defang IP Addresses
+- [ ] Defang URL
+- [ ] DNS over HTTPS
+- [ ] Encode NetBIOS Name
+- [ ] Fang URL
+- [ ] Format MAC addresses
+- [ ] Group IP addresses
+- [ ] HASSH Client Fingerprint
+- [ ] HASSH Server Fingerprint
+- [ ] HTTP request
+- [ ] IPv6 Transition Addresses
+- [ ] JA3 Fingerprint
+- [ ] JA3S Fingerprint
+- [ ] JA4 Fingerprint
+- [ ] JA4Server Fingerprint
+- [ ] Parse Ethernet frame
+- [ ] Parse IP range
+- [ ] Parse IPv4 header
+- [ ] Parse IPv6 address
+- [ ] Parse SSH Host Key
+- [ ] Parse TCP
+- [ ] Parse TLS record
+- [ ] Parse UDP
+- [ ] Parse URI
+- [ ] Parse User Agent
+- [ ] Protobuf Decode
+- [ ] Protobuf Encode
+- [ ] Strip HTTP headers
+- [ ] Strip IPv4 header
+- [ ] Strip TCP header
+- [ ] Strip UDP header
+- [x] URL Decode
+- [x] URL Encode
+- [ ] VarInt Decode
+- [ ] VarInt Encode
+
+### Language (0/7)
+
+- [ ] Convert Leet Speak
+- [ ] Convert to NATO alphabet
+- [ ] Decode text
+- [ ] Encode text
+- [ ] Remove Diacritics
+- [ ] Unescape Unicode Characters
+- [ ] Unicode Text Format
+
+### Utils (3/52)
+
+- [ ] Add line numbers
+- [ ] Alternating Caps
+- [ ] Convert area
+- [ ] Convert co-ordinate format
+- [ ] Convert data units
+- [ ] Convert distance
+- [ ] Convert mass
+- [ ] Convert speed
+- [ ] Count occurrences
+- [ ] Diff
+- [ ] Drop bytes
+- [ ] Drop nth bytes
+- [ ] Escape string
+- [ ] Expand alphabet range
+- [ ] File Tree
+- [ ] Filter
+- [ ] Find / Replace
+- [ ] From Case Insensitive Regex
+- [ ] Fuzzy Match
+- [ ] Get All Casings
+- [ ] Hamming Distance
+- [ ] Head
+- [ ] Levenshtein Distance
+- [ ] Offset checker
+- [ ] Pad lines
+- [ ] Parse colour code
+- [ ] Parse ObjectID timestamp
+- [ ] Parse UNIX file permissions
+- [ ] Pseudo-Random Number Generator
+- [ ] Regular expression
+- [ ] Remove ANSI Escape Codes
+- [ ] Remove line numbers
+- [ ] Remove null bytes
+- [ ] Remove whitespace
+- [x] Reverse
+- [ ] Show on map
+- [ ] Shuffle
+- [ ] Sleep
+- [ ] Sort
+- [ ] Split
+- [ ] Swap case
+- [ ] Swap endianness
+- [ ] Tail
+- [ ] Take bytes
+- [ ] Take nth bytes
+- [ ] To Case Insensitive Regex
+- [x] To Lower case
+- [ ] To Table
+- [x] To Upper case
+- [ ] Unescape string
+- [ ] Unique
+- [ ] Wrap
+
+### Date / Time (0/10)
+
+- [ ] DateTime Delta
+- [ ] Extract dates
+- [ ] From UNIX Timestamp
+- [ ] Get Time
+- [ ] Parse DateTime
+- [ ] Sleep
+- [ ] To UNIX Timestamp
+- [ ] Translate DateTime Format
+- [ ] UNIX Timestamp to Windows Filetime
+- [ ] Windows Filetime to UNIX Timestamp
+
+### Extractors (0/20)
+
+- [ ] CSS selector
+- [ ] Extract Audio Metadata
+- [ ] Extract dates
+- [ ] Extract domains
+- [ ] Extract email addresses
+- [ ] Extract EXIF
+- [ ] Extract file paths
+- [ ] Extract Files
+- [ ] Extract hashes
+- [ ] Extract ID3
+- [ ] Extract IP addresses
+- [ ] Extract MAC addresses
+- [ ] Extract URLs
+- [ ] JPath expression
+- [ ] Jsonata Query
+- [ ] RAKE
+- [ ] Regular expression
+- [ ] Strings
+- [ ] Template
+- [ ] XPath expression
+
+### Compression (0/19)
+
+- [ ] Bzip2 Compress
+- [ ] Bzip2 Decompress
+- [ ] Gunzip
+- [ ] Gzip
+- [ ] LZ4 Compress
+- [ ] LZ4 Decompress
+- [ ] LZMA Compress
+- [ ] LZMA Decompress
+- [ ] LZNT1 Decompress
+- [ ] LZString Compress
+- [ ] LZString Decompress
+- [ ] Raw Deflate
+- [ ] Raw Inflate
+- [ ] Tar
+- [ ] Untar
+- [ ] Unzip
+- [ ] Zip
+- [ ] Zlib Deflate
+- [ ] Zlib Inflate
+
+### Hashing (3/48)
+
+- [ ] Adler-32 Checksum
+- [ ] Analyse hash
+- [ ] Argon2
+- [ ] Argon2 compare
+- [ ] Bcrypt
+- [ ] Bcrypt compare
+- [ ] Bcrypt parse
+- [ ] BLAKE2b
+- [ ] BLAKE2s
+- [ ] BLAKE3
+- [ ] CMAC
+- [ ] Compare CTPH hashes
+- [ ] Compare SSDEEP hashes
+- [ ] CRC Checksum
+- [ ] CTPH
+- [ ] Fletcher-16 Checksum
+- [ ] Fletcher-32 Checksum
+- [ ] Fletcher-64 Checksum
+- [ ] Fletcher-8 Checksum
+- [ ] Generate all checksums
+- [ ] Generate all hashes
+- [ ] GOST Hash
+- [ ] HAS-160
+- [ ] HMAC
+- [ ] Keccak
+- [ ] LM Hash
+- [ ] Luhn Checksum
+- [ ] MD2
+- [ ] MD4
+- [x] MD5
+- [ ] MD6
+- [ ] MurmurHash3
+- [ ] NT Hash
+- [ ] Parity Bit
+- [ ] RIPEMD
+- [ ] Scrypt
+- [ ] SHA0
+- [x] SHA1
+- [x] SHA2 — sha256 / sha512 subcommands (256- and 512-bit only)
+- [ ] SHA3
+- [ ] Shake
+- [ ] SM3
+- [ ] Snefru
+- [ ] SSDEEP
+- [ ] Streebog
+- [ ] TCP/IP Checksum
+- [ ] Whirlpool
+- [ ] XOR Checksum
+
+### Code tidy (0/30)
+
+- [ ] BSON deserialise
+- [ ] BSON serialise
+- [ ] CSS Beautify
+- [ ] CSS Minify
+- [ ] CSS selector
+- [ ] Diff
+- [ ] From MessagePack
+- [ ] Generic Code Beautify
+- [ ] JavaScript Beautify
+- [ ] JavaScript Minify
+- [ ] JavaScript Parser
+- [ ] JPath expression
+- [ ] Jq
+- [ ] JSON Beautify
+- [ ] JSON Minify
+- [ ] Microsoft Script Decoder
+- [ ] PHP Deserialize
+- [ ] PHP Serialize
+- [ ] Render Markdown
+- [ ] SQL Beautify
+- [ ] SQL Minify
+- [ ] Strip HTML tags
+- [ ] Syntax highlighter
+- [ ] To Camel case
+- [ ] To Kebab case
+- [ ] To MessagePack
+- [ ] To Snake case
+- [ ] XML Beautify
+- [ ] XML Minify
+- [ ] XPath expression
+
+### Forensics (0/12)
+
+- [ ] Detect File Type
+- [ ] ELF Info
+- [ ] Extract Audio Metadata
+- [ ] Extract EXIF
+- [ ] Extract Files
+- [ ] Extract LSB
+- [ ] Extract RGBA
+- [ ] Randomize Colour Palette
+- [ ] Remove EXIF
+- [ ] Scan for Embedded Files
+- [ ] View Bit Plane
+- [ ] YARA Rules
+
+### Multimedia (0/29)
+
+- [ ] Add Text To Image
+- [ ] Blur Image
+- [ ] Contain Image
+- [ ] Convert Image Format
+- [ ] Cover Image
+- [ ] Crop Image
+- [ ] Dither Image
+- [ ] Extract EXIF
+- [ ] Flip Image
+- [ ] Generate Image
+- [ ] Heatmap chart
+- [ ] Hex Density chart
+- [ ] Image Brightness / Contrast
+- [ ] Image Filter
+- [ ] Image Hue/Saturation/Lightness
+- [ ] Image Opacity
+- [ ] Invert Image
+- [ ] Normalise Image
+- [ ] Optical Character Recognition
+- [ ] Play Media
+- [ ] Remove EXIF
+- [ ] Render Image
+- [ ] Render PDF
+- [ ] Resize Image
+- [ ] Rotate Image
+- [ ] Scatter chart
+- [ ] Series chart
+- [ ] Sharpen Image
+- [ ] Split Colour Channels
+
+### Other (0/22)
+
+- [ ] Analyse UUID
+- [ ] Automated Validation Test Op
+- [ ] Chi Square
+- [ ] Disassemble ARM
+- [ ] Disassemble x86
+- [ ] Entropy
+- [ ] Frequency distribution
+- [ ] Generate De Bruijn Sequence
+- [ ] Generate HOTP
+- [ ] Generate Lorem Ipsum
+- [ ] Generate QR Code
+- [ ] Generate TOTP
+- [ ] Generate UUID
+- [ ] Haversine distance
+- [ ] HTML To Text
+- [ ] Index of Coincidence
+- [ ] Numberwang
+- [ ] P-list Viewer
+- [ ] Parse QR Code
+- [ ] Pseudo-Random Integer Generator
+- [ ] Pseudo-Random Number Generator
+- [ ] XKCD Random Number
+
+### Flow control (0/10)
+
+- [ ] Comment
+- [ ] Conditional Jump
+- [ ] Fork
+- [ ] Jump
+- [ ] Label
+- [ ] Magic
+- [ ] Merge
+- [ ] Register
+- [ ] Return
+- [ ] Subsection

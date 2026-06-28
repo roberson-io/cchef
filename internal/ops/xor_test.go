@@ -37,5 +37,38 @@ func TestXOROp(t *testing.T) {
 				{Op: "XOR", Args: []any{hexKey("3f"), "Standard", false}},
 				{Op: "XOR", Args: []any{hexKey("3f"), "Standard", false}},
 			}},
+
+		// The same 0x42 key expressed in every supported encoding yields the
+		// same result, exercising convertToByteArray's decode paths.
+		{"XOR decimal key", "Hello", "0a272e2e2d",
+			core.Recipe{
+				{Op: "XOR", Args: []any{core.ToggleString{Value: "66", Option: "Decimal"}, "Standard", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			}},
+		{"XOR binary key", "Hello", "0a272e2e2d",
+			core.Recipe{
+				{Op: "XOR", Args: []any{core.ToggleString{Value: "01000010", Option: "Binary"}, "Standard", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			}},
+		{"XOR base64 key", "Hello", "0a272e2e2d",
+			core.Recipe{
+				{Op: "XOR", Args: []any{core.ToggleString{Value: "Qg==", Option: "Base64"}, "Standard", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			}},
+		{"XOR latin1 key", "Hello", "0a272e2e2d",
+			core.Recipe{
+				{Op: "XOR", Args: []any{core.ToggleString{Value: "B", Option: "Latin1"}, "Standard", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			}},
+
+		// Schemes and null-preserving option.
+		{"XOR cascade scheme", "Hello", "2d0900036f",
+			core.Recipe{
+				{Op: "XOR", Args: []any{hexKey("00"), "Cascade", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			}},
+		// Empty key defaults to 0x00, so null-preserving leaves input unchanged.
+		{"XOR null preserving", "Hello", "Hello",
+			core.Recipe{{Op: "XOR", Args: []any{hexKey(""), "Standard", true}}}},
 	})
 }

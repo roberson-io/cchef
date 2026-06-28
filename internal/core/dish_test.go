@@ -40,6 +40,37 @@ func TestDishGetNumber(t *testing.T) {
 	}
 }
 
+func TestDishSet(t *testing.T) {
+	d := NewDish(nil, TypeString)
+
+	if err := d.Set("hi", TypeString); err != nil || d.String() != "hi" {
+		t.Fatalf("Set string: %v, %q", err, d.String())
+	}
+	if err := d.Set([]byte{1, 2}, TypeByteArray); err != nil || !bytes.Equal(d.Bytes(), []byte{1, 2}) {
+		t.Fatalf("Set byteArray: %v, %v", err, d.Bytes())
+	}
+	if err := d.Set(float64(42), TypeNumber); err != nil || d.String() != "42" {
+		t.Fatalf("Set number float: %v, %q", err, d.String())
+	}
+	if err := d.Set(7, TypeNumber); err != nil || d.String() != "7" {
+		t.Fatalf("Set number int: %v, %q", err, d.String())
+	}
+	if d.Type() != TypeNumber {
+		t.Fatalf("Type() = %v after Set number", d.Type())
+	}
+
+	// Type mismatches and unknown types must error.
+	if err := d.Set(123, TypeString); err == nil {
+		t.Fatal("expected error setting non-string as string")
+	}
+	if err := d.Set("x", TypeByteArray); err == nil {
+		t.Fatal("expected error setting non-bytes as byteArray")
+	}
+	if err := d.Set("x", "bogus"); err == nil {
+		t.Fatal("expected error for unknown type")
+	}
+}
+
 func TestDishBytes(t *testing.T) {
 	raw := []byte{0x00, 0xff, 0x10}
 	d := NewDish(raw, TypeByteArray)

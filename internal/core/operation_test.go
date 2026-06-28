@@ -53,6 +53,22 @@ func TestCoerceArgToggleString(t *testing.T) {
 	}
 }
 
+func TestCoerceArgToggleStringFromMap(t *testing.T) {
+	def := ArgDef{Name: "Key", Type: ArgToggleString, ToggleValues: []string{"Hex", "UTF8"}}
+	// JSON recipes decode a toggleString into a map[string]any.
+	got, err := CoerceArg(def, map[string]any{"string": "ff", "option": "Hex"})
+	if err != nil {
+		t.Fatalf("CoerceArg map toggleString: %v", err)
+	}
+	ts := got.(ToggleString)
+	if ts.Value != "ff" || ts.Option != "Hex" {
+		t.Fatalf("got %+v", ts)
+	}
+	if _, err := CoerceArg(def, 123); err == nil {
+		t.Fatal("expected error for non-toggleString value")
+	}
+}
+
 func TestDefaultArgs(t *testing.T) {
 	defs := []ArgDef{
 		{Name: "Alphabet", Type: ArgEditableOption, Value: "A-Za-z0-9+/="},
