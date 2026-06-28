@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 68
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 73
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **68 operations** (`internal/ops/`), each a faithful port with tests
+- **73 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -75,6 +75,7 @@ cchef/
     hex.go octal.go urlcode.go xor.go rot.go hashes.go
     case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
     utils_simple.go findreplace.go utils_lines.go utils_slice.go utils_text2.go
+    convert.go convert_data.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
@@ -133,7 +134,7 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **65 unique** CyberChef operations are covered (64 directly plus
+Currently **70 unique** CyberChef operations are covered (69 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 ### Data format (31/78)
@@ -422,16 +423,16 @@ Currently **65 unique** CyberChef operations are covered (64 directly plus
 - [ ] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
-### Utils (25/52)
+### Utils (30/52)
 
 - [x] Add line numbers
 - [x] Alternating Caps
-- [ ] Convert area
+- [x] Convert area
 - [ ] Convert co-ordinate format
-- [ ] Convert data units
-- [ ] Convert distance
-- [ ] Convert mass
-- [ ] Convert speed
+- [x] Convert data units
+- [x] Convert distance
+- [x] Convert mass
+- [x] Convert speed
 - [x] Count occurrences
 - [ ] Diff
 - [x] Drop bytes

@@ -8,6 +8,11 @@ General-purpose text utilities.
 | --- | --- |
 | Add line numbers | `add-line-numbers` |
 | Alternating Caps | `alternating-caps` |
+| Convert area | `convert-area` |
+| Convert data units | `convert-data-units` |
+| Convert distance | `convert-distance` |
+| Convert mass | `convert-mass` |
+| Convert speed | `convert-speed` |
 | Count occurrences | `count-occurrences` |
 | Drop bytes | `drop-bytes` |
 | Drop nth bytes | `drop-nth-bytes` |
@@ -62,6 +67,107 @@ left unchanged). Takes no options.
 ```bash
 $ cchef alternating-caps -i 'hello world'
 hElLo WoRlD
+```
+
+## Convert area
+
+Converts an area between units (square metres, hectares, acres, barns, …).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-units` | option | (first unit) | The unit of the input value. |
+| `--output-units` | option | (first unit) | The unit to convert to. |
+
+Run `cchef convert-area --help` for the full list of units.
+
+**Simple example**
+
+```bash
+$ cchef convert-area --input-units 'Square foot (sq ft)' --output-units 'Square metre (sq m)' -i 100
+9.290304
+```
+
+## Convert data units
+
+Converts a quantity of data between units (bits, bytes, and their binary/decimal
+multiples such as kibibytes and megabytes).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-units` | option | (first unit) | The unit of the input value. |
+| `--output-units` | option | (first unit) | The unit to convert to. |
+
+Run `cchef convert-data-units --help` for the full list of units.
+
+**Simple example**
+
+```bash
+$ cchef convert-data-units --input-units 'Gibibytes (GiB)' --output-units 'Mebibytes (MiB)' -i 1
+1024
+```
+
+## Convert distance
+
+Converts a distance between units (metres, miles, light-years, …).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-units` | option | (first unit) | The unit of the input value. |
+| `--output-units` | option | (first unit) | The unit to convert to. |
+
+Run `cchef convert-distance --help` for the full list of units.
+
+**Simple example**
+
+```bash
+$ cchef convert-distance --input-units 'Miles (mi)' --output-units 'Kilometers (km)' -i 1
+1.609344
+```
+
+## Convert mass
+
+Converts a mass between units (grams, pounds, tonnes, solar masses, …).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-units` | option | (first unit) | The unit of the input value. |
+| `--output-units` | option | (first unit) | The unit to convert to. |
+
+Run `cchef convert-mass --help` for the full list of units.
+
+**Simple example**
+
+```bash
+$ cchef convert-mass --input-units 'Pound (lb)' --output-units 'Gram (g)' -i 1
+453.59237
+```
+
+## Convert speed
+
+Converts a speed between units (m/s, mph, knots, the speed of light, …).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-units` | option | (first unit) | The unit of the input value. |
+| `--output-units` | option | (first unit) | The unit to convert to. |
+
+Run `cchef convert-speed --help` for the full list of units.
+
+**Simple example**
+
+```bash
+$ cchef convert-speed --input-units 'Kilometres per hour (km/h)' --output-units 'Metres per second (m/s)' -i 100
+27.78
 ```
 
 ## Count occurrences
