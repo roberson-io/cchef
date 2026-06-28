@@ -15,7 +15,9 @@ import (
 func init() {
 	core.Register(hashOp{name: "MD5", infoURL: "https://wikipedia.org/wiki/MD5", new: func() hash.Hash { return md5.New() }})
 	core.Register(hashOp{name: "SHA1", infoURL: "https://wikipedia.org/wiki/SHA-1", new: func() hash.Hash { return sha1.New() }})
+	core.Register(hashOp{name: "SHA224", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha256.New224() }})
 	core.Register(hashOp{name: "SHA256", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha256.New() }})
+	core.Register(hashOp{name: "SHA384", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha512.New384() }})
 	core.Register(hashOp{name: "SHA512", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha512.New() }})
 }
 

@@ -58,7 +58,7 @@ Within each category, operations are listed alphabetically.
 | --- | --- |
 | [Data format](data-format.md) | AMF Decode, AMF Encode, From Base, From Base32, From Base45, From Base58, From Base62, From Base64, From Base85, From Base92, From Hex, From Octal, To Base, To Base32, To Base45, To Base58, To Base62, To Base64, To Base85, To Base92, To Hex, To Octal, URL Decode, URL Encode |
 | [Encryption / Encoding](encryption-encoding.md) | ROT13, ROT47, XOR |
-| [Hashing](hashing.md) | MD5, SHA1, SHA256, SHA512 |
+| [Hashing](hashing.md) | Adler-32 Checksum, HMAC, Keccak, MD5, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512 |
 | [Utils](utils.md) | Reverse, To Lower case, To Upper case |
 
 ## Recipes, URLs, and tooling

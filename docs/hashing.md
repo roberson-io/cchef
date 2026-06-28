@@ -1,15 +1,22 @@
 # Hashing
 
-Cryptographic hash functions. Each operation takes input and outputs the
-lower-case hexadecimal digest. None of these operations take options.
+Cryptographic hash functions and checksums. Each operation takes input and
+outputs the lower-case hexadecimal digest. Most take no options (SHA3 and HMAC
+are the exceptions).
 
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Adler-32 Checksum | `adler-32-checksum` | [Adler-32](https://wikipedia.org/wiki/Adler-32) |
+| HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
+| Keccak | `keccak` | [SHA-3 / Keccak](https://wikipedia.org/wiki/SHA-3) |
 | MD5 | `md5` | [MD5](https://wikipedia.org/wiki/MD5) |
 | SHA1 | `sha1` | [SHA-1](https://wikipedia.org/wiki/SHA-1) |
+| SHA224 | `sha224` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA256 | `sha256` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
+| SHA3 | `sha3` | [SHA-3](https://wikipedia.org/wiki/SHA-3) |
+| SHA384 | `sha384` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA512 | `sha512` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 
 > **Note:** MD5 and SHA1 are not collision resistant and should not be used for
@@ -17,6 +24,54 @@ lower-case hexadecimal digest. None of these operations take options.
 > useful for checksums and interoperability.
 
 ---
+
+## Adler-32 Checksum
+
+Computes the Adler-32 checksum, output as an 8-digit hex string. Takes no options.
+
+```bash
+$ cchef adler-32-checksum -i 'Wikipedia'
+11e60398
+```
+
+## HMAC
+
+Computes a keyed-hash message authentication code (HMAC).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | The key value, interpreted according to `--key-type`. |
+| `--key-type` | option | `Hex` | How to interpret the key: `Hex`, `Decimal`, `Base64`, `UTF8`, `Latin1`. |
+| `--hashing-function` | option | `SHA256` | One of `SHA256`, `MD5`, `SHA1`, `SHA224`, `SHA384`, `SHA512`. |
+
+**Simple example**
+
+```bash
+$ cchef hmac --key test --key-type Latin1 --hashing-function SHA256 -i 'Hello, World!'
+52589bd80ccfa4acbb3f9512dfaf4f700fa5195008aae0b77a9e47dcca75beac
+```
+
+## Keccak
+
+Computes the **legacy** Keccak digest at the selected size. Keccak predates and
+differs from the standardised SHA-3 (FIPS 202) — they use different padding, so
+the digests differ. Keccak-256 is the hash used by Ethereum (e.g.
+`keccak256("")` = `c5d2460186f7233c…`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | option | `512` | Output size in bits: `512`, `384`, `256`, or `224`. |
+
+**Simple example**
+
+```bash
+$ cchef keccak --size 256 -i 'Hello, World!'
+acaf3289d7b601cbd114fb36c4d29c85bbfd5e133f14cb355c3fd8d99367964f
+```
 
 ## MD5
 
@@ -32,11 +87,43 @@ $ cchef sha1 -i 'Hello, World!'
 0a0a9f2a6772942557ab5355d76af442f8f65e01
 ```
 
+## SHA224
+
+```bash
+$ cchef sha224 -i 'Hello, World!'
+72a23dfa411ba6fde01dbfabf3b00a709c93ebf273dc29e2d8b261ff
+```
+
 ## SHA256
 
 ```bash
 $ cchef sha256 -i 'Hello, World!'
 dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
+```
+
+## SHA3
+
+Computes a SHA-3 (FIPS 202) digest at the selected output size. Note: SHA-3 is
+not the same as legacy/Ethereum Keccak — they use different padding.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | option | `512` | Output size in bits: `512`, `384`, `256`, or `224`. |
+
+**Simple example**
+
+```bash
+$ cchef sha3 --size 256 -i 'Hello, World!'
+1af17a664e3fa8e419b8ba05c2a173169df76162a5a286e0c405b460d478f7ef
+```
+
+## SHA384
+
+```bash
+$ cchef sha384 -i 'Hello, World!'
+5485cc9b3365b4305dfb4e8337e0a598a574f8242bf17289e0dd6c20a3cd44a089de16ab4ab308f63e44b1170eb5f515
 ```
 
 ## SHA512

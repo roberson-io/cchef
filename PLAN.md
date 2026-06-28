@@ -10,13 +10,19 @@ CyberChef's "Chef" text format), and recipes round-trip to a shareable
 `gchq.github.io/CyberChef` URL.
 
 Development is **test-driven** (test → stub → implement), reusing CyberChef's own
-fixture cases for parity, and keeps external dependencies minimal: `cobra` for the
-CLI, plus `github.com/elobuff/goamf` to back the AMF operations (which CyberChef
-also implements via an external AMF library).
+fixture cases for parity, and keeps external dependencies minimal:
+
+- `cobra` — the CLI framework.
+- `github.com/elobuff/goamf` — backs the AMF operations (CyberChef likewise wraps
+  an external AMF library).
+- `golang.org/x/crypto/sha3` — provides the vetted legacy-Keccak constructors for
+  Keccak-256/512. Keccak-224/384 (not in that package) use a small local
+  Keccak-f sponge, cross-validated against x/crypto (256/512) and the stdlib
+  `crypto/sha3` (SHA-3 mode) in tests.
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 34
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 40
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -29,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **34 operations** (`internal/ops/`), each a faithful port with tests
+- **40 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -66,7 +72,7 @@ cchef/
   internal/ops/
     base64.go base32.go base45.go base58.go base62.go base85.go base92.go
     base_generic.go hex.go octal.go urlcode.go xor.go rot.go hashes.go
-    case.go reverse.go amf.go
+    case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
@@ -108,6 +114,8 @@ cchef list                                   # discover operations
   (`JSON` was added for AMF; `BigNumber` for the generic To/From Base.)
 - Flow control operations (Fork, Merge, Conditional Jump) need engine support
   beyond the current linear `Recipe.Execute`.
+- `CRC Checksum` (parameterised over many algorithms via an argSelector) is
+  deferred as a larger-than-straight-port effort.
 - A repo-root `README.md` and CI wiring for lint/test/SBOM.
 
 ## Verification
@@ -122,7 +130,7 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **33 unique** CyberChef operations are covered (32 directly plus
+Currently **37 unique** CyberChef operations are covered (36 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 ### Data format (24/78)
@@ -524,9 +532,9 @@ Currently **33 unique** CyberChef operations are covered (32 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (3/48)
+### Hashing (7/48)
 
-- [ ] Adler-32 Checksum
+- [x] Adler-32 Checksum
 - [ ] Analyse hash
 - [ ] Argon2
 - [ ] Argon2 compare
@@ -549,8 +557,8 @@ Currently **33 unique** CyberChef operations are covered (32 directly plus
 - [ ] Generate all hashes
 - [ ] GOST Hash
 - [ ] HAS-160
-- [ ] HMAC
-- [ ] Keccak
+- [x] HMAC
+- [x] Keccak
 - [ ] LM Hash
 - [ ] Luhn Checksum
 - [ ] MD2
@@ -564,8 +572,8 @@ Currently **33 unique** CyberChef operations are covered (32 directly plus
 - [ ] Scrypt
 - [ ] SHA0
 - [x] SHA1
-- [x] SHA2 — sha256 / sha512 subcommands (256- and 512-bit only)
-- [ ] SHA3
+- [x] SHA2 — sha224 / sha256 / sha384 / sha512 subcommands
+- [x] SHA3
 - [ ] Shake
 - [ ] SM3
 - [ ] Snefru
