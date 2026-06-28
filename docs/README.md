@@ -59,7 +59,7 @@ Within each category, operations are listed alphabetically.
 | [Data format](data-format.md) | AMF Decode, AMF Encode, From Base, From Base32, From Base45, From Base58, From Base62, From Base64, From Base85, From Base92, From Binary, From Charcode, From Decimal, From Hex, From Octal, Swap endianness, To Base, To Base32, To Base45, To Base58, To Base62, To Base64, To Base85, To Base92, To Binary, To Charcode, To Decimal, To Hex, To Octal, URL Decode, URL Encode |
 | [Encryption / Encoding](encryption-encoding.md) | ROT13, ROT47, XOR |
 | [Hashing](hashing.md) | Adler-32 Checksum, HMAC, Keccak, MD5, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512 |
-| [Utils](utils.md) | Add line numbers, Alternating Caps, Convert area, Convert data units, Convert distance, Convert mass, Convert speed, Count occurrences, Drop bytes, Drop nth bytes, Expand alphabet range, Filter, Find / Replace, Head, Pad lines, Remove ANSI Escape Codes, Remove line numbers, Remove null bytes, Remove whitespace, Reverse, Sort, Split, Swap case, Tail, Take bytes, Take nth bytes, To Lower case, To Upper case, Unique |
+| [Utils](utils.md) | Add line numbers, Alternating Caps, Convert area, Convert data units, Convert distance, Convert mass, Convert speed, Count occurrences, Drop bytes, Drop nth bytes, Escape string, Expand alphabet range, Filter, Find / Replace, From Case Insensitive Regex, Get All Casings, Head, Pad lines, Remove ANSI Escape Codes, Remove line numbers, Remove null bytes, Remove whitespace, Reverse, Sort, Split, Swap case, Tail, Take bytes, Take nth bytes, To Case Insensitive Regex, To Lower case, To Upper case, Unescape string, Unique |
 
 ## Recipes, URLs, and tooling
 

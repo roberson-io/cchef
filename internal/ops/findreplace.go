@@ -97,44 +97,49 @@ func replaceFirst(re *regexp.Regexp, input, replace string) string {
 	return string(out)
 }
 
-// parseEscapedChars converts common backslash escape sequences into their
-// literal characters (used by Find / Replace "Extended" mode).
+// reEscapedChars matches the backslash escape sequences recognised by
+// parseEscapedChars. Ported from CyberChef Utils.parseEscapedChars.
+var reEscapedChars = regexp.MustCompile(`\\([abfnrtv'"]|[0-3][0-7]{2}|[0-7]{1,2}|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]{1,6}\}|\\)`)
+
+// parseEscapedChars converts recognised backslash escape sequences into their
+// literal characters. Unrecognised sequences (e.g. "\d") are left intact.
 func parseEscapedChars(s string) string {
-	var sb strings.Builder
-	r := []rune(s)
-	for i := 0; i < len(r); i++ {
-		if r[i] != '\\' || i+1 >= len(r) {
-			sb.WriteRune(r[i])
-			continue
-		}
-		i++
-		switch r[i] {
-		case 'n':
-			sb.WriteByte('\n')
-		case 'r':
-			sb.WriteByte('\r')
-		case 't':
-			sb.WriteByte('\t')
-		case 'f':
-			sb.WriteByte('\f')
-		case 'v':
-			sb.WriteByte('\v')
+	return reEscapedChars.ReplaceAllStringFunc(s, func(m string) string {
+		a := m[1:] // drop the leading backslash
+		switch a[0] {
+		case '\\':
+			return "\\"
+		case 'a':
+			return "\x07"
 		case 'b':
-			sb.WriteByte('\b')
-		case '0':
-			sb.WriteByte(0)
+			return "\b"
+		case 't':
+			return "\t"
+		case 'n':
+			return "\n"
+		case 'v':
+			return "\v"
+		case 'f':
+			return "\f"
+		case 'r':
+			return "\r"
+		case '"':
+			return "\""
+		case '\'':
+			return "'"
 		case 'x':
-			if i+2 < len(r) {
-				if v, err := strconv.ParseUint(string(r[i+1:i+3]), 16, 8); err == nil {
-					sb.WriteByte(byte(v))
-					i += 2
-					continue
-				}
+			v, _ := strconv.ParseInt(a[1:], 16, 32)
+			return string(rune(v))
+		case 'u':
+			if a[1] == '{' {
+				v, _ := strconv.ParseInt(a[2:len(a)-1], 16, 32)
+				return string(rune(v))
 			}
-			sb.WriteRune(r[i])
-		default:
-			sb.WriteRune(r[i])
+			v, _ := strconv.ParseInt(a[1:], 16, 32)
+			return string(rune(v))
+		default: // octal 0-7
+			v, _ := strconv.ParseInt(a, 8, 32)
+			return string(rune(v))
 		}
-	}
-	return sb.String()
+	})
 }

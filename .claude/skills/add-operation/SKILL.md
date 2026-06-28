@@ -38,9 +38,13 @@ implementing a half-faithful version:
   Options: add a Go library dependency (note it cuts against the low-dependency
   goal), reimplement from scratch, or defer.
 - **No test fixtures:** no `tests/operations/tests/<Op>.mjs`. You cannot transcribe
-  authoritative cases. You may still author spec-authoritative vectors (e.g.
-  hand-computed bytes from a format spec) plus round-trip tests, but flag the
-  reduced fidelity — output may not be byte-identical to CyberChef.
+  authoritative cases — but you can still get authoritative outputs from the
+  **CyberChef-server oracle** (Docker, at `../CyberChef-server`): run it and POST
+  `{input, recipe:[{op, args}]}` to `localhost:3000/bake` to obtain real CyberChef
+  output for any input/options. Use it to derive test vectors and to
+  differential-test your implementation across many inputs. (Decode `.value` with
+  `jq -r` and inspect bytes with `xxd`.) Only fall back to hand-computed spec
+  vectors if the server is unavailable, and flag reduced fidelity in that case.
 - **Needs a new Dish type or engine feature:** e.g. `inputType`/`outputType` of
   `JSON`, `BigNumber`, or `List<File>` not yet in `core` (add the type test-first,
   like `TypeJSON` was added for AMF), or a flow-control op needing non-linear

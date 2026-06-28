@@ -16,9 +16,12 @@ General-purpose text utilities.
 | Count occurrences | `count-occurrences` |
 | Drop bytes | `drop-bytes` |
 | Drop nth bytes | `drop-nth-bytes` |
+| Escape string | `escape-string` |
 | Expand alphabet range | `expand-alphabet-range` |
 | Filter | `filter` |
 | Find / Replace | `find-replace` |
+| From Case Insensitive Regex | `from-case-insensitive-regex` |
+| Get All Casings | `get-all-casings` |
 | Head | `head` |
 | Pad lines | `pad-lines` |
 | Remove ANSI Escape Codes | `remove-ansi-escape-codes` |
@@ -32,8 +35,10 @@ General-purpose text utilities.
 | Tail | `tail` |
 | Take bytes | `take-bytes` |
 | Take nth bytes | `take-nth-bytes` |
+| To Case Insensitive Regex | `to-case-insensitive-regex` |
 | To Lower case | `to-lower-case` |
 | To Upper case | `to-upper-case` |
+| Unescape string | `unescape-string` |
 | Unique | `unique` |
 
 ---
@@ -226,6 +231,31 @@ $ cchef drop-nth-bytes --drop-every 2 -i '0123456789'
 13579
 ```
 
+## Escape string
+
+Escapes special characters in a string (e.g. quotes, backslashes, control and
+non-ASCII characters).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--escape-level` | option | `Special chars` | `Special chars` (escape control/quote/non-ASCII), `Everything` (also printable ASCII), or `Minimal` (only quote, backslash and control chars; leaves non-ASCII raw). |
+| `--escape-quote` | option | `Single` | Which quote character to escape: `Single`, `Double`, or `Backtick`. |
+| `--json-compatible` | bool | `false` | Produce a JSON-style string (wrapped in double quotes, `\uNNNN` escapes). |
+| `--es6-compatible` | bool | `true` | Use `\u{…}` for astral characters (otherwise UTF-16 surrogate pairs). |
+| `--uppercase-hex` | bool | `false` | Use uppercase hex digits. |
+
+> This is a from-scratch implementation of CyberChef's jsesc-backed behaviour,
+> validated against CyberChef but not guaranteed identical in every edge case.
+
+**Simple example**
+
+```bash
+$ cchef escape-string -i "it's a café"
+it\'s a caf\xe9
+```
+
 ## Expand alphabet range
 
 Expands an alphabet range specification into its characters.
@@ -293,6 +323,36 @@ barbar
 ```bash
 $ cchef find-replace --find '(\w+) (\w+)' --find-type Regex --replace '$2 $1' -i 'John Smith'
 Smith John
+```
+
+## From Case Insensitive Regex
+
+Converts a case-insensitive regex of the form `[aA][bB]` back to a case-sensitive
+one (`ab`). Character classes with distinct letters are left unchanged. Takes no
+options.
+
+**Simple example**
+
+```bash
+$ cchef from-case-insensitive-regex -i '[tT][eE][sS][tT]'
+test
+```
+
+## Get All Casings
+
+Outputs every combination of upper- and lower-case for the input, one per line.
+Takes no options.
+
+> The number of results doubles with each character, so keep the input short.
+
+**Simple example**
+
+```bash
+$ cchef get-all-casings -i ab
+ab
+Ab
+aB
+AB
 ```
 
 ## Head
@@ -533,6 +593,26 @@ $ cchef take-nth-bytes --take-every 2 -i '0123456789'
 02468
 ```
 
+## To Case Insensitive Regex
+
+Converts a case-sensitive regular expression into a case-insensitive one, e.g.
+`Mozilla` becomes `[mM][oO][zZ][iI][lL][lL][aA]`, expanding character ranges as
+needed. Takes no options.
+
+**Simple example**
+
+```bash
+$ cchef to-case-insensitive-regex -i 'Mozilla'
+[mM][oO][zZ][iI][lL][lL][aA]
+```
+
+**Character range**
+
+```bash
+$ cchef to-case-insensitive-regex -i '[A-Z]'
+[A-Za-z]
+```
+
 ## To Lower case
 
 Converts every character in the input to lower case. This operation takes no
@@ -568,6 +648,18 @@ HELLO, WORLD!
 ```bash
 $ cchef to-upper-case --scope Word -i 'hello there world'
 Hello There World
+```
+
+## Unescape string
+
+Unescapes backslash escape sequences (`\n`, `\t`, `\xNN`, `\uNNNN`, `\u{...}`,
+octal, etc.) into their raw characters. Takes no options.
+
+**Simple example**
+
+```bash
+$ printf 'a\\x41b\\n' | cchef unescape-string
+aAb
 ```
 
 ## Unique

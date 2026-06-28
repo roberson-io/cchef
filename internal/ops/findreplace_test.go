@@ -36,8 +36,8 @@ func TestFindReplace(t *testing.T) {
 			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\x41`), "_", true, false, true, false}}}},
 		{"No match leaves input unchanged", "abc", "abc",
 			core.Recipe{{Op: "Find / Replace", Args: []any{regex("z"), "_", false, false, true, false}}}},
-		// In Extended mode an unrecognised escape becomes the literal char (\d -> d).
-		{"Extended literal fallback", "d1d", "X1X",
-			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\d`), "X", true, false, true, false}}}},
+		// Octal escape in Extended mode (\101 -> 'A').
+		{"Extended octal escape", "aAb", "a_b",
+			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\101`), "_", true, false, true, false}}}},
 	})
 }

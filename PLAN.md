@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 73
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 78
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **73 operations** (`internal/ops/`), each a faithful port with tests
+- **78 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -75,7 +75,7 @@ cchef/
     hex.go octal.go urlcode.go xor.go rot.go hashes.go
     case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
     utils_simple.go findreplace.go utils_lines.go utils_slice.go utils_text2.go
-    convert.go convert_data.go
+    convert.go convert_data.go utils_case.go escapestring.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
@@ -128,13 +128,18 @@ cchef list                                   # discover operations
 - End-to-end: `printf 'hello' | ./dist/cchef to-base64` → `aGVsbG8=`;
   `printf 'hello' | ./dist/cchef md5` → `5d41402abc4b2a76b9719d911017c592`;
   `./dist/cchef url -e "To_Hex()" -i hello` → opens the recipe + input in CyberChef.
+- **Oracle:** for operations without upstream fixtures, the CyberChef-server
+  (Docker, `../CyberChef-server`) gives authoritative output — `docker run -d -p
+  3000:3000 cyberchef-server`, then POST `{input, recipe}` to
+  `localhost:3000/bake`. Used to derive/differential-test e.g. Escape string and
+  To/From Case Insensitive Regex.
 
 ## Operation implementation status
 
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **70 unique** CyberChef operations are covered (69 directly plus
+Currently **75 unique** CyberChef operations are covered (74 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 ### Data format (31/78)
@@ -423,7 +428,7 @@ Currently **70 unique** CyberChef operations are covered (69 directly plus
 - [ ] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
-### Utils (30/52)
+### Utils (35/52)
 
 - [x] Add line numbers
 - [x] Alternating Caps
@@ -437,14 +442,14 @@ Currently **70 unique** CyberChef operations are covered (69 directly plus
 - [ ] Diff
 - [x] Drop bytes
 - [x] Drop nth bytes
-- [ ] Escape string
+- [x] Escape string
 - [x] Expand alphabet range
 - [ ] File Tree
 - [x] Filter
 - [x] Find / Replace
-- [ ] From Case Insensitive Regex
+- [x] From Case Insensitive Regex
 - [ ] Fuzzy Match
-- [ ] Get All Casings
+- [x] Get All Casings
 - [ ] Hamming Distance
 - [x] Head
 - [ ] Levenshtein Distance
@@ -470,11 +475,11 @@ Currently **70 unique** CyberChef operations are covered (69 directly plus
 - [x] Tail
 - [x] Take bytes
 - [x] Take nth bytes
-- [ ] To Case Insensitive Regex
+- [x] To Case Insensitive Regex
 - [x] To Lower case
 - [ ] To Table
 - [x] To Upper case
-- [ ] Unescape string
+- [x] Unescape string
 - [x] Unique
 - [ ] Wrap
 
