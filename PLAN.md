@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **82 operations** (`internal/ops/`), each a faithful port with tests
+- **95 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -140,7 +140,7 @@ cchef list                                   # discover operations
 All 486 CyberChef operations, grouped by CyberChef category and listed
 alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
 count is `implemented/total`; some operations appear in more than one category.
-Currently **79 unique** CyberChef operations are covered (78 directly plus
+Currently **92 unique** CyberChef operations are covered (91 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 ### Data format (31/78)
@@ -224,7 +224,7 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [x] URL Encode
 - [ ] YAML to JSON
 
-### Encryption / Encoding (3/84)
+### Encryption / Encoding (4/84)
 
 - [ ] A1Z26 Cipher Decode
 - [ ] A1Z26 Cipher Encode
@@ -277,7 +277,7 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [ ] LS47 Decrypt
 - [ ] LS47 Encrypt
 - [ ] Multiple Bombe
-- [ ] Pseudo-Random Number Generator
+- [x] Pseudo-Random Number Generator
 - [ ] Rabbit
 - [ ] Rail Fence Cipher Decode
 - [ ] Rail Fence Cipher Encode
@@ -429,46 +429,46 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [ ] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
-### Utils (39/52)
+### Utils (52/52)
 
 - [x] Add line numbers
 - [x] Alternating Caps
 - [x] Convert area
-- [ ] Convert co-ordinate format
+- [x] Convert co-ordinate format
 - [x] Convert data units
 - [x] Convert distance
 - [x] Convert mass
 - [x] Convert speed
 - [x] Count occurrences
-- [ ] Diff
+- [x] Diff
 - [x] Drop bytes
 - [x] Drop nth bytes
 - [x] Escape string
 - [x] Expand alphabet range
-- [ ] File Tree
+- [x] File Tree
 - [x] Filter
 - [x] Find / Replace
 - [x] From Case Insensitive Regex
-- [ ] Fuzzy Match
+- [x] Fuzzy Match
 - [x] Get All Casings
 - [x] Hamming Distance
 - [x] Head
 - [x] Levenshtein Distance
-- [ ] Offset checker
+- [x] Offset checker
 - [x] Pad lines
-- [ ] Parse colour code
-- [ ] Parse ObjectID timestamp
+- [x] Parse colour code
+- [x] Parse ObjectID timestamp
 - [x] Parse UNIX file permissions
-- [ ] Pseudo-Random Number Generator
-- [ ] Regular expression
+- [x] Pseudo-Random Number Generator
+- [x] Regular expression
 - [x] Remove ANSI Escape Codes
 - [x] Remove line numbers
 - [x] Remove null bytes
 - [x] Remove whitespace
 - [x] Reverse
-- [ ] Show on map
-- [ ] Shuffle
-- [ ] Sleep
+- [x] Show on map
+- [x] Shuffle
+- [x] Sleep
 - [x] Sort
 - [x] Split
 - [x] Swap case
@@ -478,26 +478,26 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [x] Take nth bytes
 - [x] To Case Insensitive Regex
 - [x] To Lower case
-- [ ] To Table
+- [x] To Table
 - [x] To Upper case
 - [x] Unescape string
 - [x] Unique
 - [x] Wrap
 
-### Date / Time (0/10)
+### Date / Time (1/10)
 
 - [ ] DateTime Delta
 - [ ] Extract dates
 - [ ] From UNIX Timestamp
 - [ ] Get Time
 - [ ] Parse DateTime
-- [ ] Sleep
+- [x] Sleep
 - [ ] To UNIX Timestamp
 - [ ] Translate DateTime Format
 - [ ] UNIX Timestamp to Windows Filetime
 - [ ] Windows Filetime to UNIX Timestamp
 
-### Extractors (0/20)
+### Extractors (1/20)
 
 - [ ] CSS selector
 - [ ] Extract Audio Metadata
@@ -515,7 +515,7 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [ ] JPath expression
 - [ ] Jsonata Query
 - [ ] RAKE
-- [ ] Regular expression
+- [x] Regular expression
 - [ ] Strings
 - [ ] Template
 - [ ] XPath expression
@@ -593,14 +593,14 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [ ] Whirlpool
 - [ ] XOR Checksum
 
-### Code tidy (0/30)
+### Code tidy (1/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
 - [ ] CSS Beautify
 - [ ] CSS Minify
 - [ ] CSS selector
-- [ ] Diff
+- [x] Diff
 - [ ] From MessagePack
 - [ ] Generic Code Beautify
 - [ ] JavaScript Beautify
@@ -673,7 +673,7 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [ ] Sharpen Image
 - [ ] Split Colour Channels
 
-### Other (0/22)
+### Other (1/22)
 
 - [ ] Analyse UUID
 - [ ] Automated Validation Test Op
@@ -695,7 +695,7 @@ Currently **79 unique** CyberChef operations are covered (78 directly plus
 - [ ] P-list Viewer
 - [ ] Parse QR Code
 - [ ] Pseudo-Random Integer Generator
-- [ ] Pseudo-Random Number Generator
+- [x] Pseudo-Random Number Generator
 - [ ] XKCD Random Number
 
 ### Flow control (0/10)

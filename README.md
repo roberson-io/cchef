@@ -10,7 +10,7 @@ Knife" — built for the terminal. Every operation is a subcommand that reads in
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
 
-> **Status:** a curated, growing subset — **40 operations** so far, each a
+> **Status:** a curated, growing subset — **95 operations** so far, each a
 > faithful, test-driven port. See [PLAN.md](PLAN.md) for the full implementation
 > status against all 486 CyberChef operations.
 
@@ -54,7 +54,7 @@ trailing newline is added only when writing to a terminal.
 
 ## Operations
 
-The 40 operations are grouped using the same categories as CyberChef. Each page
+The 95 operations are grouped using the same categories as CyberChef. Each page
 documents options, examples, and reference links:
 
 - [Data format](docs/data-format.md) — Base/Base32/45/58/62/64/85/92, Hex, Octal,

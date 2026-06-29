@@ -9,29 +9,41 @@ General-purpose text utilities.
 | Add line numbers | `add-line-numbers` |
 | Alternating Caps | `alternating-caps` |
 | Convert area | `convert-area` |
+| Convert co-ordinate format | `convert-co-ordinate-format` |
 | Convert data units | `convert-data-units` |
 | Convert distance | `convert-distance` |
 | Convert mass | `convert-mass` |
 | Convert speed | `convert-speed` |
 | Count occurrences | `count-occurrences` |
+| Diff | `diff` |
 | Drop bytes | `drop-bytes` |
 | Drop nth bytes | `drop-nth-bytes` |
 | Escape string | `escape-string` |
 | Expand alphabet range | `expand-alphabet-range` |
+| File Tree | `file-tree` |
 | Filter | `filter` |
 | Find / Replace | `find-replace` |
 | From Case Insensitive Regex | `from-case-insensitive-regex` |
+| Fuzzy Match | `fuzzy-match` |
 | Get All Casings | `get-all-casings` |
 | Hamming Distance | `hamming-distance` |
 | Head | `head` |
 | Levenshtein Distance | `levenshtein-distance` |
+| Offset checker | `offset-checker` |
 | Pad lines | `pad-lines` |
+| Parse colour code | `parse-colour-code` |
+| Parse ObjectID timestamp | `parse-objectid-timestamp` |
 | Parse UNIX file permissions | `parse-unix-file-permissions` |
+| Pseudo-Random Number Generator | `pseudo-random-number-generator` |
+| Regular expression | `regular-expression` |
 | Remove ANSI Escape Codes | `remove-ansi-escape-codes` |
 | Remove line numbers | `remove-line-numbers` |
 | Remove null bytes | `remove-null-bytes` |
 | Remove whitespace | `remove-whitespace` |
 | Reverse | `reverse` |
+| Show on map | `show-on-map` |
+| Shuffle | `shuffle` |
+| Sleep | `sleep` |
 | Sort | `sort` |
 | Split | `split` |
 | Swap case | `swap-case` |
@@ -40,6 +52,7 @@ General-purpose text utilities.
 | Take nth bytes | `take-nth-bytes` |
 | To Case Insensitive Regex | `to-case-insensitive-regex` |
 | To Lower case | `to-lower-case` |
+| To Table | `to-table` |
 | To Upper case | `to-upper-case` |
 | Unescape string | `unescape-string` |
 | Unique | `unique` |
@@ -96,6 +109,33 @@ Run `cchef convert-area --help` for the full list of units.
 ```bash
 $ cchef convert-area --input-units 'Square foot (sq ft)' --output-units 'Square metre (sq m)' -i 100
 9.290304
+```
+
+## Convert co-ordinate format
+
+Converts geographic co-ordinates between Decimal Degrees, Degrees Decimal Minutes,
+Degrees Minutes Seconds, Geohash, MGRS, Ordnance Survey National Grid and UTM.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `Auto` | Input format (`Auto` detects it). |
+| `--input-delimiter` | option | `Auto` | How the latitude/longitude are separated. |
+| `--output-format` | option | `Degrees Minutes Seconds` | Format to convert to. |
+| `--output-delimiter` | option | `Space` | Separator for the output pair. |
+| `--include-compass-directions` | option | `None` | `None`, `Before`, or `After` the value. |
+| `--precision` | number | `3` | Number of decimal places. |
+
+> UTM easting/northing are computed with a different projection library than
+> CyberChef, so the final (sub-millimetre) digit may occasionally differ at high
+> precision. MGRS, OSNG, Geohash and the lat/lon formats match exactly.
+
+**Simple example**
+
+```bash
+$ printf '51.5074, -0.1278' | cchef convert-co-ordinate-format --output-format 'Degrees Minutes Seconds'
+51° 30' 26.64" -0° 7' 40.08" 
 ```
 
 ## Convert data units
@@ -197,6 +237,33 @@ $ cchef count-occurrences --search-string foo --search-string-type 'Simple strin
 3
 ```
 
+## Diff
+
+Compares two samples (separated by a delimiter) and highlights the differences
+with `<ins>` and `<del>` tags.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--sample-delimiter` | string | `\n\n` | Separates the two samples (escape sequences are expanded). |
+| `--diff-by` | option | `Character` | `Character`, `Word`, `Line`, `Sentence`, `CSS`, or `JSON`. |
+| `--show-added` | bool | `true` | Wrap added text in `<ins>`. |
+| `--show-removed` | bool | `true` | Wrap removed text in `<del>`. |
+| `--show-subtraction` | bool | `false` | Show only the differences (omit unchanged text). |
+| `--ignore-whitespace` | bool | `false` | Ignore whitespace (Word and Line modes). |
+
+> Diffs use a Go diff library rather than CyberChef's jsdiff. All modes match
+> CyberChef except Word with `--ignore-whitespace`, which may attach trailing
+> whitespace to a change differently.
+
+**Simple example**
+
+```bash
+$ printf 'the quick brown fox|the quick red fox' | cchef diff --sample-delimiter '|' --diff-by Word
+the quick <del>brown</del><ins>red</ins> fox
+```
+
 ## Drop bytes
 
 Deletes a range of bytes from the input.
@@ -277,6 +344,28 @@ $ cchef expand-alphabet-range -i 'a-j'
 abcdefghij
 ```
 
+## File Tree
+
+Renders a list of file paths as a directory tree.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--file-path-delimiter` | string | `/` | Separator between path components. |
+| `--delimiter` | option | `Line feed` | Separator between the input paths. |
+
+**Simple example**
+
+```bash
+$ printf 'home/a.txt\nhome/b/c.txt\nhome/b/d.txt' | cchef file-tree
+home
+|---a.txt
+|---b
+|   |---c.txt
+|   |---d.txt
+```
+
 ## Filter
 
 Splits the input on a delimiter and keeps only the sections matching a regular
@@ -340,6 +429,31 @@ options.
 ```bash
 $ cchef from-case-insensitive-regex -i '[tT][eE][sS][tT]'
 test
+```
+
+## Fuzzy Match
+
+Conducts a fuzzy search to find a pattern within the input, wrapping each match in
+`<b>` tags inside an alternating `hl1`/`hl2` `<span>`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--search` | string | (empty) | The pattern to search for (escape sequences are expanded). |
+| `--sequential-bonus` | number | `15` | Bonus for adjacent matches. |
+| `--separator-bonus` | number | `30` | Bonus if a match follows a separator. |
+| `--camel-bonus` | number | `30` | Bonus for an uppercase match after a lowercase letter. |
+| `--first-letter-bonus` | number | `15` | Bonus if the first letter is matched. |
+| `--leading-letter-penalty` | number | `-5` | Penalty per letter before the first match. |
+| `--max-leading-letter-penalty` | number | `-15` | Cap on the leading-letter penalty. |
+| `--unmatched-letter-penalty` | number | `-1` | Penalty per unmatched letter. |
+
+**Simple example**
+
+```bash
+$ printf 'test input' | cchef fuzzy-match --search tein
+<span class="hl1"><b>te</b>st <b>in</b></span>put
 ```
 
 ## Get All Casings
@@ -420,6 +534,25 @@ $ printf 'kitten\nsitting' | cchef levenshtein-distance
 3
 ```
 
+## Offset checker
+
+Compares multiple samples and highlights (with `<span>` tags) the byte offsets that
+are identical across all of them.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--sample-delimiter` | string | `\n\n` | Separates the samples (escape sequences are expanded). |
+
+**Simple example**
+
+```bash
+$ printf 'hello world\nhello there' | cchef offset-checker --sample-delimiter '\n'
+<span class='hl5'>hello </span>world
+<span class='hl5'>hello </span>there
+```
+
 ## Pad lines
 
 Adds padding characters to the start or end of each line.
@@ -438,6 +571,38 @@ Adds padding characters to the start or end of each line.
 $ printf 'ab\ncd' | cchef pad-lines --position Start --length 2 --character '*'
 **ab
 **cd
+```
+
+## Parse colour code
+
+Parses a colour code in a standard format (hex, RGB, RGBA, HSL, HSLA, CMYK) and
+prints all the other representations (plus an HTML colour-picker for the GUI).
+Takes no options.
+
+**Simple example**
+
+```bash
+$ printf '#ff0000' | cchef parse-colour-code
+<div id="colorpicker" style="white-space: normal;"></div>
+Hex:  #ff0000
+RGB:  rgb(255, 0, 0)
+RGBA: rgba(255, 0, 0, 1)
+HSL:  hsl(0, 100%, 50%)
+HSLA: hsla(0, 100%, 50%, 1)
+CMYK: cmyk(0.00, 1.00, 1.00, 0.00)
+...
+```
+
+## Parse ObjectID timestamp
+
+Extracts the embedded creation timestamp from a MongoDB ObjectID (the first 4
+bytes), as an ISO 8601 string. Takes no options.
+
+**Simple example**
+
+```bash
+$ printf '507f1f77bcf86cd799439011' | cchef parse-objectid-timestamp
+2012-10-17T21:13:27.000Z
 ```
 
 ## Parse UNIX file permissions
@@ -462,6 +627,58 @@ Octal representation:   0755
  +---------+-------+-------+-------+
  | Execute |   X   |   X   |   X   |
  +---------+-------+-------+-------+
+```
+
+## Pseudo-Random Number Generator
+
+Generates a number of cryptographically-secure random bytes (using Go's
+`crypto/rand`) and outputs them in the chosen representation.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--number-of-bytes` | number | `32` | How many random bytes to generate. |
+| `--output-as` | option | `Hex` | `Hex`, `Integer`, `Byte array`, or `Raw`. |
+
+> Output is non-deterministic by design.
+
+**Simple example**
+
+```bash
+$ cchef pseudo-random-number-generator --number-of-bytes 4 --output-as Hex
+1ed9ec81
+```
+
+## Regular expression
+
+Searches the input with a user-supplied regular expression (Go's RE2 syntax),
+highlighting or listing the matches.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--built-in-regexes` | string | (empty) | Ignored at run time (mirrors CyberChef's arg); supply the pattern via `--regex`. |
+| `--regex` | string | (empty) | The regular expression. |
+| `--case-insensitive` | bool | `true` | Case-insensitive matching. |
+| `--and-match-at-newlines` | bool | `true` | `^` and `$` match at line boundaries. |
+| `--dot-matches-all` | bool | `false` | `.` matches newlines. |
+| `--unicode-support` | bool | `false` | (Accepted for compatibility.) |
+| `--astral-support` | bool | `false` | (Accepted for compatibility.) |
+| `--display-total` | bool | `false` | Prefix the output with the match count. |
+| `--output-format` | option | `Highlight matches` | `Highlight matches`, `List matches`, `List capture groups`, or `List matches with capture groups`. |
+
+> RE2 does not support lookaround or backreferences, so some XRegExp-only patterns
+> (including a few of CyberChef's built-in regexes) will not compile.
+
+**Simple example**
+
+```bash
+$ printf 'a1b22c333' | cchef regular-expression --regex '\d+' --output-format 'List matches'
+1
+22
+333
 ```
 
 ## Remove ANSI Escape Codes
@@ -548,6 +765,68 @@ $ printf 'one\ntwo\nthree' | cchef reverse --by Line
 three
 two
 one
+```
+
+## Show on map
+
+Parses co-ordinates (in any supported format) and returns the `latitude,longitude`
+pair. In CyberChef the GUI renders an interactive map; here the operation returns
+the parsed pair that the map would use.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--zoom-level` | number | `13` | Map zoom level (used by the GUI only). |
+| `--input-format` | option | `Auto` | Input co-ordinate format (`Auto` detects it). |
+| `--input-delimiter` | option | `Auto` | How the latitude/longitude are separated. |
+
+**Simple example**
+
+```bash
+$ printf '51.5074, -0.1278' | cchef show-on-map
+51.5074,-0.1278
+```
+
+## Shuffle
+
+Randomly reorders the sections of the input, split on a delimiter (using
+cryptographically-secure randomness).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Line feed` | `Line feed`, `CRLF`, `Space`, `Comma`, `Semi-colon`, `Colon`, `Nothing (separate chars)`. |
+
+> Output order is non-deterministic by design.
+
+**Simple example**
+
+```bash
+$ printf 'a\nb\nc\nd' | cchef shuffle
+c
+a
+d
+b
+```
+
+## Sleep
+
+Pauses for the given number of milliseconds, then passes the input through
+unchanged.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--time-ms` | number | `1000` | Time to sleep, in milliseconds. |
+
+**Simple example**
+
+```bash
+$ printf 'hello' | cchef sleep --time-ms 0
+hello
 ```
 
 ## Sort
@@ -691,6 +970,28 @@ options.
 ```bash
 $ cchef to-lower-case -i 'Hello, World!'
 hello, world!
+```
+
+## To Table
+
+Renders delimited data (e.g. CSV) as an ASCII, HTML, or Markdown table.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--cell-delimiters` | string | `,` | Characters that separate cells. |
+| `--row-delimiters` | string | `\r\n` | Characters that separate rows. |
+| `--make-first-row-header` | bool | `false` | Treat the first row as a header. |
+| `--format` | option | `ASCII` | `ASCII`, `HTML`, or `Markdown`. |
+
+**Simple example**
+
+```bash
+$ printf 'a,b\n1,2' | cchef to-table --format Markdown --make-first-row-header
+| a | b |
+| - | - |
+| 1 | 2 |
 ```
 
 ## To Upper case
