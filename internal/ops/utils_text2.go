@@ -28,26 +28,26 @@ func (Split) Meta() core.OpMeta {
 	return core.OpMeta{
 		Name:        "Split",
 		Module:      "Default",
-		Description: "Splits the input on the given delimiter and rejoins the parts with another. Delimiters support escape sequences (e.g. \\n).",
+		Description: "Splits the input on the given delimiter and rejoins the parts with another. Delimiters are used literally (matching CyberChef).",
 		InputType:   core.TypeString,
 		OutputType:  core.TypeString,
 	}
 }
 
-// Args returns the argument definitions.
+// Args returns the argument definitions. The default join delimiter is the
+// literal two-character "\\n", matching CyberChef's "Line feed" preset.
 func (Split) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Split delimiter", Type: core.ArgEditableOption, Value: ","},
-		{Name: "Join delimiter", Type: core.ArgEditableOption, Value: "\n"},
+		{Name: "Join delimiter", Type: core.ArgEditableOption, Value: `\n`},
 	}
 }
 
-// Run splits then joins. Ported from CyberChef Split.mjs.
+// Run splits then joins, using the delimiters literally. Ported from CyberChef
+// Split.mjs.
 func (Split) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	splitDelim := parseEscapedChars(args[0].(string))
-	joinDelim := parseEscapedChars(args[1].(string))
-	parts := strings.Split(in.String(), splitDelim)
-	return core.NewDish([]byte(strings.Join(parts, joinDelim)), core.TypeString), nil
+	parts := strings.Split(in.String(), args[0].(string))
+	return core.NewDish([]byte(strings.Join(parts, args[1].(string))), core.TypeString), nil
 }
 
 // CountOccurrences counts how many times a search term appears.

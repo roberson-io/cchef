@@ -22,8 +22,11 @@ General-purpose text utilities.
 | Find / Replace | `find-replace` |
 | From Case Insensitive Regex | `from-case-insensitive-regex` |
 | Get All Casings | `get-all-casings` |
+| Hamming Distance | `hamming-distance` |
 | Head | `head` |
+| Levenshtein Distance | `levenshtein-distance` |
 | Pad lines | `pad-lines` |
+| Parse UNIX file permissions | `parse-unix-file-permissions` |
 | Remove ANSI Escape Codes | `remove-ansi-escape-codes` |
 | Remove line numbers | `remove-line-numbers` |
 | Remove null bytes | `remove-null-bytes` |
@@ -40,6 +43,7 @@ General-purpose text utilities.
 | To Upper case | `to-upper-case` |
 | Unescape string | `unescape-string` |
 | Unique | `unique` |
+| Wrap | `wrap` |
 
 ---
 
@@ -355,6 +359,26 @@ aB
 AB
 ```
 
+## Hamming Distance
+
+Computes the Hamming distance between two equal-length samples (the number of
+positions at which they differ), by byte or by bit.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | string | `\n\n` | Separates the two samples (escape sequences are expanded). |
+| `--unit` | option | `Byte` | Count differing `Byte`s or `Bit`s. |
+| `--input-type` | option | `Raw string` | `Raw string` or `Hex`. |
+
+**Simple example**
+
+```bash
+$ printf 'karolin\n\nkathrin' | cchef hamming-distance --unit Bit
+9
+```
+
 ## Head
 
 Keeps only the first N sections (lines) of the input. A negative N drops the
@@ -375,6 +399,27 @@ a
 b
 ```
 
+## Levenshtein Distance
+
+Computes the Levenshtein (edit) distance between two samples — the minimum number
+of single-character edits to turn one into the other. Output is the distance.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--sample-delimiter` | string | `\n` | Separates the two samples (escape sequences are expanded). |
+| `--insertion-cost` | number | `1` | Cost of an insertion. |
+| `--deletion-cost` | number | `1` | Cost of a deletion. |
+| `--substitution-cost` | number | `1` | Cost of a substitution. |
+
+**Simple example**
+
+```bash
+$ printf 'kitten\nsitting' | cchef levenshtein-distance
+3
+```
+
 ## Pad lines
 
 Adds padding characters to the start or end of each line.
@@ -393,6 +438,30 @@ Adds padding characters to the start or end of each line.
 $ printf 'ab\ncd' | cchef pad-lines --position Start --length 2 --character '*'
 **ab
 **cd
+```
+
+## Parse UNIX file permissions
+
+Parses a UNIX file permission string — octal (e.g. `755`) or textual (e.g.
+`drwxr-xr-x`) — and prints the textual/octal representations, any special flags,
+and a read/write/execute matrix. Takes no options.
+
+**Simple example**
+
+```bash
+$ cchef parse-unix-file-permissions -i 755
+Textual representation: -rwxr-xr-x
+Octal representation:   0755
+
+ +---------+-------+-------+-------+
+ |         | User  | Group | Other |
+ +---------+-------+-------+-------+
+ |    Read |   X   |   X   |   X   |
+ +---------+-------+-------+-------+
+ |   Write |   X   |       |       |
+ +---------+-------+-------+-------+
+ | Execute |   X   |   X   |   X   |
+ +---------+-------+-------+-------+
 ```
 
 ## Remove ANSI Escape Codes
@@ -506,22 +575,21 @@ $ printf '10\n2\n1\n20' | cchef sort --order Numeric
 ## Split
 
 Splits the input on one delimiter and rejoins the parts with another. Delimiters
-support escape sequences (e.g. `\n`).
+are used **literally** (matching CyberChef) — escape sequences are not expanded,
+so `\n` joins with a literal backslash-n, not a newline.
 
 **Options**
 
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--split-delimiter` | string | `,` | Delimiter to split on. |
-| `--join-delimiter` | string | `\n` | Delimiter to join with. |
+| `--join-delimiter` | string | `\n` | Delimiter to join with (literal). |
 
 **Simple example**
 
 ```bash
-$ cchef split --split-delimiter ',' --join-delimiter '\n' -i 'a,b,c'
-a
-b
-c
+$ cchef split --split-delimiter ',' --join-delimiter ';' -i 'a,b,c'
+a;b;c
 ```
 
 ## Swap case
@@ -681,4 +749,23 @@ $ printf 'a\nb\na\nc' | cchef unique
 a
 b
 c
+```
+
+## Wrap
+
+Wraps text to a fixed line width, breaking it into lines of at most that many
+characters.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--line-width` | number | `64` | Maximum characters per line. |
+
+**Simple example**
+
+```bash
+$ printf 'The quick brown fox' | cchef wrap --line-width 10
+The quick 
+brown fox
 ```
