@@ -19,10 +19,14 @@ fixture cases for parity, and keeps external dependencies minimal:
   Keccak-256/512. Keccak-224/384 (not in that package) use a small local
   Keccak-f sponge, cross-validated against x/crypto (256/512) and the stdlib
   `crypto/sha3` (SHA-3 mode) in tests.
+- `github.com/dlclark/regexp2` — pure-Go, PCRE-compatible regex (no cgo, no
+  transitive deps). Used only for the Defang IP / Defang URL matchers, whose
+  CyberChef regexes rely on lookahead and backreferences that Go's stdlib RE2
+  `regexp` cannot express; ported verbatim to preserve parity.
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 129
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 145
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +39,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **129 operations** (`internal/ops/`), each a faithful port with tests
+- **145 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -79,9 +83,11 @@ cchef/
     metrics.go unixperms.go arithmetic.go bignum.go bitwise.go sets.go
     ror13.go rotate.go rot8000.go xorbruteforce.go
     extractdates.go filetime.go unixtimestamp.go datetime.go datetimeformat.go
+    changeipformat.go dechunkhttp.go netbios.go striphttpheaders.go defang.go
+    stripheaders.go formatmac.go ipv6transition.go groupip.go varint.go
     fixtures_test.go (+ per-op _test.go)
   docs/
-    README.md arithmetic-logic.md data-format.md date-time.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
+    README.md arithmetic-logic.md data-format.md date-time.md encryption-encoding.md hashing.md networking.md utils.md recipes-and-urls.md
 ```
 
 ## Recipe formats & URLs
@@ -144,7 +150,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **126 unique** CyberChef operations are covered (125 directly plus
+Currently **142 unique** CyberChef operations are covered (141 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **483 real operations, not 486.** CyberChef's `Categories.json` names **486**
@@ -155,7 +161,7 @@ Currently **126 unique** CyberChef operations are covered (125 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (31/78)
+### Data format (32/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -163,7 +169,7 @@ Currently **126 unique** CyberChef operations are covered (125 directly plus
 - [ ] Caret/M-decode
 - [ ] CBOR Decode
 - [ ] CBOR Encode
-- [ ] Change IP format
+- [x] Change IP format
 - [ ] CSV to JSON
 - [ ] Decode text
 - [ ] Encode text
@@ -395,22 +401,22 @@ Currently **126 unique** CyberChef operations are covered (125 directly plus
 - [x] XOR
 - [x] XOR Brute Force
 
-### Networking (2/38)
+### Networking (18/38)
 
-- [ ] Change IP format
-- [ ] Dechunk HTTP response
-- [ ] Decode NetBIOS Name
-- [ ] Defang IP Addresses
-- [ ] Defang URL
+- [x] Change IP format
+- [x] Dechunk HTTP response
+- [x] Decode NetBIOS Name
+- [x] Defang IP Addresses
+- [x] Defang URL
 - [ ] DNS over HTTPS
-- [ ] Encode NetBIOS Name
-- [ ] Fang URL
-- [ ] Format MAC addresses
-- [ ] Group IP addresses
+- [x] Encode NetBIOS Name
+- [x] Fang URL
+- [x] Format MAC addresses
+- [x] Group IP addresses
 - [ ] HASSH Client Fingerprint
 - [ ] HASSH Server Fingerprint
 - [ ] HTTP request
-- [ ] IPv6 Transition Addresses
+- [x] IPv6 Transition Addresses
 - [ ] JA3 Fingerprint
 - [ ] JA3S Fingerprint
 - [ ] JA4 Fingerprint
@@ -427,14 +433,14 @@ Currently **126 unique** CyberChef operations are covered (125 directly plus
 - [ ] Parse User Agent
 - [ ] Protobuf Decode
 - [ ] Protobuf Encode
-- [ ] Strip HTTP headers
-- [ ] Strip IPv4 header
-- [ ] Strip TCP header
-- [ ] Strip UDP header
+- [x] Strip HTTP headers
+- [x] Strip IPv4 header
+- [x] Strip TCP header
+- [x] Strip UDP header
 - [x] URL Decode
 - [x] URL Encode
-- [ ] VarInt Decode
-- [ ] VarInt Encode
+- [x] VarInt Decode
+- [x] VarInt Encode
 
 ### Language (0/7)
 

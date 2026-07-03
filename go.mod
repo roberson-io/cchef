@@ -3,6 +3,7 @@ module github.com/roberson-io/cchef
 go 1.26.3
 
 require (
+	github.com/dlclark/regexp2 v1.12.0
 	github.com/elobuff/goamf v0.0.0-20140202161438-1508c33821c7
 	github.com/im7mortal/UTM v1.4.0
 	github.com/klaus-tockloth/coco v0.2.0

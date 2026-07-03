@@ -31,9 +31,10 @@ func buildOpCommand(op core.Operation) *cobra.Command {
 		Long:  fmt.Sprintf("%s\n\nCyberChef operation: %q (module %s)", meta.Description, meta.Name, meta.Module),
 	}
 
+	used := map[string]bool{}
 	getters := make([]flagGetter, len(op.Args()))
 	for i, def := range op.Args() {
-		getters[i] = addArgFlag(cmd, def)
+		getters[i] = addArgFlag(cmd, def, uniqueFlagName(flagName(def.Name), used))
 	}
 
 	addIOFlags(cmd)
@@ -85,10 +86,23 @@ func flagName(argName string) string {
 	return strings.TrimRight(sb.String(), "-")
 }
 
-// addArgFlag registers the flag(s) for a single argument definition and returns
-// a getter that reads back the value(s) as the canonical argument type.
-func addArgFlag(cmd *cobra.Command, def core.ArgDef) flagGetter {
-	name := flagName(def.Name)
+// uniqueFlagName returns base if unused, otherwise appends the smallest numeric
+// suffix that makes it unique, recording the result in used. This disambiguates
+// argument names that collapse to the same flag (e.g. "Restore [.]" and
+// "Restore ://" both reduce to "restore").
+func uniqueFlagName(base string, used map[string]bool) string {
+	name := base
+	for n := 2; used[name]; n++ {
+		name = fmt.Sprintf("%s-%d", base, n)
+	}
+	used[name] = true
+	return name
+}
+
+// addArgFlag registers the flag(s) for a single argument definition under the
+// given (already de-duplicated) flag name and returns a getter that reads back
+// the value(s) as the canonical argument type.
+func addArgFlag(cmd *cobra.Command, def core.ArgDef, name string) flagGetter {
 	f := cmd.Flags()
 
 	switch def.Type {
