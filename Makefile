@@ -18,9 +18,10 @@ build:
 clean:
 	rm -rf $(DIST) coverage.out
 
-## cover: run tests and write a cross-package coverage profile
+## cover: run tests, write a cross-package coverage profile, and print the total
 cover:
 	$(GO) test -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
+	@$(GO) tool cover -func=coverage.out | tail -1
 
 ## fmt: format all Go source
 fmt:

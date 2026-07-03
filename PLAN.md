@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 82
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 120
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **95 operations** (`internal/ops/`), each a faithful port with tests
+- **120 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -76,10 +76,10 @@ cchef/
     case.go reverse.go amf.go sha3.go keccak.go hmac.go adler32.go
     utils_simple.go findreplace.go utils_lines.go utils_slice.go utils_text2.go
     convert.go convert_data.go utils_case.go escapestring.go
-    metrics.go unixperms.go
+    metrics.go unixperms.go arithmetic.go bignum.go bitwise.go sets.go
     fixtures_test.go (+ per-op _test.go)
   docs/
-    README.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
+    README.md arithmetic-logic.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
 ```
 
 ## Recipe formats & URLs
@@ -137,11 +137,21 @@ cchef list                                   # discover operations
 
 ## Operation implementation status
 
-All 486 CyberChef operations, grouped by CyberChef category and listed
-alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet. The per-category
-count is `implemented/total`; some operations appear in more than one category.
-Currently **92 unique** CyberChef operations are covered (91 directly plus
+All CyberChef operations, grouped by CyberChef category and listed
+alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
+(named in CyberChef's config but never implemented upstream — see note below).
+The per-category count is `implemented/total`; some operations appear in more
+than one category.
+Currently **117 unique** CyberChef operations are covered (116 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
+
+> **483 real operations, not 486.** CyberChef's `Categories.json` names **486**
+> operations, but only **483** have a backing `Operation` class. Three names —
+> **Extended GCD**, **Modular Exponentiation**, **Modular Inverse** — appear in
+> the category config (and a staged `lib/BigIntUtils.mjs` helper, Crown Copyright
+> 2025) but were never given operation files, so they don't exist as usable
+> CyberChef operations. They are marked `[—]` below and excluded from the
+> category totals; there is nothing to port until GCHQ ships them.
 
 ### Data format (31/78)
 
@@ -224,7 +234,7 @@ Currently **92 unique** CyberChef operations are covered (91 directly plus
 - [x] URL Encode
 - [ ] YAML to JSON
 
-### Encryption / Encoding (4/84)
+### Encryption / Encoding (7/84)
 
 - [ ] A1Z26 Cipher Decode
 - [ ] A1Z26 Cipher Encode
@@ -287,12 +297,12 @@ Currently **92 unique** CyberChef operations are covered (91 directly plus
 - [ ] RC4 Drop
 - [ ] RC6 Decrypt
 - [ ] RC6 Encrypt
-- [ ] ROR13
+- [x] ROR13
 - [x] ROT13
 - [ ] ROT13 Brute Force
 - [x] ROT47
 - [ ] ROT47 Brute Force
-- [ ] ROT8000
+- [x] ROT8000
 - [ ] Salsa20
 - [ ] Scrypt
 - [ ] SIGABA
@@ -306,7 +316,7 @@ Currently **92 unique** CyberChef operations are covered (91 directly plus
 - [ ] Vigenère Decode
 - [ ] Vigenère Encode
 - [x] XOR
-- [ ] XOR Brute Force
+- [x] XOR Brute Force
 - [ ] XSalsa20
 - [ ] XXTEA Decrypt
 - [ ] XXTEA Encrypt
@@ -345,38 +355,43 @@ Currently **92 unique** CyberChef operations are covered (91 directly plus
 - [ ] SM2 Decrypt
 - [ ] SM2 Encrypt
 
-### Arithmetic / Logic (2/30)
+### Arithmetic / Logic (27/27)
 
-- [ ] ADD
-- [ ] AND
-- [ ] Bit shift left
-- [ ] Bit shift right
-- [ ] Cartesian Product
-- [ ] Divide
-- [ ] Extended GCD
-- [ ] Mean
-- [ ] Median
-- [ ] Modular Exponentiation
-- [ ] Modular Inverse
-- [ ] Multiply
-- [ ] NOT
-- [ ] OR
-- [ ] Power Set
-- [ ] ROR13
+> Complete. The category names 30 ops, but three — Extended GCD, Modular
+> Exponentiation, Modular Inverse — are phantom `Categories.json` entries with no
+> CyberChef implementation (see the section note above), so they are excluded
+> from the total.
+
+- [x] ADD
+- [x] AND
+- [x] Bit shift left
+- [x] Bit shift right
+- [x] Cartesian Product
+- [x] Divide
+- [—] Extended GCD — phantom Categories.json entry, no CyberChef operation
+- [x] Mean
+- [x] Median
+- [—] Modular Exponentiation — phantom Categories.json entry, no CyberChef operation
+- [—] Modular Inverse — phantom Categories.json entry, no CyberChef operation
+- [x] Multiply
+- [x] NOT
+- [x] OR
+- [x] Power Set
+- [x] ROR13
 - [x] ROT13
-- [ ] ROT8000
-- [ ] Rotate left
-- [ ] Rotate right
-- [ ] Set Difference
-- [ ] Set Intersection
-- [ ] Set Union
-- [ ] Standard Deviation
-- [ ] SUB
-- [ ] Subtract
-- [ ] Sum
-- [ ] Symmetric Difference
+- [x] ROT8000
+- [x] Rotate left
+- [x] Rotate right
+- [x] Set Difference
+- [x] Set Intersection
+- [x] Set Union
+- [x] Standard Deviation
+- [x] SUB
+- [x] Subtract
+- [x] Sum
+- [x] Symmetric Difference
 - [x] XOR
-- [ ] XOR Brute Force
+- [x] XOR Brute Force
 
 ### Networking (2/38)
 
