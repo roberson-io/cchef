@@ -22,7 +22,7 @@ fixture cases for parity, and keeps external dependencies minimal:
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 120
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 129
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -35,7 +35,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **120 operations** (`internal/ops/`), each a faithful port with tests
+- **129 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -77,9 +77,11 @@ cchef/
     utils_simple.go findreplace.go utils_lines.go utils_slice.go utils_text2.go
     convert.go convert_data.go utils_case.go escapestring.go
     metrics.go unixperms.go arithmetic.go bignum.go bitwise.go sets.go
+    ror13.go rotate.go rot8000.go xorbruteforce.go
+    extractdates.go filetime.go unixtimestamp.go datetime.go datetimeformat.go
     fixtures_test.go (+ per-op _test.go)
   docs/
-    README.md arithmetic-logic.md data-format.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
+    README.md arithmetic-logic.md data-format.md date-time.md encryption-encoding.md hashing.md utils.md recipes-and-urls.md
 ```
 
 ## Recipe formats & URLs
@@ -142,7 +144,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **117 unique** CyberChef operations are covered (116 directly plus
+Currently **126 unique** CyberChef operations are covered (125 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **483 real operations, not 486.** CyberChef's `Categories.json` names **486**
@@ -499,24 +501,24 @@ Currently **117 unique** CyberChef operations are covered (116 directly plus
 - [x] Unique
 - [x] Wrap
 
-### Date / Time (1/10)
+### Date / Time (10/10)
 
-- [ ] DateTime Delta
-- [ ] Extract dates
-- [ ] From UNIX Timestamp
-- [ ] Get Time
-- [ ] Parse DateTime
+- [x] DateTime Delta
+- [x] Extract dates
+- [x] From UNIX Timestamp
+- [x] Get Time
+- [x] Parse DateTime
 - [x] Sleep
-- [ ] To UNIX Timestamp
-- [ ] Translate DateTime Format
-- [ ] UNIX Timestamp to Windows Filetime
-- [ ] Windows Filetime to UNIX Timestamp
+- [x] To UNIX Timestamp
+- [x] Translate DateTime Format
+- [x] UNIX Timestamp to Windows Filetime
+- [x] Windows Filetime to UNIX Timestamp
 
-### Extractors (1/20)
+### Extractors (2/20)
 
 - [ ] CSS selector
 - [ ] Extract Audio Metadata
-- [ ] Extract dates
+- [x] Extract dates
 - [ ] Extract domains
 - [ ] Extract email addresses
 - [ ] Extract EXIF
