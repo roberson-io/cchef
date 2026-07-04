@@ -43,10 +43,14 @@ func TestParseUNIXPermsBranches(t *testing.T) {
 		{"brw-rw----", "brw-rw----", "0660", "Block device", nil},
 		{"Drwxr-xr-x", "Drwxr-xr-x", "0755", "Door", nil},
 		{"-rw-r--r--", "-rw-r--r--", "0644", "Regular file", nil},
-		{"-rwsr-sr-t", "-rwsr-sr-t", "7755", "Regular file",
-			[]string{"The setuid flag is set", "The setgid flag is set", "The sticky bit is set"}},
-		{"-rwSr-Sr-T", "-rwSr-Sr-T", "7644", "Regular file",
-			[]string{"The setuid flag is set", "The setgid flag is set", "The sticky bit is set"}},
+		{
+			"-rwsr-sr-t", "-rwsr-sr-t", "7755", "Regular file",
+			[]string{"The setuid flag is set", "The setgid flag is set", "The sticky bit is set"},
+		},
+		{
+			"-rwSr-Sr-T", "-rwSr-Sr-T", "7644", "Regular file",
+			[]string{"The setuid flag is set", "The setgid flag is set", "The sticky bit is set"},
+		},
 		// Octal forms (no file-type line).
 		{"1777", "-rwxrwxrwt", "1777", "", []string{"The sticky bit is set"}},
 		{"4755", "-rwsr-xr-x", "4755", "", []string{"The setuid flag is set"}},

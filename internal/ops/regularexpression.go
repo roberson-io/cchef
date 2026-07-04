@@ -46,7 +46,8 @@ func (RegularExpression) Args() []core.ArgDef {
 		{Name: "Astral support", Type: core.ArgBoolean, Value: false},
 		{Name: "Display total", Type: core.ArgBoolean, Value: false},
 		{Name: "Output format", Type: core.ArgOption, Value: []string{
-			"Highlight matches", "List matches", "List capture groups", "List matches with capture groups"}},
+			"Highlight matches", "List matches", "List capture groups", "List matches with capture groups",
+		}},
 	}
 }
 

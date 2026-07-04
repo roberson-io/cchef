@@ -33,14 +33,22 @@ func TestParseIPv4HeaderFixtures(t *testing.T) {
 <tr><td>Data (hex)</td><td>3c 73 63 72 69 70 74 3e</td></tr></table>`
 
 	runCases(t, []opCase{
-		{"Data (raw)", "45 00 00 3c 1c 46 40 00 40 06 b1 e6 c0 a8 00 01 c0 a8 00 02 3c 73 63 72 69 70 74 3e 61 6c 65 72 74 28 31 33 33 37 29 3c 2f 73 63 72 69 70 74 3e",
+		{
+			"Data (raw)", "45 00 00 3c 1c 46 40 00 40 06 b1 e6 c0 a8 00 01 c0 a8 00 02 3c 73 63 72 69 70 74 3e 61 6c 65 72 74 28 31 33 33 37 29 3c 2f 73 63 72 69 70 74 3e",
 			"&lt;script&gt;alert(1337)&lt;/script&gt;",
-			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Data (raw)"}}}},
-		{"truncated raw", "\x45\x00\x00\x14\x00\x00\x00\x00\x40\x06\x00\x00", "",
-			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Raw", "Data (raw)"}}}},
-		{"Data (hex)", hdr, "3c 73 63 72 69 70 74 3e",
-			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Data (hex)"}}}},
-		{"Table", hdr, tableOut,
-			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Table"}}}},
+			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Data (raw)"}}},
+		},
+		{
+			"truncated raw", "\x45\x00\x00\x14\x00\x00\x00\x00\x40\x06\x00\x00", "",
+			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Raw", "Data (raw)"}}},
+		},
+		{
+			"Data (hex)", hdr, "3c 73 63 72 69 70 74 3e",
+			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Data (hex)"}}},
+		},
+		{
+			"Table", hdr, tableOut,
+			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Table"}}},
+		},
 	})
 }

@@ -29,6 +29,8 @@ func addIOFlags(cmd *cobra.Command) {
 // stdin fallback lets operations chain through Unix pipes.
 func resolveInput(cmd *cobra.Command, args []string) ([]byte, error) {
 	switch {
+	case flagInFile == "-":
+		return io.ReadAll(cmd.InOrStdin())
 	case flagInFile != "":
 		return os.ReadFile(flagInFile)
 	case cmd.Flags().Changed("input"):
@@ -45,7 +47,7 @@ func resolveInput(cmd *cobra.Command, args []string) ([]byte, error) {
 // added for readability. Piped/redirected output stays byte-exact so operations
 // chain cleanly.
 func writeOutput(cmd *cobra.Command, data []byte) error {
-	if flagOutput != "" {
+	if flagOutput != "" && flagOutput != "-" {
 		return os.WriteFile(flagOutput, data, 0o644)
 	}
 	out := cmd.OutOrStdout()

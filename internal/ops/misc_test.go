@@ -13,10 +13,14 @@ import (
 
 func TestParseObjectIDTimestamp(t *testing.T) {
 	runCases(t, []opCase{
-		{"epoch zero", "000000000000000000000000", "1970-01-01T00:00:00.000Z",
-			core.Recipe{{Op: "Parse ObjectID timestamp"}}},
-		{"real objectid", "507f1f77bcf86cd799439011", "2012-10-17T21:13:27.000Z",
-			core.Recipe{{Op: "Parse ObjectID timestamp"}}},
+		{
+			"epoch zero", "000000000000000000000000", "1970-01-01T00:00:00.000Z",
+			core.Recipe{{Op: "Parse ObjectID timestamp"}},
+		},
+		{
+			"real objectid", "507f1f77bcf86cd799439011", "2012-10-17T21:13:27.000Z",
+			core.Recipe{{Op: "Parse ObjectID timestamp"}},
+		},
 	})
 }
 
@@ -34,15 +38,19 @@ func TestParseObjectIDTimestampErrors(t *testing.T) {
 func TestFileTree(t *testing.T) {
 	want := "home\n|---a.txt\n|---b\n|   |---c.txt\n|   |---d.txt"
 	runCases(t, []opCase{
-		{"basic tree", "/home/a.txt\n/home/b/c.txt\n/home/b/d.txt", want,
-			core.Recipe{{Op: "File Tree", Args: []any{"/", "Line feed"}}}},
+		{
+			"basic tree", "/home/a.txt\n/home/b/c.txt\n/home/b/d.txt", want,
+			core.Recipe{{Op: "File Tree", Args: []any{"/", "Line feed"}}},
+		},
 	})
 }
 
 func TestSleepPassesThrough(t *testing.T) {
 	runCases(t, []opCase{
-		{"sleep passthrough", "hello", "hello",
-			core.Recipe{{Op: "Sleep", Args: []any{1}}}},
+		{
+			"sleep passthrough", "hello", "hello",
+			core.Recipe{{Op: "Sleep", Args: []any{1}}},
+		},
 	})
 }
 

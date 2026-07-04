@@ -13,37 +13,71 @@ const allBytesHex = "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13
 // Cases transcribed from CyberChef tests/operations/tests/ByteRepr.mjs.
 func TestHexFixtures(t *testing.T) {
 	runCases(t, []opCase{
-		{"To Hex: nothing", "", "",
-			core.Recipe{{Op: "To Hex", Args: []any{"Space"}}}},
-		{"To Hex: All bytes", allBytes(), allBytesHex,
-			core.Recipe{{Op: "To Hex", Args: []any{"Space"}}}},
-		{"To Hex: UTF-8 None", "ნუ პანიკას", "e1839ce183a320e1839ee18390e1839ce18398e18399e18390e183a1",
-			core.Recipe{{Op: "To Hex", Args: []any{"None"}}}},
+		{
+			"To Hex: nothing", "", "",
+			core.Recipe{{Op: "To Hex", Args: []any{"Space"}}},
+		},
+		{
+			"To Hex: All bytes", allBytes(), allBytesHex,
+			core.Recipe{{Op: "To Hex", Args: []any{"Space"}}},
+		},
+		{
+			"To Hex: UTF-8 None", "ნუ პანიკას", "e1839ce183a320e1839ee18390e1839ce18398e18399e18390e183a1",
+			core.Recipe{{Op: "To Hex", Args: []any{"None"}}},
+		},
+		{
+			"To Hex: CRLF delimiter", "Hi!", "48\r\n69\r\n21",
+			core.Recipe{{Op: "To Hex", Args: []any{"CRLF"}}},
+		},
+		{
+			"To Hex: 0x delimiter", "Hi!", "0x480x690x21",
+			core.Recipe{{Op: "To Hex", Args: []any{"0x"}}},
+		},
 
-		{"From Hex: nothing", "", "",
-			core.Recipe{{Op: "From Hex", Args: []any{"Space"}}}},
-		{"From Hex: All bytes", allBytesHex, allBytes(),
-			core.Recipe{{Op: "From Hex", Args: []any{"Space"}}}},
-		{"From Hex: Auto", "e1 83,9c:e1", "\xe1\x83\x9c\xe1",
-			core.Recipe{{Op: "From Hex", Args: []any{"Auto"}}}},
+		{
+			"From Hex: nothing", "", "",
+			core.Recipe{{Op: "From Hex", Args: []any{"Space"}}},
+		},
+		{
+			"From Hex: All bytes", allBytesHex, allBytes(),
+			core.Recipe{{Op: "From Hex", Args: []any{"Space"}}},
+		},
+		{
+			"From Hex: Auto", "e1 83,9c:e1", "\xe1\x83\x9c\xe1",
+			core.Recipe{{Op: "From Hex", Args: []any{"Auto"}}},
+		},
 
-		{"To Hex 0x with comma", "abc", "0x61,0x62,0x63",
-			core.Recipe{{Op: "To Hex", Args: []any{"0x with comma"}}}},
-		{"To Hex Percent (prepended)", "abc", "%61%62%63",
-			core.Recipe{{Op: "To Hex", Args: []any{"Percent"}}}},
-		{"To Hex Semi-colon", "abc", "61;62;63",
-			core.Recipe{{Op: "To Hex", Args: []any{"Semi-colon"}}}},
-		{"To Hex Comma", "abc", "61,62,63",
-			core.Recipe{{Op: "To Hex", Args: []any{"Comma"}}}},
-		{"To Hex None", "abc", "616263",
-			core.Recipe{{Op: "To Hex", Args: []any{"None"}}}},
-		{"To Hex backslash-x (prepended)", "abc", "\\x61\\x62\\x63",
-			core.Recipe{{Op: "To Hex", Args: []any{"\\x"}}}},
+		{
+			"To Hex 0x with comma", "abc", "0x61,0x62,0x63",
+			core.Recipe{{Op: "To Hex", Args: []any{"0x with comma"}}},
+		},
+		{
+			"To Hex Percent (prepended)", "abc", "%61%62%63",
+			core.Recipe{{Op: "To Hex", Args: []any{"Percent"}}},
+		},
+		{
+			"To Hex Semi-colon", "abc", "61;62;63",
+			core.Recipe{{Op: "To Hex", Args: []any{"Semi-colon"}}},
+		},
+		{
+			"To Hex Comma", "abc", "61,62,63",
+			core.Recipe{{Op: "To Hex", Args: []any{"Comma"}}},
+		},
+		{
+			"To Hex None", "abc", "616263",
+			core.Recipe{{Op: "To Hex", Args: []any{"None"}}},
+		},
+		{
+			"To Hex backslash-x (prepended)", "abc", "\\x61\\x62\\x63",
+			core.Recipe{{Op: "To Hex", Args: []any{"\\x"}}},
+		},
 
-		{"Hex round trip", "Hello, World!", "Hello, World!",
+		{
+			"Hex round trip", "Hello, World!", "Hello, World!",
 			core.Recipe{
 				{Op: "To Hex", Args: []any{"Colon"}},
 				{Op: "From Hex", Args: []any{"Colon"}},
-			}},
+			},
+		},
 	})
 }

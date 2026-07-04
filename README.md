@@ -46,12 +46,17 @@ echo -n hello | cchef bake -e "To_Base64()To_Hex()"
 cchef url -e "ROT13()" -i hello
 # https://gchq.github.io/CyberChef/#recipe=ROT13()&input=aGVsbG8
 
-# Discover what's available:
+# Discover what's available (grouped by category, with a one-line summary each):
 cchef list
+cchef --version
+
+# Common operations have short aliases:
+cchef b64e hello                      # alias for to-base64  -> aGVsbG8=
 ```
 
 Output is byte-exact when piped or redirected (so chaining is lossless); a
-trailing newline is added only when writing to a terminal.
+trailing newline is added only when writing to a terminal. Operations accept
+`--in-file -` / `--output -` to force stdin/stdout in a pipeline.
 
 ## Operations
 

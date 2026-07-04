@@ -9,14 +9,22 @@ import (
 // Show on map output (the parsed lat,lon pair) verified against the CyberChef-server oracle.
 func TestShowOnMap(t *testing.T) {
 	runCases(t, []opCase{
-		{"dd pair", "51.5074, -0.1278", "51.5074,-0.1278",
-			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Auto", "Auto"}}}},
-		{"dms", "51° 30' 26.64\", -0° 7' 40.08\"", "51.5074,-0.1278",
-			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Degrees Minutes Seconds", "Comma"}}}},
-		{"mgrs", "30UXC9931610163", "51.50739,-0.1278",
-			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Military Grid Reference System", "Comma"}}}},
-		{"geohash", "gcpvj0duq", "51.5074,-0.12778",
-			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Geohash", "Comma"}}}},
+		{
+			"dd pair", "51.5074, -0.1278", "51.5074,-0.1278",
+			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Auto", "Auto"}}},
+		},
+		{
+			"dms", "51° 30' 26.64\", -0° 7' 40.08\"", "51.5074,-0.1278",
+			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Degrees Minutes Seconds", "Comma"}}},
+		},
+		{
+			"mgrs", "30UXC9931610163", "51.50739,-0.1278",
+			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Military Grid Reference System", "Comma"}}},
+		},
+		{
+			"geohash", "gcpvj0duq", "51.5074,-0.12778",
+			core.Recipe{{Op: "Show on map", Args: []any{13.0, "Geohash", "Comma"}}},
+		},
 	})
 }
 

@@ -1,0 +1,63 @@
+# golangci-lint configuration for cchef.
+#
+# Enforces the mechanically-checkable subset of the Google Go Style Guide
+# (https://google.github.io/styleguide/go). Judgment-based guidance from the
+# guide (API design, package cohesion, panic strategy, test granularity) is left
+# to code review — this file only encodes what a tool can decide reliably.
+version: "2"
+
+run:
+  timeout: 5m
+
+# Formatters run via `golangci-lint fmt`; checked in CI with `fmt --diff`.
+formatters:
+  enable:
+    - gofumpt    # stricter superset of gofmt (Style Guide: "Formatting")
+    - goimports  # import grouping: stdlib / third-party / local
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/roberson-io/cchef
+  exclusions:
+    generated: strict
+
+linters:
+  default: none
+  enable:
+    - errcheck      # unchecked errors (Decisions: "Handle errors")
+    - govet         # copylocks, printf, unreachable, etc.
+    - ineffassign   # ineffectual assignments
+    - staticcheck   # broad correctness + simplification set
+    - unused        # dead code
+    - revive        # the bulk of the Google-style naming/comment rules
+    - godot         # doc comments end in a period (Decisions: "Comment sentences")
+    - misspell      # common misspellings in comments/strings
+    - unconvert     # redundant type conversions
+    - errorlint     # correct %w / errors.Is / errors.As usage
+    - nakedret      # no naked returns in longer functions
+    - copyloopvar   # loop-variable capture correctness
+  settings:
+    revive:
+      rules:
+        - name: blank-imports        # side-effect imports only in main/tests
+        - name: context-as-argument  # context.Context is the first parameter
+        - name: dot-imports          # no `import .`
+        - name: error-naming         # sentinel vars named Err*/err*
+        - name: error-return         # error is the last return value
+        - name: error-strings        # lowercase, no trailing punctuation
+        - name: exported             # exported names have doc comments starting with the name
+        - name: increment-decrement  # x++ / x-- over x += 1
+        - name: indent-error-flow    # handle errors first, no needless else
+        - name: package-comments     # each package has a package comment
+        - name: range                # idiomatic range clauses
+        - name: receiver-naming      # short, consistent receiver names
+        - name: redefines-builtin-id # don't shadow builtins (min, max, error, ...)
+        - name: superfluous-else     # no else after a terminating if
+        - name: time-naming          # duration/time var naming
+        - name: unreachable-code
+        - name: var-declaration      # no redundant type/init in var decls
+        - name: var-naming           # MixedCaps + initialisms (URL, ID, IP, HTTP)
+    godot:
+      scope: declarations
+  exclusions:
+    generated: strict

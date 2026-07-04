@@ -29,10 +29,23 @@ func rot8000Table() map[rune]rune {
 			cp    int
 			valid bool
 		}{
-			{33, true}, {127, false}, {161, true}, {5760, false}, {5761, true},
-			{8192, false}, {8203, true}, {8232, false}, {8234, true}, {8239, false},
-			{8240, true}, {8287, false}, {8288, true}, {12288, false}, {12289, true},
-			{55296, false}, {57344, true},
+			{33, true},
+			{127, false},
+			{161, true},
+			{5760, false},
+			{5761, true},
+			{8192, false},
+			{8203, true},
+			{8232, false},
+			{8234, true},
+			{8239, false},
+			{8240, true},
+			{8287, false},
+			{8288, true},
+			{12288, false},
+			{12289, true},
+			{55296, false},
+			{57344, true},
 		}
 		valid := make(map[int]bool, len(transitions))
 		for _, t := range transitions {

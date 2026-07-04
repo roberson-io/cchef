@@ -12,12 +12,16 @@ import (
 // obtain via a trailing JSON Minify).
 func TestParseUDPFixtures(t *testing.T) {
 	runCases(t, []opCase{
-		{"no data", "04 89 00 35 00 2c 01 01",
+		{
+			"no data", "04 89 00 35 00 2c 01 01",
 			`{"Source port":1161,"Destination port":53,"Length":44,"Checksum":"0x0101"}`,
-			core.Recipe{{Op: "Parse UDP", Args: []any{"Hex"}}}},
-		{"with data", "04 89 00 35 00 2c 01 01 02 02",
+			core.Recipe{{Op: "Parse UDP", Args: []any{"Hex"}}},
+		},
+		{
+			"with data", "04 89 00 35 00 2c 01 01 02 02",
 			`{"Source port":1161,"Destination port":53,"Length":44,"Checksum":"0x0101","Data":"0x0202"}`,
-			core.Recipe{{Op: "Parse UDP", Args: []any{"Hex"}}}},
+			core.Recipe{{Op: "Parse UDP", Args: []any{"Hex"}}},
+		},
 	})
 }
 
@@ -25,9 +29,11 @@ func TestParseUDPFixtures(t *testing.T) {
 // directly rather than decoded from hex).
 func TestParseUDPRaw(t *testing.T) {
 	runCases(t, []opCase{
-		{"raw bytes", "\x04\x89\x00\x35\x00\x2c\x01\x01",
+		{
+			"raw bytes", "\x04\x89\x00\x35\x00\x2c\x01\x01",
 			`{"Source port":1161,"Destination port":53,"Length":44,"Checksum":"0x0101"}`,
-			core.Recipe{{Op: "Parse UDP", Args: []any{"Raw"}}}},
+			core.Recipe{{Op: "Parse UDP", Args: []any{"Raw"}}},
+		},
 	})
 }
 

@@ -3,11 +3,14 @@ GOBIN   ?= $(shell $(GO) env GOPATH)/bin
 BINARY  := cchef
 DIST    := dist
 
+# Pinned so local and CI lint runs agree (avoids surprise failures on tool bumps).
+GOLANGCI_VERSION := v2.12.2
+
 .DEFAULT_GOAL := all
 .PHONY: all build clean cover fmt fmt-check install-tools lint sbom sbom-audit sbom-scan test vet
 
-## all: check formatting, vet, test, and build
-all: fmt-check vet test build
+## all: check formatting, vet, test, build, and lint (mirrors CI)
+all: fmt-check vet test build lint
 
 ## build: compile the cchef binary into dist/
 build:
@@ -23,9 +26,9 @@ cover:
 	$(GO) test -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
 	@$(GO) tool cover -func=coverage.out | tail -1
 
-## fmt: format all Go source
+## fmt: format all Go source (gofmt + import grouping, per .golangci.yml)
 fmt:
-	$(GO) fmt ./...
+	$(GOBIN)/golangci-lint fmt
 
 ## fmt-check: fail if any Go source is not gofmt-clean (mirrors CI)
 fmt-check:
@@ -38,11 +41,11 @@ fmt-check:
 
 ## install-tools: install lint + SBOM tooling
 install-tools:
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
 	$(GO) install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
 	curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b $(GOBIN)
 
-## lint: run golangci-lint (see install-tools)
+## lint: enforce the Google Go Style Guide subset via golangci-lint (.golangci.yml)
 lint:
 	$(GOBIN)/golangci-lint run
 

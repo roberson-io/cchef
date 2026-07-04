@@ -90,7 +90,8 @@ func (Sort) Args() []core.ArgDef {
 		{Name: "Reverse", Type: core.ArgBoolean, Value: false},
 		{Name: "Order", Type: core.ArgOption, Value: []string{
 			"Alphabetical (case sensitive)", "Alphabetical (case insensitive)",
-			"IP address", "Numeric", "Numeric (hexadecimal)", "Length"}},
+			"IP address", "Numeric", "Numeric (hexadecimal)", "Length",
+		}},
 	}
 }
 
@@ -157,10 +158,21 @@ func ipToUint(s string) (uint64, bool) {
 	return v, true
 }
 
-// naturalCompare compares two strings by alternating numeric and non-numeric
-// segments (a "natural sort"). When hex is true, numeric segments are hex.
+// naturalCompare compares two strings the way CyberChef's numericSort /
+// hexadecimalSort do (Sort's "Numeric" and "Numeric (hexadecimal)" orders): each
+// string is split on runs of non-(hex-)digits, keeping empty boundary segments,
+// and compared segment by segment. Empty and whitespace segments coerce to the
+// number 0 — mirroring JavaScript's isNaN("") === false — so a line beginning
+// with text sorts before a line beginning with a number. When hex is true,
+// numeric segments are parsed as hexadecimal.
+//
+// One CyberChef quirk is deliberately not reproduced: its loop bound is the
+// second string's character length rather than its segment count, so for some
+// inputs it reads past the segment array and compares against the literal string
+// "undefined". That is undefined behaviour affecting only pathological mixed
+// inputs (~1% in differential testing); we use the sane segment-count bound.
 func naturalCompare(a, b string, hex bool) int {
-	as, bs := numSegments(a, hex), numSegments(b, hex)
+	as, bs := sortSegments(a, hex), sortSegments(b, hex)
 	for i := 0; i < len(as) && i < len(bs); i++ {
 		x, y := as[i], bs[i]
 		switch {
@@ -176,9 +188,38 @@ func naturalCompare(a, b string, hex bool) int {
 				return 1
 			}
 		default:
-			if c := strings.Compare(x.str, y.str); c != 0 {
+			if c := localeCompareASCII(x.str, y.str); c != 0 {
 				return c
 			}
+		}
+	}
+	return localeCompareASCII(a, b)
+}
+
+// localeCompareASCII approximates JavaScript's String.prototype.localeCompare for
+// ASCII text (used by CyberChef's numericSort): strings are ordered
+// case-insensitively, and when they differ only in case the lowercase form sorts
+// first. This matches the default ICU collation for the alphanumeric inputs sort
+// handles; it does not reproduce full Unicode collation of punctuation or accents.
+func localeCompareASCII(a, b string) int {
+	if c := strings.Compare(strings.ToLower(a), strings.ToLower(b)); c != 0 {
+		return c
+	}
+	for i := 0; i < len(a) && i < len(b); i++ {
+		if a[i] == b[i] {
+			continue
+		}
+		aLower := a[i] >= 'a' && a[i] <= 'z'
+		bLower := b[i] >= 'a' && b[i] <= 'z'
+		switch {
+		case aLower && !bLower:
+			return -1
+		case !aLower && bLower:
+			return 1
+		case a[i] < b[i]:
+			return -1
+		default:
+			return 1
 		}
 	}
 	return strings.Compare(a, b)
@@ -190,38 +231,58 @@ type numSeg struct {
 	isNum bool
 }
 
-// numSegments splits a string into maximal runs of digit (or hex-digit) and
-// non-digit characters.
-func numSegments(s string, hex bool) []numSeg {
-	isDigit := func(r rune) bool {
-		if hex {
-			return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
+// sortSegments splits s the way JavaScript's String.split(/([^\d]+)/) (or the
+// /([^\da-f]+)/i hex variant) does: alternating (possibly empty) digit-runs and
+// non-digit separators, with empty strings at the boundaries when s starts or
+// ends with a separator. Each segment is then classified as numeric or text.
+func sortSegments(s string, hex bool) []numSeg {
+	isDigit := func(c byte) bool {
+		if c >= '0' && c <= '9' {
+			return true
 		}
-		return r >= '0' && r <= '9'
+		return hex && ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
 	}
 	var segs []numSeg
-	runes := []rune(s)
-	for i := 0; i < len(runes); {
+	var cur strings.Builder
+	for i := 0; i < len(s); {
+		if isDigit(s[i]) {
+			cur.WriteByte(s[i])
+			i++
+			continue
+		}
+		// Separator run: flush the accumulated digit-part, then the separator.
+		segs = append(segs, classifySeg(cur.String(), hex))
+		cur.Reset()
 		j := i
-		digit := isDigit(runes[i])
-		for j < len(runes) && isDigit(runes[j]) == digit {
+		for j < len(s) && !isDigit(s[j]) {
 			j++
 		}
-		part := string(runes[i:j])
-		seg := numSeg{str: part}
-		if digit {
-			base := 10
-			if hex {
-				base = 16
-			}
-			if n, err := strconv.ParseInt(part, base, 64); err == nil {
-				seg.isNum, seg.num = true, float64(n)
-			}
-		}
-		segs = append(segs, seg)
+		segs = append(segs, classifySeg(s[i:j], hex))
 		i = j
 	}
+	segs = append(segs, classifySeg(cur.String(), hex))
 	return segs
+}
+
+// classifySeg mirrors JS isNaN(Number(seg)) / isNaN(parseInt(seg,16)): an empty
+// or whitespace segment is the number 0; otherwise a segment is numeric only if
+// it parses fully in the relevant base.
+func classifySeg(part string, hex bool) numSeg {
+	seg := numSeg{str: part}
+	t := strings.TrimSpace(part)
+	switch {
+	case t == "":
+		seg.isNum, seg.num = true, 0
+	case hex:
+		if n, err := strconv.ParseUint(t, 16, 64); err == nil {
+			seg.isNum, seg.num = true, float64(n)
+		}
+	default:
+		if n, err := strconv.ParseFloat(t, 64); err == nil {
+			seg.isNum, seg.num = true, n
+		}
+	}
+	return seg
 }
 
 // Unique removes duplicate sections, optionally displaying occurrence counts.

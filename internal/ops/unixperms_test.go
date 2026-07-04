@@ -23,7 +23,9 @@ func TestParseUNIXFilePermissions(t *testing.T) {
 		" +---------+-------+-------+-------+"
 
 	runCases(t, []opCase{
-		{"octal 755", "755", want755,
-			core.Recipe{{Op: "Parse UNIX file permissions"}}},
+		{
+			"octal 755", "755", want755,
+			core.Recipe{{Op: "Parse UNIX file permissions"}},
+		},
 	})
 }

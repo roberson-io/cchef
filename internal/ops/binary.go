@@ -34,10 +34,10 @@ func (ToBinary) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (ToBinary) Args() []core.ArgDef {
-	min := 1.0
+	minLen := 1.0
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: binDelims},
-		{Name: "Byte Length", Type: core.ArgNumber, Value: 8, Min: &min},
+		{Name: "Byte Length", Type: core.ArgNumber, Value: 8, Min: &minLen},
 	}
 }
 
@@ -73,10 +73,10 @@ func (FromBinary) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (FromBinary) Args() []core.ArgDef {
-	min := 1.0
+	minLen := 1.0
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: binDelims},
-		{Name: "Byte Length", Type: core.ArgNumber, Value: 8, Min: &min},
+		{Name: "Byte Length", Type: core.ArgNumber, Value: 8, Min: &minLen},
 	}
 }
 

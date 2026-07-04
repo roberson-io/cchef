@@ -9,16 +9,26 @@ import (
 )
 
 func init() {
-	core.Register(unitConverter{kind: "distance", name: "Convert distance",
-		desc: "Converts a distance between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(length)"})
-	core.Register(unitConverter{kind: "mass", name: "Convert mass",
-		desc: "Converts a mass between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(mass)"})
-	core.Register(unitConverter{kind: "speed", name: "Convert speed",
-		desc: "Converts a speed between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(speed)"})
-	core.Register(unitConverter{kind: "area", name: "Convert area",
-		desc: "Converts an area between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(area)"})
-	core.Register(unitConverter{kind: "data", name: "Convert data units",
-		desc: "Converts a quantity of data between units (e.g. bits, bytes, kibibytes).", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(data)"})
+	core.Register(unitConverter{
+		kind: "distance", name: "Convert distance",
+		desc: "Converts a distance between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(length)",
+	})
+	core.Register(unitConverter{
+		kind: "mass", name: "Convert mass",
+		desc: "Converts a mass between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(mass)",
+	})
+	core.Register(unitConverter{
+		kind: "speed", name: "Convert speed",
+		desc: "Converts a speed between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(speed)",
+	})
+	core.Register(unitConverter{
+		kind: "area", name: "Convert area",
+		desc: "Converts an area between units.", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(area)",
+	})
+	core.Register(unitConverter{
+		kind: "data", name: "Convert data units",
+		desc: "Converts a quantity of data between units (e.g. bits, bytes, kibibytes).", infoURL: "https://wikipedia.org/wiki/Orders_of_magnitude_(data)",
+	})
 }
 
 // unitConverter converts a value between units of the same kind by scaling

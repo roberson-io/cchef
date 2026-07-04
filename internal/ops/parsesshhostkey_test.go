@@ -26,23 +26,35 @@ func TestParseSSHHostKeyFixtures(t *testing.T) {
 
 	runCases(t, []opCase{
 		{"RSA", rsa, rsaOut, core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}}},
-		{"RSA prefixed, Auto format", "ssh-rsa " + rsa + " test@test", rsaOut,
-			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Auto"}}}},
-		{"ECDSA", "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGxZWSAGJyJQoVBwFCpr420eRUZDE/kw2YWm5vDro8050DZ1ZzqIuYaNl0BGzMcRTeasGtJuI8G84ZQQSgca3C4=",
+		{
+			"RSA prefixed, Auto format", "ssh-rsa " + rsa + " test@test", rsaOut,
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Auto"}}},
+		},
+		{
+			"ECDSA", "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGxZWSAGJyJQoVBwFCpr420eRUZDE/kw2YWm5vDro8050DZ1ZzqIuYaNl0BGzMcRTeasGtJuI8G84ZQQSgca3C4=",
 			"Key type: ecdsa-sha2-nistp256\nCurve: nistp256\nPoint: 0x046c59592006272250a15070142a6be36d1e45464313f930d985a6e6f0eba3cd39d03675673a88b9868d974046ccc7114de6ac1ad26e23c1bce194104a071adc2e",
-			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}}},
-		{"Ed25519", "AAAAC3NzaC1lZDI1NTE5AAAAIBOF6r99IkvqGu1kwZrHHIqjpTB5w79bpv67B/Aw3+WJ",
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}},
+		},
+		{
+			"Ed25519", "AAAAC3NzaC1lZDI1NTE5AAAAIBOF6r99IkvqGu1kwZrHHIqjpTB5w79bpv67B/Aw3+WJ",
 			"Key type: ssh-ed25519\nx: 0x1385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
-			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}}},
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}},
+		},
 		// The "Hex" and "Auto" (hex-detected) input formats, previously untested.
-		{"Ed25519 hex format", "0000000b7373682d65643235353139000000201385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
+		{
+			"Ed25519 hex format", "0000000b7373682d65643235353139000000201385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
 			"Key type: ssh-ed25519\nx: 0x1385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
-			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Hex"}}}},
-		{"Ed25519 auto-detect hex", "0000000b7373682d65643235353139000000201385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Hex"}}},
+		},
+		{
+			"Ed25519 auto-detect hex", "0000000b7373682d65643235353139000000201385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
 			"Key type: ssh-ed25519\nx: 0x1385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589",
-			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Auto"}}}},
-		{"DSA", "AAAAB3NzaC1kc3MAAACBAMnoZCOzvaQqs//9mxK2USZvJBc7b1dFJiBcV80abN6maE+203pTRPIPCpPt0deQxv4YN3dSHoodEcArWxs1QRAIuRsQIvsUP7chovzGnxP84XWK5sbfrseD0vxZ7UR0NaAFPcSgeXcWC1SG9uvrAJQlyp4DBy+fKuqiYmwaz0bHAAAAFQCXNJ4yiE1V7LpCU2V1JKbqDvICMwAAAIB/5aR1iBOeyCVpj0dP3YZmoxd9R7FCC/0UuOf0lx4E6WHT6Z2QuPBhc2mpNDq2M0VF9oJfVWgcfG8r1rlXaCYODSacGcbnW5VKQ+LKkkALmg4h8jFCHReUC+Hmia/v8LyDwPO1wK6ETn7a3m80yM7gAU5ZNurVIVVP2lB65mjEsQAAAIA3ct9YRB6iUCvOD45sZM1C9oTC24Ttmaou0GcpWx3h0/iZ8mbil1cjaO9frRNZ/vSSVWEhEDNG8gwkjZWlvnJL3y1XUxbMll4WbmI/Q1kzKwopceaFwMbYTPKDg6L1RtCMUxSUyKsFk1c4SpEPlDS7DApZs5PgmWgMd/u6vwMXyg==",
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Auto"}}},
+		},
+		{
+			"DSA", "AAAAB3NzaC1kc3MAAACBAMnoZCOzvaQqs//9mxK2USZvJBc7b1dFJiBcV80abN6maE+203pTRPIPCpPt0deQxv4YN3dSHoodEcArWxs1QRAIuRsQIvsUP7chovzGnxP84XWK5sbfrseD0vxZ7UR0NaAFPcSgeXcWC1SG9uvrAJQlyp4DBy+fKuqiYmwaz0bHAAAAFQCXNJ4yiE1V7LpCU2V1JKbqDvICMwAAAIB/5aR1iBOeyCVpj0dP3YZmoxd9R7FCC/0UuOf0lx4E6WHT6Z2QuPBhc2mpNDq2M0VF9oJfVWgcfG8r1rlXaCYODSacGcbnW5VKQ+LKkkALmg4h8jFCHReUC+Hmia/v8LyDwPO1wK6ETn7a3m80yM7gAU5ZNurVIVVP2lB65mjEsQAAAIA3ct9YRB6iUCvOD45sZM1C9oTC24Ttmaou0GcpWx3h0/iZ8mbil1cjaO9frRNZ/vSSVWEhEDNG8gwkjZWlvnJL3y1XUxbMll4WbmI/Q1kzKwopceaFwMbYTPKDg6L1RtCMUxSUyKsFk1c4SpEPlDS7DApZs5PgmWgMd/u6vwMXyg==",
 			"Key type: ssh-dss\np: 0x00c9e86423b3bda42ab3fffd9b12b651266f24173b6f574526205c57cd1a6cdea6684fb6d37a5344f20f0a93edd1d790c6fe183777521e8a1d11c02b5b1b35411008b91b1022fb143fb721a2fcc69f13fce1758ae6c6dfaec783d2fc59ed447435a0053dc4a07977160b5486f6ebeb009425ca9e03072f9f2aeaa2626c1acf46c7\nq: 0x0097349e32884d55ecba4253657524a6ea0ef20233\ng: 0x7fe5a47588139ec825698f474fdd8666a3177d47b1420bfd14b8e7f4971e04e961d3e99d90b8f0617369a9343ab6334545f6825f55681c7c6f2bd6b95768260e0d269c19c6e75b954a43e2ca92400b9a0e21f231421d17940be1e689afeff0bc83c0f3b5c0ae844e7edade6f34c8cee0014e5936ead521554fda507ae668c4b1\ny: 0x3772df58441ea2502bce0f8e6c64cd42f684c2db84ed99aa2ed067295b1de1d3f899f266e297572368ef5fad1359fef492556121103346f20c248d95a5be724bdf2d575316cc965e166e623f4359332b0a2971e685c0c6d84cf28383a2f546d08c531494c8ab059357384a910f9434bb0c0a59b393e099680c77fbbabf0317ca",
-			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}}},
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}},
+		},
 	})
 }

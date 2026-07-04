@@ -30,9 +30,9 @@ func (ToBase) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (ToBase) Args() []core.ArgDef {
-	min, max := 2.0, 36.0
+	minRadix, maxRadix := 2.0, 36.0
 	return []core.ArgDef{
-		{Name: "Radix", Type: core.ArgNumber, Value: 36, Min: &min, Max: &max},
+		{Name: "Radix", Type: core.ArgNumber, Value: 36, Min: &minRadix, Max: &maxRadix},
 	}
 }
 

@@ -26,9 +26,10 @@ type flagGetter func(*cobra.Command) (any, error)
 func buildOpCommand(op core.Operation) *cobra.Command {
 	meta := op.Meta()
 	cmd := &cobra.Command{
-		Use:   core.Kebab(meta.Name),
-		Short: meta.Description,
-		Long:  fmt.Sprintf("%s\n\nCyberChef operation: %q (module %s)", meta.Description, meta.Name, meta.Module),
+		Use:     core.Kebab(meta.Name),
+		Aliases: opAliases[meta.Name],
+		Short:   summaryOf(meta),
+		Long:    fmt.Sprintf("%s\n\nCyberChef operation: %q (module %s)", meta.Description, meta.Name, meta.Module),
 	}
 
 	used := map[string]bool{}

@@ -127,21 +127,21 @@ func jsNum(f float64) string {
 // rgbToHSL converts RGB (0-255) to HSL (each 0-1). Ported from ParseColourCode.
 func rgbToHSL(r, g, b float64) (float64, float64, float64) {
 	r, g, b = r/255, g/255, b/255
-	max := math.Max(r, math.Max(g, b))
-	min := math.Min(r, math.Min(g, b))
-	l := (max + min) / 2
-	if max == min {
+	cmax := math.Max(r, math.Max(g, b))
+	cmin := math.Min(r, math.Min(g, b))
+	l := (cmax + cmin) / 2
+	if cmax == cmin {
 		return 0, 0, l
 	}
-	d := max - min
+	d := cmax - cmin
 	var s float64
 	if l > 0.5 {
-		s = d / (2 - max - min)
+		s = d / (2 - cmax - cmin)
 	} else {
-		s = d / (max + min)
+		s = d / (cmax + cmin)
 	}
 	var h float64
-	switch max {
+	switch cmax {
 	case r:
 		h = (g - b) / d
 		if g < b {
@@ -163,10 +163,10 @@ func hslToRGB(h, s, l float64) (float64, float64, float64) {
 	}
 	hue2rgb := func(p, q, t float64) float64 {
 		if t < 0 {
-			t += 1
+			t++
 		}
 		if t > 1 {
-			t -= 1
+			t--
 		}
 		switch {
 		case t < 1.0/6:

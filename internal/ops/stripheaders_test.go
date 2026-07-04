@@ -22,24 +22,40 @@ func stripRecipe(op string) core.Recipe {
 func TestStripHeaderFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		// Strip IPv4 header
-		{"IPv4: no options, no payload", "450000140005400080060000c0a80001c0a80002", "",
-			stripRecipe("Strip IPv4 header")},
-		{"IPv4: no options, payload", "450000140005400080060000c0a80001c0a80002ffffffffffffffff", "ffffffffffffffff",
-			stripRecipe("Strip IPv4 header")},
-		{"IPv4: options, no payload", "460000140005400080060000c0a80001c0a8000207000000", "",
-			stripRecipe("Strip IPv4 header")},
-		{"IPv4: options, payload", "460000140005400080060000c0a80001c0a8000207000000ffffffffffffffff", "ffffffffffffffff",
-			stripRecipe("Strip IPv4 header")},
+		{
+			"IPv4: no options, no payload", "450000140005400080060000c0a80001c0a80002", "",
+			stripRecipe("Strip IPv4 header"),
+		},
+		{
+			"IPv4: no options, payload", "450000140005400080060000c0a80001c0a80002ffffffffffffffff", "ffffffffffffffff",
+			stripRecipe("Strip IPv4 header"),
+		},
+		{
+			"IPv4: options, no payload", "460000140005400080060000c0a80001c0a8000207000000", "",
+			stripRecipe("Strip IPv4 header"),
+		},
+		{
+			"IPv4: options, payload", "460000140005400080060000c0a80001c0a8000207000000ffffffffffffffff", "ffffffffffffffff",
+			stripRecipe("Strip IPv4 header"),
+		},
 
 		// Strip TCP header
-		{"TCP: no options, no payload", "7f900050000fa4b2000cb2a45010bff100000000", "",
-			stripRecipe("Strip TCP header")},
-		{"TCP: no options, payload", "7f900050000fa4b2000cb2a45010bff100000000ffffffffffffffff", "ffffffffffffffff",
-			stripRecipe("Strip TCP header")},
-		{"TCP: options, no payload", "7f900050000fa4b2000cb2a47010bff100000000020405b404020000", "",
-			stripRecipe("Strip TCP header")},
-		{"TCP: options, payload", "7f900050000fa4b2000cb2a47010bff100000000020405b404020000ffffffffffffffff", "ffffffffffffffff",
-			stripRecipe("Strip TCP header")},
+		{
+			"TCP: no options, no payload", "7f900050000fa4b2000cb2a45010bff100000000", "",
+			stripRecipe("Strip TCP header"),
+		},
+		{
+			"TCP: no options, payload", "7f900050000fa4b2000cb2a45010bff100000000ffffffffffffffff", "ffffffffffffffff",
+			stripRecipe("Strip TCP header"),
+		},
+		{
+			"TCP: options, no payload", "7f900050000fa4b2000cb2a47010bff100000000020405b404020000", "",
+			stripRecipe("Strip TCP header"),
+		},
+		{
+			"TCP: options, payload", "7f900050000fa4b2000cb2a47010bff100000000020405b404020000ffffffffffffffff", "ffffffffffffffff",
+			stripRecipe("Strip TCP header"),
+		},
 
 		// Strip UDP header
 		{"UDP: no payload", "8111003500000000", "", stripRecipe("Strip UDP header")},

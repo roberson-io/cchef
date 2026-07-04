@@ -123,13 +123,13 @@ func ipv4HyphenatedRange(rangeStr string, netInfo, enumerate, allowLarge bool) (
 	}
 	mask = ^mask
 	network := ip1 & mask
-	subIp1 := network & mask
-	subIp2 := subIp1 | ^mask
+	subIP1 := network & mask
+	subIP2 := subIP1 | ^mask
 
 	var out strings.Builder
 	if netInfo {
 		fmt.Fprintf(&out, "Minimum subnet required to hold this range:\n\tNetwork: %s\n\tCIDR: %d\n\tMask: %s\n\tSubnet range: %s - %s\n\tTotal addresses in subnet: %d\n\nRange: %s - %s\nTotal addresses in range: %d\n\n",
-			ipv4ToStr(network), cidr, ipv4ToStr(mask), ipv4ToStr(subIp1), ipv4ToStr(subIp2), (subIp2-subIp1)+1,
+			ipv4ToStr(network), cidr, ipv4ToStr(mask), ipv4ToStr(subIP1), ipv4ToStr(subIP2), (subIP2-subIP1)+1,
 			ipv4ToStr(ip1), ipv4ToStr(ip2), (ip2-ip1)+1)
 	}
 	if enumerate {

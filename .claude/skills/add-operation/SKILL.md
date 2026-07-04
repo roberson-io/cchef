@@ -118,7 +118,29 @@ In the matching `docs/<category>.md` (e.g. `data-format.md`):
   it from `docs/README.md`; otherwise just keep the README index table's op list
   alphabetized.
 
-## 6. Update PLAN.md status
+## 6. Register the CLI presentation metadata
+
+CLI metadata lives centrally in `cmd/`, not in the op's `Meta()`. Update it or
+tests will fail:
+
+1. **Category (required).** Add the op's display name to `opCategories` in
+   `cmd/opmeta.go`, using the `catXxx` constants and the same category as the
+   `docs/README.md` master table (a few ops list more than one). This drives the
+   grouping in `cchef list`. `TestOpCategoriesMatchRegistry` fails if a
+   registered op has no entry (or an entry names no registered op), so this
+   cannot be skipped silently.
+2. **Summary (as needed).** The one-line help/`list` summary (cobra `Short`) is
+   auto-derived from the first sentence of `Description`. Run `./dist/cchef list`
+   (or `./dist/cchef <subcommand> --help`) and check it: if it truncates
+   mid-thought (ends in `…`) or reads awkwardly, add a curated entry to
+   `opSummaries` in `cmd/opsummaries.go`, kept under `maxSummaryLen`.
+   `TestSummariesFitAndPresent` enforces the length bound.
+3. **Alias (optional).** For a very common encode/decode-style op, add a short,
+   explicit alias to `opAliases` in `cmd/opaliases.go`. Keep these few (see
+   clig.dev); `TestOpAliasesValid` checks aliases are unique, name a real op, and
+   never shadow a canonical subcommand name.
+
+## 7. Update PLAN.md status
 
 In `PLAN.md` under **Operation implementation status**, make **all** of these
 edits (it is easy to miss one):
@@ -133,7 +155,7 @@ edits (it is easy to miss one):
    from the unique-op count (e.g. `sha256`/`sha512` are two subcommands but one
    CyberChef `SHA2` op).
 
-## 7. Final checks
+## 8. Final checks
 
 Run all three and ensure they are clean:
 
@@ -151,4 +173,7 @@ invocation). Do not commit unless the user asks.
 - **Strict TDD**: test → red stub → green implementation, every op, no exceptions.
 - **Makefile targets only** for build/test/lint.
 - **Alphabetize** operations in all `docs/` files.
+- **CLI metadata is central**: every new op needs a `cmd/opmeta.go` category
+  entry (enforced by test); check its derived `list`/help summary and add a
+  curated one in `cmd/opsummaries.go` if it truncates.
 - Module path is `github.com/roberson-io/cchef`.

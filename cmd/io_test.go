@@ -94,6 +94,37 @@ func TestResolveInputStdin(t *testing.T) {
 	}
 }
 
+func TestResolveInputFileDashIsStdin(t *testing.T) {
+	c := newIOCmd()
+	c.SetIn(strings.NewReader("via dash"))
+	if err := c.Flags().Set("in-file", "-"); err != nil {
+		t.Fatal(err)
+	}
+	got, err := resolveInput(c, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// --in-file - reads stdin (clig.dev: support - as a filename).
+	if string(got) != "via dash" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestWriteOutputDashIsStdout(t *testing.T) {
+	c := newIOCmd()
+	var buf bytes.Buffer
+	c.SetOut(&buf)
+	flagOutput = "-"
+	defer resetIOFlags()
+	if err := writeOutput(c, []byte("result")); err != nil {
+		t.Fatal(err)
+	}
+	// --output - writes stdout, byte-exact.
+	if buf.String() != "result" {
+		t.Fatalf("got %q", buf.String())
+	}
+}
+
 func TestWriteOutputToBuffer(t *testing.T) {
 	c := newIOCmd()
 	var buf bytes.Buffer

@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/roberson-io/cchef/internal/core"
 	"github.com/sergi/go-diff/diffmatchpatch"
+
+	"github.com/roberson-io/cchef/internal/core"
 )
 
 func init() {

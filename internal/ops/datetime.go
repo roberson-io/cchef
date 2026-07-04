@@ -284,12 +284,29 @@ func formatOffset(offsetSec int, colon bool) string {
 // momentParseLayoutTokens maps moment parsing tokens to Go reference-time layout
 // fragments, longest-first.
 var momentParseLayoutTokens = []struct{ moment, golang string }{
-	{"YYYY", "2006"}, {"MMMM", "January"}, {"dddd", "Monday"},
-	{"MMM", "Jan"}, {"ddd", "Mon"}, {"SSS", "000"},
-	{"YY", "06"}, {"MM", "01"}, {"DD", "02"}, {"HH", "15"},
-	{"hh", "03"}, {"mm", "04"}, {"ss", "05"}, {"ZZ", "-0700"},
-	{"M", "1"}, {"D", "2"}, {"H", "15"}, {"h", "3"},
-	{"m", "4"}, {"s", "5"}, {"A", "PM"}, {"a", "pm"}, {"Z", "-07:00"},
+	{"YYYY", "2006"},
+	{"MMMM", "January"},
+	{"dddd", "Monday"},
+	{"MMM", "Jan"},
+	{"ddd", "Mon"},
+	{"SSS", "000"},
+	{"YY", "06"},
+	{"MM", "01"},
+	{"DD", "02"},
+	{"HH", "15"},
+	{"hh", "03"},
+	{"mm", "04"},
+	{"ss", "05"},
+	{"ZZ", "-0700"},
+	{"M", "1"},
+	{"D", "2"},
+	{"H", "15"},
+	{"h", "3"},
+	{"m", "4"},
+	{"s", "5"},
+	{"A", "PM"},
+	{"a", "pm"},
+	{"Z", "-07:00"},
 }
 
 // momentToGoLayout converts a moment parse format into a Go time layout. Tokens

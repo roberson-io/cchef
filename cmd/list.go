@@ -15,28 +15,30 @@ import (
 func init() {
 	listCmd := &cobra.Command{
 		Use:   "list",
-		Short: "List available operations grouped by module",
+		Short: "List available operations grouped by category",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			// Group operation names by module.
-			byModule := map[string][]core.Operation{}
+			// Group operations by category. Operations in more than one category
+			// (e.g. URL Decode) appear under each.
+			byCategory := map[string][]core.Operation{}
 			for _, op := range core.Default.All() {
-				m := op.Meta().Module
-				byModule[m] = append(byModule[m], op)
+				for _, c := range categoriesOf(op.Meta().Name) {
+					byCategory[c] = append(byCategory[c], op)
+				}
 			}
 
-			modules := make([]string, 0, len(byModule))
-			for m := range byModule {
-				modules = append(modules, m)
+			categories := make([]string, 0, len(byCategory))
+			for c := range byCategory {
+				categories = append(categories, c)
 			}
-			sort.Strings(modules)
+			sort.Strings(categories)
 
 			var sb strings.Builder
-			for _, m := range modules {
-				fmt.Fprintf(&sb, "\n%s\n", m)
+			for _, c := range categories {
+				fmt.Fprintf(&sb, "\n%s\n", c)
 				w := tabwriter.NewWriter(&sb, 0, 0, 2, ' ', 0)
-				for _, op := range byModule[m] {
+				for _, op := range byCategory[c] {
 					meta := op.Meta()
-					if _, err := fmt.Fprintf(w, "  %s\t%s\n", core.Kebab(meta.Name), meta.Name); err != nil {
+					if _, err := fmt.Fprintf(w, "  %s\t%s\n", core.Kebab(meta.Name), summaryOf(meta)); err != nil {
 						return err
 					}
 				}

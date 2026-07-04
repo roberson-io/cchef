@@ -39,7 +39,8 @@ func (ShowOnMap) Args() []core.ArgDef {
 		{Name: "Zoom Level", Type: core.ArgNumber, Value: 13},
 		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, coordFormats...)},
 		{Name: "Input Delimiter", Type: core.ArgOption, Value: []string{
-			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon"}},
+			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon",
+		}},
 	}
 }
 

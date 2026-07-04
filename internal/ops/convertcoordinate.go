@@ -35,10 +35,12 @@ func (ConvertCoordinateFormat) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, coordFormats...)},
 		{Name: "Input Delimiter", Type: core.ArgOption, Value: []string{
-			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon"}},
+			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon",
+		}},
 		{Name: "Output Format", Type: core.ArgOption, Value: coordFormats},
 		{Name: "Output Delimiter", Type: core.ArgOption, Value: []string{
-			"Space", "\\n", "Comma", "Semi-colon", "Colon"}},
+			"Space", "\\n", "Comma", "Semi-colon", "Colon",
+		}},
 		{Name: "Include Compass Directions", Type: core.ArgOption, Value: []string{"None", "Before", "After"}},
 		{Name: "Precision", Type: core.ArgNumber, Value: 3},
 	}

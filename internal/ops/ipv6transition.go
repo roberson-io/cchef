@@ -147,8 +147,10 @@ func ipv6UnTransition(input string, removeHeaders bool) string {
 			b.WriteString(h)
 		}
 	}
-	mappedPrefixes := []string{"::ffff:", "0000:0000:0000:0000:0000:ffff:", "::ffff:0000:",
-		"0000:0000:0000:0000:ffff:0000:", "64:ff9b::", "0064:ff9b:0000:0000:0000:0000:"}
+	mappedPrefixes := []string{
+		"::ffff:", "0000:0000:0000:0000:0000:ffff:", "::ffff:0000:",
+		"0000:0000:0000:0000:ffff:0000:", "64:ff9b::", "0064:ff9b:0000:0000:0000:0000:",
+	}
 	hasMappedPrefix := false
 	for _, p := range mappedPrefixes {
 		if strings.HasPrefix(input, p) {

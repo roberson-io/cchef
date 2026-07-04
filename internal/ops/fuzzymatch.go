@@ -112,7 +112,8 @@ func fuzzyMatchGlobal(pattern, str []rune, w fuzzyWeights) []fuzzyResult {
 }
 
 func fuzzyMatchRecursive(pattern, str []rune, patternCurIndex, strCurrIndex int, srcMatches, matches []int,
-	maxMatches, nextMatch, recursionCount, recursionLimit int, w fuzzyWeights) (bool, float64, []int) {
+	maxMatches, nextMatch, recursionCount, recursionLimit int, w fuzzyWeights,
+) (bool, float64, []int) {
 	outScore := 0.0
 	recursionCount++
 	if recursionCount >= recursionLimit {

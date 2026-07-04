@@ -26,7 +26,11 @@ Each operation resolves its input from the first source available, in this order
 
 Output goes to stdout, or to a file with `-o, --output <path>`. When writing to a
 terminal, a trailing newline is added for readability; when piped or redirected,
-output stays byte-exact so operations chain cleanly.
+output stays byte-exact so operations chain cleanly. A `-` given to `--in-file`
+or `--output` means stdin/stdout explicitly.
+
+A few high-traffic operations have short aliases (e.g. `b64e`/`b64d` for
+To/From Base64, `hex`/`unhex` for To/From Hex); `cchef <op> --help` lists them.
 
 ```bash
 # All four input styles are equivalent here:
@@ -77,4 +81,5 @@ Within each category, operations are listed alphabetically.
 | `cchef bake -e/-r <recipe>` | Run a multi-operation recipe (JSON or Chef format) |
 | `cchef url -e/-r <recipe>` | Print a CyberChef share URL for a recipe |
 | `cchef recipe convert` | Convert a recipe between JSON and Chef formats |
-| `cchef list` | List available operations grouped by module |
+| `cchef list` | List available operations grouped by category, each with a one-line summary |
+| `cchef --version` | Print the cchef version |

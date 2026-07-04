@@ -16,17 +16,27 @@ import (
 func TestKeccakFixtures(t *testing.T) {
 	const in = "Hello, World!"
 	runCases(t, []opCase{
-		{"Keccak 224", in, "4eaaf0e7a1e400efba71130722e1cb4d59b32afb400e654afec4f8ce",
-			core.Recipe{{Op: "Keccak", Args: []any{"224"}}}},
-		{"Keccak 256", in, "acaf3289d7b601cbd114fb36c4d29c85bbfd5e133f14cb355c3fd8d99367964f",
-			core.Recipe{{Op: "Keccak", Args: []any{"256"}}}},
-		{"Keccak 384", in, "4d60892fde7f967bcabdc47c73122ae6311fa1f9be90d721da32030f7467a2e3db3f9ccb3c746483f9d2b876e39def17",
-			core.Recipe{{Op: "Keccak", Args: []any{"384"}}}},
-		{"Keccak 512", in, "eda765576c84c600ed7f5d97510e92703b61f5215def2a161037fd9dd1f5b6ed4f86ce46073c0e3f34b52de0289e9c618798fff9dd4b1bfe035bdb8645fc6e37",
-			core.Recipe{{Op: "Keccak", Args: []any{"512"}}}},
+		{
+			"Keccak 224", in, "4eaaf0e7a1e400efba71130722e1cb4d59b32afb400e654afec4f8ce",
+			core.Recipe{{Op: "Keccak", Args: []any{"224"}}},
+		},
+		{
+			"Keccak 256", in, "acaf3289d7b601cbd114fb36c4d29c85bbfd5e133f14cb355c3fd8d99367964f",
+			core.Recipe{{Op: "Keccak", Args: []any{"256"}}},
+		},
+		{
+			"Keccak 384", in, "4d60892fde7f967bcabdc47c73122ae6311fa1f9be90d721da32030f7467a2e3db3f9ccb3c746483f9d2b876e39def17",
+			core.Recipe{{Op: "Keccak", Args: []any{"384"}}},
+		},
+		{
+			"Keccak 512", in, "eda765576c84c600ed7f5d97510e92703b61f5215def2a161037fd9dd1f5b6ed4f86ce46073c0e3f34b52de0289e9c618798fff9dd4b1bfe035bdb8645fc6e37",
+			core.Recipe{{Op: "Keccak", Args: []any{"512"}}},
+		},
 		// Default size is 512.
-		{"Keccak default", in, "eda765576c84c600ed7f5d97510e92703b61f5215def2a161037fd9dd1f5b6ed4f86ce46073c0e3f34b52de0289e9c618798fff9dd4b1bfe035bdb8645fc6e37",
-			core.Recipe{{Op: "Keccak"}}},
+		{
+			"Keccak default", in, "eda765576c84c600ed7f5d97510e92703b61f5215def2a161037fd9dd1f5b6ed4f86ce46073c0e3f34b52de0289e9c618798fff9dd4b1bfe035bdb8645fc6e37",
+			core.Recipe{{Op: "Keccak"}},
+		},
 	})
 }
 

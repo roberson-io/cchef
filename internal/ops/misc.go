@@ -185,9 +185,9 @@ func (Shuffle) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return core.NewDish([]byte(strings.Join(parts, delim)), core.TypeString), nil
 }
 
-// randInt returns a uniform random integer in [0, max) using crypto/rand.
-func randInt(max int) int {
-	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+// randInt returns a uniform random integer in [0, bound) using crypto/rand.
+func randInt(bound int) int {
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(bound)))
 	if err != nil {
 		panic(err) // crypto/rand failure is unrecoverable
 	}

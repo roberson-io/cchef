@@ -13,8 +13,10 @@ import (
 // [[0,2],[5,2]] -> "<span class=\"hl1\"><b>te</b>st <b>in</b></span>put".
 func TestFuzzyMatch(t *testing.T) {
 	runCases(t, []opCase{
-		{"fixture", "test input", `<span class="hl1"><b>te</b>st <b>in</b></span>put`,
-			core.Recipe{{Op: "Fuzzy Match", Args: []any{"tein", 15.0, 30.0, 30.0, 15.0, -5.0, -15.0, -1.0}}}},
+		{
+			"fixture", "test input", `<span class="hl1"><b>te</b>st <b>in</b></span>put`,
+			core.Recipe{{Op: "Fuzzy Match", Args: []any{"tein", 15.0, 30.0, 30.0, 15.0, -5.0, -15.0, -1.0}}},
+		},
 	})
 }
 

@@ -17,6 +17,11 @@ var rootCmd = &cobra.Command{
 		"Each operation is a subcommand that reads stdin and writes stdout, so\n" +
 		"operations chain through Unix pipes. Use `cchef bake` to run a full\n" +
 		"recipe (JSON or Chef format) and `cchef url` to share it.",
+	Example: "  echo -n hello | cchef to-base64\n" +
+		"  cchef to-hex --delimiter Colon hello\n" +
+		"  echo -n hello | cchef bake -e \"To_Base64()To_Hex()\"\n" +
+		"  cchef list                 # show every operation by category",
+	Version:       version,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 }

@@ -11,14 +11,20 @@ import (
 // [Output case, No delimiter, Dash, Colon, Cisco style, IPv6 interface ID].
 func TestFormatMACAddressesOracle(t *testing.T) {
 	runCases(t, []opCase{
-		{"default (both, no/dash/colon)", "01:02:03:04:05:06",
+		{
+			"default (both, no/dash/colon)", "01:02:03:04:05:06",
 			"010203040506\n010203040506\n01-02-03-04-05-06\n01-02-03-04-05-06\n01:02:03:04:05:06\n01:02:03:04:05:06\n",
-			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Both", true, true, true, false, false}}}},
-		{"cisco + ipv6, upper only", "01:02:03:04:05:06",
+			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Both", true, true, true, false, false}}},
+		},
+		{
+			"cisco + ipv6, upper only", "01:02:03:04:05:06",
 			"0102.0304.0506\n0302:03FF:FE04:0506\n",
-			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Upper only", false, false, false, true, true}}}},
-		{"lower only, from dashed uppercase", "AA-BB-CC-DD-EE-FF",
+			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Upper only", false, false, false, true, true}}},
+		},
+		{
+			"lower only, from dashed uppercase", "AA-BB-CC-DD-EE-FF",
 			"aabbccddeeff\naa:bb:cc:dd:ee:ff\n",
-			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Lower only", true, false, true, false, false}}}},
+			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Lower only", true, false, true, false, false}}},
+		},
 	})
 }

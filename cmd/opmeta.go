@@ -1,0 +1,269 @@
+package cmd
+
+import (
+	"slices"
+	"sort"
+	"strings"
+
+	"github.com/roberson-io/cchef/internal/core"
+)
+
+// maxSummaryLen bounds a derived one-line summary so `cchef list` and command
+// help do not wrap in a standard-width terminal.
+const maxSummaryLen = 60
+
+// summaryOf returns the concise one-line summary shown for an operation in
+// `cchef list` and as its cobra Short. It prefers a curated entry in
+// opSummaries and otherwise derives one from the (often multi-sentence)
+// CyberChef description.
+func summaryOf(meta core.OpMeta) string {
+	if s, ok := opSummaries[meta.Name]; ok && s != "" {
+		return s
+	}
+	return deriveSummary(meta.Description)
+}
+
+// summaryAbbrevs are lowercase abbreviations whose trailing period must not be
+// treated as a sentence boundary when deriving a summary.
+var summaryAbbrevs = map[string]bool{
+	"e.g": true, "i.e": true, "etc": true, "vs": true, "no": true,
+	"approx": true, "incl": true, "al": true,
+}
+
+// deriveSummary compresses a description to a single short clause: the first
+// sentence, trimmed of its trailing period, truncated at a word boundary with
+// an ellipsis if still too long.
+func deriveSummary(desc string) string {
+	desc = strings.TrimSpace(desc)
+	desc = strings.TrimSpace(firstSentence(desc))
+	if len(desc) <= maxSummaryLen {
+		return desc
+	}
+	cut := desc[:maxSummaryLen]
+	if sp := strings.LastIndex(cut, " "); sp > 0 {
+		cut = cut[:sp]
+	}
+	return strings.TrimRight(cut, " ,;:") + "…"
+}
+
+// firstSentence returns s up to the first sentence-terminating ., ! or ? that
+// is followed by whitespace (or end of string) and not part of an abbreviation
+// such as "e.g.". If none is found it returns all of s.
+func firstSentence(s string) string {
+	for i := 0; i < len(s); i++ {
+		if c := s[i]; c == '.' || c == '!' || c == '?' {
+			if i+1 < len(s) && s[i+1] != ' ' && s[i+1] != '\n' && s[i+1] != '\t' {
+				continue
+			}
+			if summaryAbbrevs[strings.ToLower(lastWord(s[:i]))] {
+				continue
+			}
+			return s[:i]
+		}
+	}
+	return s
+}
+
+// lastWord returns the trailing run of letters and dots in s (so "up to (e.g"
+// yields "e.g"), used to detect abbreviations before a period.
+func lastWord(s string) string {
+	i := len(s)
+	for i > 0 {
+		c := s[i-1]
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '.' {
+			i--
+			continue
+		}
+		break
+	}
+	return s[i:]
+}
+
+// CyberChef operation categories, used as the values in opCategories and as the
+// grouping headings in `cchef list`. Defined as constants so a mistyped category
+// is a compile error rather than a silent new group.
+const (
+	catArithmeticLogic    = "Arithmetic / Logic"
+	catDataFormat         = "Data format"
+	catDateTime           = "Date / Time"
+	catEncryptionEncoding = "Encryption / Encoding"
+	catHashing            = "Hashing"
+	catNetworking         = "Networking"
+	catUtils              = "Utils"
+)
+
+// opCategories maps each operation's display name to the CyberChef categories it
+// belongs to, mirroring the master table in docs/README.md. It is the source of
+// truth for grouping `cchef list`. A few operations (URL Decode/Encode) belong
+// to more than one category. TestOpCategoriesMatchRegistry keeps this table in
+// exact sync with the registered operations.
+var opCategories = map[string][]string{
+	"ADD":                                {catEncryptionEncoding},
+	"AMF Decode":                         {catDataFormat},
+	"AMF Encode":                         {catDataFormat},
+	"AND":                                {catEncryptionEncoding},
+	"Add line numbers":                   {catUtils},
+	"Adler-32 Checksum":                  {catHashing},
+	"Alternating Caps":                   {catUtils},
+	"Bit shift left":                     {catEncryptionEncoding},
+	"Bit shift right":                    {catEncryptionEncoding},
+	"Cartesian Product":                  {catArithmeticLogic},
+	"Change IP format":                   {catNetworking},
+	"Convert area":                       {catUtils},
+	"Convert co-ordinate format":         {catUtils},
+	"Convert data units":                 {catUtils},
+	"Convert distance":                   {catUtils},
+	"Convert mass":                       {catUtils},
+	"Convert speed":                      {catUtils},
+	"Count occurrences":                  {catUtils},
+	"DateTime Delta":                     {catDateTime},
+	"Dechunk HTTP response":              {catNetworking},
+	"Decode NetBIOS Name":                {catNetworking},
+	"Defang IP Addresses":                {catNetworking},
+	"Defang URL":                         {catNetworking},
+	"Diff":                               {catUtils},
+	"Divide":                             {catArithmeticLogic},
+	"Drop bytes":                         {catUtils},
+	"Drop nth bytes":                     {catUtils},
+	"Encode NetBIOS Name":                {catNetworking},
+	"Escape string":                      {catUtils},
+	"Expand alphabet range":              {catUtils},
+	"Extract dates":                      {catDateTime},
+	"Fang URL":                           {catNetworking},
+	"File Tree":                          {catUtils},
+	"Filter":                             {catUtils},
+	"Find / Replace":                     {catUtils},
+	"Format MAC addresses":               {catNetworking},
+	"From Base":                          {catDataFormat},
+	"From Base32":                        {catDataFormat},
+	"From Base45":                        {catDataFormat},
+	"From Base58":                        {catDataFormat},
+	"From Base62":                        {catDataFormat},
+	"From Base64":                        {catDataFormat},
+	"From Base85":                        {catDataFormat},
+	"From Base92":                        {catDataFormat},
+	"From Binary":                        {catDataFormat},
+	"From Case Insensitive Regex":        {catUtils},
+	"From Charcode":                      {catDataFormat},
+	"From Decimal":                       {catDataFormat},
+	"From Hex":                           {catDataFormat},
+	"From Octal":                         {catDataFormat},
+	"From UNIX Timestamp":                {catDateTime},
+	"Fuzzy Match":                        {catUtils},
+	"Get All Casings":                    {catUtils},
+	"Get Time":                           {catDateTime},
+	"Group IP addresses":                 {catNetworking},
+	"HMAC":                               {catHashing},
+	"Hamming Distance":                   {catUtils},
+	"Head":                               {catUtils},
+	"IPv6 Transition Addresses":          {catNetworking},
+	"Keccak":                             {catHashing},
+	"Levenshtein Distance":               {catUtils},
+	"MD5":                                {catHashing},
+	"Mean":                               {catArithmeticLogic},
+	"Median":                             {catArithmeticLogic},
+	"Multiply":                           {catArithmeticLogic},
+	"NOT":                                {catEncryptionEncoding},
+	"OR":                                 {catEncryptionEncoding},
+	"Offset checker":                     {catUtils},
+	"Pad lines":                          {catUtils},
+	"Parse DateTime":                     {catDateTime},
+	"Parse Ethernet frame":               {catNetworking},
+	"Parse IP range":                     {catNetworking},
+	"Parse IPv4 header":                  {catNetworking},
+	"Parse IPv6 address":                 {catNetworking},
+	"Parse ObjectID timestamp":           {catUtils},
+	"Parse SSH Host Key":                 {catNetworking},
+	"Parse TCP":                          {catNetworking},
+	"Parse TLS record":                   {catNetworking},
+	"Parse UDP":                          {catNetworking},
+	"Parse UNIX file permissions":        {catUtils},
+	"Parse URI":                          {catNetworking},
+	"Parse User Agent":                   {catNetworking},
+	"Parse colour code":                  {catUtils},
+	"Power Set":                          {catArithmeticLogic},
+	"Pseudo-Random Number Generator":     {catUtils},
+	"ROR13":                              {catEncryptionEncoding},
+	"ROT13":                              {catEncryptionEncoding},
+	"ROT47":                              {catEncryptionEncoding},
+	"ROT8000":                            {catEncryptionEncoding},
+	"Regular expression":                 {catUtils},
+	"Remove ANSI Escape Codes":           {catUtils},
+	"Remove line numbers":                {catUtils},
+	"Remove null bytes":                  {catUtils},
+	"Remove whitespace":                  {catUtils},
+	"Reverse":                            {catUtils},
+	"Rotate left":                        {catEncryptionEncoding},
+	"Rotate right":                       {catEncryptionEncoding},
+	"SHA1":                               {catHashing},
+	"SHA224":                             {catHashing},
+	"SHA256":                             {catHashing},
+	"SHA3":                               {catHashing},
+	"SHA384":                             {catHashing},
+	"SHA512":                             {catHashing},
+	"SUB":                                {catEncryptionEncoding},
+	"Set Difference":                     {catArithmeticLogic},
+	"Set Intersection":                   {catArithmeticLogic},
+	"Set Union":                          {catArithmeticLogic},
+	"Show on map":                        {catUtils},
+	"Shuffle":                            {catUtils},
+	"Sleep":                              {catUtils},
+	"Sort":                               {catUtils},
+	"Split":                              {catUtils},
+	"Standard Deviation":                 {catArithmeticLogic},
+	"Strip HTTP headers":                 {catNetworking},
+	"Strip IPv4 header":                  {catNetworking},
+	"Strip TCP header":                   {catNetworking},
+	"Strip UDP header":                   {catNetworking},
+	"Subtract":                           {catArithmeticLogic},
+	"Sum":                                {catArithmeticLogic},
+	"Swap case":                          {catUtils},
+	"Swap endianness":                    {catDataFormat},
+	"Symmetric Difference":               {catArithmeticLogic},
+	"Tail":                               {catUtils},
+	"Take bytes":                         {catUtils},
+	"Take nth bytes":                     {catUtils},
+	"To Base":                            {catDataFormat},
+	"To Base32":                          {catDataFormat},
+	"To Base45":                          {catDataFormat},
+	"To Base58":                          {catDataFormat},
+	"To Base62":                          {catDataFormat},
+	"To Base64":                          {catDataFormat},
+	"To Base85":                          {catDataFormat},
+	"To Base92":                          {catDataFormat},
+	"To Binary":                          {catDataFormat},
+	"To Case Insensitive Regex":          {catUtils},
+	"To Charcode":                        {catDataFormat},
+	"To Decimal":                         {catDataFormat},
+	"To Hex":                             {catDataFormat},
+	"To Lower case":                      {catUtils},
+	"To Octal":                           {catDataFormat},
+	"To Table":                           {catUtils},
+	"To UNIX Timestamp":                  {catDateTime},
+	"To Upper case":                      {catUtils},
+	"Translate DateTime Format":          {catDateTime},
+	"UNIX Timestamp to Windows Filetime": {catDateTime},
+	"URL Decode":                         {catDataFormat, catNetworking},
+	"URL Encode":                         {catDataFormat, catNetworking},
+	"Unescape string":                    {catUtils},
+	"Unique":                             {catUtils},
+	"VarInt Decode":                      {catNetworking},
+	"VarInt Encode":                      {catNetworking},
+	"Windows Filetime to UNIX Timestamp": {catDateTime},
+	"Wrap":                               {catUtils},
+	"XOR":                                {catEncryptionEncoding},
+	"XOR Brute Force":                    {catEncryptionEncoding},
+}
+
+// categoriesOf returns the categories an operation belongs to (sorted), or a
+// single "Uncategorized" bucket if the name is absent (which the reconciliation
+// test prevents for registered operations).
+func categoriesOf(name string) []string {
+	cats, ok := opCategories[name]
+	if !ok || len(cats) == 0 {
+		return []string{"Uncategorized"}
+	}
+	out := slices.Clone(cats)
+	sort.Strings(out)
+	return out
+}

@@ -35,6 +35,12 @@ func TestParseColourCodeInputs(t *testing.T) {
 		{"hsl(200, 65%, 91%)", []string{"Hex:  #d9edf7", "RGB:  rgb(217, 237, 247)"}},
 		{"cmyk(0.12, 0.04, 0.00, 0.03)", []string{"Hex:  #daedf7", "RGB:  rgb(218, 237, 247)", "HSL:  hsl(201, 64%, 91%)"}},
 		{"rgba(255, 0, 0, 0.5)", []string{"RGBA: rgba(255, 0, 0, 0.5)", "HSLA: hsla(0, 100%, 50%, 0.5)"}},
+		// HSL branches of hslToRGB: grayscale (saturation 0), l<0.5, and hues in
+		// each hue2rgb segment.
+		{"hsl(0, 0%, 50%)", []string{"Hex:  #808080", "RGB:  rgb(128, 128, 128)"}},
+		{"hsl(120, 100%, 25%)", []string{"Hex:  #008000", "RGB:  rgb(0, 128, 0)"}},
+		{"hsl(300, 100%, 50%)", []string{"Hex:  #ff00ff", "RGB:  rgb(255, 0, 255)"}},
+		{"hsl(60, 100%, 50%)", []string{"Hex:  #ffff00", "RGB:  rgb(255, 255, 0)"}},
 	}
 	for _, c := range cases {
 		out, err := runOp(t, "Parse colour code", c.input)

@@ -13,30 +13,38 @@ func TestAMFFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		// AMF0 primitive byte vectors, viewed as hex.
 		// string "hi": marker 0x02, uint16 len 0x0002, "hi".
-		{"AMF0 encode string", `"hi"`, "0200026869",
+		{
+			"AMF0 encode string", `"hi"`, "0200026869",
 			core.Recipe{
 				{Op: "AMF Encode", Args: []any{"AMF0"}},
 				{Op: "To Hex", Args: []any{"None"}},
-			}},
+			},
+		},
 		// number 5: marker 0x00, IEEE-754 double 5.0 big-endian.
-		{"AMF0 encode number", `5`, "004014000000000000",
+		{
+			"AMF0 encode number", `5`, "004014000000000000",
 			core.Recipe{
 				{Op: "AMF Encode", Args: []any{"AMF0"}},
 				{Op: "To Hex", Args: []any{"None"}},
-			}},
+			},
+		},
 		// boolean true: marker 0x01, value 0x01.
-		{"AMF0 encode boolean", `true`, "0101",
+		{
+			"AMF0 encode boolean", `true`, "0101",
 			core.Recipe{
 				{Op: "AMF Encode", Args: []any{"AMF0"}},
 				{Op: "To Hex", Args: []any{"None"}},
-			}},
+			},
+		},
 
 		// AMF0 decode of the same string vector back to JSON.
-		{"AMF0 decode string", "0200026869", `"hi"`,
+		{
+			"AMF0 decode string", "0200026869", `"hi"`,
 			core.Recipe{
 				{Op: "From Hex", Args: []any{"None"}},
 				{Op: "AMF Decode", Args: []any{"AMF0"}},
-			}},
+			},
+		},
 	})
 }
 

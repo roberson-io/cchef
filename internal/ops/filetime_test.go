@@ -12,10 +12,14 @@ import (
 // 116444736000000000.
 func TestFiletimeFixtures(t *testing.T) {
 	runCases(t, []opCase{
-		{"Filetime to Unix (ns, decimal)", "129207366395297693", "1276263039529769300",
-			core.Recipe{{Op: "Windows Filetime to UNIX Timestamp", Args: []any{"Nanoseconds (ns)", "Decimal"}}}},
-		{"Unix to Filetime (ns, decimal)", "1276263039529769300", "129207366395297693",
-			core.Recipe{{Op: "UNIX Timestamp to Windows Filetime", Args: []any{"Nanoseconds (ns)", "Decimal"}}}},
+		{
+			"Filetime to Unix (ns, decimal)", "129207366395297693", "1276263039529769300",
+			core.Recipe{{Op: "Windows Filetime to UNIX Timestamp", Args: []any{"Nanoseconds (ns)", "Decimal"}}},
+		},
+		{
+			"Unix to Filetime (ns, decimal)", "1276263039529769300", "129207366395297693",
+			core.Recipe{{Op: "UNIX Timestamp to Windows Filetime", Args: []any{"Nanoseconds (ns)", "Decimal"}}},
+		},
 	})
 }
 

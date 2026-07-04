@@ -106,7 +106,8 @@ func TestExecuteRecipeConvertAutoDetect(t *testing.T) {
 
 func TestExecuteList(t *testing.T) {
 	got := execRoot(t, "list")
-	for _, want := range []string{"to-base64", "MD5", "Default", "Crypto"} {
+	// Grouped by category now, showing the kebab subcommand + a short summary.
+	for _, want := range []string{"to-base64", "Data format", "Networking", "Utils", "Hashing"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("list output missing %q:\n%s", want, got)
 		}

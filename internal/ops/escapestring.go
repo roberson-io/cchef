@@ -53,9 +53,6 @@ func (EscapeString) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	jsonCompat := args[2].(bool)
 	es6 := args[3].(bool)
 	upper := args[4].(bool)
-	if jsonCompat {
-		q = '"' // JSON always uses double quotes
-	}
 
 	runes := []rune(in.String())
 	var sb strings.Builder
@@ -63,8 +60,11 @@ func (EscapeString) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		sb.WriteString(escapeRune(r, i, runes, level, q, jsonCompat, es6, upper))
 	}
 	out := sb.String()
+	// JSON-compatible mode wraps the result in the selected quote character and
+	// escapes that quote inside (jsesc's json+quotes behaviour); the quote char
+	// itself is not forced to double.
 	if jsonCompat {
-		out = `"` + out + `"`
+		out = string(q) + out + string(q)
 	}
 	return core.NewDish([]byte(out), core.TypeString), nil
 }
@@ -82,19 +82,32 @@ func escapeRune(r rune, i int, runes []rune, level string, q rune, jsonCompat, e
 	}
 	if r == 0 {
 		// \0 is ambiguous when followed by a digit, and is invalid in JSON.
+		// (Reduced fidelity: jsesc leaves a raw null byte in Minimal mode; we
+		// escape it, which differs only for that rarely-used combination.)
 		if jsonCompat || (i+1 < len(runes) && runes[i+1] >= '0' && runes[i+1] <= '9') {
 			return escHex(0, jsonCompat, es6, upper)
 		}
 		return `\0`
 	}
-	if r >= 0x20 && r <= 0x7e {
-		if level == "Everything" {
-			return escHex(r, jsonCompat, es6, upper)
-		}
+	// U+2028/U+2029 are invalid in JS string literals, so jsesc escapes them at
+	// every level, including Minimal.
+	if r == '\u2028' || r == '\u2029' {
+		return escHex(r, jsonCompat, es6, upper)
+	}
+	// Minimal mode escapes only backslash, the quote, named escapes and the line
+	// separators above; everything else (control chars and non-ASCII) is literal.
+	if level == "Minimal" {
 		return string(r)
 	}
-	// Non-printable or non-ASCII.
-	if level == "Minimal" && r >= 0x80 {
+	if r >= 0x20 && r <= 0x7e {
+		if level == "Everything" {
+			// jsesc escapes every quote character as a backslash escape even in
+			// escapeEverything mode (the selected quote is handled above).
+			if r == '\'' || r == '"' || r == '`' {
+				return `\` + string(r)
+			}
+			return escHex(r, jsonCompat, es6, upper)
+		}
 		return string(r)
 	}
 	return escHex(r, jsonCompat, es6, upper)
