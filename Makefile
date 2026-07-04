@@ -4,10 +4,10 @@ BINARY  := cchef
 DIST    := dist
 
 .DEFAULT_GOAL := all
-.PHONY: all build clean cover fmt install-tools lint sbom sbom-audit sbom-scan test vet
+.PHONY: all build clean cover fmt fmt-check install-tools lint sbom sbom-audit sbom-scan test vet
 
-## all: format, vet, test, and build
-all: fmt vet test build
+## all: check formatting, vet, test, and build
+all: fmt-check vet test build
 
 ## build: compile the cchef binary into dist/
 build:
@@ -26,6 +26,15 @@ cover:
 ## fmt: format all Go source
 fmt:
 	$(GO) fmt ./...
+
+## fmt-check: fail if any Go source is not gofmt-clean (mirrors CI)
+fmt-check:
+	@unformatted=$$(gofmt -l .); \
+	if [ -n "$$unformatted" ]; then \
+		echo "These files are not gofmt-clean:"; \
+		echo "$$unformatted"; \
+		exit 1; \
+	fi
 
 ## install-tools: install lint + SBOM tooling
 install-tools:

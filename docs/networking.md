@@ -18,6 +18,16 @@ compromise.
 | Format MAC addresses | `format-mac-addresses` | [MAC address](https://wikipedia.org/wiki/MAC_address) |
 | Group IP addresses | `group-ip-addresses` | [Subnetwork](https://wikipedia.org/wiki/Subnetwork) |
 | IPv6 Transition Addresses | `ipv6-transition-addresses` | [IPv6 transition mechanism](https://wikipedia.org/wiki/IPv6_transition_mechanism) |
+| Parse Ethernet frame | `parse-ethernet-frame` | [Ethernet frame](https://wikipedia.org/wiki/Ethernet_frame) |
+| Parse IP range | `parse-ip-range` | [Subnetwork](https://wikipedia.org/wiki/Subnetwork) |
+| Parse IPv4 header | `parse-ipv4-header` | [IPv4 header](https://wikipedia.org/wiki/IPv4#Header) |
+| Parse IPv6 address | `parse-ipv6-address` | [IPv6 address](https://wikipedia.org/wiki/IPv6_address) |
+| Parse SSH Host Key | `parse-ssh-host-key` | [Secure Shell](https://wikipedia.org/wiki/Secure_Shell) |
+| Parse TCP | `parse-tcp` | [TCP](https://wikipedia.org/wiki/Transmission_Control_Protocol) |
+| Parse TLS record | `parse-tls-record` | [TLS](https://wikipedia.org/wiki/Transport_Layer_Security) |
+| Parse UDP | `parse-udp` | [UDP](https://wikipedia.org/wiki/User_Datagram_Protocol) |
+| Parse URI | `parse-uri` | [URI](https://wikipedia.org/wiki/Uniform_Resource_Identifier) |
+| Parse User Agent | `parse-user-agent` | [User agent](https://wikipedia.org/wiki/User_agent) |
 | Strip HTTP headers | `strip-http-headers` | [HTTP headers](https://wikipedia.org/wiki/List_of_HTTP_header_fields) |
 | Strip IPv4 header | `strip-ipv4-header` | [IPv4](https://wikipedia.org/wiki/IPv4) |
 | Strip TCP header | `strip-tcp-header` | [TCP](https://wikipedia.org/wiki/Transmission_Control_Protocol) |
@@ -237,6 +247,228 @@ $ printf '198.51.100.7' | cchef ipv6-transition-addresses
 IPv4 Mapped: ::ffff:c633:6407
 IPv4 Translated: ::ffff:0:c633:6407
 Nat 64: 64:ff9b::c633:6407
+```
+
+---
+
+## Parse Ethernet frame
+
+Parses an Ethernet II frame — source/destination MAC, any VLAN tags, and the
+payload.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-type` | option | `Raw` | Input encoding: `Raw` or `Hex`. |
+| `--return-type` | option | `Text output` | `Text output`, `Packet data`, or `Packet data (hex)`. |
+
+**Simple example**
+
+```bash
+$ printf '000000000000ffffffffffff08004500' | cchef parse-ethernet-frame --input-type Hex
+Source MAC: ff:ff:ff:ff:ff:ff
+Destination MAC: 00:00:00:00:00:00
+Data:
+45 00
+```
+
+---
+
+## Parse IP range
+
+Given a CIDR range, a hyphenated range, or a list of IPs/CIDRs (IPv4 or IPv6),
+prints network information and enumerates the addresses (IPv4 only).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--include-network-info` | bool | `true` | Print network/mask/range summary. |
+| `--enumerate-ip-addresses` | bool | `true` | List each address (IPv4). |
+| `--allow-large-queries` | bool | `false` | Permit enumerating large ranges. |
+
+**Simple example**
+
+```bash
+$ printf '10.0.0.0/30' | cchef parse-ip-range
+Network: 10.0.0.0
+CIDR: 30
+Mask: 255.255.255.252
+Range: 10.0.0.0 - 10.0.0.3
+Total addresses in range: 4
+
+10.0.0.0
+10.0.0.1
+10.0.0.2
+10.0.0.3
+```
+
+---
+
+## Parse IPv4 header
+
+Parses an IPv4 header, either as a field table or by extracting the payload.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `Hex` | Input encoding: `Hex` or `Raw`. |
+| `--output-format` | option | `Table` | `Table` (HTML), `Data (hex)`, or `Data (raw)`. |
+
+**Simple example**
+
+```bash
+$ printf '450000140005400080060000c0a80001c0a80002cafe' | cchef parse-ipv4-header --output-format 'Data (hex)'
+ca fe
+```
+
+---
+
+## Parse IPv6 address
+
+Displays the longhand and shorthand forms of an IPv6 address, its type (loopback,
+multicast, 6to4, Teredo, unique-local, …), and any embedded IPv4 or MAC address.
+
+**Simple example**
+
+```bash
+$ printf '::1' | cchef parse-ipv6-address
+Longhand:  0000:0000:0000:0000:0000:0000:0000:0001
+Shorthand: ::1
+
+Loopback address to the local host corresponding to 127.0.0.1/8 in IPv4.
+Loopback addresses range: ::1/128
+```
+
+---
+
+## Parse SSH Host Key
+
+Extracts the key type and parameters from an SSH host key (RSA, DSA, ECDSA,
+Ed25519).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `Auto` | `Auto`, `Base64`, or `Hex`. |
+
+**Simple example**
+
+```bash
+$ printf 'AAAAC3NzaC1lZDI1NTE5AAAAIBOF6r99IkvqGu1kwZrHHIqjpTB5w79bpv67B/Aw3+WJ' | cchef parse-ssh-host-key
+Key type: ssh-ed25519
+x: 0x1385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589
+```
+
+---
+
+## Parse TCP
+
+Parses a TCP header (and options) into JSON.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `Hex` | Input encoding: `Hex` or `Raw`. |
+
+**Simple example**
+
+```bash
+$ printf 'c2eb0050a138132e70dc9fb9501804025ea70000' | cchef parse-tcp
+{"Source port":49899,"Destination port":80,"Sequence number":"2704806702","Acknowledgement number":1893507001,"Data offset":"5 (20 bytes)","Flags":{"Reserved":"000","NS":0,"CWR":0,"ECE":0,"URG":0,"ACK":1,"PSH":1,"RST":0,"SYN":0,"FIN":0},"Window size":"1026 (Scaled: 1026)","Checksum":"0x5ea7","Urgent pointer":"0x0000"}
+```
+
+---
+
+## Parse TLS record
+
+Parses one or more raw TLS records (change-cipher-spec, alert, handshake,
+application-data) into a JSON array. Handshake messages (ClientHello, ServerHello,
+Certificate, …) are parsed in detail.
+
+**Simple example**
+
+```bash
+$ printf '140303000101' | cchef from-hex --delimiter None | cchef parse-tls-record
+[{"type":"change_cipher_spec","version":"0x0303","length":1,"value":"0x01"}]
+```
+
+---
+
+## Parse UDP
+
+Parses a UDP header (and payload, if present) into JSON.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `Hex` | Input encoding: `Hex` or `Raw`. |
+
+**Simple example**
+
+```bash
+$ printf '04 89 00 35 00 2c 01 01' | cchef parse-udp
+{"Source port":1161,"Destination port":53,"Length":44,"Checksum":"0x0101"}
+```
+
+---
+
+## Parse URI
+
+Pretty-prints the components of a URI (protocol, auth, host, port, path, query
+arguments, fragment).
+
+**Simple example**
+
+```bash
+$ printf 'https://user:pass@example.com:8080/p?q=1&r=2#frag' | cchef parse-uri
+Protocol:	https:
+Auth:		user:pass
+Hostname:	example.com
+Port:		8080
+Path name:	/p
+Arguments:
+	q = 1
+	r = 2
+Hash:		#frag
+```
+
+> Uses Go's `net/url`, which approximates Node's `url.parse` (matched on the
+> common cases; exotic/malformed URIs may differ).
+
+---
+
+## Parse User Agent
+
+Identifies the browser, device, engine, OS and CPU from a User-Agent string. This
+is a faithful port of `ua-parser-js` 2.0.10's default detection ruleset (the exact
+version CyberChef uses) — the rule tables in `useragent_rules.go` are generated
+from that library.
+
+**Simple example**
+
+```bash
+$ printf 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' | cchef parse-user-agent
+Browser
+    Name: Chrome
+    Version: 120.0.0.0
+Device
+    Model: unknown
+    Type: unknown
+    Vendor: unknown
+Engine
+    Name: Blink
+    Version: 120.0.0.0
+OS
+    Name: Windows
+    Version: 10
+CPU
+    Architecture: amd64
 ```
 
 ---

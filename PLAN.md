@@ -20,13 +20,19 @@ fixture cases for parity, and keeps external dependencies minimal:
   Keccak-f sponge, cross-validated against x/crypto (256/512) and the stdlib
   `crypto/sha3` (SHA-3 mode) in tests.
 - `github.com/dlclark/regexp2` — pure-Go, PCRE-compatible regex (no cgo, no
-  transitive deps). Used only for the Defang IP / Defang URL matchers, whose
-  CyberChef regexes rely on lookahead and backreferences that Go's stdlib RE2
-  `regexp` cannot express; ported verbatim to preserve parity.
+  transitive deps). Used for the Defang IP / Defang URL / Parse IP range / Parse
+  IPv6 address matchers (whose CyberChef regexes rely on lookahead and
+  backreferences Go's RE2 `regexp` cannot express) and for the ~340
+  `ua-parser-js` detection regexes; all ported verbatim to preserve parity.
+
+Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
+exact version the CyberChef-server oracle runs). Its rule tables
+(`internal/ops/useragent_rules.go`) are *generated* from that library's source and
+differential-tested against it; no runtime dependency on the JS library is added.
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 145
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 155
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -39,7 +45,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **145 operations** (`internal/ops/`), each a faithful port with tests
+- **155 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -85,6 +91,9 @@ cchef/
     extractdates.go filetime.go unixtimestamp.go datetime.go datetimeformat.go
     changeipformat.go dechunkhttp.go netbios.go striphttpheaders.go defang.go
     stripheaders.go formatmac.go ipv6transition.go groupip.go varint.go
+    parsenet.go parseudp.go parsetcp.go parseiprange.go parsesshhostkey.go
+    parseipv4header.go parseethernetframe.go parseuri.go parseipv6address.go
+    parsetlsrecord.go useragent.go useragent_rules.go ipprotocols.go
     fixtures_test.go (+ per-op _test.go)
   docs/
     README.md arithmetic-logic.md data-format.md date-time.md encryption-encoding.md hashing.md networking.md utils.md recipes-and-urls.md
@@ -150,7 +159,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **142 unique** CyberChef operations are covered (141 directly plus
+Currently **152 unique** CyberChef operations are covered (151 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **483 real operations, not 486.** CyberChef's `Categories.json` names **486**
@@ -329,7 +338,7 @@ Currently **142 unique** CyberChef operations are covered (141 directly plus
 - [ ] XXTEA Decrypt
 - [ ] XXTEA Encrypt
 
-### Public Key (0/31)
+### Public Key (1/31)
 
 - [ ] ECDSA Sign
 - [ ] ECDSA Signature Conversion
@@ -343,7 +352,7 @@ Currently **142 unique** CyberChef operations are covered (141 directly plus
 - [ ] Object Identifier to Hex
 - [ ] Parse ASN.1 hex string
 - [ ] Parse CSR
-- [ ] Parse SSH Host Key
+- [x] Parse SSH Host Key
 - [ ] Parse X.509 certificate
 - [ ] Parse X.509 CRL
 - [ ] PEM to Hex
@@ -401,7 +410,7 @@ Currently **142 unique** CyberChef operations are covered (141 directly plus
 - [x] XOR
 - [x] XOR Brute Force
 
-### Networking (18/38)
+### Networking (28/38)
 
 - [x] Change IP format
 - [x] Dechunk HTTP response
@@ -421,16 +430,16 @@ Currently **142 unique** CyberChef operations are covered (141 directly plus
 - [ ] JA3S Fingerprint
 - [ ] JA4 Fingerprint
 - [ ] JA4Server Fingerprint
-- [ ] Parse Ethernet frame
-- [ ] Parse IP range
-- [ ] Parse IPv4 header
-- [ ] Parse IPv6 address
-- [ ] Parse SSH Host Key
-- [ ] Parse TCP
-- [ ] Parse TLS record
-- [ ] Parse UDP
-- [ ] Parse URI
-- [ ] Parse User Agent
+- [x] Parse Ethernet frame
+- [x] Parse IP range
+- [x] Parse IPv4 header
+- [x] Parse IPv6 address
+- [x] Parse SSH Host Key
+- [x] Parse TCP
+- [x] Parse TLS record
+- [x] Parse UDP
+- [x] Parse URI
+- [x] Parse User Agent
 - [ ] Protobuf Decode
 - [ ] Protobuf Encode
 - [x] Strip HTTP headers
