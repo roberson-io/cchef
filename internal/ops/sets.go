@@ -299,7 +299,7 @@ func (PowerSet) Args() []core.ArgDef {
 func (PowerSet) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	itemDelim := parseEscapedChars(args[0].(string))
 	var items []string
-	for _, item := range strings.Split(in.String(), itemDelim) {
+	for item := range strings.SplitSeq(in.String(), itemDelim) {
 		if item != "" {
 			items = append(items, item)
 		}

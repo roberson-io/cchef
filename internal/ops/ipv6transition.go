@@ -201,7 +201,7 @@ func (IPv6TransitionAddresses) Run(in *core.Dish, args []any) (*core.Dish, error
 	removeHeaders := args[1].(bool)
 
 	output := ""
-	for _, line := range strings.Split(in.String(), "\n") {
+	for line := range strings.SplitSeq(in.String(), "\n") {
 		if line == "" {
 			continue
 		}

@@ -7,10 +7,10 @@ DIST    := dist
 GOLANGCI_VERSION := v2.12.2
 
 .DEFAULT_GOAL := all
-.PHONY: all build clean cover fmt fmt-check install-tools lint sbom sbom-audit sbom-scan test vet
+.PHONY: all build clean cover fix fix-check fmt fmt-check install-tools lint sbom sbom-audit sbom-scan test vet
 
-## all: check formatting, vet, test, build, and lint (mirrors CI)
-all: fmt-check vet test build lint
+## all: check formatting/modernization, vet, test, build, and lint (mirrors CI)
+all: fmt-check fix-check vet test build lint
 
 ## build: compile the cchef binary into dist/
 build:
@@ -25,6 +25,19 @@ clean:
 cover:
 	$(GO) test -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
 	@$(GO) tool cover -func=coverage.out | tail -1
+
+## fix: apply go fix modernizations, iterating until no further changes
+fix:
+	@while ! $(GO) fix -diff ./... >/dev/null 2>&1; do $(GO) fix ./...; done
+
+## fix-check: fail if go fix would modernize any code (mirrors CI; run `make fix`)
+fix-check:
+	@diff=$$($(GO) fix -diff ./... 2>&1); \
+	if [ -n "$$diff" ]; then \
+		echo "go fix would modernize code; run 'make fix':"; \
+		echo "$$diff"; \
+		exit 1; \
+	fi
 
 ## fmt: format all Go source (gofmt + import grouping, per .golangci.yml)
 fmt:

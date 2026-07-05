@@ -60,10 +60,7 @@ func sshParseKey(key []byte) []string {
 		if decodedLength <= 0 {
 			break
 		}
-		end := 4 + decodedLength
-		if end > len(key) {
-			end = len(key)
-		}
+		end := min(4+decodedLength, len(key))
 		fields = append(fields, toHexFast(key[4:end]))
 		key = key[end:]
 	}

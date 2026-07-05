@@ -165,7 +165,7 @@ func padString(pattern string, n int) string {
 	}
 	r := []rune(pattern)
 	out := make([]rune, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		out[i] = r[i%len(r)]
 	}
 	return string(out)

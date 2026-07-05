@@ -82,10 +82,7 @@ func (ToBase85) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var sb strings.Builder
 	for i := 0; i < len(input); i += 4 {
-		n := len(input) - i
-		if n > 4 {
-			n = 4
-		}
+		n := min(len(input)-i, 4)
 		var block uint32
 		block |= uint32(input[i]) << 24
 		if i+1 < len(input) {
@@ -199,10 +196,7 @@ func (FromBase85) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			continue
 		}
 		// Up to 5 digits in this group.
-		m := len(input) - i
-		if m > 5 {
-			m = 5
-		}
+		m := min(len(input)-i, 5)
 		digit := func(off, fallback int) int {
 			if i+off < len(input) {
 				c := input[i+off]

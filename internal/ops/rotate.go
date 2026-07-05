@@ -14,7 +14,7 @@ func init() {
 func rotBytes(data []byte, amount int, algo func(byte) byte) []byte {
 	out := make([]byte, len(data))
 	for i, b := range data {
-		for j := 0; j < amount; j++ {
+		for range amount {
 			b = algo(b)
 		}
 		out[i] = b
@@ -53,7 +53,7 @@ func rotrCarry(data []byte, amount int) []byte {
 	}
 	amount %= 8
 	var carry byte
-	for i := 0; i < len(data); i++ {
+	for i := range data {
 		old := data[i]
 		out[i] = (old >> amount) | carry
 		carry = byte((int(old) & ((1 << amount) - 1)) << (8 - amount))

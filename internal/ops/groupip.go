@@ -3,6 +3,7 @@ package ops
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ func strToIpv4(ipStr string) (uint32, error) {
 		return 0, fmt.Errorf("more than 4 blocks")
 	}
 	var v uint32
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		n, err := strconv.Atoi(blocks[i])
 		if err != nil || n < 0 || n > 255 {
 			return 0, fmt.Errorf("block out of range")
@@ -74,7 +75,7 @@ func strToIpv6(ipStr string) ([8]int, error) {
 	}
 
 	j := 0
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		if numBlocks[j] == nan {
 			ipv6[i] = 0
 			if i == 8-len(numBlocks[j:]) {
@@ -94,7 +95,7 @@ func ipv6ToStr(ipv6 [8]int, compact bool) string {
 	var output strings.Builder
 	if compact {
 		start, end, s, e := -1, -1, 0, -1
-		for i := 0; i < 8; i++ {
+		for i := range 8 {
 			if ipv6[i] == 0 && e == i-1 {
 				e = i
 			} else if ipv6[i] == 0 {
@@ -121,7 +122,7 @@ func ipv6ToStr(ipv6 [8]int, compact bool) string {
 		}
 		return out[:len(out)-1]
 	}
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		fmt.Fprintf(&output, "%04x:", ipv6[i])
 	}
 	out := output.String()
@@ -132,14 +133,11 @@ func ipv6ToStr(ipv6 [8]int, compact bool) string {
 // IP.mjs genIpv6Mask.
 func genIpv6Mask(cidr int) [8]uint32 {
 	var mask [8]uint32
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		if cidr > (i+1)*16 {
 			mask[i] = 0x0000FFFF
 		} else {
-			shift := cidr - i*16
-			if shift < 0 {
-				shift = 0
-			}
+			shift := max(cidr-i*16, 0)
 			mask[i] = ^((uint32(0x0000FFFF) >> uint(shift)) | 0xFFFF0000)
 		}
 	}
@@ -190,7 +188,7 @@ func (GroupIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ipv6Networks := map[string][][8]int{}
 	var ipv6Order []string // first-seen order of IPv6 network keys
 
-	for _, token := range strings.Split(in.String(), delim) {
+	for token := range strings.SplitSeq(in.String(), delim) {
 		if m := groupIPv4Re.FindStringSubmatch(token); m != nil {
 			ip, err := strToIpv4(m[1])
 			if err != nil {
@@ -204,7 +202,7 @@ func (GroupIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 				return nil, err
 			}
 			var network [8]int
-			for j := 0; j < 8; j++ {
+			for j := range 8 {
 				network[j] = ip[j] & int(ipv6Mask[j])
 			}
 			networkStr := ipv6ToStr(network, true)
@@ -224,7 +222,7 @@ func (GroupIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for k := range ipv4Networks {
 		v4keys = append(v4keys, k)
 	}
-	sort.Slice(v4keys, func(i, j int) bool { return v4keys[i] < v4keys[j] })
+	slices.Sort(v4keys)
 	for _, network := range v4keys {
 		ips := ipv4Networks[network]
 		sort.SliceStable(ips, func(i, j int) bool {

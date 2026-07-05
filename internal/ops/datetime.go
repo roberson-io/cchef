@@ -70,10 +70,7 @@ func isDST(t time.Time) bool {
 	_, cur := t.Zone()
 	_, jan := time.Date(t.Year(), 1, 1, 0, 0, 0, 0, t.Location()).Zone()
 	_, jul := time.Date(t.Year(), 7, 1, 0, 0, 0, 0, t.Location()).Zone()
-	std := jan
-	if jul < std {
-		std = jul
-	}
+	std := min(jul, jan)
 	return cur != std
 }
 

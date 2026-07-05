@@ -29,10 +29,7 @@ func macInsertEvery(s string, n int, delim string) string {
 		if i > 0 {
 			b.WriteString(delim)
 		}
-		end := i + n
-		if end > len(s) {
-			end = len(s)
-		}
+		end := min(i+n, len(s))
 		b.WriteString(s[i:end])
 	}
 	return b.String()

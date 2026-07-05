@@ -75,8 +75,8 @@ func parseBigNum(s string) (bigNum, bool) {
 // matching bignumber.js's support for 0x / 0o / 0b prefixed values.
 func parseRadix(sign, body string, base int) (bigNum, bool) {
 	intStr, fracStr := body, ""
-	if i := strings.IndexByte(body, '.'); i >= 0 {
-		intStr, fracStr = body[:i], body[i+1:]
+	if before, after, ok := strings.Cut(body, "."); ok {
+		intStr, fracStr = before, after
 	}
 	if intStr == "" && fracStr == "" {
 		return bnNaN, false
@@ -119,8 +119,8 @@ func parseDecimal(sign, body string) (bigNum, bool) {
 		exp = e
 	}
 	intPart, fracPart := mant, ""
-	if i := strings.IndexByte(mant, '.'); i >= 0 {
-		intPart, fracPart = mant[:i], mant[i+1:]
+	if before, after, ok := strings.Cut(mant, "."); ok {
+		intPart, fracPart = before, after
 	}
 	digits := intPart + fracPart
 	if digits == "" {
@@ -353,10 +353,7 @@ func formatBigRat(r *big.Rat) string {
 	// terminating decimal), then rescale the numerator so value = M / 10^k.
 	a := stripFactor(den, 2)
 	b := stripFactor(den, 5)
-	k := a
-	if b > k {
-		k = b
-	}
+	k := max(b, a)
 	mult := new(big.Int).Mul(
 		new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(k-a)), nil),
 		new(big.Int).Exp(big.NewInt(5), big.NewInt(int64(k-b)), nil),

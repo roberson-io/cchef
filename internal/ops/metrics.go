@@ -63,9 +63,9 @@ func (LevenshteinDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for i := range current {
 		current[i] = delCost * i
 	}
-	for i := 0; i < len(dest); i++ {
+	for i := range dest {
 		next[0] = current[0] + insCost
-		for j := 0; j < len(src); j++ {
+		for j := range src {
 			opt := current[j+1] + insCost // insertion
 			if c := next[j] + delCost; c < opt {
 				opt = c // deletion

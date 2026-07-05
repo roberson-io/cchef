@@ -259,7 +259,7 @@ func (DropNthBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	var out []byte
 	offset := 0
-	for i := 0; i < len(data); i++ {
+	for i := range data {
 		switch {
 		case eachLine && data[i] == 0x0a:
 			out = append(out, 0x0a)
@@ -302,7 +302,7 @@ func (TakeNthBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	var out []byte
 	offset := 0
-	for i := 0; i < len(data); i++ {
+	for i := range data {
 		switch {
 		case eachLine && data[i] == 0x0a:
 			out = append(out, 0x0a)

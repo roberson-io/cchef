@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -37,12 +38,7 @@ func parseCSV(data string, cellDelims, lineDelims []rune) [][]string {
 	renderNext, inString := false, false
 
 	contains := func(set []rune, c rune) bool {
-		for _, s := range set {
-			if s == c {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(set, c)
 	}
 
 	for i := 0; i < len(r); i++ {

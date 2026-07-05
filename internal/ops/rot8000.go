@@ -54,7 +54,7 @@ func rot8000Table() map[rune]rune {
 		const bmpSize = 0x10000
 		validInts := make([]rune, 0, 1<<15)
 		curr := false
-		for i := 0; i < bmpSize; i++ {
+		for i := range bmpSize {
 			if v, ok := valid[i]; ok {
 				curr = v
 			}

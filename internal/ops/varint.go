@@ -36,7 +36,7 @@ func (VarIntDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.Bytes()
 	result := new(big.Int)
 	var offset uint
-	for i := 0; i < len(input); i++ {
+	for i := range input {
 		part := new(big.Int).Lsh(big.NewInt(int64(input[i]&0x7f)), offset)
 		result.Or(result, part)
 		if input[i]&0x80 == 0 {

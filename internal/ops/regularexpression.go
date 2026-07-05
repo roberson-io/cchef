@@ -127,20 +127,21 @@ func regexHighlight(input string, re *regexp.Regexp, displayTotal bool) string {
 	for _, m := range re.FindAllStringSubmatchIndex(input, -1) {
 		sb.WriteString(input[last:m[0]])
 		match := input[m[0]:m[1]]
-		title := fmt.Sprintf("Offset: %d\n", m[0])
+		var title strings.Builder
+		fmt.Fprintf(&title, "Offset: %d\n", m[0])
 		groups := len(m)/2 - 1
 		if groups > 0 {
-			title += "Groups:\n"
+			title.WriteString("Groups:\n")
 			for i := 1; i <= groups; i++ {
 				g := ""
 				if m[2*i] >= 0 {
 					g = input[m[2*i]:m[2*i+1]]
 				}
-				title += fmt.Sprintf("\t%d: %s\n", i, escapeHTML(g))
+				fmt.Fprintf(&title, "\t%d: %s\n", i, escapeHTML(g))
 			}
 		}
 		hl = 3 - hl // toggle 1/2
-		spans = append(spans, fmt.Sprintf("<span class='hl%d' title='%s'>%s</span>", hl, title, escapeHTML(match)))
+		spans = append(spans, fmt.Sprintf("<span class='hl%d' title='%s'>%s</span>", hl, title.String(), escapeHTML(match)))
 		fmt.Fprintf(&sb, "[cc_capture_group_%d]", total)
 		total++
 		last = m[1]

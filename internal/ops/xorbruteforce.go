@@ -58,7 +58,7 @@ func (XORBruteForce) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var output []string
 	limit := 1
-	for i := 0; i < keyLength; i++ {
+	for range keyLength {
 		limit *= 256
 	}
 	for key := 1; key < limit; key++ {
@@ -90,13 +90,7 @@ func sampleSlice(input []byte, offset, length int) []byte {
 	if offset > len(input) {
 		offset = len(input)
 	}
-	end := offset + length
-	if end < offset {
-		end = offset
-	}
-	if end > len(input) {
-		end = len(input)
-	}
+	end := min(max(offset+length, offset), len(input))
 	return input[offset:end]
 }
 

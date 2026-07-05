@@ -52,7 +52,7 @@ func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	n := len(samples)
 	s0 := samples[0]
 	inMatch := false
-	for i := 0; i < len(s0); i++ {
+	for i := range s0 {
 		chr := s0[i]
 		match := false
 		for s := 1; s < n; s++ {
@@ -62,7 +62,7 @@ func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			}
 			match = true
 		}
-		for s := 0; s < n; s++ {
+		for s := range n {
 			smp := samples[s]
 			if len(smp) <= i {
 				if inMatch {

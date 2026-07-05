@@ -65,7 +65,7 @@ func (ChangeIPFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	outFormat := args[1].(string)
 
 	var out strings.Builder
-	for _, line := range strings.Split(in.String(), "\n") {
+	for line := range strings.SplitSeq(in.String(), "\n") {
 		if line == "" {
 			continue
 		}
@@ -77,7 +77,7 @@ func (ChangeIPFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		var baIP []byte
 		switch inFormat {
 		case "Dotted Decimal":
-			for _, oct := range strings.Split(line, ".") {
+			for oct := range strings.SplitSeq(line, ".") {
 				v, _ := strconv.Atoi(oct)
 				baIP = append(baIP, byte(v))
 			}

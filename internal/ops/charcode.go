@@ -114,10 +114,7 @@ func (FromCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(bites) == 1 && len(input) > 17 {
 		bites = nil
 		for i := 0; i < len(input); i += 2 {
-			end := i + 2
-			if end > len(input) {
-				end = len(input)
-			}
+			end := min(i+2, len(input))
 			bites = append(bites, input[i:end])
 		}
 	}

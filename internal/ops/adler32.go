@@ -32,5 +32,5 @@ func (Adler32) Args() []core.ArgDef { return nil }
 // Run computes the checksum.
 func (Adler32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sum := adler32.Checksum(in.Bytes())
-	return core.NewDish([]byte(fmt.Sprintf("%08x", sum)), core.TypeString), nil
+	return core.NewDish(fmt.Appendf(nil, "%08x", sum), core.TypeString), nil
 }

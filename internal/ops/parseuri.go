@@ -71,7 +71,7 @@ func (ParseURI) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// is always printed. Parse RawQuery manually to preserve insertion order.
 	var order []string
 	values := map[string][]string{}
-	for _, part := range strings.Split(u.RawQuery, "&") {
+	for part := range strings.SplitSeq(u.RawQuery, "&") {
 		if part == "" {
 			continue
 		}

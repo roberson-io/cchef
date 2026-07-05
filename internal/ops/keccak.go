@@ -44,12 +44,12 @@ var (
 // keccakF applies the Keccak-f[1600] permutation to the 25-lane state in place.
 func keccakF(st *[25]uint64) {
 	var bc [5]uint64
-	for round := 0; round < 24; round++ {
+	for round := range 24 {
 		// Theta
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			bc[i] = st[i] ^ st[i+5] ^ st[i+10] ^ st[i+15] ^ st[i+20]
 		}
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			t := bc[(i+4)%5] ^ bits.RotateLeft64(bc[(i+1)%5], 1)
 			for j := 0; j < 25; j += 5 {
 				st[j+i] ^= t
@@ -57,7 +57,7 @@ func keccakF(st *[25]uint64) {
 		}
 		// Rho and Pi
 		t := st[1]
-		for i := 0; i < 24; i++ {
+		for i := range 24 {
 			j := keccakPi[i]
 			tmp := st[j]
 			st[j] = bits.RotateLeft64(t, int(keccakRot[i]))
@@ -65,10 +65,10 @@ func keccakF(st *[25]uint64) {
 		}
 		// Chi
 		for j := 0; j < 25; j += 5 {
-			for i := 0; i < 5; i++ {
+			for i := range 5 {
 				bc[i] = st[j+i]
 			}
-			for i := 0; i < 5; i++ {
+			for i := range 5 {
 				st[j+i] ^= (^bc[(i+1)%5]) & bc[(i+2)%5]
 			}
 		}
@@ -88,7 +88,7 @@ func keccakSum(data []byte, sizeBits int, domain byte) []byte {
 
 	// Absorb full rate-sized blocks.
 	for len(data) >= rate {
-		for i := 0; i < rateLanes; i++ {
+		for i := range rateLanes {
 			st[i] ^= binary.LittleEndian.Uint64(data[i*8:])
 		}
 		keccakF(&st)
@@ -100,14 +100,14 @@ func keccakSum(data []byte, sizeBits int, domain byte) []byte {
 	copy(block, data)
 	block[len(data)] ^= domain
 	block[rate-1] ^= 0x80
-	for i := 0; i < rateLanes; i++ {
+	for i := range rateLanes {
 		st[i] ^= binary.LittleEndian.Uint64(block[i*8:])
 	}
 	keccakF(&st)
 
 	// Squeeze. For all supported sizes outLen <= rate, so one block suffices.
 	out := make([]byte, rate)
-	for i := 0; i < rateLanes; i++ {
+	for i := range rateLanes {
 		binary.LittleEndian.PutUint64(out[i*8:], st[i])
 	}
 	return out[:outLen]

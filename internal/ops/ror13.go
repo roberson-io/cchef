@@ -37,5 +37,5 @@ func (ROR13) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for _, chr := range in.Bytes() {
 		hash = bits.RotateLeft32(hash, -13) + uint32(chr)
 	}
-	return core.NewDish([]byte(fmt.Sprintf("0x%08X", hash)), core.TypeString), nil
+	return core.NewDish(fmt.Appendf(nil, "0x%08X", hash), core.TypeString), nil
 }

@@ -60,10 +60,7 @@ func (SwapEndianness) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// Split into words (optionally padding the last), reverse each, flatten.
 	var result []byte
 	for i := 0; i < len(data); i += wordLength {
-		end := i + wordLength
-		if end > len(data) {
-			end = len(data)
-		}
+		end := min(i+wordLength, len(data))
 		word := append([]byte(nil), data[i:end]...)
 		if pad {
 			for len(word) < wordLength {

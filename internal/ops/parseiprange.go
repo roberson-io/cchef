@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/big"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -58,7 +59,7 @@ func jsFloatString(f float64) string {
 // between two IPv6 endpoints.
 func ipv6TotalAddresses(ip1, ip2 [8]int) string {
 	var sb strings.Builder
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		if diff := ip2[i] - ip1[i]; diff != 0 {
 			sb.WriteString(strconv.FormatInt(int64(diff), 2))
 		}
@@ -145,7 +146,7 @@ func ipv4HyphenatedRange(rangeStr string, netInfo, enumerate, allowLarge bool) (
 // ipv4ListedRange collapses a list of IPs/CIDRs to their min–max range.
 func ipv4ListedRange(listStr string, netInfo, enumerate, allowLarge bool) (string, error) {
 	var vals []uint32
-	for _, line := range strings.Split(listStr, "\n") {
+	for line := range strings.SplitSeq(listStr, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -170,7 +171,7 @@ func ipv4ListedRange(listStr string, netInfo, enumerate, allowLarge bool) (strin
 			vals = append(vals, v)
 		}
 	}
-	sort.Slice(vals, func(i, j int) bool { return vals[i] < vals[j] })
+	slices.Sort(vals)
 	return ipv4HyphenatedRange(ipv4ToStr(vals[0])+" - "+ipv4ToStr(vals[len(vals)-1]), netInfo, enumerate, allowLarge)
 }
 
@@ -185,7 +186,7 @@ func ipv6CidrRange(ipStr string, cidr int, netInfo bool) (string, error) {
 	}
 	mask := genIpv6Mask(cidr)
 	var maskArr, ip1, ip2 [8]int
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		maskArr[i] = int(mask[i])
 		ip1[i] = network[i] & int(mask[i])
 		ip2[i] = ip1[i] | (int(^mask[i]) & 0x0000FFFF)
@@ -226,7 +227,7 @@ func ipv6ListedRange(listStr string, netInfo bool) (string, error) {
 		a [8]int
 	}
 	var list []v6
-	for _, line := range strings.Split(listStr, "\n") {
+	for line := range strings.SplitSeq(listStr, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -243,7 +244,7 @@ func ipv6ListedRange(listStr string, netInfo bool) (string, error) {
 			}
 			mask := genIpv6Mask(cidr)
 			var lo, hi [8]int
-			for j := 0; j < 8; j++ {
+			for j := range 8 {
 				lo[j] = network[j] & int(mask[j])
 				hi[j] = lo[j] | (int(^mask[j]) & 0x0000FFFF)
 			}
@@ -257,7 +258,7 @@ func ipv6ListedRange(listStr string, netInfo bool) (string, error) {
 		}
 	}
 	sort.SliceStable(list, func(i, j int) bool {
-		for k := 0; k < 8; k++ {
+		for k := range 8 {
 			if list[i].a[k] != list[j].a[k] {
 				return list[i].a[k] < list[j].a[k]
 			}

@@ -115,7 +115,7 @@ func bitOp(input, key []byte, f func(o, k byte) byte, nullPreserving bool, schem
 		key = []byte{0}
 	}
 	out := make([]byte, 0, len(input))
-	for i := 0; i < len(input); i++ {
+	for i := range input {
 		k := key[i%len(key)]
 		if scheme == "Cascade" {
 			if i+1 < len(input) {

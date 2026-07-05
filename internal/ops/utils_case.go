@@ -42,7 +42,7 @@ func (GetAllCasings) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var lines []string
 	for i := 0; i < (1 << n); i++ {
 		temp := make([]rune, n)
-		for j := 0; j < n; j++ {
+		for j := range n {
 			if (i>>j)&1 == 1 {
 				temp[j] = unicode.ToUpper(lower[j])
 			} else {

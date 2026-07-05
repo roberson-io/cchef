@@ -29,6 +29,9 @@ jobs:
             exit 1
           fi
 
+      - name: Check modernizations
+        run: make fix-check
+
       - name: Vet
         run: make vet
 
