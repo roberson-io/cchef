@@ -1,0 +1,239 @@
+package ops
+
+import (
+	"errors"
+	"fmt"
+	"maps"
+	"strconv"
+)
+
+// protobufParser performs a schema-less decode of protobuf wire data, mirroring
+// CyberChef's lib/Protobuf.mjs raw parser. It records per-field wire types (for
+// the "Show Types" option) and treats a length-delimited field as a nested
+// message when it parses cleanly, otherwise as a byte string.
+type protobufParser struct {
+	data   []byte
+	offset int
+	// fieldTypes maps a field number to its wire type (int), or to a nested
+	// map[string]any of sub-field types for submessages.
+	fieldTypes map[string]any
+}
+
+var errProtobufOverrun = errors.New("exhausted buffer")
+
+func newProtobufParser(data []byte) *protobufParser {
+	return &protobufParser{data: data, fieldTypes: map[string]any{}}
+}
+
+// parse reads all fields into an ordered map keyed by field number.
+func (p *protobufParser) parse() (*omap, error) {
+	obj := newOMap()
+	for p.offset < len(p.data) {
+		key, value, err := p.parseField()
+		if err != nil {
+			return nil, err
+		}
+		p.addField(obj, key, value)
+	}
+	if p.offset > len(p.data) {
+		return nil, errProtobufOverrun
+	}
+	return obj, nil
+}
+
+// addField inserts value under key, collecting repeats into an array.
+func (p *protobufParser) addField(obj *omap, key string, value any) {
+	if existing, ok := obj.vals[key]; ok {
+		if arr, isArr := existing.([]any); isArr {
+			obj.vals[key] = append(arr, value)
+		} else {
+			obj.vals[key] = []any{existing, value}
+		}
+		return
+	}
+	obj.set(key, value)
+}
+
+func (p *protobufParser) parseField() (string, any, error) {
+	if p.offset >= len(p.data) {
+		p.offset = len(p.data) + 1
+		return "", nil, errProtobufOverrun
+	}
+	wireType := int(p.data[p.offset]) & 0x07
+	key := strconv.Itoa(p.fieldNumber())
+
+	if _, isMap := p.fieldTypes[key].(map[string]any); !isMap {
+		p.fieldTypes[key] = wireType
+	}
+
+	switch wireType {
+	case 0:
+		return key, p.varInt(), nil
+	case 1:
+		return key, p.uint64(), nil
+	case 2:
+		v, err := p.lenDelim(key)
+		return key, v, err
+	case 5:
+		return key, p.uint32(), nil
+	default:
+		return "", nil, fmt.Errorf("unknown type 0x%x", wireType)
+	}
+}
+
+// fieldNumber reads the varint-encoded field number from the tag, whose low 3
+// bits are the wire type (already read). Ported from _fieldNumber.
+func (p *protobufParser) fieldNumber() int {
+	shift := -3
+	fieldNumber := 0
+	for {
+		b := 0
+		if p.offset < len(p.data) {
+			b = int(p.data[p.offset])
+		}
+		switch {
+		case shift < 28 && shift == -3:
+			fieldNumber += (b & 0x78) >> 3
+		case shift < 28:
+			fieldNumber += (b & 0x7f) << shift
+		default:
+			fieldNumber += (b & 0x7f) * (1 << shift)
+		}
+		shift += 7
+		msb := b & 0x80
+		p.offset++
+		if msb != 0x80 {
+			break
+		}
+	}
+	return fieldNumber
+}
+
+func (p *protobufParser) varInt() float64 {
+	value := 0.0
+	shift := 0
+	for {
+		b := 0
+		if p.offset < len(p.data) {
+			b = int(p.data[p.offset])
+		}
+		if shift < 28 {
+			value += float64((b & 0x7f) << shift)
+		} else {
+			value += float64(b&0x7f) * float64(int64(1)<<shift)
+		}
+		shift += 7
+		msb := b & 0x80
+		p.offset++
+		if msb != 0x80 {
+			break
+		}
+	}
+	return value
+}
+
+func (p *protobufParser) uint64() float64 {
+	b := func() float64 {
+		v := 0.0
+		if p.offset < len(p.data) {
+			v = float64(p.data[p.offset])
+		}
+		p.offset++
+		return v
+	}
+	lower := b() + b()*0x100 + b()*0x10000 + b()*0x1000000
+	upper := b() + b()*0x100 + b()*0x10000 + b()*0x1000000
+	return upper*0x100000000 + lower
+}
+
+func (p *protobufParser) uint32() float64 {
+	v := 0.0
+	for i := range 4 {
+		bv := 0.0
+		if p.offset < len(p.data) {
+			bv = float64(p.data[p.offset])
+		}
+		v += bv * float64(int64(1)<<(8*i))
+		p.offset++
+	}
+	return v
+}
+
+// lenDelim reads a length-delimited field: a nested message when it parses
+// cleanly, otherwise the raw bytes as a latin1 string. Ported from _lenDelim.
+func (p *protobufParser) lenDelim(fieldNum string) (any, error) {
+	length := int(p.varInt())
+	end := p.offset + length
+	sliceEnd := min(end, len(p.data))
+	fieldBytes := p.data[p.offset:sliceEnd]
+
+	var field any
+	sub := newProtobufParser(fieldBytes)
+	if parsed, err := sub.parse(); err == nil {
+		field = parsed
+		merged, _ := p.fieldTypes[fieldNum].(map[string]any)
+		if merged == nil {
+			merged = map[string]any{}
+		}
+		maps.Copy(merged, sub.fieldTypes)
+		p.fieldTypes[fieldNum] = merged
+	} else {
+		field = byteArrayToChars(fieldBytes)
+	}
+	p.offset = end
+	return field, nil
+}
+
+// protobufTypeInfo returns the wire-type description used by "Show Types".
+func protobufTypeInfo(wireType int) string {
+	switch wireType {
+	case 0:
+		return "VarInt (e.g. int32, bool)"
+	case 1:
+		return "64-Bit (e.g. fixed64, double)"
+	case 2:
+		return "L-delim (e.g. string, message)"
+	case 5:
+		return "32-Bit (e.g. fixed32, float)"
+	}
+	return ""
+}
+
+// showRawTypes rewrites raw-decode field-number keys to include the wire type,
+// recursing into submessages. Ported from Protobuf.showRawTypes.
+func showRawTypes(raw *omap, fieldTypes map[string]any) *omap {
+	out := newOMap()
+	for _, fieldNum := range raw.keys {
+		value := raw.vals[fieldNum]
+		ft := fieldTypes[fieldNum]
+		var outType int
+		var outValue any
+
+		if subTypes, isMsg := ft.(map[string]any); isMsg {
+			outType = 2
+			switch v := value.(type) {
+			case []any:
+				instances := make([]any, 0, len(v))
+				for _, inst := range v {
+					if sub, ok := inst.(*omap); ok {
+						instances = append(instances, showRawTypes(sub, subTypes))
+					} else {
+						instances = append(instances, inst)
+					}
+				}
+				outValue = instances
+			case *omap:
+				outValue = showRawTypes(v, subTypes)
+			default:
+				outValue = value
+			}
+		} else {
+			if wt, ok := ft.(int); ok {
+				outType = wt
+			}
+			outValue = value
+		}
+		out.set(fmt.Sprintf("field #%s: %s", fieldNum, protobufTypeInfo(outType)), outValue)
+	}
+	return out
+}

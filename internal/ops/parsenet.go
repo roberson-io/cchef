@@ -79,6 +79,12 @@ func (s *byteStream) hasMore() bool { return s.pos < len(s.bytes) }
 // moveTo sets the stream position (used by the TLS record parser).
 func (s *byteStream) moveTo(pos int) { s.pos = pos; s.bitPos = 0 }
 
+// moveForwardsBy advances the stream position by n bytes (Stream.moveForwardsBy).
+func (s *byteStream) moveForwardsBy(n int) { s.moveTo(s.pos + n) }
+
+// readString reads numBytes bytes as a string (Stream.readString).
+func (s *byteStream) readString(numBytes int) string { return string(s.getBytes(numBytes)) }
+
 // toHexFast renders bytes as lowercase hex with no delimiter (CyberChef toHexFast).
 func toHexFast(b []byte) string { return hex.EncodeToString(b) }
 

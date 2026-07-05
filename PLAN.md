@@ -32,7 +32,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 155
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 165
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -45,7 +45,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **155 operations** (`internal/ops/`), each a faithful port with tests
+- **165 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -159,7 +159,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **152 unique** CyberChef operations are covered (151 directly plus
+Currently **162 unique** CyberChef operations are covered (161 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **483 real operations, not 486.** CyberChef's `Categories.json` names **486**
@@ -410,26 +410,26 @@ Currently **152 unique** CyberChef operations are covered (151 directly plus
 - [x] XOR
 - [x] XOR Brute Force
 
-### Networking (28/38)
+### Networking (38/38)
 
 - [x] Change IP format
 - [x] Dechunk HTTP response
 - [x] Decode NetBIOS Name
 - [x] Defang IP Addresses
 - [x] Defang URL
-- [ ] DNS over HTTPS
+- [x] DNS over HTTPS
 - [x] Encode NetBIOS Name
 - [x] Fang URL
 - [x] Format MAC addresses
 - [x] Group IP addresses
-- [ ] HASSH Client Fingerprint
-- [ ] HASSH Server Fingerprint
-- [ ] HTTP request
+- [x] HASSH Client Fingerprint
+- [x] HASSH Server Fingerprint
+- [x] HTTP request
 - [x] IPv6 Transition Addresses
-- [ ] JA3 Fingerprint
-- [ ] JA3S Fingerprint
-- [ ] JA4 Fingerprint
-- [ ] JA4Server Fingerprint
+- [x] JA3 Fingerprint
+- [x] JA3S Fingerprint
+- [x] JA4 Fingerprint
+- [x] JA4Server Fingerprint
 - [x] Parse Ethernet frame
 - [x] Parse IP range
 - [x] Parse IPv4 header
@@ -440,8 +440,8 @@ Currently **152 unique** CyberChef operations are covered (151 directly plus
 - [x] Parse UDP
 - [x] Parse URI
 - [x] Parse User Agent
-- [ ] Protobuf Decode
-- [ ] Protobuf Encode
+- [x] Protobuf Decode
+- [x] Protobuf Encode
 - [x] Strip HTTP headers
 - [x] Strip IPv4 header
 - [x] Strip TCP header
