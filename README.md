@@ -10,10 +10,10 @@ Knife" — built for the terminal. Every operation is a subcommand that reads in
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
 
-> **Status:** a curated, growing subset — **165 operations** so far, each a
+> **Status:** a curated, growing subset — **175 operations** so far, each a
 > faithful, test-driven port. See [PLAN.md](PLAN.md) for the full implementation
-> status against all 483 CyberChef operations (CyberChef's category config names
-> 486, but three have no implementation).
+> status against all 495 CyberChef operations (CyberChef's category config names
+> 498, but three have no implementation).
 
 ## Install
 
@@ -60,14 +60,14 @@ trailing newline is added only when writing to a terminal. Operations accept
 
 ## Operations
 
-The 165 operations are grouped using the same categories as CyberChef. Each page
+The 175 operations are grouped using the same categories as CyberChef. Each page
 documents options, examples, and reference links:
 
 - [Arithmetic / Logic](docs/arithmetic-logic.md) — Sum, Subtract, Multiply,
   Divide, Mean, Median, Standard Deviation, and set operations (Union,
   Intersection, Difference, Symmetric Difference, Cartesian Product, Power Set).
 - [Data format](docs/data-format.md) — Base/Base32/45/58/62/64/85/92, Hex, Octal,
-  URL encode/decode, AMF.
+  Modhex, BCD, Float, Hexdump, Caret/M-decode, Text-Integer, URL encode/decode, AMF.
 - [Encryption / Encoding](docs/encryption-encoding.md) — ADD, AND, Bit shift left/right, NOT, OR, SUB, XOR, ROT13, ROT47.
 - [Hashing](docs/hashing.md) — MD5, SHA-1, SHA-2 (224/256/384/512), SHA-3, Keccak,
   HMAC, Adler-32.

@@ -4,7 +4,7 @@
 
 `cchef` is a Go CLI port of the data-transformation engine of
 [CyberChef](https://gchq.github.io/CyberChef/) (cloned at `../CyberChef`, a JS
-project with 486 operations). The goal is a Unix-friendly tool where each
+project with 498 operations). The goal is a Unix-friendly tool where each
 operation is a subcommand, operations chain into recipes (via pipes, JSON, or
 CyberChef's "Chef" text format), and recipes round-trip to a shareable
 `gchq.github.io/CyberChef` URL.
@@ -32,7 +32,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 165
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 175
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -45,7 +45,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **165 operations** (`internal/ops/`), each a faithful port with tests
+- **175 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -159,23 +159,23 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **162 unique** CyberChef operations are covered (161 directly plus
+Currently **172 unique** CyberChef operations are covered (171 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
-> **483 real operations, not 486.** CyberChef's `Categories.json` names **486**
-> operations, but only **483** have a backing `Operation` class. Three names —
+> **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
+> operations, but only **495** have a backing `Operation` class. Three names —
 > **Extended GCD**, **Modular Exponentiation**, **Modular Inverse** — appear in
 > the category config (and a staged `lib/BigIntUtils.mjs` helper, Crown Copyright
 > 2025) but were never given operation files, so they don't exist as usable
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (32/78)
+### Data format (42/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
 - [ ] Avro to JSON
-- [ ] Caret/M-decode
+- [x] Caret/M-decode
 - [ ] CBOR Decode
 - [ ] CBOR Encode
 - [x] Change IP format
@@ -192,19 +192,19 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [x] From Base64
 - [x] From Base85
 - [x] From Base92
-- [ ] From BCD
+- [x] From BCD
 - [ ] From Bech32
 - [x] From Binary
 - [ ] From Braille
 - [x] From Charcode
 - [x] From Decimal
-- [ ] From Float
+- [x] From Float
 - [x] From Hex
 - [ ] From Hex Content
-- [ ] From Hexdump
+- [x] From Hexdump
 - [ ] From HTML Entity
 - [ ] From MessagePack
-- [ ] From Modhex
+- [x] From Modhex
 - [x] From Octal
 - [ ] From Punycode
 - [ ] From Quoted Printable
@@ -221,7 +221,7 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [ ] Show Base64 offsets
 - [x] Swap endianness
 - [ ] Text Encoding Brute Force
-- [ ] Text-Integer Conversion
+- [x] Text-Integer Conversion
 - [x] To Base
 - [x] To Base32
 - [x] To Base45
@@ -230,19 +230,19 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [x] To Base64
 - [x] To Base85
 - [x] To Base92
-- [ ] To BCD
+- [x] To BCD
 - [ ] To Bech32
 - [x] To Binary
 - [ ] To Braille
 - [x] To Charcode
 - [x] To Decimal
-- [ ] To Float
+- [x] To Float
 - [x] To Hex
 - [ ] To Hex Content
-- [ ] To Hexdump
+- [x] To Hexdump
 - [ ] To HTML Entity
 - [ ] To MessagePack
-- [ ] To Modhex
+- [x] To Modhex
 - [x] To Octal
 - [ ] To Punycode
 - [ ] To Quoted Printable
@@ -251,7 +251,7 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [x] URL Encode
 - [ ] YAML to JSON
 
-### Encryption / Encoding (7/84)
+### Encryption / Encoding (7/94)
 
 - [ ] A1Z26 Cipher Decode
 - [ ] A1Z26 Cipher Encode
@@ -261,6 +261,8 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [ ] AES Key Wrap
 - [ ] Affine Cipher Decode
 - [ ] Affine Cipher Encode
+- [ ] Ascon Decrypt
+- [ ] Ascon Encrypt
 - [ ] Atbash Cipher
 - [ ] Bacon Cipher Decode
 - [ ] Bacon Cipher Encode
@@ -304,6 +306,8 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [ ] LS47 Decrypt
 - [ ] LS47 Encrypt
 - [ ] Multiple Bombe
+- [ ] PRESENT Decrypt
+- [ ] PRESENT Encrypt
 - [x] Pseudo-Random Number Generator
 - [ ] Rabbit
 - [ ] Rail Fence Cipher Decode
@@ -326,15 +330,21 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [ ] SM4 Decrypt
 - [ ] SM4 Encrypt
 - [ ] Substitute
+- [ ] TEA Decrypt
+- [ ] TEA Encrypt
 - [ ] To Morse Code
 - [ ] Triple DES Decrypt
 - [ ] Triple DES Encrypt
+- [ ] Twofish Decrypt
+- [ ] Twofish Encrypt
 - [ ] Typex
 - [ ] Vigenère Decode
 - [ ] Vigenère Encode
 - [x] XOR
 - [x] XOR Brute Force
 - [ ] XSalsa20
+- [ ] XTEA Decrypt
+- [ ] XTEA Encrypt
 - [ ] XXTEA Decrypt
 - [ ] XXTEA Encrypt
 
@@ -574,12 +584,14 @@ Currently **162 unique** CyberChef operations are covered (161 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (7/48)
+### Hashing (7/50)
 
 - [x] Adler-32 Checksum
 - [ ] Analyse hash
 - [ ] Argon2
 - [ ] Argon2 compare
+- [ ] Ascon Hash
+- [ ] Ascon MAC
 - [ ] Bcrypt
 - [ ] Bcrypt compare
 - [ ] Bcrypt parse

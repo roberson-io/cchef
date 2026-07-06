@@ -2,8 +2,8 @@ package ops
 
 import (
 	"fmt"
+	"math"
 	"math/bits"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -101,20 +101,48 @@ func (Wrap) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (Wrap) Args() []core.ArgDef {
+	minWidth, maxWidth := 1.0, float64(maxWrapWidth)
 	return []core.ArgDef{
-		{Name: "Line Width", Type: core.ArgNumber, Value: 64},
+		{Name: "Line Width", Type: core.ArgNumber, Value: 64, Min: &minWidth, Max: &maxWidth},
 	}
 }
 
-// Run wraps the input. Ported from CyberChef Wrap.mjs.
+// maxWrapWidth caps the Wrap line width (matches CyberChef's MAX_LINE_WIDTH,
+// added in gchq/CyberChef#2606).
+const maxWrapWidth = 65536
+
+// Run wraps the input. Ported from CyberChef Wrap.mjs, which matches
+// /.{1,width}/g and joins with newlines — "." excludes line terminators, so
+// existing line breaks split runs and empty runs are dropped. Reimplemented with
+// rune chunking rather than a regexp, since Go's regexp caps repeat counts at
+// 1000 (below the 65536 max width) and would otherwise panic.
 func (Wrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	if input == "" {
 		return core.NewDish(nil, core.TypeString), nil
 	}
-	width := int(args[0].(float64))
-	re := regexp.MustCompile(fmt.Sprintf(`.{1,%d}`, width))
-	return core.NewDish([]byte(strings.Join(re.FindAllString(input, -1), "\n")), core.TypeString), nil
+	// Width is bounded to [1, maxWrapWidth] by the ArgDef; only the integer
+	// requirement is left to check here.
+	width := args[0].(float64)
+	if math.Round(width) != width {
+		return nil, fmt.Errorf("line width must be an integer")
+	}
+	w := int(width)
+
+	var pieces []string
+	for _, line := range strings.FieldsFunc(input, isLineTerminator) {
+		runes := []rune(line)
+		for i := 0; i < len(runes); i += w {
+			pieces = append(pieces, string(runes[i:min(i+w, len(runes))]))
+		}
+	}
+	return core.NewDish([]byte(strings.Join(pieces, "\n")), core.TypeString), nil
+}
+
+// isLineTerminator reports whether r is one of the characters JavaScript's "."
+// does not match (used to split runs before wrapping).
+func isLineTerminator(r rune) bool {
+	return r == '\n' || r == '\r' || r == '\u2028' || r == '\u2029'
 }
 
 // HammingDistance computes the Hamming distance between two equal-length samples.

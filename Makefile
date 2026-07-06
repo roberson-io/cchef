@@ -26,9 +26,13 @@ cover:
 	$(GO) test -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
 	@$(GO) tool cover -func=coverage.out | tail -1
 
-## fix: apply go fix modernizations, iterating until no further changes
+## fix: apply go fix modernizations, iterating to a fixed point (bounded)
 fix:
-	@while ! $(GO) fix -diff ./... >/dev/null 2>&1; do $(GO) fix ./...; done
+	@for i in 1 2 3 4 5; do \
+		$(GO) fix ./... || { echo "make fix: 'go fix' failed (syntax error?) — aborting"; exit 1; }; \
+		[ -z "$$($(GO) fix -diff ./... 2>/dev/null)" ] && exit 0; \
+	done; \
+	echo "make fix: did not converge after 5 iterations"; exit 1
 
 ## fix-check: fail if go fix would modernize any code (mirrors CI; run `make fix`)
 fix-check:

@@ -23,6 +23,15 @@ func TestBase32Fixtures(t *testing.T) {
 			"To Base32 Hex Extended", "HELLO BASE32 EXTENDED", "912KOJ2F41142KQ56CP20HAOAH2KSH258G======",
 			core.Recipe{{Op: "To Base32", Args: []any{ext}}},
 		},
+		// Non-BMP Unicode custom alphabets (gchq/CyberChef#2380). Mahjong tiles.
+		{
+			"To Base32: non-BMP Unicode alphabet", "hello", "🀝🀈🀐🀔🀖🀀🀊🀟",
+			core.Recipe{{Op: "To Base32", Args: []any{"🀇🀈🀉🀊🀋🀌🀍🀎🀏🀙🀚🀛🀜🀝🀞🀟🀠🀡🀐🀑🀒🀓🀔🀕🀖🀗🀘🀀🀁🀂🀃🀅"}}},
+		},
+		{
+			"To Base32: 32-char Unicode alphabet omits padding", "hell", "🀝🀈🀐🀔🀖🀀🀇",
+			core.Recipe{{Op: "To Base32", Args: []any{"🀇🀈🀉🀊🀋🀌🀍🀎🀏🀙🀚🀛🀜🀝🀞🀟🀠🀡🀐🀑🀒🀓🀔🀕🀖🀗🀘🀀🀁🀂🀃🀅"}}},
+		},
 
 		{
 			"From Base32 Standard: nothing", "", "",

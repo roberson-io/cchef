@@ -40,7 +40,26 @@ func TestWrap(t *testing.T) {
 			"wrap empty", "", "",
 			core.Recipe{{Op: "Wrap", Args: []any{64}}},
 		},
+		// A width above Go's regexp repeat cap (1000) must still wrap, not panic.
+		{
+			"wrap at large width", strings.Repeat("A", 2500),
+			strings.Repeat("A", 2000) + "\n" + strings.Repeat("A", 500),
+			core.Recipe{{Op: "Wrap", Args: []any{2000}}},
+		},
 	})
+}
+
+// TestWrapValidation covers the Line Width bounds added upstream (CyberChef
+// #2606); previously these inputs panicked in cchef via a bad regexp repeat.
+func TestWrapValidation(t *testing.T) {
+	if _, err := runOp(t, "Wrap", "hello", 1.1); err == nil {
+		t.Fatal("expected an error for a non-integer line width")
+	}
+	for _, width := range []float64{0, -1, 65537} {
+		if _, err := core.CoerceArgs(Wrap{}.Args(), []any{width}); err == nil {
+			t.Fatalf("expected line width %v to be rejected by the declared bounds", width)
+		}
+	}
 }
 
 // Hamming cases: "karolin"/"kathrin" is the classic example (3 byte / 9 bit

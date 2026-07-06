@@ -78,7 +78,12 @@ func (ToBase32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 
 		for _, e := range enc {
-			sb.WriteRune(alphabet[e])
+			// An out-of-range index (e.g. the padding slot 32 when the alphabet
+			// has no padding character) contributes nothing, mirroring JS's
+			// (alphabetChars[e] || "") in gchq/CyberChef#2380.
+			if e < len(alphabet) {
+				sb.WriteRune(alphabet[e])
+			}
 		}
 	}
 	return core.NewDish([]byte(sb.String()), core.TypeString), nil

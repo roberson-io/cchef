@@ -8,6 +8,7 @@ Operations for encoding and decoding data between common textual representations
 | --- | --- | --- |
 | AMF Decode | `amf-decode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
+| Caret/M-decode | `caret-m-decode` | [Caret notation](https://en.wikipedia.org/wiki/Caret_notation) |
 | From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | From Base32 | `from-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | From Base45 | `from-base45` | [Base45](https://wikipedia.org/wiki/Base45) |
@@ -16,12 +17,17 @@ Operations for encoding and decoding data between common textual representations
 | From Base64 | `from-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | From Base85 | `from-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
 | From Base92 | `from-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
+| From BCD | `from-bcd` | [Binary-coded decimal](https://wikipedia.org/wiki/Binary-coded_decimal) |
 | From Binary | `from-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
 | From Charcode | `from-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | From Decimal | `from-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
+| From Float | `from-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
+| From Hexdump | `from-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
+| From Modhex | `from-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
+| Text-Integer Conversion | `text-integer-conversion` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | To Base32 | `to-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | To Base45 | `to-base45` | [Base45](https://wikipedia.org/wiki/Base45) |
@@ -30,10 +36,14 @@ Operations for encoding and decoding data between common textual representations
 | To Base64 | `to-base64` | [Base64](https://wikipedia.org/wiki/Base64) |
 | To Base85 | `to-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
 | To Base92 | `to-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
+| To BCD | `to-bcd` | [Binary-coded decimal](https://wikipedia.org/wiki/Binary-coded_decimal) |
 | To Binary | `to-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
 | To Charcode | `to-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | To Decimal | `to-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
+| To Float | `to-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
 | To Hex | `to-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
+| To Hexdump | `to-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
+| To Modhex | `to-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 | URL Encode | `url-encode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
@@ -89,6 +99,24 @@ $ printf '[1,2,3]' | cchef amf-encode | cchef amf-decode
 ```
 
 ---
+
+## Caret/M-decode
+
+Decodes caret-notation and M-notation escapes as produced by tools such as
+`cat -v`: `^M` becomes a carriage return (`0x0d`), `^I` a tab, and `M-^A`
+becomes `0x81`. Note that `cat -v` leaves `^_` unencoded even though it is a
+valid encoding of `0x1f`.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef caret-m-decode -i '^M^JHello M-^A' | cchef to-hex
+0d 0a 48 65 6c 6c 6f 20 81
+```
 
 ## From Base
 
@@ -230,6 +258,36 @@ $ cchef from-base92 -i "G'_DW[B"
 ietf!
 ```
 
+## From BCD
+
+Decodes a [Binary-Coded Decimal](https://wikipedia.org/wiki/Binary-coded_decimal)
+value into a decimal number. Each decimal digit is represented by a fixed group
+of bits under the chosen encoding scheme; a trailing nibble may carry the sign.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--scheme` | option | `8 4 2 1` | Encoding scheme: `8 4 2 1`, `7 4 2 1`, `4 2 2 1`, `2 4 2 1`, `8 4 -2 -1`, `Excess-3`, `IBM 8 4 2 1`. |
+| `--packed` | boolean | `true` | Two digits per byte (packed) vs one digit per byte (unpacked). |
+| `--signed` | boolean | `false` | Treat the final nibble as a sign (`D`/`B` = negative). |
+| `--input-format` | option | `Nibbles` | Input representation: `Nibbles`, `Bytes`, or `Raw`. |
+
+**Simple example**
+
+```bash
+$ cchef from-bcd -i '0001 0010 0011 0100'
+1234
+```
+
+**Packed, signed bytes (negative value)**
+
+```bash
+$ cchef from-bcd --packed --signed --input-format Bytes \
+    -i '00000001 00100011 01000101 01100111 10001001 00001101'
+-1234567890
+```
+
 ## From Binary
 
 Converts a binary string back into its raw form.
@@ -284,6 +342,34 @@ $ cchef from-decimal -i '72 73'
 HI
 ```
 
+## From Float
+
+Converts decimal numbers into their [IEEE 754](https://wikipedia.org/wiki/IEEE_754)
+floating-point byte representation.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--endianness` | option | `Big Endian` | `Big Endian` or `Little Endian`. |
+| `--size` | option | `Float (4 bytes)` | `Float (4 bytes)` (single precision) or `Double (8 bytes)` (double precision). |
+| `--delimiter` | option | `Space` | Separator between numbers: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+
+**Simple example**
+
+```bash
+$ cchef from-float -i '0.5 0.5' | cchef to-hex --delimiter None
+3f0000003f000000
+```
+
+**Little-endian double precision**
+
+```bash
+$ cchef from-float --endianness 'Little Endian' --size 'Double (8 bytes)' -i '0.5' \
+    | cchef to-hex --delimiter None
+000000000000e03f
+```
+
 ## From Hex
 
 Converts a hexadecimal byte string back into its raw value.
@@ -306,6 +392,50 @@ Hello
 ```bash
 $ cchef from-hex --delimiter 'Auto' -i '48:65,6c-6c6f'
 Hello
+```
+
+## From Hexdump
+
+Attempts to convert a hexdump back into raw data. Many tool formats are
+supported (xxd, Wireshark, 010 Editor, `hexdump -C`, …); the offset and ASCII
+preview columns are ignored and only the hex bytes are decoded. Verify the
+result is correct before relying on it.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef from-hexdump -i '00000000  48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21           |Hello, World!|'
+Hello, World!
+```
+
+## From Modhex
+
+Converts a [modhex](https://en.wikipedia.org/wiki/YubiKey#ModHex) byte string
+back into its raw value. Modhex substitutes the 16 hex nibbles with the consonant
+alphabet `cbdefghijklnrtuv` (used by YubiKey to be keyboard-layout independent).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Auto` | `Auto` splits on any non-modhex character. Also: `Space`, `Percent`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`, `None`. |
+
+**Simple example**
+
+```bash
+$ cchef from-modhex -i 'hb hd hg id ik ie if ii ik if hj'
+aberystwyth
+```
+
+**Auto delimiter (mixed case, mixed separators)**
+
+```bash
+$ cchef from-modhex --delimiter Auto -i 'uhKGkb,UHkgkB,UGltlk,ugltkc'
+救救孩子
 ```
 
 ## From Octal
@@ -351,6 +481,35 @@ $ cchef swap-endianness --data-format Hex --word-length-bytes 4 -i 0a0b0c0d
 ```bash
 $ cchef swap-endianness --data-format Raw --word-length-bytes 2 -i ABCD
 BADC
+```
+
+## Text-Integer Conversion
+
+Converts between text and a large integer, treating the text as a big-endian
+sequence of character codes (e.g. `ABC` is `0x414243` is `4276803`). The input
+format is auto-detected: `0x…` is hexadecimal, plain digits are decimal, and
+anything else (optionally wrapped in single or double quotes) is text. Text may
+only contain ASCII/Latin-1 characters (code point < 256); multi-byte Unicode
+characters produce an error.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--output-format` | option | `String` | Output as `String`, `Decimal`, or `Hexadecimal`. |
+
+**Simple example**
+
+```bash
+$ cchef text-integer-conversion --output-format Hexadecimal -i '"CyberChef"'
+0x437962657243686566
+```
+
+**Integer back to text**
+
+```bash
+$ cchef text-integer-conversion --output-format String -i '0x48656C6C6F'
+Hello
 ```
 
 ## To Base
@@ -517,6 +676,34 @@ $ cchef to-base92 -i 'Hello!!'
 ;K_$aOTo&
 ```
 
+## To BCD
+
+Encodes a decimal number as [Binary-Coded Decimal](https://wikipedia.org/wiki/Binary-coded_decimal),
+representing each digit with a fixed group of bits under the chosen scheme.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--scheme` | option | `8 4 2 1` | Encoding scheme: `8 4 2 1`, `7 4 2 1`, `4 2 2 1`, `2 4 2 1`, `8 4 -2 -1`, `Excess-3`, `IBM 8 4 2 1`. |
+| `--packed` | boolean | `true` | Two digits per byte (packed) vs one digit per byte (unpacked). |
+| `--signed` | boolean | `false` | Append a sign nibble (`C` = +, `D` = -). |
+| `--output-format` | option | `Nibbles` | Output representation: `Nibbles`, `Bytes`, or `Raw`. |
+
+**Simple example**
+
+```bash
+$ cchef to-bcd -i '1234'
+0001 0010 0011 0100
+```
+
+**Packed, signed bytes**
+
+```bash
+$ cchef to-bcd --packed --signed --output-format Bytes -i '1234567890'
+00000001 00100011 01000101 01100111 10001001 00001100
+```
+
 ## To Binary
 
 Displays the input as a binary string, each byte zero-padded to the given length.
@@ -578,6 +765,35 @@ $ cchef to-decimal -i 'ABC'
 65 66 67
 ```
 
+## To Float
+
+Interprets the input bytes as [IEEE 754](https://wikipedia.org/wiki/IEEE_754)
+floating-point numbers and prints their decimal values.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--endianness` | option | `Big Endian` | `Big Endian` or `Little Endian`. |
+| `--size` | option | `Float (4 bytes)` | `Float (4 bytes)` (single precision) or `Double (8 bytes)` (double precision). |
+| `--delimiter` | option | `Space` | Separator between numbers: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+
+The input length must be a multiple of the chosen size (4 or 8 bytes).
+
+**Simple example**
+
+```bash
+$ cchef from-hex -i '3f0000003f000000' | cchef to-float
+0.5 0.5
+```
+
+**Big-endian double precision**
+
+```bash
+$ cchef from-hex -i '3fe0000000000000' | cchef to-float --size 'Double (8 bytes)'
+0.5
+```
+
 ## To Hex
 
 Converts the input to hexadecimal bytes separated by the chosen delimiter.
@@ -603,6 +819,65 @@ $ cchef to-hex --delimiter 'Colon' -i 'Hello'
 
 $ cchef to-hex --delimiter '0x with comma' -i 'abc'
 0x61,0x62,0x63
+```
+
+## To Hexdump
+
+Creates a hexdump of the input: an offset column, the hexadecimal value of each
+byte, and an ASCII preview alongside (non-printable bytes shown as `.`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--width` | number | `16` | Bytes per line (1–65536). |
+| `--upper-case-hex` | boolean | `false` | Upper-case the hex and offset columns. |
+| `--include-final-length` | boolean | `false` | Append a final line with the total byte length. |
+| `--unix-format` | boolean | `false` | Preview only ASCII `0x20`–`0x7e`; otherwise Latin-1 printable characters are shown. |
+
+**Simple example**
+
+```bash
+$ cchef to-hexdump -i 'Hello, World!'
+00000000  48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21           |Hello, World!|
+```
+
+**Narrow width, upper-case, with final length**
+
+```bash
+$ cchef to-hexdump --width 8 --upper-case-hex --include-final-length -i 'Hello, World!'
+00000000  48 65 6C 6C 6F 2C 20 57  |Hello, W|
+00000008  6F 72 6C 64 21           |orld!|
+0000000d
+```
+
+## To Modhex
+
+Converts the input to [modhex](https://en.wikipedia.org/wiki/YubiKey#ModHex)
+bytes separated by the chosen delimiter. Modhex substitutes the 16 hex nibbles
+with the consonant alphabet `cbdefghijklnrtuv`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | One of: `Space`, `Percent`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`, `None`. |
+| `--bytes-per-line` | number | `0` | Insert a line break after this many bytes (`0` = never). |
+
+**Simple example**
+
+```bash
+$ cchef to-modhex -i 'aberystwyth'
+hb hd hg id ik ie if ii ik if hj
+```
+
+**Alternative delimiter with line wrapping**
+
+```bash
+$ cchef to-modhex --delimiter Comma --bytes-per-line 4 -i 'aberystwyth'
+hb,hd,hg,id,
+ik,ie,if,ii,
+ik,if,hj
 ```
 
 ## To Octal
