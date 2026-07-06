@@ -97,7 +97,7 @@ func (FromDecimal) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		if signed && v < 0 {
 			v += 256
 		}
-		out = append(out, byte(v))
+		out = append(out, byte(v)) // #nosec G115 -- ordinal narrowed to a byte, matching CyberChef byteArray semantics
 	}
 	return core.NewDish(out, core.TypeByteArray), nil
 }

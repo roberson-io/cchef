@@ -215,9 +215,9 @@ func (FromBase85) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			return nil, fmt.Errorf("invalid base85 character in group at index %d", i)
 		}
 
-		block := uint32(d0)*52200625 + uint32(d1)*614125 + uint32(d2)*7225 + uint32(d3)*85 + uint32(d4)
+		block := uint32(d0)*52200625 + uint32(d1)*614125 + uint32(d2)*7225 + uint32(d3)*85 + uint32(d4) // #nosec G115 -- Base85 digits (0-84) widened to uint32 for block math
 		blockBytes := []byte{
-			byte(block >> 24), byte(block >> 16), byte(block >> 8), byte(block),
+			byte(block >> 24), byte(block >> 16), byte(block >> 8), byte(block), // #nosec G115 -- extracting big-endian bytes from the 32-bit block
 		}
 		// Partial final group of m chars yields m-1 bytes.
 		if m < 5 {

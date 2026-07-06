@@ -160,7 +160,7 @@ func (FromBase58) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	out := make([]byte, len(result))
 	for i, v := range result {
-		out[len(result)-1-i] = byte(v)
+		out[len(result)-1-i] = byte(v) // #nosec G115 -- big.Int remainder is 0-255
 	}
 	return core.NewDish(out, core.TypeByteArray), nil
 }

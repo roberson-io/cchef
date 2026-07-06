@@ -144,8 +144,8 @@ func (ParseIPv4Header) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ttl := b(8)
 	protocol := b(9)
 	checksum := b(10)<<8 | b(11)
-	srcIP := uint32(b(12))<<24 | uint32(b(13))<<16 | uint32(b(14))<<8 | uint32(b(15))
-	dstIP := uint32(b(16))<<24 | uint32(b(17))<<16 | uint32(b(18))<<8 | uint32(b(19))
+	srcIP := uint32(b(12))<<24 | uint32(b(13))<<16 | uint32(b(14))<<8 | uint32(b(15)) // #nosec G115 -- octet bytes (0-255) packed into a uint32
+	dstIP := uint32(b(16))<<24 | uint32(b(17))<<16 | uint32(b(18))<<8 | uint32(b(19)) // #nosec G115 -- octet bytes (0-255) packed into a uint32
 	version := (b(0) >> 4) & 0x0f
 
 	versionStr := strconv.Itoa(version)

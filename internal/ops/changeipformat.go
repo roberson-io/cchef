@@ -16,8 +16,8 @@ func init() {
 // bytes, big-endian. Ported from ChangeIPFormat.mjs fromNumber.
 func ipFromNumber(value string, radix int) []byte {
 	dec, _ := strconv.ParseUint(strings.TrimSpace(value), radix, 64)
-	d := uint32(dec)
-	return []byte{byte(d >> 24), byte(d >> 16), byte(d >> 8), byte(d)}
+	d := uint32(dec)                                                   // #nosec G115 -- 32-bit coercion of the parsed IP matches CyberChef
+	return []byte{byte(d >> 24), byte(d >> 16), byte(d >> 8), byte(d)} // #nosec G115 -- extracting the four big-endian octets of a 32-bit IP
 }
 
 // hexToBytes decodes a hex string (ignoring non-hex characters) into bytes,
@@ -79,7 +79,7 @@ func (ChangeIPFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		case "Dotted Decimal":
 			for oct := range strings.SplitSeq(line, ".") {
 				v, _ := strconv.Atoi(oct)
-				baIP = append(baIP, byte(v))
+				baIP = append(baIP, byte(v)) // #nosec G115 -- octet from dotted-decimal, bounded to a byte (faithful truncation)
 			}
 		case "Decimal":
 			baIP = ipFromNumber(line, 10)

@@ -32,7 +32,7 @@ func resolveInput(cmd *cobra.Command, args []string) ([]byte, error) {
 	case flagInFile == "-":
 		return io.ReadAll(cmd.InOrStdin())
 	case flagInFile != "":
-		return os.ReadFile(flagInFile)
+		return os.ReadFile(flagInFile) // #nosec G304 -- reads a user-specified input path by design (CLI file argument)
 	case cmd.Flags().Changed("input"):
 		return []byte(flagInput), nil
 	case len(args) > 0:
@@ -48,7 +48,7 @@ func resolveInput(cmd *cobra.Command, args []string) ([]byte, error) {
 // chain cleanly.
 func writeOutput(cmd *cobra.Command, data []byte) error {
 	if flagOutput != "" && flagOutput != "-" {
-		return os.WriteFile(flagOutput, data, 0o644)
+		return os.WriteFile(flagOutput, data, 0o644) // #nosec G306 -- 0644 is conventional for CLI output files written on the user's behalf
 	}
 	out := cmd.OutOrStdout()
 	if _, err := out.Write(data); err != nil {

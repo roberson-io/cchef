@@ -54,8 +54,12 @@ below).
 - **Docs** (`docs/`): per-category pages with options tables, simple + complex
   examples, and external reference links; operations listed alphabetically.
 - **Tooling**: `Makefile` (alphabetised targets: build/test/fmt/vet/lint +
-  `sbom`/`sbom-scan`/`sbom-audit` via cyclonedx-gomod + grype), `.gitignore`.
-  `make test`, `make vet`, and `make lint` are clean.
+  `sast`/`vuln`/`sec` via gosec + govulncheck + `sbom`/`sbom-scan`/`sbom-audit`
+  via cyclonedx-gomod + grype), `.gitignore`. `make test`, `make vet`,
+  `make lint`, and `make sec` are clean. gosec's by-design findings (weak-crypto
+  ports, bounded byte/bit conversions, CLI file args) carry justified
+  `// #nosec` annotations, enforced by `-nosec-require-rules
+  -nosec-require-justification` and auditable via `-track-suppressions`.
 
 ## Architecture (as built)
 
@@ -137,8 +141,8 @@ cchef list                                   # discover operations
   beyond the current linear `Recipe.Execute`.
 - `CRC Checksum` (parameterised over many algorithms via an argSelector) is
   deferred as a larger-than-straight-port effort.
-- (Done: a repo-root `README.md` and GitHub Actions CI running fmt/vet/test/lint
-  plus an SBOM scan now exist.)
+- (Done: a repo-root `README.md` and GitHub Actions CI running fmt/vet/test/lint,
+  a gosec + govulncheck security job, plus an SBOM scan now exist.)
 
 ## Verification
 

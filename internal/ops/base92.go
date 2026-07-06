@@ -19,9 +19,9 @@ func base92Chr(val int) byte {
 	case val == 0:
 		return '!'
 	case val <= 61:
-		return byte('#' + val - 1)
+		return byte('#' + val - 1) // #nosec G115 -- value bounded by the Base92 alphabet
 	default:
-		return byte('a' + val - 62)
+		return byte('a' + val - 62) // #nosec G115 -- value bounded by the Base92 alphabet
 	}
 }
 
@@ -140,7 +140,7 @@ func (FromBase92) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		for bits.Len() >= 8 {
 			s := bits.String()
 			v, _ := strconv.ParseInt(s[:8], 2, 64)
-			res = append(res, byte(v))
+			res = append(res, byte(v)) // #nosec G115 -- value bounded by the Base92 alphabet
 			rest := s[8:]
 			bits.Reset()
 			bits.WriteString(rest)

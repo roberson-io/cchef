@@ -144,7 +144,7 @@ func fromModhex(data, delim string) []byte {
 
 	out := make([]byte, 0, len(nibbles)/2)
 	for i := 0; i+1 < len(nibbles); i += 2 {
-		out = append(out, byte(nibbles[i]<<4|nibbles[i+1]))
+		out = append(out, byte(nibbles[i]<<4|nibbles[i+1])) // #nosec G115 -- two 4-bit nibbles combined into a byte
 	}
 	return out
 }

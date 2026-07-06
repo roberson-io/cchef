@@ -138,7 +138,7 @@ func (ToBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	default: // "Raw"
 		raw := make([]byte, len(bytes))
 		for i, b := range bytes {
-			raw[i] = byte(b)
+			raw[i] = byte(b) // #nosec G115 -- nibble/digit value bounded to a byte
 		}
 		return core.NewDish(raw, core.TypeString), nil
 	}
@@ -220,7 +220,7 @@ func (FromBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			return nil, fmt.Errorf("value %04b is not in the encoding scheme", nb)
 		}
 		// val is a decimal digit 0-9 (index into the 10-entry encoding table).
-		output.WriteByte(byte('0' + val))
+		output.WriteByte(byte('0' + val)) // #nosec G115 -- nibble/digit value bounded to a byte
 	}
 
 	n, ok := new(big.Int).SetString(output.String(), 10)

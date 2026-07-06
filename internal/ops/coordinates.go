@@ -275,7 +275,7 @@ func osgbToGrid(e, n float64, digits int) string {
 	if l2 > 7 {
 		l2++
 	}
-	letters := string(rune('A'+l1)) + string(rune('A'+l2))
+	letters := string(rune('A'+l1)) + string(rune('A'+l2)) // #nosec G115 -- grid letter index is small and bounded
 	d := digits / 2
 	scale := math.Pow(10, float64(5-d))
 	em := int(math.Floor(math.Mod(e, 100000) / scale))

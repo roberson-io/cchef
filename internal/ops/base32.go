@@ -160,18 +160,18 @@ func (FromBase32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		chr4 := ((e[4] & 1) << 7) | (e[5] << 2) | (e[6] >> 3)
 		chr5 := ((e[6] & 7) << 5) | e[7]
 
-		out = append(out, byte(chr1))
+		out = append(out, byte(chr1)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
 		if (e[1]&3) != 0 || e[2] != 32 {
-			out = append(out, byte(chr2))
+			out = append(out, byte(chr2)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
 		}
 		if (e[3]&15) != 0 || e[4] != 32 {
-			out = append(out, byte(chr3))
+			out = append(out, byte(chr3)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
 		}
 		if (e[4]&1) != 0 || e[5] != 32 {
-			out = append(out, byte(chr4))
+			out = append(out, byte(chr4)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
 		}
 		if (e[6]&7) != 0 || e[7] != 32 {
-			out = append(out, byte(chr5))
+			out = append(out, byte(chr5)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
 		}
 	}
 	return core.NewDish(out, core.TypeByteArray), nil

@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"crypto/md5"
+	"crypto/md5" // #nosec G501 -- crypto/md5 required by the ported CyberChef operation, not a security control
 	"fmt"
 	"strconv"
 	"strings"
@@ -85,7 +85,7 @@ func (JA3SFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		strconv.Itoa(cipherSuite),
 		strings.Join(exts, "-"),
 	}, ",")
-	ja3sHash := fmt.Sprintf("%x", md5.Sum([]byte(ja3sStr)))
+	ja3sHash := fmt.Sprintf("%x", md5.Sum([]byte(ja3sStr))) // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
 
 	switch outputFormat {
 	case "JA3S string":

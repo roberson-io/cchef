@@ -159,26 +159,26 @@ func protobufAppendField(out []byte, fd protoreflect.FieldDescriptor, v protoref
 		return protowire.AppendVarint(out, b)
 	case protoreflect.Int32Kind, protoreflect.Int64Kind:
 		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, uint64(v.Int()))
+		return protowire.AppendVarint(out, uint64(v.Int())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.Uint32Kind, protoreflect.Uint64Kind:
 		out = protowire.AppendTag(out, num, protowire.VarintType)
 		return protowire.AppendVarint(out, v.Uint())
 	case protoreflect.Sint32Kind:
-		n := int32(v.Int())
+		n := int32(v.Int()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, uint64(uint32((n<<1)^(n>>31))))
+		return protowire.AppendVarint(out, uint64(uint32((n<<1)^(n>>31)))) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.Sint64Kind:
 		out = protowire.AppendTag(out, num, protowire.VarintType)
 		return protowire.AppendVarint(out, protowire.EncodeZigZag(v.Int()))
 	case protoreflect.EnumKind:
 		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, uint64(v.Enum()))
+		return protowire.AppendVarint(out, uint64(v.Enum())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.Fixed32Kind:
 		out = protowire.AppendTag(out, num, protowire.Fixed32Type)
-		return protowire.AppendFixed32(out, uint32(v.Uint()))
+		return protowire.AppendFixed32(out, uint32(v.Uint())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.Sfixed32Kind:
 		out = protowire.AppendTag(out, num, protowire.Fixed32Type)
-		return protowire.AppendFixed32(out, uint32(v.Int()))
+		return protowire.AppendFixed32(out, uint32(v.Int())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.FloatKind:
 		out = protowire.AppendTag(out, num, protowire.Fixed32Type)
 		return protowire.AppendFixed32(out, math.Float32bits(float32(v.Float())))
@@ -187,7 +187,7 @@ func protobufAppendField(out []byte, fd protoreflect.FieldDescriptor, v protoref
 		return protowire.AppendFixed64(out, v.Uint())
 	case protoreflect.Sfixed64Kind:
 		out = protowire.AppendTag(out, num, protowire.Fixed64Type)
-		return protowire.AppendFixed64(out, uint64(v.Int()))
+		return protowire.AppendFixed64(out, uint64(v.Int())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.DoubleKind:
 		out = protowire.AppendTag(out, num, protowire.Fixed64Type)
 		return protowire.AppendFixed64(out, math.Float64bits(v.Float()))
@@ -241,13 +241,13 @@ func protobufValueFromJSON(fd protoreflect.FieldDescriptor, v any) (protoreflect
 	case protoreflect.BoolKind:
 		return protoreflect.ValueOfBool(coerceBool(v)), nil
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-		return protoreflect.ValueOfInt32(int32(int64(coerceNumber(v)))), nil
+		return protoreflect.ValueOfInt32(int32(int64(coerceNumber(v)))), nil // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
 		return protoreflect.ValueOfInt64(int64(coerceNumber(v))), nil
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-		return protoreflect.ValueOfUint32(uint32(int64(coerceNumber(v)))), nil
+		return protoreflect.ValueOfUint32(uint32(int64(coerceNumber(v)))), nil // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		return protoreflect.ValueOfUint64(uint64(int64(coerceNumber(v)))), nil
+		return protoreflect.ValueOfUint64(uint64(int64(coerceNumber(v)))), nil // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
 	case protoreflect.FloatKind:
 		return protoreflect.ValueOfFloat32(float32(coerceNumber(v))), nil
 	case protoreflect.DoubleKind:

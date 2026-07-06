@@ -133,12 +133,12 @@ func fromBase64(data, alph string, removeNonAlph bool) ([]byte, error) {
 		if e0 == -1 || e1 == -1 {
 			return nil, fmt.Errorf("invalid base64 input near position %d", i)
 		}
-		out = append(out, byte((e0<<2)|(e1>>4)))
+		out = append(out, byte((e0<<2)|(e1>>4))) // #nosec G115 -- 6-bit groups recombined into a byte by the Base64 decode
 		if e2 != padIndex && e2 != -1 {
-			out = append(out, byte((e1<<4)|(e2>>2)))
+			out = append(out, byte((e1<<4)|(e2>>2))) // #nosec G115 -- 6-bit groups recombined into a byte by the Base64 decode
 		}
 		if e3 != padIndex && e3 != -1 {
-			out = append(out, byte((e2<<6)|e3))
+			out = append(out, byte((e2<<6)|e3)) // #nosec G115 -- 6-bit groups recombined into a byte by the Base64 decode
 		}
 	}
 	return out, nil

@@ -3,11 +3,13 @@ GOBIN   ?= $(shell $(GO) env GOPATH)/bin
 BINARY  := cchef
 DIST    := dist
 
-# Pinned so local and CI lint runs agree (avoids surprise failures on tool bumps).
+# Pinned so local and CI runs agree (avoids surprise failures on tool bumps).
 GOLANGCI_VERSION := v2.12.2
+GOSEC_VERSION := v2.27.1
+GOVULNCHECK_VERSION := v1.5.0
 
 .DEFAULT_GOAL := all
-.PHONY: all build clean cover fix fix-check fmt fmt-check install-tools lint sbom sbom-audit sbom-scan test vet
+.PHONY: all build clean cover fix fix-check fmt fmt-check install-tools lint sast sbom sbom-audit sbom-scan sec test vet vuln
 
 ## all: check formatting/modernization, vet, test, build, and lint (mirrors CI)
 all: fmt-check fix-check vet test build lint
@@ -66,6 +68,15 @@ install-tools:
 lint:
 	$(GOBIN)/golangci-lint run
 
+## sast: run gosec static analysis. By-design findings (weak-crypto ports,
+## bounded byte/bit conversions, CLI file args) carry justified `// #nosec`
+## annotations; -track-suppressions prints them for audit. G104 is excluded as
+## errcheck (in golangci-lint) already governs unchecked errors.
+sast:
+	$(GO) run github.com/securego/gosec/v2/cmd/gosec@$(GOSEC_VERSION) \
+		-exclude=G104 -nosec-require-rules -nosec-require-justification \
+		-track-suppressions ./...
+
 ## sbom: generate a CycloneDX SBOM for the module
 sbom:
 	@mkdir -p $(DIST)/sbom
@@ -78,6 +89,9 @@ sbom-audit: sbom sbom-scan
 sbom-scan:
 	$(GOBIN)/grype sbom:$(DIST)/sbom/$(BINARY)-sbom.json --output table --fail-on high
 
+## sec: run all source-level security checks (gosec SAST + govulncheck vuln scan)
+sec: sast vuln
+
 ## test: run all unit tests
 test:
 	$(GO) test ./...
@@ -85,3 +99,7 @@ test:
 ## vet: run go vet static checks
 vet:
 	$(GO) vet ./...
+
+## vuln: scan dependencies and the Go stdlib for known, reachable vulnerabilities
+vuln:
+	$(GO) run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...

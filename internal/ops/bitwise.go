@@ -187,7 +187,7 @@ func (BitShiftLeft) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	out := make([]byte, len(data))
 	for i, b := range data {
-		out[i] = byte(uint(b) << amount)
+		out[i] = byte(uint(b) << amount) // #nosec G115 -- bit-shift result truncated to a byte by design
 	}
 	return core.NewDish(out, core.TypeArrayBuffer), nil
 }
@@ -226,7 +226,7 @@ func (BitShiftRight) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	out := make([]byte, len(data))
 	for i, b := range data {
-		out[i] = byte(uint(b)>>amount) ^ (b & mask)
+		out[i] = byte(uint(b)>>amount) ^ (b & mask) // #nosec G115 -- bit-shift result truncated to a byte by design
 	}
 	return core.NewDish(out, core.TypeArrayBuffer), nil
 }

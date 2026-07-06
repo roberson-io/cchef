@@ -1,8 +1,8 @@
 package ops
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  // #nosec G501 -- crypto/md5 required by the ported CyberChef operation, not a security control
+	"crypto/sha1" // #nosec G505 -- crypto/sha1 required by the ported CyberChef operation, not a security control
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -13,8 +13,8 @@ import (
 )
 
 func init() {
-	core.Register(hashOp{name: "MD5", infoURL: "https://wikipedia.org/wiki/MD5", new: func() hash.Hash { return md5.New() }})
-	core.Register(hashOp{name: "SHA1", infoURL: "https://wikipedia.org/wiki/SHA-1", new: func() hash.Hash { return sha1.New() }})
+	core.Register(hashOp{name: "MD5", infoURL: "https://wikipedia.org/wiki/MD5", new: func() hash.Hash { return md5.New() }})     // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
+	core.Register(hashOp{name: "SHA1", infoURL: "https://wikipedia.org/wiki/SHA-1", new: func() hash.Hash { return sha1.New() }}) // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
 	core.Register(hashOp{name: "SHA224", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha256.New224() }})
 	core.Register(hashOp{name: "SHA256", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha256.New() }})
 	core.Register(hashOp{name: "SHA384", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha512.New384() }})

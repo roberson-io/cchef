@@ -80,9 +80,9 @@ func (VarIntEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	v := new(big.Int).Set(value)
 	var out []byte
 	for v.Cmp(x80) >= 0 {
-		out = append(out, byte(new(big.Int).And(v, mask).Int64())|0x80)
+		out = append(out, byte(new(big.Int).And(v, mask).Int64())|0x80) // #nosec G115 -- VarInt group masked to 7 bits
 		v.Rsh(v, 7)
 	}
-	out = append(out, byte(v.Int64()))
+	out = append(out, byte(v.Int64())) // #nosec G115 -- VarInt group masked to 7 bits
 	return core.NewDish(out, core.TypeByteArray), nil
 }

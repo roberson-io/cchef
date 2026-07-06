@@ -2,8 +2,8 @@ package ops
 
 import (
 	"crypto/hmac"
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  // #nosec G501 -- crypto/md5 required by the ported CyberChef operation, not a security control
+	"crypto/sha1" // #nosec G505 -- crypto/sha1 required by the ported CyberChef operation, not a security control
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"

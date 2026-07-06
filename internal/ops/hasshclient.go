@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"crypto/md5"
+	"crypto/md5" // #nosec G501 -- crypto/md5 required by the ported CyberChef operation, not a security control
 	"fmt"
 	"strings"
 
@@ -76,7 +76,7 @@ func (HASSHClientFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error)
 	s.moveForwardsBy(paddingLength)
 
 	hasshStr := strings.Join([]string{kexAlgos, encAlgosC2S, macAlgosC2S, compAlgosC2S}, ";")
-	hasshHash := fmt.Sprintf("%x", md5.Sum([]byte(hasshStr)))
+	hasshHash := fmt.Sprintf("%x", md5.Sum([]byte(hasshStr))) // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
 
 	switch outputFormat {
 	case "HASSH algorithms string":

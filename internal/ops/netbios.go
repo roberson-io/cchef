@@ -31,7 +31,7 @@ func (EncodeNetBIOSName) Args() []core.ArgDef {
 
 // Run encodes the name. Ported from CyberChef EncodeNetBIOSName.mjs.
 func (EncodeNetBIOSName) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	offset := byte(int(args[0].(float64)))
+	offset := byte(int(args[0].(float64))) // #nosec G115 -- offset arg coerced to a byte, matching NetBIOS byte arithmetic
 	input := in.Bytes()
 	if len(input) > 16 {
 		return core.NewDish(nil, core.TypeByteArray), nil
@@ -79,7 +79,7 @@ func (DecodeNetBIOSName) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		for i := 0; i < len(input); i += 2 {
 			hi := (int(input[i]) & 0xff) - offset
 			lo := (int(input[i+1]) & 0xff) - offset
-			output = append(output, byte((hi<<4)|(lo&0xf)))
+			output = append(output, byte((hi<<4)|(lo&0xf))) // #nosec G115 -- two nibbles combined into a byte
 		}
 		// Trim trailing padding spaces. Faithful to CyberChef's (quirky)
 		// output.splice(i, i), which removes i elements starting at index i.

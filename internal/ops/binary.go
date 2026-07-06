@@ -101,7 +101,7 @@ func (FromBinary) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, byte(v))
+		out = append(out, byte(v)) // #nosec G115 -- value parsed from a fixed bit length, bounded to a byte
 	}
 	return core.NewDish(out, core.TypeByteArray), nil
 }

@@ -38,7 +38,7 @@ func rotlCarry(data []byte, amount int) []byte {
 	for i := len(data) - 1; i >= 0; i-- {
 		old := data[i]
 		out[i] = (old << amount) | carry
-		carry = byte((int(old) >> (8 - amount)) & ((1 << amount) - 1))
+		carry = byte((int(old) >> (8 - amount)) & ((1 << amount) - 1)) // #nosec G115 -- bit-rotation carry masked to a byte
 	}
 	out[len(data)-1] |= carry
 	return out
@@ -56,7 +56,7 @@ func rotrCarry(data []byte, amount int) []byte {
 	for i := range data {
 		old := data[i]
 		out[i] = (old >> amount) | carry
-		carry = byte((int(old) & ((1 << amount) - 1)) << (8 - amount))
+		carry = byte((int(old) & ((1 << amount) - 1)) << (8 - amount)) // #nosec G115 -- bit-rotation carry masked to a byte
 	}
 	out[0] |= carry
 	return out

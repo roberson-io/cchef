@@ -94,8 +94,18 @@ make test     # run all unit tests
 make vet      # go vet
 make lint     # golangci-lint (make install-tools to install it)
 make fmt      # gofmt
+make sec      # gosec SAST + govulncheck (dependency & stdlib CVEs)
 make sbom-audit   # generate + scan a CycloneDX SBOM
 ```
+
+Security scanning uses [gosec](https://github.com/securego/gosec) (SAST) and
+[govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) (known,
+reachable CVEs in dependencies and the Go stdlib), on top of the SBOM/grype
+supply-chain scan. gosec findings that are by design for a CyberChef port —
+intentional MD5/SHA1 operations, bounded byte/bit conversions, reading
+user-supplied file paths — are annotated in-code with justified `// #nosec`
+comments; `make sec` requires every suppression to name its rule and reason, and
+prints the full suppression list for audit.
 
 Operations are developed **test-first**, with test cases transcribed from
 CyberChef's own fixtures (`../CyberChef/tests/operations/tests/*.mjs`) for

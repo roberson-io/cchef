@@ -99,7 +99,7 @@ func (ParseIPv6Address) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	fmt.Fprintf(&b, "Longhand:  %s\nShorthand: %s\n", ipv6ToStr(ipv6, false), shorthand)
 
 	// mappedIPv4 packs the last two hextets into a 32-bit IPv4 value.
-	mappedIPv4 := func() uint32 { return uint32(ipv6[6]<<16 + ipv6[7]) }
+	mappedIPv4 := func() uint32 { return uint32(ipv6[6]<<16 + ipv6[7]) } // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
 
 	switch {
 	case shorthand == "::":
@@ -142,7 +142,7 @@ func (ParseIPv6Address) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			strconv.FormatInt(int64(ipv6[6]), 16) + strconv.FormatInt(int64(ipv6[7]), 16)
 		interfaceID, _ := new(big.Int).SetString(interfaceIDStr, 16)
 		fmt.Fprintf(&b, "\n\nEncapsulated IPv4 address: %s\nSLA ID: %d\nInterface ID (base 16): %s\nInterface ID (base 10): %s",
-			ipv4ToStr(uint32(ipv6[1]<<16+ipv6[2])), ipv6[3], interfaceIDStr, interfaceID.String())
+			ipv4ToStr(uint32(ipv6[1]<<16+ipv6[2])), ipv6[3], interfaceIDStr, interfaceID.String()) // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
 	case ipv6[0] >= 0xfc00 && ipv6[0] <= 0xfdff:
 		b.WriteString("\nThis is a unique local address comparable to the IPv4 private addresses 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16. See RFC 4193 for more details.")
 		b.WriteString("\nUnique local addresses range: fc00::/7")
@@ -174,9 +174,9 @@ func (ParseIPv6Address) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // writeTeredo appends the Teredo tunnelling analysis for a 2001:0::/32 address.
 func writeTeredo(b *strings.Builder, ipv6 [8]int) {
 	b.WriteString("\nTeredo tunneling IPv6 address detected\n")
-	serverIPv4 := uint32(ipv6[2]<<16 + ipv6[3])
+	serverIPv4 := uint32(ipv6[2]<<16 + ipv6[3]) // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
 	udpPort := (^ipv6[5]) & 0xffff
-	clientIPv4 := ^uint32(ipv6[6]<<16 + ipv6[7])
+	clientIPv4 := ^uint32(ipv6[6]<<16 + ipv6[7]) // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
 	flagCone := (ipv6[4] >> 15) & 1
 	flagR := (ipv6[4] >> 14) & 1
 	flagRandom1 := (ipv6[4] >> 10) & 15

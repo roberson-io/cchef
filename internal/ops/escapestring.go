@@ -137,9 +137,9 @@ func escHex(r rune, jsonCompat, es6, upper bool) string {
 	switch {
 	case r < 0x100:
 		if jsonCompat {
-			return `\u` + hex(uint32(r), 4)
+			return `\u` + hex(uint32(r), 4) // #nosec G115 -- rune widened to uint32 for hex formatting
 		}
-		return `\x` + hex(uint32(r), 2)
+		return `\x` + hex(uint32(r), 2) // #nosec G115 -- rune widened to uint32 for hex formatting
 	case r <= 0xFFFF:
 		return `\u` + hex(uint32(r), 4)
 	case es6:

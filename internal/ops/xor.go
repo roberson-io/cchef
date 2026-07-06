@@ -44,7 +44,7 @@ func convertToByteArray(str, mode string) ([]byte, error) {
 		// while OR leaves it unchanged). We treat it as identity ([0]); the only
 		// divergence is ADD/SUB with a fully non-numeric decimal key.
 		if v, ok := leadingInt(str); ok {
-			return []byte{byte(v)}, nil
+			return []byte{byte(v)}, nil // #nosec G115 -- XOR/operand result bounded to a byte
 		}
 		return []byte{0}, nil
 	case "binary":
@@ -56,7 +56,7 @@ func convertToByteArray(str, mode string) ([]byte, error) {
 	default: // latin1
 		out := make([]byte, 0, len(str))
 		for _, r := range str {
-			out = append(out, byte(r))
+			out = append(out, byte(r)) // #nosec G115 -- XOR/operand result bounded to a byte
 		}
 		return out, nil
 	}
@@ -100,7 +100,7 @@ func fromBinaryKey(str string) []byte {
 	out := make([]byte, 0, len(s)/8+1)
 	for i := 0; i < len(s); i += 8 {
 		v, _ := strconv.ParseUint(s[i:min(i+8, len(s))], 2, 32)
-		out = append(out, byte(v))
+		out = append(out, byte(v)) // #nosec G115 -- XOR/operand result bounded to a byte
 	}
 	return out
 }

@@ -37,7 +37,7 @@ func rawRecipeText() (string, error) {
 	case flagRecipeExpr != "":
 		return flagRecipeExpr, nil
 	case flagRecipeFile != "":
-		b, err := os.ReadFile(flagRecipeFile)
+		b, err := os.ReadFile(flagRecipeFile) // #nosec G304 -- reads a user-specified recipe path by design (CLI file argument)
 		if err != nil {
 			return "", err
 		}

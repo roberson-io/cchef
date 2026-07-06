@@ -110,7 +110,7 @@ func bigIntToText(value *big.Int) string {
 	var bytes []rune
 	for num.Sign() > 0 {
 		b := new(big.Int).And(num, mask).Int64()
-		bytes = append([]rune{rune(b)}, bytes...)
+		bytes = append([]rune{rune(b)}, bytes...) // #nosec G115 -- big.Int byte (masked to 0xff) is 0-255
 		num.Rsh(num, 8)
 	}
 	var sb strings.Builder
