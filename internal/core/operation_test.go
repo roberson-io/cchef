@@ -79,3 +79,76 @@ func TestDefaultArgs(t *testing.T) {
 		t.Fatalf("DefaultArgs = %v", got)
 	}
 }
+
+// TestCoerceArgNumberConversions covers every numeric input type toFloat accepts
+// (recipes built in Go may pass int/int64/float32, not just JSON's float64).
+func TestCoerceArgNumberConversions(t *testing.T) {
+	def := ArgDef{Name: "Amount", Type: ArgNumber, Value: 0}
+	for _, v := range []any{int(7), int64(7), float32(7), float64(7)} {
+		got, err := CoerceArg(def, v)
+		if err != nil {
+			t.Fatalf("CoerceArg(%T): %v", v, err)
+		}
+		if got.(float64) != 7 {
+			t.Fatalf("CoerceArg(%T) = %v, want 7", v, got)
+		}
+	}
+}
+
+// TestCoerceArgNumberBounds covers the Min/Max validation branches.
+func TestCoerceArgNumberBounds(t *testing.T) {
+	lo, hi := 0.0, 10.0
+	def := ArgDef{Name: "Amount", Type: ArgNumber, Value: 5, Min: &lo, Max: &hi}
+	if _, err := CoerceArg(def, float64(5)); err != nil {
+		t.Fatalf("in-range value rejected: %v", err)
+	}
+	if _, err := CoerceArg(def, float64(-1)); err == nil {
+		t.Fatal("expected below-minimum error")
+	}
+	if _, err := CoerceArg(def, float64(11)); err == nil {
+		t.Fatal("expected above-maximum error")
+	}
+}
+
+// TestCoerceArgStringTypes covers the ArgString/ArgEditableOption arms, including
+// the wrong-type error.
+func TestCoerceArgStringTypes(t *testing.T) {
+	for _, ty := range []ArgType{ArgString, ArgEditableOption} {
+		def := ArgDef{Name: "S", Type: ty, Value: ""}
+		if got, err := CoerceArg(def, "ok"); err != nil || got.(string) != "ok" {
+			t.Fatalf("%s: got %v, err %v", ty, got, err)
+		}
+		if _, err := CoerceArg(def, 123); err == nil {
+			t.Fatalf("%s: expected error for non-string", ty)
+		}
+	}
+}
+
+// TestCoerceArgUnknownType covers the default arm for an unrecognised ArgType.
+func TestCoerceArgUnknownType(t *testing.T) {
+	def := ArgDef{Name: "X", Type: ArgType("bogus")}
+	if _, err := CoerceArg(def, "whatever"); err == nil {
+		t.Fatal("expected error for unknown arg type")
+	}
+}
+
+// TestCoerceArgsArityAndDefaults covers CoerceArgs's too-many-args guard and its
+// filling of defaults for omitted trailing arguments.
+func TestCoerceArgsArityAndDefaults(t *testing.T) {
+	defs := []ArgDef{
+		{Name: "Alphabet", Type: ArgString, Value: "abc"},
+		{Name: "Amount", Type: ArgNumber, Value: 13},
+	}
+	// Omitting the trailing arg fills its default.
+	out, err := CoerceArgs(defs, []any{"xyz"})
+	if err != nil {
+		t.Fatalf("CoerceArgs: %v", err)
+	}
+	if len(out) != 2 || out[0].(string) != "xyz" || out[1].(float64) != 13 {
+		t.Fatalf("CoerceArgs = %v", out)
+	}
+	// More args than the operation defines is an error.
+	if _, err := CoerceArgs(defs, []any{"a", 1.0, "extra"}); err == nil {
+		t.Fatal("expected too-many-arguments error")
+	}
+}

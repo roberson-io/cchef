@@ -36,6 +36,11 @@ func TestBase32Fixtures(t *testing.T) {
 			"From Base32 Hex Extended", "912KOJ2F41142KQ56CP20HAOAH2KSH258G======", "HELLO BASE32 EXTENDED",
 			core.Recipe{{Op: "From Base32", Args: []any{ext, false}}},
 		},
+		// Remove-non-alphabet strips the "!!!" before decoding (JBSWY3DP -> "Hello").
+		{
+			"From Base32 remove non-alphabet", "JBSWY3DP!!!", "Hello",
+			core.Recipe{{Op: "From Base32", Args: []any{std, true}}},
+		},
 
 		{
 			"Base32 round trip", "The quick brown fox", "The quick brown fox",

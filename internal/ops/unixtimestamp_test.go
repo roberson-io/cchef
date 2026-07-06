@@ -56,5 +56,16 @@ func TestToUNIXTimestampOracle(t *testing.T) {
 			"To UNIX: nanoseconds", "2013-02-04 22:33:01", "1360017181000000000",
 			core.Recipe{{Op: "To UNIX Timestamp", Args: []any{"Nanoseconds (ns)", true, false}}},
 		},
+		// An unparseable datetime yields NaN. The oracle server rejects (throws on)
+		// invalid input, so these are verified against ToUNIXTimestamp.mjs: the
+		// message varies with the "show parsed datetime" flag.
+		{
+			"To UNIX: invalid, show datetime", "not a date", "NaN (Invalid date UTC)",
+			core.Recipe{{Op: "To UNIX Timestamp", Args: []any{"Seconds (s)", true, true}}},
+		},
+		{
+			"To UNIX: invalid, no datetime", "not a date", "NaN",
+			core.Recipe{{Op: "To UNIX Timestamp", Args: []any{"Seconds (s)", true, false}}},
+		},
 	})
 }

@@ -112,6 +112,37 @@ func TestConvertCoordinateFormatErrors(t *testing.T) {
 			t.Errorf("expected error for malformed UTM %q", in)
 		}
 	}
+	// Auto input format that cannot be classified.
+	if _, err := runOp(t, "Convert co-ordinate format",
+		"???", "Auto", "Comma", "Decimal Degrees", "Comma", "None", 3.0); err == nil {
+		t.Error("expected error for undetectable input format")
+	}
+	// Each explicit degree-based format rejects inputs with the wrong component
+	// count, in both the paired and single-value branches (splitInput arity guards).
+	fmtErrs := []struct{ name, input, inFmt string }{
+		{"DMS pair too few", "51 30, 0 7", "Degrees Minutes Seconds"},
+		{"DMS single too few", "51 30", "Degrees Minutes Seconds"},
+		{"DDM pair wrong arity", "51, 0", "Degrees Decimal Minutes"},
+		{"DDM single wrong arity", "51", "Degrees Decimal Minutes"},
+		{"DD pair wrong arity", "51 30, 0 7", "Decimal Degrees"},
+		{"DD single wrong arity", "51 30", "Decimal Degrees"},
+	}
+	for _, c := range fmtErrs {
+		t.Run(c.name, func(t *testing.T) {
+			if _, err := runOp(t, "Convert co-ordinate format",
+				c.input, c.inFmt, "Comma", "Decimal Degrees", "Comma", "None", 3.0); err == nil {
+				t.Errorf("expected error for %s %q", c.inFmt, c.input)
+			}
+		})
+	}
+	// Ordnance Survey National Grid input rejects references that are too short
+	// (osgbParse len<2) or have an odd number of easting/northing digits.
+	for _, in := range []string{"A", "TQ123"} {
+		if _, err := runOp(t, "Convert co-ordinate format",
+			in, "Ordnance Survey National Grid", "Comma", "Decimal Degrees", "Comma", "None", 5.0); err == nil {
+			t.Errorf("expected error for malformed OSNG %q", in)
+		}
+	}
 }
 
 // TestConvertCoordinateFormatAutoDetect exercises the format/delimiter/direction

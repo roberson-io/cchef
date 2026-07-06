@@ -90,5 +90,29 @@ func TestArithmeticFixtures(t *testing.T) {
 			"Standard Deviation", "0x0a 8 .5", "4.08928138212843238213",
 			core.Recipe{{Op: "Standard Deviation", Args: []any{"Space"}}},
 		},
+
+		// bignum edge cases (oracle-verified) exercising parseBigNum/format paths:
+		// radix parsing, ±Infinity, NaN propagation, and sign/zero/exponent output.
+		{"Sum: hex + hex", "0xff,0x01", "256", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: octal + binary", "0o17,0b101", "20", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: negative hex", "-0x10,0x20", "16", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: hex fraction", "0x1.8,0x0.8", "2", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: invalid hex skipped", "0x2p,3", "3", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: empty radix body skipped", "0x.,3", "3", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: invalid hex fraction skipped", "0x1.G,3", "3", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: negative exponent output", "1e-30,1e-30", "2e-30", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: trailing delimiter skips empty", "1,2,", "3", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: infinity", "Infinity,5", "Infinity", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: infinity minus infinity is NaN", "Infinity,-Infinity", "NaN", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: NaN propagates", "Infinity,-Infinity,5", "NaN", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Sum: exponential output", "1e30,1e30", "2e+30", core.Recipe{{Op: "Sum", Args: []any{"Comma"}}}},
+		{"Subtract: negative result", "3,5", "-2", core.Recipe{{Op: "Subtract", Args: []any{"Comma"}}}},
+		{"Subtract: zero result", "5,5", "0", core.Recipe{{Op: "Subtract", Args: []any{"Comma"}}}},
+		{"Multiply: infinity", "Infinity,-Infinity,5", "-Infinity", core.Recipe{{Op: "Multiply", Args: []any{"Comma"}}}},
+		{"Multiply: zero times infinity is NaN", "0,Infinity,5", "NaN", core.Recipe{{Op: "Multiply", Args: []any{"Comma"}}}},
+		{"Divide: NaN propagates", "Infinity,-Infinity,5", "NaN", core.Recipe{{Op: "Divide", Args: []any{"Comma"}}}},
+		{"Divide: by zero is infinity", "10,0", "Infinity", core.Recipe{{Op: "Divide", Args: []any{"Comma"}}}},
+		{"Divide: rounds to 20 places", "10,3", "3.33333333333333333333", core.Recipe{{Op: "Divide", Args: []any{"Comma"}}}},
+		{"Divide: negative rounds to 20 places", "10,-3", "-3.33333333333333333333", core.Recipe{{Op: "Divide", Args: []any{"Comma"}}}},
 	})
 }

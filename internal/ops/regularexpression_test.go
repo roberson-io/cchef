@@ -38,5 +38,20 @@ func TestRegularExpression(t *testing.T) {
 			"list matches with total", "a1 b22 c333", "Total found: 3\n\n1\n22\n333",
 			core.Recipe{{Op: "Regular expression", Args: []any{"", `\d+`, false, true, false, false, false, true, "List matches"}}},
 		},
+		// Case-insensitive flag (arg 3): "cat" matches every casing.
+		{
+			"case insensitive", "CAT cat Cat", "CAT\ncat\nCat",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", "cat", true, true, false, false, false, false, "List matches"}}},
+		},
+		// Dot-matches-all flag (arg 5): "." spans the newline, matching the whole input.
+		{
+			"dot matches all", "aXb\ncXd", "aXb\ncXd",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", "a.*d", false, true, true, false, false, false, "List matches"}}},
+		},
+		// An empty regex is a no-op that just HTML-escapes the input.
+		{
+			"empty regex escapes input", "a<b", "a&lt;b",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", "", true, true, false, false, false, false, "Highlight matches"}}},
+		},
 	})
 }

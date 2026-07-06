@@ -130,6 +130,20 @@ func TestProtobufDecodeSchema(t *testing.T) {
 			"schema: no message defined", "0805", `{"1":5}`,
 			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{`syntax="proto3";`, false, false}}},
 		},
+		{
+			// Show Unknown Fields + Show Types together: the unknown field key is
+			// the "field #N: type" form, which protobufExtractFieldID must parse.
+			"schema: unknown field with types", "0896014805",
+			`{"Test":{"c (int32)":[],"a (int32)":150,"b (string)":"","flag (bool)":false,"sub (Sub)":null,"e (E)":"X"},"Unknown Fields":{"field #9: VarInt (e.g. int32, bool)":5}}`,
+			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{schema, true, true}}},
+		},
+		{
+			// A repeated submessage carrying an extra field: compareFields walks the
+			// array of submessage instances to collect the missing fields.
+			"schema: repeated submessage missing fields", "0a0408074803",
+			`{"M":{"s":[{"x":7}]},"Unknown Fields":{"s (Sub) has missing fields":{"9":3}}}`,
+			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{`syntax="proto3"; message M { repeated Sub s = 1; } message Sub { int32 x = 1; }`, true, false}}},
+		},
 	})
 
 	// A syntactically invalid schema errors.

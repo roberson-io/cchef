@@ -55,6 +55,12 @@ func TestParseIPRangeFixtures(t *testing.T) {
 			"IPv4 no info no enumerate", "10.0.0.0/30", "",
 			core.Recipe{{Op: "Parse IP range", Args: []any{false, false, false}}},
 		},
+		// A reversed range with enumeration forced on (allow large) reaches
+		// generateIpv4Range with ip2 < ip1, which returns the guard message.
+		{
+			"IPv4 reversed range enumerated", "10.0.0.3 - 10.0.0.0", "Second IP address smaller than first.",
+			core.Recipe{{Op: "Parse IP range", Args: []any{false, true, true}}},
+		},
 		// A reversed hyphenated range: the address count wraps (uint32 underflow),
 		// matching CyberChef, and trips the large-range warning.
 		{
@@ -72,6 +78,10 @@ func TestParseIPRangeErrors(t *testing.T) {
 		{"invalid IPv4 address", "444.1.1.1/30", "block out of range"},
 		{"IPv6 subnet out of range", "2404:6800:4001::/129", "IPv6 CIDR must be less than 128"},
 		{"invalid input", "2404:6800:4001:/12", "invalid input"},
+		// The list paths validate each element's CIDR independently of the single-CIDR
+		// path above (a multi-line input routes through ipv4ListedRange/ipv6ListedRange).
+		{"IPv4 list subnet out of range", "10.0.0.1\n10.0.0.0/40", "IPv4 CIDR must be less than 32"},
+		{"IPv6 list subnet out of range", "2404:6800:4001::\n2404:6800:4001::/200", "IPv6 CIDR must be less than 128"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

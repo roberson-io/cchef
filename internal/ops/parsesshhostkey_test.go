@@ -56,5 +56,12 @@ func TestParseSSHHostKeyFixtures(t *testing.T) {
 			"Key type: ssh-dss\np: 0x00c9e86423b3bda42ab3fffd9b12b651266f24173b6f574526205c57cd1a6cdea6684fb6d37a5344f20f0a93edd1d790c6fe183777521e8a1d11c02b5b1b35411008b91b1022fb143fb721a2fcc69f13fce1758ae6c6dfaec783d2fc59ed447435a0053dc4a07977160b5486f6ebeb009425ca9e03072f9f2aeaa2626c1acf46c7\nq: 0x0097349e32884d55ecba4253657524a6ea0ef20233\ng: 0x7fe5a47588139ec825698f474fdd8666a3177d47b1420bfd14b8e7f4971e04e961d3e99d90b8f0617369a9343ab6334545f6825f55681c7c6f2bd6b95768260e0d269c19c6e75b954a43e2ca92400b9a0e21f231421d17940be1e689afeff0bc83c0f3b5c0ae844e7edade6f34c8cee0014e5936ead521554fda507ae668c4b1\ny: 0x3772df58441ea2502bce0f8e6c64cd42f684c2db84ed99aa2ed067295b1de1d3f899f266e297572368ef5fad1359fef492556121103346f20c248d95a5be724bdf2d575316cc965e166e623f4359332b0a2971e685c0c6d84cf28383a2f546d08c531494c8ab059357384a910f9434bb0c0a59b393e099680c77fbbabf0317ca",
 			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Base64"}}},
 		},
+		// A key whose type field is none of rsa/dss/ecdsa/ed25519 hits the default
+		// arm. Blob: uint32(9) length prefix + "ssh-bogus".
+		{
+			"unsupported key type", "000000097373682d626f677573",
+			"Key type: ssh-bogus\nUnsupported key type.\nParameters: ",
+			core.Recipe{{Op: "Parse SSH Host Key", Args: []any{"Hex"}}},
+		},
 	})
 }

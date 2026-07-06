@@ -21,6 +21,10 @@ func TestCaseOps(t *testing.T) {
 			core.Recipe{{Op: "To Upper case", Args: []any{"Sentence"}}},
 		},
 		{
+			"To Upper Paragraph", "hello world\nsecond para", "Hello world\nSecond para",
+			core.Recipe{{Op: "To Upper case", Args: []any{"Paragraph"}}},
+		},
+		{
 			"To Lower", "Hello, World!", "hello, world!",
 			core.Recipe{{Op: "To Lower case"}},
 		},

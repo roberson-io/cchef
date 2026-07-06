@@ -111,3 +111,22 @@ func TestDishBytes(t *testing.T) {
 		t.Fatalf("Bytes() = %v, want %v", d.Bytes(), raw)
 	}
 }
+
+// TestDishGetUnknownType covers Get's default arm. DishType is a closed internal
+// set fed from op metadata, so an unknown type is unreachable through the engine;
+// this pins the guard directly. (Set's unknown-type and string/byteArray guards
+// are covered in TestDishSetGet.)
+func TestDishGetUnknownType(t *testing.T) {
+	d := NewDish([]byte("x"), TypeString)
+	if _, err := d.Get(DishType("bogus")); err == nil {
+		t.Fatal("Get: expected error for unknown dish type")
+	}
+}
+
+// TestDishSetNumberWrongType covers Set's TypeNumber value-type guard.
+func TestDishSetNumberWrongType(t *testing.T) {
+	d := NewDish(nil, TypeString)
+	if err := d.Set("not-a-number", TypeNumber); err == nil {
+		t.Fatal("Set number: expected error for non-numeric value")
+	}
+}

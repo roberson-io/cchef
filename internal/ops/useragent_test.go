@@ -912,5 +912,64 @@ CPU
     Architecture: unknown`,
 			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
 		},
+		// T-Mobile REVVL devices classify device type via strTest (regex "ta?b" on
+		// the model): no "tab" -> mobile (uaStrTest ifFalse branch).
+		{
+			"ua 50 (strTest mobile)", "Mozilla/5.0 (Linux; Android 12; REVVL 6 5G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36", `Browser
+    Name: Mobile Chrome
+    Version: 120.0.0.0
+Device
+    Model: REVVL 6 5G
+    Type: mobile
+    Vendor: T-Mobile
+Engine
+    Name: Blink
+    Version: 120.0.0.0
+OS
+    Name: Android
+    Version: 12
+CPU
+    Architecture: unknown`,
+			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
+		},
+		// ...and a model containing "TAB" -> tablet (uaStrTest ifTrue branch).
+		{
+			"ua 51 (strTest tablet)", "Mozilla/5.0 (Linux; Android 12; REVVL TAB 5G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", `Browser
+    Name: Chrome
+    Version: 120.0.0.0
+Device
+    Model: REVVL TAB 5G
+    Type: tablet
+    Vendor: T-Mobile
+Engine
+    Name: Blink
+    Version: 120.0.0.0
+OS
+    Name: Android
+    Version: 12
+CPU
+    Architecture: unknown`,
+			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
+		},
+		// An OPD2 model not in the OnePlus id list falls through strMapper's "*"
+		// entry to the OPPO vendor (uaStrMapper's hasStar branch).
+		{
+			"ua 52 (strMapper star)", "Mozilla/5.0 (Linux; Android 13; OPD2202) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", `Browser
+    Name: Chrome
+    Version: 120.0.0.0
+Device
+    Model: OPD2202
+    Type: tablet
+    Vendor: OPPO
+Engine
+    Name: Blink
+    Version: 120.0.0.0
+OS
+    Name: Android
+    Version: 13
+CPU
+    Architecture: unknown`,
+			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
+		},
 	})
 }

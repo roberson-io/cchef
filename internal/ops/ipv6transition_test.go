@@ -44,5 +44,21 @@ func TestIPv6TransitionFixtures(t *testing.T) {
 			"2002:c633:6407::/48\n::ffff:c633:6407\n::ffff:0:c633:6407\n64:ff9b::c633:6407\na3b2:c3ff:fed4:e5f6",
 			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, true}}},
 		},
+		// An EUI-64 IPv6 address (containing ff:fe) reverses back to a MAC address,
+		// undoing the U/L bit flip (a3 -> a1).
+		{
+			"EUI-64 IPv6 to MAC", "fe80::a3b2:c3ff:fed4:e5f6", "Mac Address: A1:B2:C3:D4:E5:F6\n",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
+		},
+		{
+			"EUI-64 IPv6 to MAC remove headers", "fe80::a3b2:c3ff:fed4:e5f6", "A1:B2:C3:D4:E5:F6\n",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, true}}},
+		},
+		// Unrecognised input yields the usage message (the default switch arm).
+		{
+			"invalid input", "not an address",
+			"Enter compressed or expanded IPv6 address, IPv4 address or MAC Address.",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
+		},
 	})
 }

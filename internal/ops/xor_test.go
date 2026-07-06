@@ -90,5 +90,31 @@ func TestXOROp(t *testing.T) {
 			"XOR null preserving", "Hello", "Hello",
 			core.Recipe{{Op: "XOR", Args: []any{hexKey(""), "Standard", true}}},
 		},
+		// Null preserving with a key that matches the first byte ('H' == 0x48):
+		// that byte is left untouched (skip), the rest XOR normally.
+		{
+			"XOR null preserving skips matching byte", "Hello", "482d242427",
+			core.Recipe{
+				{Op: "XOR", Args: []any{hexKey("48"), "Standard", true}},
+				{Op: "To Hex", Args: []any{"None"}},
+			},
+		},
+		// Input differential rewrites each key byte to the plaintext byte just read,
+		// so the key ratchets down the input.
+		{
+			"XOR input differential", "Hello", "0a2d090003",
+			core.Recipe{
+				{Op: "XOR", Args: []any{hexKey("42"), "Input differential", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			},
+		},
+		// Output differential rewrites each key byte to the ciphertext byte emitted.
+		{
+			"XOR output differential", "Hello", "0a6f036f00",
+			core.Recipe{
+				{Op: "XOR", Args: []any{hexKey("42"), "Output differential", false}},
+				{Op: "To Hex", Args: []any{"None"}},
+			},
+		},
 	})
 }

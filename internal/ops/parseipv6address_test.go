@@ -114,6 +114,12 @@ func TestParseIPv6AddressOracle(t *testing.T) {
 			"mcast llmnr", "ff02::1:3",
 			"Longhand:  ff02:0000:0000:0000:0000:0000:0001:0003\nShorthand: ff02::1:3\n\nThis is a reserved multicast address.\nMulticast addresses range: ff00::/8\n\nReserved Multicast Block for Link Local Scope\nReserved Multicast Address for 'All LLMNR Hosts (defined in RFC4795)'", p,
 		},
+		// A Teredo tunneling address (2001::/32) decodes the embedded server/client
+		// IPv4, UDP port and flag bits (cone NAT + the RFC 5991 compliance note).
+		{
+			"teredo", "2001:0000:4136:e378:8000:63bf:3fff:fdd2",
+			"Longhand:  2001:0000:4136:e378:8000:63bf:3fff:fdd2\nShorthand: 2001:0:4136:e378:8000:63bf:3fff:fdd2\n\nTeredo tunneling IPv6 address detected\n\nServer IPv4 address: 65.54.227.120\nClient IPv4 address: 192.0.2.45\nClient UDP port:     40000\nFlags:\n\tCone:    1 (Client is behind a cone NAT)\n\tR:       0\n\tRandom1: 0000\n\tUG:      00\n\tRandom2: 00000000\n\nThis is a valid Teredo address which complies with RFC 4380, however it does not comply with RFC 5991 (Teredo Security Updates) as there are no randomised bits in the flag field.\n\nTeredo prefix range: 2001::/32", p,
+		},
 	})
 }
 

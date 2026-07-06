@@ -28,6 +28,52 @@ func execRoot(t *testing.T, args ...string) string {
 	return buf.String()
 }
 
+// execRootErr runs the root command expecting an error, returning it. Mirrors
+// execRoot's flag reset so cases stay independent.
+func execRootErr(t *testing.T, args ...string) error {
+	t.Helper()
+	resetIOFlags()
+	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+
+	var buf bytes.Buffer
+	rootCmd.SetOut(&buf)
+	rootCmd.SetErr(&buf)
+	rootCmd.SetIn(strings.NewReader(""))
+	rootCmd.SetArgs(args)
+	return rootCmd.Execute()
+}
+
+// TestExecuteErrorPaths covers the user-facing CLI failure modes: missing or
+// malformed recipes, unknown operations/formats, bad argument types, and a
+// missing input file. Each is surfaced as a non-nil error (root sets
+// SilenceErrors, so Execute returns it rather than printing).
+func TestExecuteErrorPaths(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "nope.json")
+	cases := []struct {
+		name    string
+		args    []string
+		wantErr string
+	}{
+		// Positional input (never -i): -i leaves cobra's per-flag "changed" state
+		// set across Execute calls, which would poison later tests' resolveInput.
+		{"no recipe given", []string{"bake", "hello"}, "no recipe given"},
+		{"missing recipe file", []string{"bake", "-r", missing, "hello"}, "no such file"},
+		{"broken JSON recipe", []string{"bake", "-e", `[{"op":`, "hello"}, "parse JSON recipe"},
+		{"unknown operation", []string{"bake", "-e", `[{"op":"Nonexistent Op","args":[]}]`, "hello"}, "unknown operation"},
+		{"bad arg type", []string{"bake", "-e", `[{"op":"To Base64","args":[123]}]`, "hello"}, "expected string"},
+		{"convert unknown target", []string{"recipe", "convert", "-e", "To_Hex()", "--to", "xml"}, "unknown target format"},
+		{"missing input file", []string{"reverse", "--in-file", missing}, "no such file"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := execRootErr(t, c.args...)
+			if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+				t.Fatalf("got err %v, want containing %q", err, c.wantErr)
+			}
+		})
+	}
+}
+
 func TestExecuteOperations(t *testing.T) {
 	cases := []struct {
 		name string

@@ -92,6 +92,11 @@ func TestProtobufEncode(t *testing.T) {
 			"encode: string from number", `{"s":5}`, "0a0135",
 			core.Recipe{{Op: "Protobuf Encode", Args: []any{`syntax="proto3"; message M { string s=1; }`}}, toHex},
 		},
+		{
+			// null coerces to bool false, which proto3 omits (coerceBool default arm).
+			"encode: null bool is empty", `{"flag":null}`, "",
+			core.Recipe{{Op: "Protobuf Encode", Args: []any{`syntax="proto3"; message M { bool flag=1; }`}}, toHex},
+		},
 	})
 
 	// A schema with no message defined errors.
@@ -117,5 +122,17 @@ func TestProtobufEncode(t *testing.T) {
 	// A non-object value for a map field errors.
 	if _, err := runOp(t, "Protobuf Encode", `{"m":5}`, `syntax="proto3"; message M { map<string,int32> m=1; }`); err == nil {
 		t.Error("map as scalar: expected error")
+	}
+	// A non-string value for a bytes field errors (bytes must be base64 text).
+	if _, err := runOp(t, "Protobuf Encode", `{"b":5}`, `syntax="proto3"; message M { bytes b=1; }`); err == nil {
+		t.Error("non-string bytes: expected error")
+	}
+	// An unknown enum value name errors.
+	if _, err := runOp(t, "Protobuf Encode", `{"e":"Nope"}`, `syntax="proto3"; message M { enum E{X=0;Y=1;} E e=1; }`); err == nil {
+		t.Error("unknown enum: expected error")
+	}
+	// An unknown enum inside a repeated field errors (the repeated-scalar path).
+	if _, err := runOp(t, "Protobuf Encode", `{"e":["Nope"]}`, `syntax="proto3"; message M { enum E{X=0;Y=1;} repeated E e=1; }`); err == nil {
+		t.Error("unknown enum in repeated: expected error")
 	}
 }
