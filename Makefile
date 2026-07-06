@@ -38,7 +38,7 @@ fix:
 
 ## fix-check: fail if go fix would modernize any code (mirrors CI; run `make fix`)
 fix-check:
-	@diff=$$($(GO) fix -diff ./... 2>&1); \
+	@diff=$$($(GO) fix -diff ./... 2>/dev/null); \
 	if [ -n "$$diff" ]; then \
 		echo "go fix would modernize code; run 'make fix':"; \
 		echo "$$diff"; \
