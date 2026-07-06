@@ -9,6 +9,7 @@ Operations for encoding and decoding data between common textual representations
 | AMF Decode | `amf-decode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | Caret/M-decode | `caret-m-decode` | [Caret notation](https://en.wikipedia.org/wiki/Caret_notation) |
+| Escape Unicode Characters | `escape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | From Base32 | `from-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
 | From Base45 | `from-base45` | [Base45](https://wikipedia.org/wiki/Base45) |
@@ -24,8 +25,10 @@ Operations for encoding and decoding data between common textual representations
 | From Float | `from-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
 | From Hexdump | `from-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
+| From HTML Entity | `from-html-entity` | [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) |
 | From Modhex | `from-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
+| From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | Text-Integer Conversion | `text-integer-conversion` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
@@ -43,8 +46,11 @@ Operations for encoding and decoding data between common textual representations
 | To Float | `to-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
 | To Hex | `to-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
 | To Hexdump | `to-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
+| To HTML Entity | `to-html-entity` | [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) |
 | To Modhex | `to-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
+| To Quoted Printable | `to-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
+| Unescape Unicode Characters | `unescape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 | URL Encode | `url-encode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 
@@ -116,6 +122,36 @@ This operation takes no options.
 ```bash
 $ cchef caret-m-decode -i '^M^JHello M-^A' | cchef to-hex
 0d 0a 48 65 6c 6c 6f 20 81
+```
+
+## Escape Unicode Characters
+
+Converts characters to their unicode-escaped notation. By default only
+non-printable and non-ASCII characters are escaped and printable ASCII is left
+unchanged; pass `--encode-all-chars` to escape everything. Non-BMP characters are
+escaped as UTF-16 surrogate pairs.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--prefix` | option | `\u` | Escape prefix: `\u`, `%u`, or `U+`. |
+| `--encode-all-chars` | boolean | `false` | Escape every character, not just non-printable/non-ASCII ones. |
+| `--padding` | number | `4` | Minimum hex digits per escape (zero-padded; never truncates). |
+| `--uppercase-hex` | boolean | `true` | Use upper-case hex digits. |
+
+**Simple example**
+
+```bash
+$ cchef escape-unicode-characters -i 'Héllo'
+H\u00E9llo
+```
+
+**Encode everything with the U+ prefix**
+
+```bash
+$ cchef escape-unicode-characters --prefix 'U+' --encode-all-chars -i 'Hi'
+U+0048U+0069
 ```
 
 ## From Base
@@ -412,6 +448,24 @@ $ cchef from-hexdump -i '00000000  48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21       
 Hello, World!
 ```
 
+## From HTML Entity
+
+Converts [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references)
+back into raw characters. Named entities (`&amp;`), decimal entities (`&#233;`),
+and hexadecimal entities (`&#xe9;`) are all decoded; unrecognised entities are
+left untouched.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef from-html-entity -i '&amp; &lt; &#233; &#x20ac;'
+& < é €
+```
+
 ## From Modhex
 
 Converts a [modhex](https://en.wikipedia.org/wiki/YubiKey#ModHex) byte string
@@ -456,6 +510,23 @@ Hello
 ```
 
 ---
+
+## From Quoted Printable
+
+Decodes [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) text back
+into raw bytes: `=XX` escapes become their byte value, soft line breaks (`=` at
+end of line) are removed, and everything else passes through.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef from-quoted-printable -i 'a=3Db =26 caf=C3=A9'
+a=b & café
+```
 
 ## Swap endianness
 
@@ -851,6 +922,34 @@ $ cchef to-hexdump --width 8 --upper-case-hex --include-final-length -i 'Hello, 
 0000000d
 ```
 
+## To HTML Entity
+
+Converts characters to [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references).
+By default only characters with a named entity (and code points above 255) are
+converted; the rest pass through. Use `--convert-all-characters` and
+`--convert-to` to control the output form.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--convert-all-characters` | boolean | `false` | Convert every character, not just those with a named entity. |
+| `--convert-to` | option | `Named entities` | `Named entities`, `Numeric entities` (`&#233;`), or `Hex entities` (`&#xe9;`). |
+
+**Simple example**
+
+```bash
+$ cchef to-html-entity -i 'a & b < "c"'
+a &amp; b &lt; &quot;c&quot;
+```
+
+**Numeric entities, converting everything**
+
+```bash
+$ cchef to-html-entity --convert-all-characters --convert-to 'Numeric entities' -i 'Hé'
+&#72;&#233;
+```
+
 ## To Modhex
 
 Converts the input to [modhex](https://en.wikipedia.org/wiki/YubiKey#ModHex)
@@ -905,6 +1004,50 @@ $ cchef to-octal --delimiter 'Comma' -i 'Hello'
 ```
 
 ---
+
+## To Quoted Printable
+
+Encodes bytes as [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable)
+(RFC 2045): bytes outside the printable set become `=XX`, lines are kept to 76
+characters with `=`-terminated soft breaks, and trailing whitespace is escaped.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef to-quoted-printable -i 'a=b & café'
+a=3Db & caf=C3=A9
+```
+
+## Unescape Unicode Characters
+
+Converts unicode-escaped character notation back into the raw characters it
+represents. Text outside the escapes is passed through unchanged. With the `U+`
+prefix, 4- to 6-digit escapes are accepted (so astral code points work); the
+`\u` and `%u` prefixes take exactly 4 digits.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--prefix` | option | `\u` | Escape prefix to decode: `\u`, `%u`, or `U+`. |
+
+**Simple example**
+
+```bash
+$ cchef unescape-unicode-characters -i 'H\u00E9llo'
+Héllo
+```
+
+**Astral code point with the U+ prefix**
+
+```bash
+$ cchef unescape-unicode-characters --prefix 'U+' -i 'U+1F600'
+😀
+```
 
 ## URL Decode
 

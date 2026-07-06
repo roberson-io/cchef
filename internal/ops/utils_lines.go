@@ -107,7 +107,7 @@ func (Sort) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "Alphabetical (case insensitive)":
 		less = func(a, b string) bool { return strings.ToLower(a) < strings.ToLower(b) }
 	case "IP address":
-		less = func(a, b string) bool { return ipLess(a, b) }
+		less = ipLess
 	case "Numeric":
 		less = func(a, b string) bool { return naturalCompare(a, b, false) < 0 }
 	case "Numeric (hexadecimal)":

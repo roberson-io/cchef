@@ -36,7 +36,14 @@ linters:
     - errorlint     # correct %w / errors.Is / errors.As usage
     - nakedret      # no naked returns in longer functions
     - copyloopvar   # loop-variable capture correctness
+    - bodyclose     # HTTP response bodies are closed (networking ops)
+    - nilerr        # don't return nil after a non-nil error check
+    - usestdlibvars # use stdlib constants (http.MethodGet, ...) over literals
+    - gocritic      # opinionated correctness/simplification checks
   settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain  # if/else-if chains mirror the ported JS; don't force switch
     revive:
       rules:
         - name: blank-imports        # side-effect imports only in main/tests

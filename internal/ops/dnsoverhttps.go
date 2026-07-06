@@ -57,7 +57,7 @@ func (DNSOverHTTPS) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	q.Set("cd", strconv.FormatBool(dnssec))
 	u.RawQuery = q.Encode()
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
 	}

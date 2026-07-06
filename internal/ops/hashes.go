@@ -13,12 +13,12 @@ import (
 )
 
 func init() {
-	core.Register(hashOp{name: "MD5", infoURL: "https://wikipedia.org/wiki/MD5", new: func() hash.Hash { return md5.New() }})     // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
-	core.Register(hashOp{name: "SHA1", infoURL: "https://wikipedia.org/wiki/SHA-1", new: func() hash.Hash { return sha1.New() }}) // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
-	core.Register(hashOp{name: "SHA224", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha256.New224() }})
-	core.Register(hashOp{name: "SHA256", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha256.New() }})
-	core.Register(hashOp{name: "SHA384", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha512.New384() }})
-	core.Register(hashOp{name: "SHA512", infoURL: "https://wikipedia.org/wiki/SHA-2", new: func() hash.Hash { return sha512.New() }})
+	core.Register(hashOp{name: "MD5", infoURL: "https://wikipedia.org/wiki/MD5", new: md5.New})     // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
+	core.Register(hashOp{name: "SHA1", infoURL: "https://wikipedia.org/wiki/SHA-1", new: sha1.New}) // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control
+	core.Register(hashOp{name: "SHA224", infoURL: "https://wikipedia.org/wiki/SHA-2", new: sha256.New224})
+	core.Register(hashOp{name: "SHA256", infoURL: "https://wikipedia.org/wiki/SHA-2", new: sha256.New})
+	core.Register(hashOp{name: "SHA384", infoURL: "https://wikipedia.org/wiki/SHA-2", new: sha512.New384})
+	core.Register(hashOp{name: "SHA512", infoURL: "https://wikipedia.org/wiki/SHA-2", new: sha512.New})
 }
 
 // hashOp implements a hashing operation backed by a stdlib hash constructor.

@@ -32,7 +32,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 175
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 181
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -45,7 +45,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **175 operations** (`internal/ops/`), each a faithful port with tests
+- **181 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -163,7 +163,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **172 unique** CyberChef operations are covered (171 directly plus
+Currently **178 unique** CyberChef operations are covered (177 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -174,7 +174,7 @@ Currently **172 unique** CyberChef operations are covered (171 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (42/78)
+### Data format (48/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -187,7 +187,7 @@ Currently **172 unique** CyberChef operations are covered (171 directly plus
 - [ ] Decode text
 - [ ] Encode text
 - [ ] Escape Smart Characters
-- [ ] Escape Unicode Characters
+- [x] Escape Unicode Characters
 - [x] From Base
 - [x] From Base32
 - [x] From Base45
@@ -206,12 +206,12 @@ Currently **172 unique** CyberChef operations are covered (171 directly plus
 - [x] From Hex
 - [ ] From Hex Content
 - [x] From Hexdump
-- [ ] From HTML Entity
+- [x] From HTML Entity
 - [ ] From MessagePack
 - [x] From Modhex
 - [x] From Octal
 - [ ] From Punycode
-- [ ] From Quoted Printable
+- [x] From Quoted Printable
 - [ ] Hex to PEM
 - [ ] JSON to CSV
 - [ ] JSON to YAML
@@ -244,13 +244,13 @@ Currently **172 unique** CyberChef operations are covered (171 directly plus
 - [x] To Hex
 - [ ] To Hex Content
 - [x] To Hexdump
-- [ ] To HTML Entity
+- [x] To HTML Entity
 - [ ] To MessagePack
 - [x] To Modhex
 - [x] To Octal
 - [ ] To Punycode
-- [ ] To Quoted Printable
-- [ ] Unescape Unicode Characters
+- [x] To Quoted Printable
+- [x] Unescape Unicode Characters
 - [x] URL Decode
 - [x] URL Encode
 - [ ] YAML to JSON
@@ -465,14 +465,14 @@ Currently **172 unique** CyberChef operations are covered (171 directly plus
 - [x] VarInt Decode
 - [x] VarInt Encode
 
-### Language (0/7)
+### Language (1/7)
 
 - [ ] Convert Leet Speak
 - [ ] Convert to NATO alphabet
 - [ ] Decode text
 - [ ] Encode text
 - [ ] Remove Diacritics
-- [ ] Unescape Unicode Characters
+- [x] Unescape Unicode Characters
 - [ ] Unicode Text Format
 
 ### Utils (52/52)

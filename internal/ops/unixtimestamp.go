@@ -77,6 +77,7 @@ func (FromUNIXTimestamp) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	units := args[0].(string)
 	f, err := strconv.ParseFloat(strings.TrimSpace(in.String()), 64)
 	if err != nil {
+		//nolint:nilerr // returns CyberChef's "Invalid date" text as output, not an error
 		return core.NewDish([]byte("Invalid date UTC"), core.TypeString), nil
 	}
 

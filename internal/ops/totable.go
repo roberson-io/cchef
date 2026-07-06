@@ -37,10 +37,6 @@ func parseCSV(data string, cellDelims, lineDelims []rune) [][]string {
 	var cell strings.Builder
 	renderNext, inString := false, false
 
-	contains := func(set []rune, c rune) bool {
-		return slices.Contains(set, c)
-	}
-
 	for i := 0; i < len(r); i++ {
 		b := r[i]
 		var next rune
@@ -59,15 +55,15 @@ func parseCSV(data string, cellDelims, lineDelims []rune) [][]string {
 			} else {
 				inString = false
 			}
-		case !inString && contains(cellDelims, b):
+		case !inString && slices.Contains(cellDelims, b):
 			line = append(line, cell.String())
 			cell.Reset()
-		case !inString && contains(lineDelims, b):
+		case !inString && slices.Contains(lineDelims, b):
 			line = append(line, cell.String())
 			cell.Reset()
 			lines = append(lines, line)
 			line = nil
-			if contains(lineDelims, next) && next != b {
+			if slices.Contains(lineDelims, next) && next != b {
 				i++
 			}
 		default:
