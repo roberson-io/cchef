@@ -192,7 +192,7 @@ func TestParseDecimalEquivalence(t *testing.T) {
 	// any surviving exponent stays small enough to expand quickly).
 	rng := rand.New(rand.NewSource(1))
 	alphabet := []byte("0123456789.eE+-")
-	for i := 0; i < 20000; i++ {
+	for range 20000 {
 		n := rng.Intn(6)
 		b := make([]byte, n)
 		for j := range b {
