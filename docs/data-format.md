@@ -29,6 +29,8 @@ Operations for encoding and decoding data between common textual representations
 | From Modhex | `from-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
+| Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | Text-Integer Conversion | `text-integer-conversion` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
@@ -526,6 +528,60 @@ This operation takes no options.
 ```bash
 $ cchef from-quoted-printable -i 'a=3Db =26 caf=C3=A9'
 a=b & café
+```
+
+## Hex to PEM
+
+Converts a hexadecimal [DER](https://wikipedia.org/wiki/X.690#DER_encoding) string
+into [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) format: the bytes are
+base64-encoded, wrapped at 64 characters, and armored with the given header. The
+output uses CRLF line endings, matching CyberChef.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--header-string` | string | `CERTIFICATE` | The type placed in the `-----BEGIN <type>-----` / `-----END <type>-----` armor. |
+
+**Simple example**
+
+```bash
+$ cchef hex-to-pem -i '3003010100'
+-----BEGIN CERTIFICATE-----
+MAMBAQA=
+-----END CERTIFICATE-----
+```
+
+**Custom header**
+
+```bash
+$ cchef hex-to-pem --header-string 'PUBLIC KEY' -i '3059301306072a8648ce3d020106082a8648ce3d0301070342000414b41c05bcc3c1ea3a69fe24de4d2029630d58e6559fcfbd847dabbf80ca29867b135cfae0b06d3e707580ccfef870cac92af6a330f7ff8e9d21b40c5d464aa7'
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFLQcBbzDweo6af4k3k0gKWMNWOZV
+n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
+-----END PUBLIC KEY-----
+```
+
+## PEM to Hex
+
+Converts [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) format into a
+hexadecimal [DER](https://wikipedia.org/wiki/X.690#DER_encoding) string. Every
+`-----BEGIN <type>-----` / `-----END <type>-----` block is decoded and hex-encoded;
+multiple blocks are concatenated with newlines. An error is raised if a block's
+footer is missing.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef pem-to-hex -i '-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFLQcBbzDweo6af4k3k0gKWMNWOZV
+n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
+-----END PUBLIC KEY-----'
+3059301306072a8648ce3d020106082a8648ce3d0301070342000414b41c05bcc3c1ea3a69fe24de4d2029630d58e6559fcfbd847dabbf80ca29867b135cfae0b06d3e707580ccfef870cac92af6a330f7ff8e9d21b40c5d464aa7
 ```
 
 ## Swap endianness

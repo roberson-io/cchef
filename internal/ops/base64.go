@@ -89,13 +89,18 @@ func toBase64(data []byte, alph string) string {
 	return out.String()
 }
 
-// fromBase64 decodes a base64 string using the given alphabet. When
-// removeNonAlph is set, characters outside the alphabet are stripped first.
-func fromBase64(data, alph string, removeNonAlph bool) ([]byte, error) {
-	if data == "" {
-		return nil, nil
-	}
+// fromBase64 decodes a base64 string using the given alphabet, ported from
+// CyberChef's fromBase64. When removeNonAlph is set, characters outside the
+// alphabet are stripped first. Without strict mode the decode is lenient:
+// invalid or partial input yields the bytes it can and never errors (the
+// negative index of a missing character propagates into an out-of-range byte
+// that is simply dropped). Strict mode rejects 4n+1 lengths, misplaced padding,
+// and non-alphabet characters, matching CyberChef.
+func fromBase64(data, alph string, removeNonAlph, strict bool) ([]byte, error) {
 	alphabet := []rune(expandAlphRange(alph))
+	if len(alphabet) != 64 && len(alphabet) != 65 {
+		return nil, fmt.Errorf("Base64 alphabet must be 64 characters, or 65 with padding; got %d", len(alphabet))
+	}
 	idx := make(map[rune]int, len(alphabet))
 	for i, c := range alphabet {
 		idx[c] = i
@@ -120,28 +125,59 @@ func fromBase64(data, alph string, removeNonAlph bool) ([]byte, error) {
 		if i >= len(r) {
 			return -1
 		}
-		v, ok := idx[r[i]]
-		if !ok {
-			return -1
+		if v, ok := idx[r[i]]; ok {
+			return v
 		}
-		return v
+		return -1
+	}
+
+	if strict {
+		if len(r)%4 == 1 {
+			return nil, fmt.Errorf("invalid Base64 input length (%d): cannot be 4n+1, even without padding characters", len(r))
+		}
+		if padIndex >= 0 {
+			pad := alphabet[padIndex]
+			if p := runeIndex(r, pad); p >= 0 {
+				if p < len(r)-2 || r[len(r)-1] != pad {
+					return nil, fmt.Errorf("Base64 padding character (%c) not used in the correct place", pad)
+				}
+				if len(r)%4 != 0 {
+					return nil, fmt.Errorf("Base64 not padded to a multiple of 4")
+				}
+			}
+		}
 	}
 
 	var out []byte
 	for i := 0; i < len(r); i += 4 {
-		e0, e1, e2, e3 := val(i), val(i+1), val(i+2), val(i+3)
-		if e0 == -1 || e1 == -1 {
-			return nil, fmt.Errorf("invalid base64 input near position %d", i)
+		e1, e2, e3, e4 := val(i), val(i+1), val(i+2), val(i+3)
+		if strict && (e1 < 0 || e2 < 0 || e3 < 0 || e4 < 0) {
+			return nil, fmt.Errorf("Base64 input contains non-alphabet character(s)")
 		}
-		out = append(out, byte((e0<<2)|(e1>>4))) // #nosec G115 -- 6-bit groups recombined into a byte by the Base64 decode
-		if e2 != padIndex && e2 != -1 {
-			out = append(out, byte((e1<<4)|(e2>>2))) // #nosec G115 -- 6-bit groups recombined into a byte by the Base64 decode
+		chr1 := (e1 << 2) | (e2 >> 4)
+		chr2 := ((e2 & 15) << 4) | (e3 >> 2)
+		chr3 := ((e3 & 3) << 6) | e4
+		if chr1 >= 0 && chr1 < 256 {
+			out = append(out, byte(chr1)) // #nosec G115 -- range-checked to [0,256)
 		}
-		if e3 != padIndex && e3 != -1 {
-			out = append(out, byte((e2<<6)|e3)) // #nosec G115 -- 6-bit groups recombined into a byte by the Base64 decode
+		if chr2 >= 0 && chr2 < 256 && e3 != padIndex {
+			out = append(out, byte(chr2)) // #nosec G115 -- range-checked to [0,256)
+		}
+		if chr3 >= 0 && chr3 < 256 && e4 != padIndex {
+			out = append(out, byte(chr3)) // #nosec G115 -- range-checked to [0,256)
 		}
 	}
 	return out, nil
+}
+
+// runeIndex returns the index of the first occurrence of c in r, or -1.
+func runeIndex(r []rune, c rune) int {
+	for i, x := range r {
+		if x == c {
+			return i
+		}
+	}
+	return -1
 }
 
 // ToBase64 encodes raw data into an ASCII Base64 string.
@@ -200,7 +236,8 @@ func (FromBase64) Args() []core.ArgDef {
 func (FromBase64) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alph := args[0].(string)
 	removeNonAlph := args[1].(bool)
-	out, err := fromBase64(in.String(), alph, removeNonAlph)
+	strict := args[2].(bool)
+	out, err := fromBase64(in.String(), alph, removeNonAlph, strict)
 	if err != nil {
 		return nil, err
 	}

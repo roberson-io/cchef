@@ -67,11 +67,34 @@ func TestExpandAlphRange(t *testing.T) {
 }
 
 func TestBase64Branches(t *testing.T) {
-	if _, err := runOp(t, "From Base64", "@@@@", stdBase64Alphabet, false, false); err == nil {
-		t.Fatal("From Base64: expected an error for invalid input")
+	// Non-strict (the default) is lenient: invalid or partial input decodes the
+	// bytes it can and never errors, matching CyberChef's fromBase64.
+	if out, err := runOp(t, "From Base64", "@@@@", stdBase64Alphabet, false, false); err != nil || out != "" {
+		t.Fatalf("From Base64(@@@@, lenient) = %q, %v; want \"\", nil", out, err)
 	}
-	// A partial (non-multiple-of-4) group reaches the past-end -1 lookup.
-	if _, err := runOp(t, "From Base64", "YQ", stdBase64Alphabet, false, false); err != nil {
-		t.Fatalf("From Base64(partial): %v", err)
+	if out, err := runOp(t, "From Base64", "R", stdBase64Alphabet, true, false); err != nil || out != "" {
+		t.Fatalf("From Base64(R, lenient) = %q, %v; want \"\", nil", out, err)
+	}
+	// A partial (non-multiple-of-4) group still yields its complete bytes.
+	if out, err := runOp(t, "From Base64", "YQ", stdBase64Alphabet, false, false); err != nil || out != "a" {
+		t.Fatalf("From Base64(YQ) = %q, %v; want \"a\", nil", out, err)
+	}
+	// Strict mode rejects non-alphabet characters and 4n+1 lengths.
+	if _, err := runOp(t, "From Base64", "@@@@", stdBase64Alphabet, false, true); err == nil {
+		t.Fatal("From Base64(@@@@, strict): expected a non-alphabet error")
+	}
+	if _, err := runOp(t, "From Base64", "R", stdBase64Alphabet, true, true); err == nil {
+		t.Fatal("From Base64(R, strict): expected a 4n+1 length error")
+	}
+	// Strict mode also rejects misplaced padding and padding to a non-multiple of 4.
+	if _, err := runOp(t, "From Base64", "A=AA", stdBase64Alphabet, false, true); err == nil {
+		t.Fatal("From Base64(A=AA, strict): expected a misplaced-padding error")
+	}
+	if _, err := runOp(t, "From Base64", "AA=", stdBase64Alphabet, false, true); err == nil {
+		t.Fatal("From Base64(AA=, strict): expected a padding-length error")
+	}
+	// An alphabet that is not 64 (or 65 with padding) characters is rejected.
+	if _, err := runOp(t, "From Base64", "AAAA", "tooshort", false, false); err == nil {
+		t.Fatal("From Base64(bad alphabet): expected an alphabet-length error")
 	}
 }

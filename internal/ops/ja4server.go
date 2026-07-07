@@ -35,10 +35,7 @@ func (JA4ServerFingerprint) Args() []core.ArgDef {
 
 // Run generates the JA4S fingerprint. Ported from CyberChef JA4ServerFingerprint.mjs.
 func (JA4ServerFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	data, err := fingerprintBytes(in.String(), args[0].(string))
-	if err != nil {
-		return nil, err
-	}
+	data := fingerprintBytes(in.String(), args[0].(string))
 	ja4s, err := toJA4S(data)
 	if err != nil {
 		return nil, err

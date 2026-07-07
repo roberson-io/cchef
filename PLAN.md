@@ -32,7 +32,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 181
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 183
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -45,7 +45,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **181 operations** (`internal/ops/`), each a faithful port with tests
+- **183 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -141,6 +141,20 @@ cchef list                                   # discover operations
   beyond the current linear `Recipe.Execute`.
 - `CRC Checksum` (parameterised over many algorithms via an argSelector) is
   deferred as a larger-than-straight-port effort.
+- **`Hex to PEM` — malformed mixed hex/non-hex input divergence.** The impl
+  (`internal/ops/pem.go`, `hexToBase64`) is byte-for-byte faithful for all
+  well-formed hexadecimal input (differential-tested 195/195 random cases + the
+  fixtures) and is lenient (no error) on stray characters, matching CyberChef for
+  the simple cases (`"3g"→Aw==`, `"zz"→AA==`). It does **not** reproduce
+  CyberChef's exact output for input that *interleaves* hex and non-hex characters
+  (e.g. `"3g3"`, `"1g2h3i"`): jsrsasign routes hex→base64 through CryptoJS's
+  `Hex.parse` + `Base64.stringify`, whose 32-bit word packing and fractional-
+  `sigBytes` clamp produce garbage bytes we don't emulate. To close it: faithfully
+  port that CryptoJS pipeline (emulating JS 32-bit shift/`>>>`/clamp semantics),
+  then differential-test against the oracle to 100%. To reverse the algorithm
+  precisely, run the original jsrsasign `hextob64`/CryptoJS in node
+  (`~/.nvm/versions/node/*/bin/node` — not on `PATH` as bare `node`) against the
+  oracle. Low priority — affects only malformed input, garbage-in/garbage-out.
 - (Done: a repo-root `README.md` and GitHub Actions CI running fmt/vet/test/lint,
   a gosec + govulncheck security job, plus an SBOM scan now exist.)
 
@@ -163,7 +177,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **178 unique** CyberChef operations are covered (177 directly plus
+Currently **180 unique** CyberChef operations are covered (179 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -174,7 +188,7 @@ Currently **178 unique** CyberChef operations are covered (177 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (48/78)
+### Data format (50/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -212,14 +226,14 @@ Currently **178 unique** CyberChef operations are covered (177 directly plus
 - [x] From Octal
 - [ ] From Punycode
 - [x] From Quoted Printable
-- [ ] Hex to PEM
+- [x] Hex to PEM
 - [ ] JSON to CSV
 - [ ] JSON to YAML
 - [ ] MIME Decoding
 - [ ] Normalise Unicode
 - [ ] Parse ASN.1 hex string
 - [ ] Parse TLV
-- [ ] PEM to Hex
+- [x] PEM to Hex
 - [ ] Rison Decode
 - [ ] Rison Encode
 - [ ] Show Base64 offsets
@@ -352,7 +366,7 @@ Currently **178 unique** CyberChef operations are covered (177 directly plus
 - [ ] XXTEA Decrypt
 - [ ] XXTEA Encrypt
 
-### Public Key (1/31)
+### Public Key (3/31)
 
 - [ ] ECDSA Sign
 - [ ] ECDSA Signature Conversion
@@ -361,7 +375,7 @@ Currently **178 unique** CyberChef operations are covered (177 directly plus
 - [ ] Generate PGP Key Pair
 - [ ] Generate RSA Key Pair
 - [ ] Hex to Object Identifier
-- [ ] Hex to PEM
+- [x] Hex to PEM
 - [ ] JWK to PEM
 - [ ] Object Identifier to Hex
 - [ ] Parse ASN.1 hex string
@@ -369,7 +383,7 @@ Currently **178 unique** CyberChef operations are covered (177 directly plus
 - [x] Parse SSH Host Key
 - [ ] Parse X.509 certificate
 - [ ] Parse X.509 CRL
-- [ ] PEM to Hex
+- [x] PEM to Hex
 - [ ] PEM to JWK
 - [ ] PGP Decrypt
 - [ ] PGP Decrypt and Verify

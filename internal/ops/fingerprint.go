@@ -16,15 +16,17 @@ var greaseCipherSuites = map[int]bool{
 }
 
 // fingerprintBytes decodes the fingerprint operation input according to the
-// selected format (Hex, Base64, or Raw). Mirrors Utils.convertToByteArray.
-func fingerprintBytes(s, format string) ([]byte, error) {
+// selected format (Hex, Base64, or Raw). Mirrors Utils.convertToByteArray, which
+// is lenient: Base64 and Hex both decode what they can and never fail here.
+func fingerprintBytes(s, format string) []byte {
 	switch format {
 	case "Base64":
-		return fromBase64(s, "A-Za-z0-9+/=", true)
+		b, _ := fromBase64(s, "A-Za-z0-9+/=", true, false)
+		return b
 	case "Raw":
-		return []byte(s), nil
+		return []byte(s)
 	default: // Hex
-		return hexToBytes(s), nil
+		return hexToBytes(s)
 	}
 }
 

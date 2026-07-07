@@ -41,10 +41,7 @@ func (JA3Fingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[0].(string)
 	outputFormat := args[1].(string)
 
-	data, err := fingerprintBytes(in.String(), inputFormat)
-	if err != nil {
-		return nil, err
-	}
+	data := fingerprintBytes(in.String(), inputFormat)
 	s := newByteStream(data)
 
 	if s.readInt(1) != 0x16 {
