@@ -46,3 +46,12 @@ func TestBase62Fixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestBase62Branches(t *testing.T) {
+	if out, err := runOp(t, "To Base62", "\x00", base62Alphabet); err != nil || out != "0" {
+		t.Fatalf("To Base62(0x00) = %q, %v; want %q", out, err, "0")
+	}
+	if _, err := runOp(t, "From Base62", "!!!abc", base62Alphabet); err != nil {
+		t.Fatalf("From Base62(strip): %v", err)
+	}
+}

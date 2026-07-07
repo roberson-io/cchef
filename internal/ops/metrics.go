@@ -180,13 +180,7 @@ func (HammingDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var a, b []byte
 	if args[2].(string) == "Hex" {
-		var err error
-		if a, err = hammingFromHex(samples[0]); err != nil {
-			return nil, err
-		}
-		if b, err = hammingFromHex(samples[1]); err != nil {
-			return nil, err
-		}
+		a, b = splitHexToBytes(samples[0]), splitHexToBytes(samples[1])
 	} else {
 		a, b = []byte(samples[0]), []byte(samples[1])
 	}
@@ -205,20 +199,4 @@ func (HammingDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 	}
 	return core.NewDish([]byte(strconv.Itoa(dist)), core.TypeString), nil
-}
-
-// hammingFromHex decodes a hex string, ignoring non-hex characters (matching
-// CyberChef's fromHex "Auto").
-func hammingFromHex(s string) ([]byte, error) {
-	var out []byte
-	for _, part := range nonHex.Split(s, -1) {
-		for j := 0; j+2 <= len(part); j += 2 {
-			v, err := strconv.ParseUint(part[j:j+2], 16, 8)
-			if err != nil {
-				return nil, fmt.Errorf("invalid hex byte %q: %w", part[j:j+2], err)
-			}
-			out = append(out, byte(v))
-		}
-	}
-	return out, nil
 }

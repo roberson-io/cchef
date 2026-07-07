@@ -41,6 +41,10 @@ func TestParseColourCodeInputs(t *testing.T) {
 		{"hsl(120, 100%, 25%)", []string{"Hex:  #008000", "RGB:  rgb(0, 128, 0)"}},
 		{"hsl(300, 100%, 50%)", []string{"Hex:  #ff00ff", "RGB:  rgb(255, 0, 255)"}},
 		{"hsl(60, 100%, 50%)", []string{"Hex:  #ffff00", "RGB:  rgb(255, 255, 0)"}},
+		// HSLA carries its alpha channel through.
+		{"hsla(240, 100%, 50%, 0.5)", []string{"HSLA: hsla(240, 100%, 50%, 0.5)", "RGBA: rgba(0, 0, 255, 0.5)"}},
+		// Black divides by zero in the CMYK conversion; NaN components render as "0".
+		{"rgb(0, 0, 0)", []string{"CMYK: cmyk(0, 0, 0, 1.00)"}},
 	}
 	for _, c := range cases {
 		out, err := runOp(t, "Parse colour code", c.input)

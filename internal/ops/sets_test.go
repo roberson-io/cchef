@@ -162,3 +162,22 @@ func TestSetOpsErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestSetsBranches(t *testing.T) {
+	if _, ok := arrayIndex("4294967295"); ok {
+		t.Fatal("arrayIndex(2^32-1) should be false")
+	}
+	if _, ok := arrayIndex("99999999999999999999"); ok {
+		t.Fatal("arrayIndex(overflow) should be false")
+	}
+	if _, err := runOp(t, "Set Difference", "onlyoneset", "\\n\\n", ","); err == nil {
+		t.Fatal("Set Difference with a single set: expected an error")
+	}
+}
+
+// TestSymmetricDifferenceError covers the splitSets error path (a single set).
+func TestSymmetricDifferenceError(t *testing.T) {
+	if _, err := runOp(t, "Symmetric Difference", "only one set", "\\n\\n", " "); err == nil {
+		t.Fatal("expected an error for a single set")
+	}
+}

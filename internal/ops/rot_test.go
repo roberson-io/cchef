@@ -38,3 +38,12 @@ func TestRotFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestROT47AmountBranches(t *testing.T) {
+	if _, err := runOp(t, "ROT47", "abc", 0.0); err != nil {
+		t.Fatalf("ROT47 amount 0: %v", err)
+	}
+	if _, err := runOp(t, "ROT47", "abc", -5.0); err != nil {
+		t.Fatalf("ROT47 negative amount: %v", err)
+	}
+}

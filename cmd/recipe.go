@@ -36,7 +36,7 @@ func init() {
 }
 
 func runConvert(cmd *cobra.Command, _ []string) error {
-	recipe, err := loadRecipe()
+	recipe, raw, err := loadRecipeWithText()
 	if err != nil {
 		return err
 	}
@@ -44,10 +44,6 @@ func runConvert(cmd *cobra.Command, _ []string) error {
 	target := flagConvertTo
 	if target == "" {
 		// Default to the opposite of the detected input format.
-		raw, rErr := rawRecipeText()
-		if rErr != nil {
-			return rErr
-		}
 		trimmed := strings.TrimSpace(raw)
 		if trimmed != "" && trimmed[0] == '[' {
 			target = "chef"

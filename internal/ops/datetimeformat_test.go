@@ -3,6 +3,7 @@ package ops
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
@@ -87,7 +88,47 @@ func TestTranslateDateTimeFormatFixtures(t *testing.T) {
 				"hh A: S SS SSSS", "UTC",
 			}}},
 		},
+		// "Do" on the 2nd exercises the "nd" ordinal suffix.
+		{
+			"Translate DateTime Format: 2nd ordinal", "02/01/2023 00:00:00", "2nd",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"Standard date and time", "DD/MM/YYYY HH:mm:ss", "UTC", "Do", "UTC",
+			}}},
+		},
+		// "E" on a Sunday exercises the ISO weekday adjustment (0 -> 7).
+		{
+			"Translate DateTime Format: ISO Sunday", "01/01/2023 00:00:00", "7",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"Standard date and time", "DD/MM/YYYY HH:mm:ss", "UTC", "E", "UTC",
+			}}},
+		},
+		// More than 9 fractional digits pads past nanosecond precision.
+		{
+			"Translate DateTime Format: 12 fractional digits", "01/01/2023 00:00:00", "000000000000",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"Standard date and time", "DD/MM/YYYY HH:mm:ss", "UTC", "SSSSSSSSSSSS", "UTC",
+			}}},
+		},
+		// A [bracketed literal] in the *input* format is stripped when parsing.
+		{
+			"Translate DateTime Format: bracket literal in input", "2023-01-02T05:30:00", "05:30",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"Standard date and time", "YYYY-MM-DD[T]HH:mm:ss", "UTC", "HH:mm", "UTC",
+			}}},
+		},
 	})
+}
+
+// TestDateTimeHelpers directly covers the UTC fallback for an unknown timezone
+// and the pass-through of an unrecognised render token.
+func TestDateTimeHelpers(t *testing.T) {
+	if loadMomentZone("Invalid/Zone") != time.UTC {
+		t.Fatal("loadMomentZone(unknown) should fall back to UTC")
+	}
+	tm := time.Date(2023, 1, 2, 3, 4, 5, 0, time.UTC)
+	if got := momentTokenValue("QQ", tm, "UTC", 0); got != "QQ" {
+		t.Fatalf("momentTokenValue(unknown) = %q, want the token unchanged", got)
+	}
 }
 
 // TestTranslateDateTimeFormatInvalid checks the invalid-format path (upstream
@@ -147,4 +188,23 @@ func TestDateTimeDeltaFixtures(t *testing.T) {
 			}}},
 		},
 	})
+}
+
+// TestDateTimeInvalidInput covers the unparseable-input branch of Parse DateTime
+// and DateTime Delta (both emit the "Invalid format." message).
+func TestDateTimeInvalidInput(t *testing.T) {
+	parseOut, err := runOp(t, "Parse DateTime", "not a date", "Standard date and time", "DD/MM/YYYY HH:mm:ss", "UTC")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(parseOut, "Invalid format.") {
+		t.Fatalf("Parse DateTime: got %q, want prefix %q", parseOut, "Invalid format.")
+	}
+	deltaOut, err := runOp(t, "DateTime Delta", "not a date", "Standard date and time", "DD/MM/YYYY HH:mm:ss", "Add", 0, 0, 1, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(deltaOut, "Invalid format.") {
+		t.Fatalf("DateTime Delta: got %q, want prefix %q", deltaOut, "Invalid format.")
+	}
 }

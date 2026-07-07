@@ -19,3 +19,14 @@ func TestDechunkHTTPResponseFixtures(t *testing.T) {
 		{"hex chunk sizes", "a\r\n0123456789\r\n0\r\n\r\n", "0123456789", dechunk},
 	})
 }
+
+func TestDechunkHTTPResponseBranches(t *testing.T) {
+	// A non-hex chunk-size line yields no chunks (leadingHex reports NaN).
+	if out, err := runOp(t, "Dechunk HTTP response", "xyz\nbody"); err != nil || out != "" {
+		t.Fatalf("dechunk(non-hex) = %q, %v", out, err)
+	}
+	// A chunk size that overflows int64 also terminates parsing.
+	if out, err := runOp(t, "Dechunk HTTP response", "ffffffffffffffff\nbody"); err != nil || out != "" {
+		t.Fatalf("dechunk(overflow) = %q, %v", out, err)
+	}
+}

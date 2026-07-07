@@ -135,4 +135,28 @@ func TestProtobufEncode(t *testing.T) {
 	if _, err := runOp(t, "Protobuf Encode", `{"e":["Nope"]}`, `syntax="proto3"; message M { enum E{X=0;Y=1;} repeated E e=1; }`); err == nil {
 		t.Error("unknown enum in repeated: expected error")
 	}
+	// A bad value inside a nested message bubbles up through the scalar-append path.
+	if _, err := runOp(t, "Protobuf Encode", `{"s":{"e":"NOPE"}}`,
+		`syntax="proto3"; message M { Sub s = 1; } message Sub { E e = 1; enum E { A = 0; } }`); err == nil {
+		t.Error("nested unknown enum: expected error")
+	}
+	// A map value that fails to encode (invalid base64 bytes) surfaces the error.
+	if _, err := runOp(t, "Protobuf Encode", `{"m":{"k":"@@@"}}`,
+		`syntax="proto3"; message M { map<string,bytes> m = 1; }`); err == nil {
+		t.Error("map bad base64 value: expected error")
+	}
+}
+
+// TestProtobufEncodeCoercion covers the fall-through returns in the lenient
+// number/bool coercers (a false bool and a nil/absent value).
+func TestProtobufEncodeCoercion(t *testing.T) {
+	if coerceNumber(false) != 0 {
+		t.Error("coerceNumber(false) should be 0")
+	}
+	if coerceNumber(nil) != 0 {
+		t.Error("coerceNumber(nil) should be 0")
+	}
+	if coerceBool(nil) {
+		t.Error("coerceBool(nil) should be false")
+	}
 }

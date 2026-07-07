@@ -118,3 +118,25 @@ func TestDropTakeNthBytes(t *testing.T) {
 		},
 	})
 }
+
+// TestSliceValidation covers the per-line branch of Drop bytes and the
+// positive/non-negative parameter guards of Drop/Take nth bytes.
+func TestSliceValidation(t *testing.T) {
+	if _, err := runOp(t, "Drop bytes", "abcdef\nghijkl", 0, 2, true); err != nil {
+		t.Fatalf("Drop bytes per-line: %v", err)
+	}
+	cases := []struct {
+		op          string
+		n, startArg int
+	}{
+		{"Drop nth bytes", 0, 0},
+		{"Drop nth bytes", 4, -1},
+		{"Take nth bytes", 0, 0},
+		{"Take nth bytes", 4, -1},
+	}
+	for _, c := range cases {
+		if _, err := runOp(t, c.op, "abcdef", c.n, c.startArg, false); err == nil {
+			t.Errorf("%s(n=%d, start=%d): expected an error", c.op, c.n, c.startArg)
+		}
+	}
+}

@@ -20,6 +20,20 @@ func TestDNSOverHTTPS(t *testing.T) {
 	mux.HandleFunc("/noanswer", func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = fmt.Fprint(w, `{"Status":3}`)
 	})
+	mux.HandleFunc("/badjson", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprint(w, `not json`)
+	})
+	// Declares more bytes than it sends, then closes, so the client body read fails.
+	mux.HandleFunc("/truncate", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Length", "100")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("short"))
+		if hj, ok := w.(http.Hijacker); ok {
+			if conn, _, err := hj.Hijack(); err == nil {
+				_ = conn.Close()
+			}
+		}
+	})
 	s := httptest.NewServer(mux)
 	t.Cleanup(s.Close)
 
@@ -60,5 +74,13 @@ func TestDNSOverHTTPS(t *testing.T) {
 	// Unreachable resolver errors.
 	if _, err := runOp(t, "DNS over HTTPS", "example.com", "http://127.0.0.1:1/nope", "A", false, false); err == nil {
 		t.Error("unreachable resolver: expected error")
+	}
+	// Answer-data-only with a non-JSON response body errors on unmarshal.
+	if _, err := runOp(t, "DNS over HTTPS", "example.com", s.URL+"/badjson", "A", true, false); err == nil {
+		t.Error("bad JSON response: expected an unmarshal error")
+	}
+	// A response body that ends early fails the body read.
+	if _, err := runOp(t, "DNS over HTTPS", "example.com", s.URL+"/truncate", "A", false, false); err == nil {
+		t.Error("truncated response: expected a read error")
 	}
 }

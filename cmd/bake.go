@@ -47,13 +47,22 @@ func rawRecipeText() (string, error) {
 	}
 }
 
-// loadRecipe resolves the recipe text from -e or -r and parses it.
-func loadRecipe() (core.Recipe, error) {
+// loadRecipeWithText resolves the recipe text from -e or -r, parses it, and
+// returns both the parsed recipe and the raw text (so callers that also need the
+// original format don't have to read it a second time).
+func loadRecipeWithText() (core.Recipe, string, error) {
 	text, err := rawRecipeText()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return core.ParseRecipeConfig(text)
+	r, err := core.ParseRecipeConfig(text)
+	return r, text, err
+}
+
+// loadRecipe resolves the recipe text from -e or -r and parses it.
+func loadRecipe() (core.Recipe, error) {
+	r, _, err := loadRecipeWithText()
+	return r, err
 }
 
 func runBake(cmd *cobra.Command, posArgs []string) error {

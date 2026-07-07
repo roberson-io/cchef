@@ -191,4 +191,11 @@ func TestHexdumpErrors(t *testing.T) {
 			t.Fatalf("expected width %v to be rejected by the declared bounds", width)
 		}
 	}
+
+	// Run must also guard width < 1 directly: a caller bypassing CoerceArgs with
+	// width 0 would otherwise spin the encoding loop forever.
+	in := core.NewDish([]byte("data"), core.TypeArrayBuffer)
+	if _, err := (ToHexdump{}).Run(in, []any{float64(0), false, false, false}); err == nil {
+		t.Fatal("expected Run to reject width 0 (would otherwise infinite-loop)")
+	}
 }

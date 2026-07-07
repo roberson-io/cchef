@@ -65,3 +65,15 @@ func TestParseSSHHostKeyFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestParseSSHHostKeyBranches(t *testing.T) {
+	// Base64 whose length isn't a multiple of 4 is padded before decoding; here it
+	// decodes to a zero-length field, so parsing then reports no fields.
+	if _, err := runOp(t, "Parse SSH Host Key", "AAAAAA", "Base64"); err == nil {
+		t.Fatal("expected error for keyless base64 input")
+	}
+	// A key shorter than a 4-byte length prefix yields no fields.
+	if _, err := runOp(t, "Parse SSH Host Key", "00", "Hex"); err == nil {
+		t.Fatal("expected error for a too-short key")
+	}
+}

@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -117,4 +118,37 @@ func TestParseIPv4HeaderFixtures(t *testing.T) {
 			core.Recipe{{Op: "Parse IPv4 header", Args: []any{"Hex", "Table"}}},
 		},
 	})
+}
+
+// TestByteSliceClamps directly exercises the JS-slice clamping helpers; the
+// negative-start branches are unreachable through the parser operations (which
+// only pass non-negative offsets) but must still clamp correctly for callers.
+func TestByteSliceClamps(t *testing.T) {
+	b := []byte{1, 2, 3}
+	if got := byteSliceFrom(b, -1); !bytes.Equal(got, b) {
+		t.Fatalf("byteSliceFrom(-1) = %v, want %v", got, b)
+	}
+	if got := byteSliceFrom(b, 5); len(got) != 0 {
+		t.Fatalf("byteSliceFrom(past end) = %v, want empty", got)
+	}
+	if got := byteSliceRange(b, -1, 2); !bytes.Equal(got, []byte{1, 2}) {
+		t.Fatalf("byteSliceRange(-1,2) = %v", got)
+	}
+	if got := byteSliceRange(b, 5, 6); len(got) != 0 {
+		t.Fatalf("byteSliceRange(past end) = %v, want empty", got)
+	}
+	if got := byteSliceRange(b, 2, 1); len(got) != 0 {
+		t.Fatalf("byteSliceRange(end<start) = %v, want empty", got)
+	}
+	if got := byteSliceRange(b, 1, 10); !bytes.Equal(got, []byte{2, 3}) {
+		t.Fatalf("byteSliceRange(end>len) = %v", got)
+	}
+}
+
+// TestParseIPv4HeaderShort feeds a truncated header so out-of-bounds byte reads
+// return 0 and the payload slice clamps to empty.
+func TestParseIPv4HeaderShort(t *testing.T) {
+	if _, err := runOp(t, "Parse IPv4 header", "45", "Hex", "Table"); err != nil {
+		t.Fatalf("short header: %v", err)
+	}
 }

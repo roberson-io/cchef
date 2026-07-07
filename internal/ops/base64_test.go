@@ -65,3 +65,13 @@ func TestExpandAlphRange(t *testing.T) {
 		t.Fatalf("expandAlphRange = %q\nwant %q", got, want)
 	}
 }
+
+func TestBase64Branches(t *testing.T) {
+	if _, err := runOp(t, "From Base64", "@@@@", stdBase64Alphabet, false, false); err == nil {
+		t.Fatal("From Base64: expected an error for invalid input")
+	}
+	// A partial (non-multiple-of-4) group reaches the past-end -1 lookup.
+	if _, err := runOp(t, "From Base64", "YQ", stdBase64Alphabet, false, false); err != nil {
+		t.Fatalf("From Base64(partial): %v", err)
+	}
+}

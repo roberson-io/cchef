@@ -27,7 +27,10 @@ var (
 	groupIPv6Re = regexp2.MustCompile(`^\s*(((?=.*::)(?!.*::.+::)(::)?([\dA-F]{1,4}:(:|\b)|){5}|([\dA-F]{1,4}:){6})((([\dA-F]{1,4}((?!\4)::|:\b|(?![\dA-F])))|(?!\3\4)){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4}))\s*$`, regexp2.IgnoreCase)
 )
 
-// strToIpv4 parses a dotted-decimal IPv4 address to a 32-bit value.
+// strToIpv4 parses a dotted-decimal IPv4 address to a 32-bit value. Every caller
+// passes a string already matched by a `(\d{1,3}\.){3}\d{1,3}` regex, so the
+// block-count check never fails; the out-of-range check does fire (the regex
+// admits octets up to 999).
 func strToIpv4(ipStr string) (uint32, error) {
 	blocks := strings.Split(ipStr, ".")
 	if len(blocks) != 4 {
@@ -50,7 +53,10 @@ func ipv4ToStr(ip uint32) string {
 }
 
 // strToIpv6 parses an IPv6 address string into eight 16-bit blocks, expanding a
-// "::" shorthand. Ported from IP.mjs strToIpv6.
+// "::" shorthand. Ported from IP.mjs strToIpv6. Callers that feed it a string
+// pre-validated by groupIPv6Re (Parse IPv6 address, Parse IP range) cannot
+// trigger its error returns: the regex guarantees 3–8 blocks of at most 4 hex
+// digits, so neither the block-count nor the out-of-range check can fire.
 func strToIpv6(ipStr string) ([8]int, error) {
 	var ipv6 [8]int
 	blocks := strings.Split(ipStr, ":")

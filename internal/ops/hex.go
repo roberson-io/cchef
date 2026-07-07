@@ -51,6 +51,21 @@ func charRep(token string) string {
 // the "Auto" delimiter when decoding. Mirrors CyberChef's /[^a-f\d]|0x/gi.
 var nonHex = regexp.MustCompile(`(?i)[^a-f\d]|0x`)
 
+// splitHexToBytes decodes hex "Auto" input: it splits on non-hex runs and reads
+// whole byte pairs within each run (an odd trailing nibble is ignored). Because
+// nonHex.Split yields only hex characters, every pair parses, so this cannot
+// fail — unlike hexToBytes, which strips separators and pairs across them.
+func splitHexToBytes(s string) []byte {
+	var out []byte
+	for _, part := range nonHex.Split(s, -1) {
+		for j := 0; j+2 <= len(part); j += 2 {
+			v, _ := strconv.ParseUint(part[j:j+2], 16, 8) // pure-hex pair: never errors
+			out = append(out, byte(v))
+		}
+	}
+	return out
+}
+
 // toHex encodes bytes to hex with the given delimiter and optional extra
 // delimiter (for "0x with comma"). Ported from lib/Hex.mjs toHex.
 func toHex(data []byte, delim, extraDelim string) string {

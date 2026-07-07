@@ -110,3 +110,17 @@ func TestEscapeString(t *testing.T) {
 		},
 	})
 }
+
+// TestEscapeStringNullAndControl covers the lone-null escape (a documented
+// reduced-fidelity divergence from jsesc) and the JSON-compatible \u form for
+// sub-0x100 code points.
+func TestEscapeStringNullAndControl(t *testing.T) {
+	// A null not followed by a digit escapes to \0 (Special chars, non-JSON).
+	if out, err := runOp(t, "Escape string", "\x00", "Special chars", "Single", false, true, false); err != nil || out != `\0` {
+		t.Fatalf("escape null = %q, %v; want \\0", out, err)
+	}
+	// A control char under 0x100 in JSON-compatible mode uses \u00NN, not \xNN.
+	if out, err := runOp(t, "Escape string", "\x01", "Special chars", "Single", true, true, false); err != nil || out != `'\u0001'` {
+		t.Fatalf("escape control (json) = %q, %v; want \\u0001", out, err)
+	}
+}

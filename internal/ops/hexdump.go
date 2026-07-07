@@ -51,9 +51,10 @@ func (ToHexdump) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	includeFinalLength := args[2].(bool)
 	unixFormat := args[3].(bool)
 
-	// Width is constrained to [1, maxHexdumpWidth] by the ArgDef Min/Max; only
-	// the integer requirement is left to check here.
-	if math.Round(length) != length {
+	// The ArgDef Min/Max constrains width to [1, maxHexdumpWidth] on the normal
+	// path, but guard width < 1 here too: a direct caller passing 0 would make
+	// the loop below spin forever (and a negative width would panic).
+	if length < 1 || math.Round(length) != length {
 		return nil, fmt.Errorf("width must be a positive integer")
 	}
 	width := int(length)

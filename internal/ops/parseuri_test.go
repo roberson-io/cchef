@@ -32,3 +32,10 @@ func TestParseURIOracle(t *testing.T) {
 		},
 	})
 }
+
+func TestParseURIError(t *testing.T) {
+	// A URI with no scheme before "://" fails url.Parse.
+	if _, err := runOp(t, "Parse URI", "://x"); err == nil {
+		t.Fatal("Parse URI (missing scheme): expected an error")
+	}
+}

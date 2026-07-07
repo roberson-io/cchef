@@ -53,3 +53,28 @@ func TestBase58Fixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestBase58Errors(t *testing.T) {
+	cases := []struct {
+		name, op, input string
+		args            []any
+	}{
+		{"To Base58 rejects wrong-length alphabet", "To Base58", "x", []any{"short"}},
+		{"From Base58 rejects wrong-length alphabet", "From Base58", "x", []any{"short", false}},
+		{"From Base58 rejects char not in alphabet", "From Base58", "0", []any{base58Bitcoin, false}},
+	}
+	for _, c := range cases {
+		if _, err := runOp(t, c.op, c.input, c.args...); err == nil {
+			t.Fatalf("%s: expected an error", c.name)
+		}
+	}
+}
+
+func TestBase58ValueBranches(t *testing.T) {
+	if out, err := runOp(t, "From Base58", "", base58Bitcoin, false); err != nil || out != "" {
+		t.Fatalf("From Base58(\"\") = %q, %v; want empty", out, err)
+	}
+	if _, err := runOp(t, "From Base58", "0OIl", base58Bitcoin, true); err != nil {
+		t.Fatalf("From Base58(strip): %v", err)
+	}
+}

@@ -2,7 +2,6 @@ package ops
 
 import (
 	"encoding/base64"
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -22,17 +21,7 @@ var xorDelims = []string{"Hex", "Decimal", "Binary", "Base64", "UTF8", "Latin1"}
 func convertToByteArray(str, mode string) ([]byte, error) {
 	switch strings.ToLower(mode) {
 	case "hex":
-		var out []byte
-		for _, p := range nonHex.Split(str, -1) {
-			for j := 0; j+2 <= len(p); j += 2 {
-				v, err := strconv.ParseUint(p[j:j+2], 16, 8)
-				if err != nil {
-					return nil, fmt.Errorf("invalid hex key byte %q: %w", p[j:j+2], err)
-				}
-				out = append(out, byte(v))
-			}
-		}
-		return out, nil
+		return splitHexToBytes(str), nil
 	case "decimal":
 		// CyberChef's fromDecimal is called with delim "Auto", which charRep maps
 		// to undefined; `str.split(undefined)` yields the whole string as one token

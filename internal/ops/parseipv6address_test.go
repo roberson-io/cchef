@@ -131,3 +131,54 @@ func TestParseIPv6AddressInvalid(t *testing.T) {
 		t.Fatalf("got err %v, want invalid-address error", err)
 	}
 }
+
+// TestParseIPv6AddressTeredoFlags exercises the Teredo flag branches not hit by
+// the oracle fixture (which uses a cone/no-random address). Wording is
+// oracle-verified.
+func TestParseIPv6AddressTeredoFlags(t *testing.T) {
+	cases := []struct {
+		addr string
+		want []string
+	}{
+		// flags 0x0440: not behind cone NAT, random1/random2 set -> fully valid.
+		{"2001:0:0:0:440:0:0:0", []string{
+			"Cone:    0 (Client is not behind a cone NAT)",
+			"This is a valid Teredo address which complies with RFC 4380 and RFC 5991.",
+		}},
+		// flags 0x4000: R flag set -> error line and invalid address.
+		{"2001:0:0:0:4000:0:0:0", []string{
+			"R:       1 Error: This flag should be set to 0. See RFC 5991 and RFC 4380.",
+			"This is an invalid Teredo address.",
+		}},
+		// flags 0x0100: UG flag set -> error line.
+		{"2001:0:0:0:100:0:0:0", []string{
+			"UG:      01 Error: This flag should be set to 00. See RFC 4380.",
+		}},
+	}
+	for _, c := range cases {
+		out, err := runOp(t, "Parse IPv6 address", c.addr)
+		if err != nil {
+			t.Fatalf("%s: %v", c.addr, err)
+		}
+		for _, w := range c.want {
+			if !strings.Contains(out, w) {
+				t.Errorf("%s: missing %q in:\n%s", c.addr, w, out)
+			}
+		}
+	}
+}
+
+// TestParseIPv6AddressMulticastDefaults covers the multicast scope/address
+// helpers' fall-through (empty) returns: ff00:: has an unlisted scope and an
+// unlisted low hextet; ff02::1:5 has ipv6[6]==1 with an unlisted ipv6[7].
+func TestParseIPv6AddressMulticastDefaults(t *testing.T) {
+	for _, addr := range []string{"ff00::", "ff02::1:5"} {
+		out, err := runOp(t, "Parse IPv6 address", addr)
+		if err != nil {
+			t.Fatalf("%s: %v", addr, err)
+		}
+		if !strings.Contains(out, "This is a reserved multicast address.") {
+			t.Errorf("%s: missing multicast line in:\n%s", addr, out)
+		}
+	}
+}

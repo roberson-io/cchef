@@ -14,5 +14,7 @@ func TestStripHTTPHeadersOracle(t *testing.T) {
 	runCases(t, []opCase{
 		{"CRLF headers", "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<h1>Hi</h1>", "<h1>Hi</h1>", strip},
 		{"LF headers", "HTTP/1.1 200 OK\nX-Test: 1\n\nbody here", "body here", strip},
+		// No header/body separator: the input is returned unchanged.
+		{"no separator", "no headers here", "no headers here", strip},
 	})
 }

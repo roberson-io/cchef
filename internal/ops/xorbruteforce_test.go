@@ -52,3 +52,12 @@ func TestXORBruteForceOracle(t *testing.T) {
 		},
 	})
 }
+
+func TestXORBruteForceOffsetClamp(t *testing.T) {
+	if _, err := runOp(t, "XOR Brute Force", "abcdef", 1.0, 100.0, -5.0, "Standard", false, true, false, ""); err != nil {
+		t.Fatalf("XOR Brute Force negative offset: %v", err)
+	}
+	if _, err := runOp(t, "XOR Brute Force", "abc", 1.0, 100.0, 999.0, "Standard", false, true, false, ""); err != nil {
+		t.Fatalf("XOR Brute Force large offset: %v", err)
+	}
+}

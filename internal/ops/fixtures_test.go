@@ -42,3 +42,8 @@ func allBytes() string {
 	}
 	return string(b)
 }
+
+// abytes/sdish wrap a raw string as an ArrayBuffer / string dish for direct Run
+// calls in tests (used to reach branches guarded on the normal path by CoerceArgs).
+func abytes(s string) *core.Dish { return core.NewDish([]byte(s), core.TypeArrayBuffer) }
+func sdish(s string) *core.Dish  { return core.NewDish([]byte(s), core.TypeString) }

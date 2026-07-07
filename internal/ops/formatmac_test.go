@@ -26,5 +26,18 @@ func TestFormatMACAddressesOracle(t *testing.T) {
 			"aabbccddeeff\naa:bb:cc:dd:ee:ff\n",
 			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Lower only", true, false, true, false, false}}},
 		},
+		// A short (sub-3-byte) input still gets the fffe interface-ID insertion,
+		// matching CyberChef's unguarded slice; exercises macInsertEvery's
+		// no-op early return for groups shorter than the split width.
+		{
+			"short input keeps fffe insertion", "ab",
+			"ab\nAB\nab\nAB\nab\nAB\nab\nAB\na9ff:fe\nA9FF:FE\n",
+			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Both", true, true, true, true, true}}},
+		},
+		// Empty input returns an empty string.
+		{
+			"empty input", "", "",
+			core.Recipe{{Op: "Format MAC addresses", Args: []any{"Both", true, true, true, false, false}}},
+		},
 	})
 }

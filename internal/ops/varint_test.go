@@ -29,3 +29,13 @@ func TestVarIntOracle(t *testing.T) {
 		},
 	})
 }
+
+// TestVarIntEncodeErrors covers the invalid-integer and negative-value guards.
+func TestVarIntEncodeErrors(t *testing.T) {
+	if _, err := runOp(t, "VarInt Encode", "abc"); err == nil {
+		t.Fatal("expected an error for a non-integer")
+	}
+	if _, err := runOp(t, "VarInt Encode", "-5"); err == nil {
+		t.Fatal("expected an error for a negative value")
+	}
+}

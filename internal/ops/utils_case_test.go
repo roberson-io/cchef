@@ -67,6 +67,14 @@ func TestCaseInsensitiveRegex(t *testing.T) {
 			"To CI Regex mixed range", "[H-d]", "[A-DH-dh-z]",
 			core.Recipe{{Op: "To Case Insensitive Regex"}},
 		},
+		// Each cross-boundary range rule (all oracle-verified).
+		{"CI punct-upper", "!-Z", "!-Za-z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
+		{"CI punct-bracket", "!-_", "!-_a-z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
+		{"CI upper-bracket", "A-_", "A-_a-z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
+		{"CI bracket-brace", "_-~", "_-~A-Z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
+		{"CI lower-brace", "a-~", "a-~A-Z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
+		{"CI punct-lower", "!-z", "!-z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
+		{"CI bracket-lower", "_-z", "A-Z_-z", core.Recipe{{Op: "To Case Insensitive Regex"}}},
 
 		{
 			"From CI Regex", "[tT][eE][sS][tT]", "test",

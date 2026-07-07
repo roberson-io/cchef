@@ -25,3 +25,23 @@ func TestHMACFixtures(t *testing.T) {
 		},
 	})
 }
+
+// TestHMACBadKey covers the key-decode error and confirms only the reachable
+// (Base64) decode failure fires (Hex mode strips non-hex characters).
+func TestHMACBadKey(t *testing.T) {
+	if _, err := runOp(t, "HMAC", "data", core.ToggleString{Value: "!!!!", Option: "Base64"}, "SHA256"); err == nil {
+		t.Fatal("expected an error for an invalid Base64 key")
+	}
+}
+
+// TestHMACUnknownHashPanics verifies the defensive panic for a hashing function
+// the arg layer would never allow through.
+func TestHMACUnknownHashPanics(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected a panic for an unhandled hashing function")
+		}
+	}()
+	_, _ = HMAC{}.Run(core.NewDish([]byte("x"), core.TypeString),
+		[]any{core.ToggleString{Value: "", Option: "UTF8"}, "Bogus Hash"})
+}

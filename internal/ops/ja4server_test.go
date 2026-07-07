@@ -35,3 +35,10 @@ func TestJA4ServerFingerprint(t *testing.T) {
 		},
 	})
 }
+
+func TestJA4ServerFingerprintError(t *testing.T) {
+	// A single Base64 char cannot form a byte pair, so fingerprintBytes errors.
+	if _, err := runOp(t, "JA4Server Fingerprint", "A", "Base64", "JA4S"); err == nil {
+		t.Fatal("JA4Server (bad Base64): expected an error")
+	}
+}

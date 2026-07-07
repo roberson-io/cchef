@@ -42,3 +42,10 @@ func TestShowOnMapErrors(t *testing.T) {
 		t.Errorf("blank input: got %q, err %v", out, err)
 	}
 }
+
+// TestShowOnMapInvalidCoord covers the coordinate-parse error path.
+func TestShowOnMapInvalidCoord(t *testing.T) {
+	if _, err := runOp(t, "Show on map", "notacoord", 13.0, "Decimal Degrees", "Comma"); err == nil {
+		t.Fatal("expected an error for an invalid coordinate")
+	}
+}

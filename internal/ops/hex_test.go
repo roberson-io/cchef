@@ -81,3 +81,9 @@ func TestHexFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestFromHexRejectsInvalidByte(t *testing.T) {
+	if _, err := runOp(t, "From Hex", "zz", "Space"); err == nil {
+		t.Fatal("expected an error for an invalid hex byte")
+	}
+}

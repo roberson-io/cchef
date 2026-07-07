@@ -1,6 +1,11 @@
 package ops
 
 import (
+	"math/big"
+	"math/rand"
+	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -63,4 +68,136 @@ func TestBigNumEdgeCases(t *testing.T) {
 		// Standard deviation of a single value is exactly zero.
 		{"stddev single value", "5", "0", sp("Standard Deviation")},
 	})
+}
+
+func TestBignumMoreBranches(t *testing.T) {
+	if sign3(5) != 1 {
+		t.Fatalf("sign3(5) = %d, want 1", sign3(5))
+	}
+	if bnNaN.sign() != 0 {
+		t.Fatalf("NaN.sign() = %d, want 0", bnNaN.sign())
+	}
+	if !bnNaN.negate().nan {
+		t.Fatal("NaN.negate() is not NaN")
+	}
+	if got := formatBigRat(big.NewRat(0, 1)); got != "0" {
+		t.Fatalf("formatBigRat(0) = %q, want 0", got)
+	}
+	if got := formatFixed("100", 2); got != "1" {
+		t.Fatalf("formatFixed(100,2) = %q, want 1", got)
+	}
+	if got := formatBigRat(round20(big.NewRat(-1, 3))); got != "-0.33333333333333333333" {
+		t.Fatalf("round20(-1/3) = %q", got)
+	}
+	if got := formatBigRat(sqrtRound20(big.NewRat(2, 1))); got != "1.4142135623730950488" {
+		t.Fatalf("sqrtRound20(2) = %q", got)
+	}
+	// All-zero digits normalise to "0" (the coeff=="" branch).
+	if a, b := formatExponential("000", 21), formatExponential("0", 21); a != b {
+		t.Fatalf("formatExponential(000) = %q, formatExponential(0) = %q", a, b)
+	}
+}
+
+// TestBignumRounding covers the negative-halfway arm of round20 and the round-up
+// arm of sqrtRound20 (both direct, since no fixture drives these exact cases).
+func TestBignumRounding(t *testing.T) {
+	// -1/(2e20) is exactly halfway at the 20th decimal and rounds away from zero.
+	twiceScale := new(big.Int).Mul(big.NewInt(2), new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
+	negHalfway := new(big.Rat).SetFrac(big.NewInt(-1), twiceScale)
+	if got := formatBigRat(round20(negHalfway)); got != "-1e-20" {
+		t.Fatalf("round20(neg halfway) = %q", got)
+	}
+	// sqrt(3) rounds up at the 21st decimal.
+	if got := formatBigRat(sqrtRound20(big.NewRat(3, 1))); got != "1.73205080756887729353" {
+		t.Fatalf("sqrtRound20(3) = %q", got)
+	}
+	// A perfect square is exact (no rounding).
+	if got := formatBigRat(sqrtRound20(big.NewRat(4, 1))); got != "2" {
+		t.Fatalf("sqrtRound20(4) = %q", got)
+	}
+}
+
+// decNumReOld and parseDecimalOld are an exact copy of the pre-refactor
+// regex-gated parseDecimal, kept here as the behavioural reference for
+// TestParseDecimalEquivalence.
+var decNumReOld = regexp.MustCompile(`^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$`)
+
+func parseDecimalOld(sign, body string) (bigNum, bool) {
+	if !decNumReOld.MatchString(body) {
+		return bnNaN, false
+	}
+	mant := body
+	exp := 0
+	if i := strings.IndexAny(body, "eE"); i >= 0 {
+		mant = body[:i]
+		e, err := strconv.Atoi(body[i+1:])
+		if err != nil {
+			return bnNaN, false
+		}
+		exp = e
+	}
+	intPart, fracPart := mant, ""
+	if before, after, ok := strings.Cut(mant, "."); ok {
+		intPart, fracPart = before, after
+	}
+	digits := intPart + fracPart
+	if digits == "" {
+		return bnNaN, false
+	}
+	num, ok := new(big.Int).SetString(digits, 10)
+	if !ok {
+		return bnNaN, false
+	}
+	r := new(big.Rat).SetInt(num)
+	scale := exp - len(fracPart)
+	pow := new(big.Int).Exp(bnTen, big.NewInt(int64(abs(scale))), nil)
+	if scale >= 0 {
+		r.Mul(r, new(big.Rat).SetInt(pow))
+	} else {
+		r.Quo(r, new(big.Rat).SetInt(pow))
+	}
+	if sign == "-" {
+		r.Neg(r)
+	}
+	return bigNum{val: r, neg: sign == "-"}, true
+}
+
+// TestParseDecimalEquivalence asserts the refactored parseDecimal accepts/rejects
+// exactly the same strings as the old regex-gated version, and produces the same
+// value, over a large structured + randomised corpus.
+func TestParseDecimalEquivalence(t *testing.T) {
+	structured := []string{
+		"", "0", "5", "05", "5.", ".5", "1.5", "1.", ".", "00.00", "0.0e0",
+		"1e5", "1E5", "1e+5", "1e-5", "1e0", "1e00", "1.e5", ".e5",
+		"1e", "e5", "1..5", "1.2.3", "1e2e3", "1e5.5", "1e+", "1e-",
+		"+5", "-5", "+.5", "5 ", " 5", "1 5", "1_000", "0x1", "abc", "5x",
+		"1e99999999999999999999", // exponent overflows Atoi
+	}
+	agree := func(body string) {
+		for _, sign := range []string{"", "-"} {
+			gotV, gotOK := parseDecimal(sign, body)
+			wantV, wantOK := parseDecimalOld(sign, body)
+			if gotOK != wantOK {
+				t.Fatalf("parseDecimal(%q,%q) ok=%v, old ok=%v", sign, body, gotOK, wantOK)
+			}
+			if gotOK && (gotV.neg != wantV.neg || gotV.val.Cmp(wantV.val) != 0) {
+				t.Fatalf("parseDecimal(%q,%q) value=%v/%v, old=%v/%v", sign, body, gotV.val, gotV.neg, wantV.val, wantV.neg)
+			}
+		}
+	}
+	for _, s := range structured {
+		agree(s)
+	}
+	// Randomised strings over the number-relevant alphabet, length 0-5 (bounded so
+	// any surviving exponent stays small enough to expand quickly).
+	rng := rand.New(rand.NewSource(1))
+	alphabet := []byte("0123456789.eE+-")
+	for i := 0; i < 20000; i++ {
+		n := rng.Intn(6)
+		b := make([]byte, n)
+		for j := range b {
+			b[j] = alphabet[rng.Intn(len(alphabet))]
+		}
+		agree(string(b))
+	}
 }

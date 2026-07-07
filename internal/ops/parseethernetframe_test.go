@@ -39,3 +39,25 @@ func TestParseEthernetFrameFixtures(t *testing.T) {
 		},
 	})
 }
+
+// TestParseEthernetFrameRawInput exercises the Raw input-type branch: the same
+// frame parsed as Raw bytes must match the Hex path.
+func TestParseEthernetFrameRawInput(t *testing.T) {
+	frame := "000000000000ffffffffffff08004500"
+	rawBytes := string([]byte{
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0x08, 0x00, 0x45, 0x00,
+	})
+	raw, err := runOp(t, "Parse Ethernet frame", rawBytes, "Raw", "Text output")
+	if err != nil {
+		t.Fatal(err)
+	}
+	hexOut, err := runOp(t, "Parse Ethernet frame", frame, "Hex", "Text output")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if raw != hexOut {
+		t.Fatalf("Raw vs Hex mismatch:\n%q\n%q", raw, hexOut)
+	}
+}

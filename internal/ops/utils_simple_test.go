@@ -56,5 +56,10 @@ func TestPadLines(t *testing.T) {
 			"Pad lines multi-char", "x", "ababax",
 			core.Recipe{{Op: "Pad lines", Args: []any{"Start", 5, "ab"}}},
 		},
+		{
+			// A non-positive length produces an empty pad (input unchanged).
+			"Pad lines zero length", "ab\ncd", "ab\ncd",
+			core.Recipe{{Op: "Pad lines", Args: []any{"Start", 0, "*"}}},
+		},
 	})
 }

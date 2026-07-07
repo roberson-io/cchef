@@ -46,3 +46,21 @@ func TestBaseGeneric(t *testing.T) {
 		},
 	})
 }
+
+func TestBaseGenericErrors(t *testing.T) {
+	cases := []struct {
+		name, op, input string
+		args            []any
+	}{
+		{"To Base rejects empty", "To Base", "", []any{16.0}},
+		{"To Base rejects non-integer", "To Base", "abc", []any{16.0}},
+		{"From Base rejects out-of-range radix", "From Base", "ff", []any{99.0}},
+		{"From Base rejects fractional", "From Base", "1.5", []any{10.0}},
+		{"From Base rejects invalid digits", "From Base", "xyz", []any{2.0}},
+	}
+	for _, c := range cases {
+		if _, err := runOp(t, c.op, c.input, c.args...); err == nil {
+			t.Fatalf("%s: expected an error", c.name)
+		}
+	}
+}

@@ -41,3 +41,9 @@ func TestDecimalOps(t *testing.T) {
 		},
 	})
 }
+
+func TestFromDecimalRejectsNonNumeric(t *testing.T) {
+	if _, err := runOp(t, "From Decimal", "abc", "Space", false); err == nil {
+		t.Fatal("expected an error for non-numeric input")
+	}
+}

@@ -62,7 +62,22 @@ func TestProtobufDecodeRaw(t *testing.T) {
 			`{"field #1: L-delim (e.g. string, message)":[{"field #1: VarInt (e.g. int32, bool)":5},{"field #1: VarInt (e.g. int32, bool)":6}]}`,
 			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{"", false, true}}},
 		},
+		{
+			// Field 1 repeats as a parseable submessage then as raw bytes; with types,
+			// showRawTypes keeps the non-message instance as-is (oracle-verified).
+			"raw: mixed message/bytes repeat types", "0a0208010a010f",
+			`{"field #1: L-delim (e.g. string, message)":[{"field #1: VarInt (e.g. int32, bool)":1},"\u000f"]}`,
+			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{"", false, true}}},
+		},
 	})
+}
+
+// TestProtobufDecodeBadSchema covers the schema-compile error path.
+func TestProtobufDecodeBadSchema(t *testing.T) {
+	// Valid wire data but an unparseable .proto schema.
+	if _, err := runOp(t, "Protobuf Decode", "\x08\x05", "this is not valid proto", false, false); err == nil {
+		t.Fatal("Protobuf Decode (bad schema): expected an error")
+	}
 }
 
 // Protobuf Decode (schema-based) verified against the CyberChef-server oracle.
@@ -143,6 +158,13 @@ func TestProtobufDecodeSchema(t *testing.T) {
 			"schema: repeated submessage missing fields", "0a0408074803",
 			`{"M":{"s":[{"x":7}]},"Unknown Fields":{"s (Sub) has missing fields":{"9":3}}}`,
 			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{`syntax="proto3"; message M { repeated Sub s = 1; } message Sub { int32 x = 1; }`, true, false}}},
+		},
+		{
+			// A *singular* schema message field seen twice on the wire: compareFields
+			// flags the repeat and walks the array of instances to merge unknowns.
+			"schema: singular submessage seen repeated", "120408074803120408074803",
+			`{"M":{"s":{"x":7}},"Unknown Fields":{"(M) s is a repeated field":[{"1":7,"9":3},{"1":7,"9":3}],"s (Sub) has missing fields":{"9":3}}}`,
+			core.Recipe{fromHex, {Op: "Protobuf Decode", Args: []any{`syntax="proto3"; message M { Sub s = 2; } message Sub { int32 x = 1; }`, true, false}}},
 		},
 	})
 

@@ -130,3 +130,11 @@ func TestDishSetNumberWrongType(t *testing.T) {
 		t.Fatal("Set number: expected error for non-numeric value")
 	}
 }
+
+// TestDishGetNumberInvalid covers the non-numeric error in Dish.Get(TypeNumber).
+func TestDishGetNumberInvalid(t *testing.T) {
+	d := NewDish([]byte("not a number"), TypeString)
+	if _, err := d.Get(TypeNumber); err == nil {
+		t.Fatal("expected an error interpreting non-numeric data as a number")
+	}
+}

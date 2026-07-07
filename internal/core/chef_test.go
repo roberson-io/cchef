@@ -67,3 +67,34 @@ func TestRecipeRoundTripChef(t *testing.T) {
 		t.Fatalf("round trip = %q\nwant %q", got, orig)
 	}
 }
+
+// TestChefEdgeCases covers the remaining chef serialization/parsing branches:
+// newline output, a non-marshalable argument (chefArgs error -> empty args),
+// empty and JSON-error recipe parsing, and Chef-format disabled/breakpoint flags.
+func TestChefEdgeCases(t *testing.T) {
+	// newline=true appends a trailing newline per step.
+	if got := GeneratePrettyRecipe(Recipe{{Op: "To Hex", Args: []any{"Space"}}}, true); got != "To_Hex('Space')\n" {
+		t.Fatalf("newline output = %q", got)
+	}
+	// An argument that cannot be JSON-marshalled makes chefArgs error, so the
+	// generator emits empty args rather than failing.
+	if got := GeneratePrettyRecipe(Recipe{{Op: "X", Args: []any{make(chan int)}}}, false); got != "X()" {
+		t.Fatalf("unmarshalable arg = %q, want X()", got)
+	}
+	// An empty recipe string parses to an empty recipe.
+	if r, err := ParseRecipeConfig(""); err != nil || len(r) != 0 {
+		t.Fatalf("empty parse = %#v, %v", r, err)
+	}
+	// Chef-format args that don't form valid JSON error.
+	if _, err := ParseRecipeConfig("Op(abc)"); err == nil {
+		t.Fatal("expected an error for non-JSON Chef args")
+	}
+	// The /disabled and /breakpoint suffixes set the corresponding flags.
+	r, err := ParseRecipeConfig("To_Hex('Space'/disabled)From_Hex('Auto'/breakpoint)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r) != 2 || !r[0].Disabled || !r[1].Breakpoint {
+		t.Fatalf("flags not parsed: %#v", r)
+	}
+}

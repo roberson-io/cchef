@@ -109,3 +109,31 @@ func TestUnique(t *testing.T) {
 		},
 	})
 }
+
+// TestSortComparatorInternals directly exercises the Sort/Filter comparator
+// helpers' harder-to-reach branches (non-IP fallback, out-of-range octet, and
+// the lowercase-before-uppercase tie-break).
+func TestSortComparatorInternals(t *testing.T) {
+	if _, ok := ipToUint("999.0.0.1"); ok {
+		t.Fatal("ipToUint(999.0.0.1) should be false (octet out of range)")
+	}
+	if !ipLess("apple", "banana") {
+		t.Fatal("ipLess(apple, banana): non-IP inputs should compare lexicographically")
+	}
+	if ipLess("banana", "apple") {
+		t.Fatal("ipLess(banana, apple) should be false")
+	}
+	if localeCompareASCII("a", "A") >= 0 {
+		t.Fatal("localeCompareASCII(a, A) should order lowercase first")
+	}
+	if localeCompareASCII("A", "a") <= 0 {
+		t.Fatal("localeCompareASCII(A, a) should order uppercase second")
+	}
+}
+
+// TestFilterInvalidRegex covers Filter's regex-compile error path.
+func TestFilterInvalidRegex(t *testing.T) {
+	if _, err := runOp(t, "Filter", "abc", "Line feed", "[", false); err == nil {
+		t.Fatal("Filter with an invalid regex: expected an error")
+	}
+}

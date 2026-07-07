@@ -971,5 +971,44 @@ CPU
     Architecture: unknown`,
 			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
 		},
+		// An Itel device exercises the "lowerize" function processor on the vendor.
+		{
+			"ua 53 (lowerize fn)", "Mozilla/5.0 (Linux; Android 11; itel A661W) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36", `Browser
+    Name: Mobile Chrome
+    Version: 120.0.0.0
+Device
+    Model: A661W
+    Type: mobile
+    Vendor: itel
+Engine
+    Name: Blink
+    Version: 120.0.0.0
+OS
+    Name: Android
+    Version: 11
+CPU
+    Architecture: unknown`,
+			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
+		},
+		// A PowerPC Mac exercises the "lowerize" processor in a replace rule (the
+		// CPU architecture is rewritten "powerpc" -> "ppc" and lower-cased).
+		{
+			"ua 54 (replace lowerize)", "Mozilla/5.0 (Macintosh; PPC Mac OS X 10_5_8) AppleWebKit/533.19.4 (KHTML, like Gecko) Version/5.0.3 Safari/533.19.4", `Browser
+    Name: Safari
+    Version: 5.0.3
+Device
+    Model: Macintosh
+    Type: unknown
+    Vendor: Apple
+Engine
+    Name: WebKit
+    Version: 533.19.4
+OS
+    Name: macOS
+    Version: 10.5.8
+CPU
+    Architecture: ppc`,
+			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
+		},
 	})
 }

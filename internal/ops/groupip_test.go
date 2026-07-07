@@ -29,3 +29,14 @@ func TestGroupIPAddressesOracle(t *testing.T) {
 		},
 	})
 }
+
+// TestGroupIPErrors covers the CIDR-range guard and the strToIpv4 error for an
+// octet that passes the routing regex but exceeds 255.
+func TestGroupIPErrors(t *testing.T) {
+	if _, err := runOp(t, "Group IP addresses", "1.2.3.4", "Comma", 200, false); err == nil {
+		t.Fatal("expected an error for an out-of-range CIDR")
+	}
+	if _, err := runOp(t, "Group IP addresses", "999.0.0.0", "Comma", 24, false); err == nil {
+		t.Fatal("expected an error for an out-of-range octet")
+	}
+}

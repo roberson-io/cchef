@@ -65,3 +65,10 @@ func TestConverters(t *testing.T) {
 		},
 	})
 }
+
+// TestConvertInvalidNumber covers the non-numeric-input error path.
+func TestConvertInvalidNumber(t *testing.T) {
+	if _, err := runOp(t, "Convert distance", "abc", "Metres (m)", "Kilometers (km)"); err == nil {
+		t.Fatal("expected an error for non-numeric input")
+	}
+}

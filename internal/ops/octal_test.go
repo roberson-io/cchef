@@ -46,3 +46,14 @@ func TestOctalFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestOctalBranches(t *testing.T) {
+	if _, err := runOp(t, "From Octal", "999", "Space"); err == nil {
+		t.Fatal("From Octal: expected an error for an invalid digit")
+	}
+	// A delimiter that maps to empty treats the input as one token (shared decode
+	// path's None handling; octal exposes no such option).
+	if _, err := (FromOctal{}).Run(sdish("77"), []any{"None"}); err != nil {
+		t.Fatalf("From Octal None delim: %v", err)
+	}
+}

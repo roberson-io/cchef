@@ -123,6 +123,8 @@ func (FromBase62) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(h)%2 != 0 {
 		h = "0" + h
 	}
+	// h is n.Text(16) (n >= 0) padded to even length, so it is always valid hex
+	// and DecodeString cannot fail; the check is kept for defensiveness.
 	out, err := hex.DecodeString(h)
 	if err != nil {
 		return nil, err

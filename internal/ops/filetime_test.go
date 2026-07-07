@@ -46,3 +46,17 @@ func TestFiletimeOracle(t *testing.T) {
 		{"Filetime to Unix (empty input)", "", "", f2u("Seconds (s)", "Decimal")},
 	})
 }
+
+// TestFiletimeBranches covers the NaN/odd-length paths: non-hex input, a
+// NaN passed to the hex encoder, and an odd-length little-endian hex string.
+func TestFiletimeBranches(t *testing.T) {
+	if _, err := runOp(t, "Windows Filetime to UNIX Timestamp", "zz", "Nanoseconds (ns)", "Hex (big endian)"); err != nil {
+		t.Fatalf("non-hex filetime: %v", err)
+	}
+	if _, err := runOp(t, "UNIX Timestamp to Windows Filetime", "abc", "Nanoseconds (ns)", "Hex (big endian)"); err != nil {
+		t.Fatalf("non-numeric to filetime: %v", err)
+	}
+	if _, err := runOp(t, "Windows Filetime to UNIX Timestamp", "abc", "Nanoseconds (ns)", "Hex (little endian)"); err != nil {
+		t.Fatalf("odd-length LE filetime: %v", err)
+	}
+}

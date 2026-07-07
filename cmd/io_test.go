@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -167,5 +168,31 @@ func TestIsTerminal(t *testing.T) {
 	defer func() { _ = f.Close() }()
 	if isTerminal(f) {
 		t.Fatal("regular file should not be a terminal")
+	}
+}
+
+// failWriter always fails, to exercise writeOutput's write-error path.
+type failWriter struct{}
+
+func (failWriter) Write([]byte) (int, error) { return 0, fmt.Errorf("write failed") }
+
+// TestWriteOutputError covers writeOutput's error when the destination writer
+// fails, and isTerminal's Stat-error path via a closed file.
+func TestWriteOutputError(t *testing.T) {
+	resetIOFlags()
+	cmd := &cobra.Command{}
+	cmd.SetOut(failWriter{})
+	if err := writeOutput(cmd, []byte("data")); err == nil {
+		t.Fatal("writeOutput to a failing writer: expected an error")
+	}
+
+	// isTerminal on a closed file: Stat fails, so it reports false.
+	f, err := os.CreateTemp(t.TempDir(), "term")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = f.Close()
+	if isTerminal(f) {
+		t.Fatal("isTerminal(closed file) should be false")
 	}
 }

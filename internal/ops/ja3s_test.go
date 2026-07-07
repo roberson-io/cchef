@@ -23,3 +23,22 @@ func TestJA3SFingerprint(t *testing.T) {
 		},
 	})
 }
+
+func TestJA3SFingerprintErrors(t *testing.T) {
+	// A single Base64 char cannot form a byte pair, so fingerprintBytes errors.
+	if _, err := runOp(t, "JA3S Fingerprint", "A", "Base64", "Hash digest"); err == nil {
+		t.Fatal("JA3S (bad Base64): expected an error")
+	}
+	// Fixture 1, whose declared record length (61) matches its 66-byte total.
+	valid := "160301003d020000390301543dd2ddedbfe33895bd6bc676a3fa6b9fe5773a6e04d5476d1af3bcbc1dcbbb00c011000011ff01000100000b00040300010200230000"
+	// Dropping a byte breaks the record-length check.
+	if _, err := runOp(t, "JA3S Fingerprint", valid[:len(valid)-2], "Hex", "Hash digest"); err == nil {
+		t.Fatal("JA3S (short record): expected an error")
+	}
+	// Bumping the 3-byte handshake length (39 -> 3a) breaks the Server Hello check
+	// while leaving the record-length check satisfied.
+	bad := valid[:17] + "a" + valid[18:]
+	if _, err := runOp(t, "JA3S Fingerprint", bad, "Hex", "Hash digest"); err == nil {
+		t.Fatal("JA3S (bad handshake length): expected an error")
+	}
+}

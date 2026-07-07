@@ -27,3 +27,15 @@ func TestChangeIPFormatFixtures(t *testing.T) {
 		},
 	})
 }
+
+// TestChangeIPFormatBranches covers the blank-line skip and the identity
+// (input format == output format) passthrough.
+func TestChangeIPFormatBranches(t *testing.T) {
+	out, err := runOp(t, "Change IP format", "1.2.3.4\n\n5.6.7.8", "Dotted Decimal", "Dotted Decimal")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out != "1.2.3.4\n5.6.7.8" {
+		t.Fatalf("identity passthrough = %q", out)
+	}
+}

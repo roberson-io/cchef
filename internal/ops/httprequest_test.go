@@ -23,6 +23,18 @@ func httpTestServer(t *testing.T) *httptest.Server {
 		w.WriteHeader(http.StatusTeapot)
 		_, _ = fmt.Fprint(w, "teapot")
 	})
+	// Declares more bytes than it sends, then hijacks and closes the connection so
+	// the client's body read fails with an unexpected EOF.
+	mux.HandleFunc("/truncate", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Length", "100")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("short"))
+		if hj, ok := w.(http.Hijacker); ok {
+			if conn, _, err := hj.Hijack(); err == nil {
+				_ = conn.Close()
+			}
+		}
+	})
 	s := httptest.NewServer(mux)
 	t.Cleanup(s.Close)
 	return s
@@ -63,5 +75,14 @@ func TestHTTPRequest(t *testing.T) {
 	// An unreachable/invalid URL errors.
 	if _, err := runOp(t, "HTTP request", "", "GET", "http://127.0.0.1:1/nope", "", cors, false); err == nil {
 		t.Error("bad URL: expected error")
+	}
+	// A URL with a control character fails http.NewRequest before any network I/O.
+	if _, err := runOp(t, "HTTP request", "", "GET", "http://foo\x01bar", "", cors, false); err == nil {
+		t.Error("control-char URL: expected a NewRequest error")
+	}
+	// A response body that ends early (declared Content-Length exceeds the bytes
+	// sent) fails the body read.
+	if _, err := runOp(t, "HTTP request", "", "GET", s.URL+"/truncate", "", cors, false); err == nil {
+		t.Error("truncated response: expected a read error")
 	}
 }

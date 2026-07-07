@@ -60,7 +60,9 @@ func (HMAC) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 	newHash, ok := hmacHashes[args[1].(string)]
 	if !ok {
-		return nil, fmt.Errorf("unsupported hashing function %q", args[1])
+		// The hashing function is an arg-validated option whose values match
+		// hmacHashes exactly, so a miss here is a programming error.
+		panic(fmt.Sprintf("HMAC: unhandled hashing function %q", args[1]))
 	}
 	mac := hmac.New(newHash, key)
 	mac.Write(in.Bytes())

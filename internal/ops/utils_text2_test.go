@@ -37,6 +37,11 @@ func TestCountOccurrences(t *testing.T) {
 			"Count empty search", "abc", "0",
 			core.Recipe{{Op: "Count occurrences", Args: []any{simple("")}}},
 		},
+		// Extended search decodes escape sequences before counting.
+		{
+			"Count extended newline", "a\nb\na", "2",
+			core.Recipe{{Op: "Count occurrences", Args: []any{core.ToggleString{Value: `\n`, Option: "Extended (\\n, \\t, \\x...)"}}}},
+		},
 	})
 }
 
@@ -49,6 +54,12 @@ func TestLineNumbers(t *testing.T) {
 		{
 			"Add line numbers offset", "a\nb", "6 a\n7 b",
 			core.Recipe{{Op: "Add line numbers", Args: []any{5}}},
+		},
+		// Ten lines make the single-digit numbers right-align to width 2.
+		{
+			"Add line numbers width padding", "a\nb\nc\nd\ne\nf\ng\nh\ni\nj",
+			" 1 a\n 2 b\n 3 c\n 4 d\n 5 e\n 6 f\n 7 g\n 8 h\n 9 i\n10 j",
+			core.Recipe{{Op: "Add line numbers", Args: []any{0}}},
 		},
 		{
 			"Remove line numbers", "1 a\n2 b\n3 c", "a\nb\nc",

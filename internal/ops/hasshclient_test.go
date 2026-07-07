@@ -23,3 +23,15 @@ func TestHASSHClientFingerprint(t *testing.T) {
 		},
 	})
 }
+
+// TestHASSHClientErrors covers the input-decode error and the not-Key-Exchange
+// message-type guard (message byte 0x14 mutated to 0x15).
+func TestHASSHClientErrors(t *testing.T) {
+	if _, err := runOp(t, "HASSH Client Fingerprint", "A", "Base64", "Hash digest"); err == nil {
+		t.Fatal("expected an error for an invalid Base64 input")
+	}
+	notKEX := hasshClientKEXINIT[:10] + "15" + hasshClientKEXINIT[12:]
+	if _, err := runOp(t, "HASSH Client Fingerprint", notKEX, "Hex", "Hash digest"); err == nil {
+		t.Fatal("expected an error for a non-KEXINIT message")
+	}
+}

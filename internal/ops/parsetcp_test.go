@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -32,4 +33,31 @@ func TestParseTCPFixtures(t *testing.T) {
 			core.Recipe{{Op: "Parse TCP", Args: []any{"Hex"}}},
 		},
 	})
+}
+
+// TestParseTCPBranches covers the option-parsing edge cases not in the happy-path
+// fixture: unknown option kinds, mis-sized option parsers, long hex values,
+// trailing data and a too-short header. Values are oracle-verified except the
+// window-scale error (CyberChef 500s on it; cchef degrades gracefully via its
+// value type guard).
+func TestParseTCPBranches(t *testing.T) {
+	if _, err := runOp(t, "Parse TCP", "0000", "Hex"); err == nil {
+		t.Fatal("expected error for a short TCP header")
+	}
+	cases := []struct{ name, input, want string }{
+		{"unknown kind", "005001bb0000000000000000600000000000000063040000", `"Reserved":{"Kind":99,"Length":4,"Value":0}`},
+		{"timestamp bad length", "005001bb0000000000000000600000000000000008040000", "Timestamp field should be 8 bytes long (received 0x0000)"},
+		{"long option hex value", "005001bb000000000000000070000000000000000208000000000000", `"Value":"0x000000000000"`},
+		{"trailing data", "005001bb00000000000000005000000000000000deadbeef", `"Data":"0xdeadbeef"`},
+		{"window scale bad length", "005001bb0000000000000000600000000000000003040000", "Window Scale should be one byte long (received 0x0000)"},
+	}
+	for _, c := range cases {
+		out, err := runOp(t, "Parse TCP", c.input, "Hex")
+		if err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		if !strings.Contains(out, c.want) {
+			t.Errorf("%s: missing %q in:\n%s", c.name, c.want, out)
+		}
+	}
 }

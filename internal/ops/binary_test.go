@@ -45,3 +45,17 @@ func TestBinaryOps(t *testing.T) {
 		},
 	})
 }
+
+func TestBinaryBranches(t *testing.T) {
+	if _, err := runOp(t, "From Binary", "11111111111111111111111111111111111111111111111111111111111111111", "Space", 65.0); err == nil {
+		t.Fatal("From Binary: expected an error for oversized byte length")
+	}
+	// Direct Run calls reach the ArgDef-guarded width branches: To Binary width 0
+	// falls back to 8; From Binary width 0 errors rather than misbehaving.
+	if _, err := (ToBinary{}).Run(abytes("A"), []any{"Space", float64(0)}); err != nil {
+		t.Fatalf("To Binary width 0: %v", err)
+	}
+	if _, err := (FromBinary{}).Run(sdish("01000001"), []any{"Space", float64(0)}); err == nil {
+		t.Fatal("From Binary width 0: expected an error")
+	}
+}

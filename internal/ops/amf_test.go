@@ -75,3 +75,14 @@ func TestAMFRoundTrip(t *testing.T) {
 	}
 	runCases(t, cases)
 }
+
+// TestAMFErrors covers the decode error (invalid marker byte) and the encode
+// error (unparseable JSON input).
+func TestAMFErrors(t *testing.T) {
+	if _, err := runOp(t, "AMF Decode", "\xff", "AMF0"); err == nil {
+		t.Fatal("expected an error decoding an invalid AMF marker")
+	}
+	if _, err := runOp(t, "AMF Encode", "not json", "AMF0"); err == nil {
+		t.Fatal("expected an error encoding invalid JSON")
+	}
+}

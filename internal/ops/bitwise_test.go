@@ -96,3 +96,11 @@ func TestBitwiseFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestANDBadKey(t *testing.T) {
+	// A malformed Base64 key reaches convertToByteArray's decode error; the Hex
+	// mode strips non-hex chars, so it cannot report a bad key.
+	if _, err := runOp(t, "AND", "abc", core.ToggleString{Value: "!!!!", Option: "Base64"}); err == nil {
+		t.Fatal("AND with an invalid Base64 key: expected an error")
+	}
+}

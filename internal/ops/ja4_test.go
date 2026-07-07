@@ -1,10 +1,60 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
+
+// minimalClientHello is a hand-built TLS 1.2 Client Hello whose extensions block
+// carries a signature_algorithms extension (0x000d) with a 1-byte value and a
+// single trailing dangling byte, exercising parseJA4Hello's short-extension break
+// and toJA4's short-signature-algorithms path.
+var minimalClientHello = "1603010035" + // record: handshake, TLS 1.0, length 0x35
+	"01" + "000031" + // handshake: client hello, length 0x31
+	"0303" + // client version
+	strings.Repeat("00", 32) + // random
+	"00" + // session ID length 0
+	"0002" + "1301" + // cipher suites: length 2, one suite
+	"01" + "00" + // compression: length 1, method 0
+	"0006" + "000d" + "0001" + "00" + "ff" // extensions: len 6, sig-algs(len1)+dangling byte
+
+func TestJA4ParseBranches(t *testing.T) {
+	// The minimal record parses successfully, covering the short-extension break
+	// and the short-signature-algorithms branch.
+	if _, err := runOp(t, "JA4 Fingerprint", minimalClientHello, "Hex", "JA4 Raw"); err != nil {
+		t.Fatalf("JA4 (minimal record): %v", err)
+	}
+	// pad2Count clamps counts above 99.
+	if got := pad2Count(100); got != "99" {
+		t.Fatalf("pad2Count(100) = %q, want 99", got)
+	}
+	if got := pad2Count(7); got != "07" {
+		t.Fatalf("pad2Count(7) = %q, want 07", got)
+	}
+}
+
+func TestJA4FingerprintErrors(t *testing.T) {
+	// A single Base64 char cannot form a byte pair, so fingerprintBytes errors.
+	if _, err := runOp(t, "JA4 Fingerprint", "A", "Base64", "JA4"); err == nil {
+		t.Fatal("JA4 (bad Base64): expected an error")
+	}
+	// Dropping a byte breaks the record-length check.
+	if _, err := runOp(t, "JA4 Fingerprint", minimalClientHello[:len(minimalClientHello)-2], "Hex", "JA4"); err == nil {
+		t.Fatal("JA4 (short record): expected an error")
+	}
+	// Bumping the handshake length (31 -> 32) breaks the handshake-length check.
+	badHsLen := minimalClientHello[:17] + "2" + minimalClientHello[18:]
+	if _, err := runOp(t, "JA4 Fingerprint", badHsLen, "Hex", "JA4"); err == nil {
+		t.Fatal("JA4 (bad handshake length): expected an error")
+	}
+	// An unknown handshake type byte (01 -> 03) hits the default branch.
+	badType := minimalClientHello[:10] + "03" + minimalClientHello[12:]
+	if _, err := runOp(t, "JA4 Fingerprint", badType, "Hex", "JA4"); err == nil {
+		t.Fatal("JA4 (unknown handshake type): expected an error")
+	}
+}
 
 // Cases transcribed from CyberChef tests/operations/tests/JA4.mjs (JA4 client).
 func TestJA4Fingerprint(t *testing.T) {

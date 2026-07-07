@@ -60,5 +60,30 @@ func TestIPv6TransitionFixtures(t *testing.T) {
 			"Enter compressed or expanded IPv6 address, IPv4 address or MAC Address.",
 			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
 		},
+		// A compressed IPv4-mapped address: short hextets are zero-padded.
+		{
+			"mapped compressed padding", "::ffff:1:2", "IPv4: 0.1.0.2\n",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
+		},
+		// A blank line between addresses is skipped.
+		{
+			"blank line skipped", "198.51.100.7\n\n198.51.100.7",
+			"6to4: 2002:c633:6407::/48\nIPv4 Mapped: ::ffff:c633:6407\nIPv4 Translated: ::ffff:0:c633:6407\nNat 64: 64:ff9b::c633:6407\n" +
+				"6to4: 2002:c633:6407::/48\nIPv4 Mapped: ::ffff:c633:6407\nIPv4 Translated: ::ffff:0:c633:6407\nNat 64: 64:ff9b::c633:6407\n",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
+		},
+		// With "Ignore ranges" on, a CIDR line is skipped entirely.
+		{
+			"ignore ranges skips CIDR", "198.51.100.0/24", "",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
+		},
+		// An EUI-64 whose reversed-MAC second nibble is a hex letter: cchef
+		// lowercases the XOR-table key, so it renders "0e" where CyberChef (which
+		// leaves the key upper-case) renders "0undefined".
+		{
+			"EUI-64 letter nibble (cchef fixes CyberChef bug)", "fe80::0cb2:c3ff:fed4:e5f6",
+			"Mac Address: 0e:B2:C3:D4:E5:F6\n",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
+		},
 	})
 }

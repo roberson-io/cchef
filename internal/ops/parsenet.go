@@ -142,6 +142,9 @@ func (o *omap) MarshalJSON() ([]byte, error) {
 }
 
 // marshalOMap renders an omap as compact JSON text (CyberChef's minified form).
+// The packet parsers only store ints, strings and nested omaps, all JSON-safe,
+// so their `marshalOMap` error propagations are unreachable in practice; the
+// encoder's actual failure mode is exercised directly in parsenet_test.go.
 func marshalOMap(o *omap) ([]byte, error) {
 	return jsonNoEscape(o)
 }

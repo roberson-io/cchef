@@ -1,6 +1,30 @@
 package core
 
-import "testing"
+import (
+	"fmt"
+	"strings"
+	"testing"
+)
+
+// failTestOp always errors, to exercise Recipe.Execute's step-error wrapping.
+type failTestOp struct{}
+
+func (failTestOp) Meta() OpMeta   { return OpMeta{Name: "Test Fail"} }
+func (failTestOp) Args() []ArgDef { return nil }
+func (failTestOp) Run(*Dish, []any) (*Dish, error) {
+	return nil, fmt.Errorf("boom")
+}
+
+// TestRecipeStepError checks that a failing step's error is wrapped with the step
+// number and operation name.
+func TestRecipeStepError(t *testing.T) {
+	reg := NewRegistry()
+	reg.Register(failTestOp{})
+	if _, err := (Recipe{{Op: "Test Fail"}}).ExecuteWith(reg, NewDish(nil, TypeString)); err == nil ||
+		!strings.Contains(err.Error(), "step 1 (Test Fail)") {
+		t.Fatalf("got %v, want a step-wrapped error", err)
+	}
+}
 
 func TestRecipeExecute(t *testing.T) {
 	reg := NewRegistry()

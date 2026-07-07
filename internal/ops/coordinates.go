@@ -463,7 +463,6 @@ func convertCoordinates(input, inFormat, inDelim, outFormat, outDelim string, in
 	latDir, longDir := findDirs(jsNum(lat)+","+jsNum(lon), ",")
 
 	var convLat, convLon string
-	hasConv := true
 	switch outFormat {
 	case "Decimal Degrees":
 		convLat, convLon = convDDToDD(lat, precision), convDDToDD(lon, precision)
@@ -512,9 +511,13 @@ func convertCoordinates(input, inFormat, inDelim, outFormat, outDelim string, in
 		convLat = fmt.Sprintf("%d %s %s %s", zone, hemi,
 			strconv.FormatFloat(e, 'f', precision, 64), strconv.FormatFloat(n, 'f', precision, 64))
 	default:
-		hasConv = false
+		// outFormat is validated against coordFormats by the arg layer, so every
+		// format has a case above; reaching here means an unvalidated value slipped
+		// through, which is a programming error.
+		panic(fmt.Sprintf("convertCoordinates: unhandled output format %q", outFormat))
 	}
-	if !hasConv || convLat == "" {
+	// convLat is empty only for a zero-precision Geohash.
+	if convLat == "" {
 		return "", fmt.Errorf("error converting co-ordinates")
 	}
 

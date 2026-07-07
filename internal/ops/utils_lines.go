@@ -175,6 +175,10 @@ func naturalCompare(a, b string, hex bool) int {
 	as, bs := sortSegments(a, hex), sortSegments(b, hex)
 	for i := 0; i < len(as) && i < len(bs); i++ {
 		x, y := as[i], bs[i]
+		// sortSegments always alternates numeric/separator segments positionally
+		// (even indices numeric, odd indices not), so x and y at the same index
+		// always share isNum; the two cross-type cases below are kept only to
+		// mirror CyberChef's comparator and cannot fire.
 		switch {
 		case !x.isNum && y.isNum:
 			return 1
@@ -211,6 +215,9 @@ func localeCompareASCII(a, b string) int {
 		}
 		aLower := a[i] >= 'a' && a[i] <= 'z'
 		bLower := b[i] >= 'a' && b[i] <= 'z'
+		// The loop only runs when ToLower(a)==ToLower(b), so any differing byte is
+		// the same letter in opposite case; one of the two case branches always
+		// fires and the raw byte-order comparisons below cannot be reached.
 		switch {
 		case aLower && !bLower:
 			return -1

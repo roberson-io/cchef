@@ -118,3 +118,22 @@ func TestXOROp(t *testing.T) {
 		},
 	})
 }
+
+func TestXORKeyBranches(t *testing.T) {
+	if v, ok := leadingInt("+5"); !ok || v != 5 {
+		t.Fatalf("leadingInt(+5) = %d, %v", v, ok)
+	}
+	if _, ok := leadingInt("abc"); ok {
+		t.Fatal("leadingInt(abc) should be false")
+	}
+	if _, ok := leadingInt("99999999999999999999999"); ok {
+		t.Fatal("leadingInt(overflow) should be false")
+	}
+	if _, err := runOp(t, "XOR", "abc", core.ToggleString{Value: "!!!!", Option: "Base64"}, "Standard", false); err == nil {
+		t.Fatal("XOR with an invalid Base64 key: expected an error")
+	}
+	// A non-numeric decimal key is treated as identity, not an error.
+	if _, err := runOp(t, "XOR", "abc", core.ToggleString{Value: "xyz", Option: "Decimal"}, "Standard", false); err != nil {
+		t.Fatalf("XOR (non-numeric decimal key): %v", err)
+	}
+}

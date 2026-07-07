@@ -40,3 +40,22 @@ func TestRotateFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestRotateEmpty(t *testing.T) {
+	for _, op := range []string{"Rotate left", "Rotate right"} {
+		if out, err := runOp(t, op, "", 1.0, false); err != nil || out != "" {
+			t.Fatalf("%s(empty) = %q, %v; want empty", op, out, err)
+		}
+	}
+}
+
+// TestRotateCarryEmpty covers the empty-input guard in the carry-through rotate
+// helpers (rotlCarry/rotrCarry).
+func TestRotateCarryEmpty(t *testing.T) {
+	if out, err := runOp(t, "Rotate left", "", 1, true); err != nil || out != "" {
+		t.Fatalf("Rotate left carry empty = %q, %v", out, err)
+	}
+	if out, err := runOp(t, "Rotate right", "", 1, true); err != nil || out != "" {
+		t.Fatalf("Rotate right carry empty = %q, %v", out, err)
+	}
+}

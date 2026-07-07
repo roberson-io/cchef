@@ -43,6 +43,9 @@ func TestParseUNIXPermsBranches(t *testing.T) {
 		{"brw-rw----", "brw-rw----", "0660", "Block device", nil},
 		{"Drwxr-xr-x", "Drwxr-xr-x", "0755", "Door", nil},
 		{"-rw-r--r--", "-rw-r--r--", "0644", "Regular file", nil},
+		// A textual perm shorter than 10 chars exercises the out-of-range byte
+		// accessor (missing positions read as 0).
+		{"d", "d---------", "0000", "Directory", nil},
 		{
 			"-rwsr-sr-t", "-rwsr-sr-t", "7755", "Regular file",
 			[]string{"The setuid flag is set", "The setgid flag is set", "The sticky bit is set"},

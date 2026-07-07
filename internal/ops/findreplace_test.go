@@ -63,3 +63,32 @@ func TestFindReplace(t *testing.T) {
 		},
 	})
 }
+
+func TestFindReplaceBranches(t *testing.T) {
+	regex := func(s string) core.ToggleString { return core.ToggleString{Value: s, Option: "Regex"} }
+	// "Dot matches all" adds the s flag so "." spans newlines.
+	if out, err := runOp(t, "Find / Replace", "a\nb", regex("a.b"), "X", true, false, true, true); err != nil || out != "X" {
+		t.Fatalf("dotall = %q, %v", out, err)
+	}
+	// An invalid regex pattern is reported as an error.
+	if _, err := runOp(t, "Find / Replace", "abc", regex("["), "X", true, false, true, false); err == nil {
+		t.Fatal("invalid regex: expected an error")
+	}
+}
+
+// TestParseEscapedChars covers the escape-sequence decoder's less-common arms
+// (backslash, \x, \u, \u{...}) directly.
+func TestParseEscapedChars(t *testing.T) {
+	cases := map[string]string{
+		`\\`:        "\\",
+		`\x41`:      "A",
+		`\u0041`:    "A",
+		`\u{1F600}`: "\U0001F600",
+		`\a`:        "\x07",
+	}
+	for in, want := range cases {
+		if got := parseEscapedChars(in); got != want {
+			t.Errorf("parseEscapedChars(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

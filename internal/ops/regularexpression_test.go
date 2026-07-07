@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -54,4 +55,20 @@ func TestRegularExpression(t *testing.T) {
 			core.Recipe{{Op: "Regular expression", Args: []any{"", "", true, true, false, false, false, false, "Highlight matches"}}},
 		},
 	})
+}
+
+// TestRegularExpressionBranches covers the invalid-regex error and the
+// display-total prefix.
+func TestRegularExpressionBranches(t *testing.T) {
+	if _, err := runOp(t, "Regular expression", "abc", "", "[", false, true, false, false, false, false, "List matches"); err == nil {
+		t.Fatal("expected an error for an invalid regex")
+	}
+	// "Highlight matches" with Display total prepends the count in regexHighlight.
+	out, err := runOp(t, "Regular expression", "a1b2", "", `\d`, false, true, false, false, false, true, "Highlight matches")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "Total found: 2") {
+		t.Fatalf("display total: %q", out)
+	}
 }

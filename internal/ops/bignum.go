@@ -2,7 +2,6 @@ package ops
 
 import (
 	"math/big"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -27,7 +26,6 @@ var (
 	bnNaN     = bigNum{nan: true}
 	bnTen     = big.NewInt(10)
 	bnScale20 = new(big.Int).Exp(bnTen, big.NewInt(bnDecimalPlaces), nil)
-	decNumRe  = regexp.MustCompile(`^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$`)
 )
 
 // finite builds a finite bigNum from a big.Rat, taking its sign from the value
@@ -103,9 +101,13 @@ func parseRadix(sign, body string, base int) (bigNum, bool) {
 	return bigNum{val: r, neg: sign == "-"}, true
 }
 
-// parseDecimal parses a base-10 number with optional fraction and exponent.
+// parseDecimal parses a base-10 number with optional fraction and exponent. It
+// validates by parsing rather than a pre-check: a leading sign is rejected (it
+// would be a doubled sign, since parseBigNum already stripped one), and the
+// exponent Atoi, empty-digit and SetString steps below reject any remaining
+// malformed input — matching bignumber.js's NaN result.
 func parseDecimal(sign, body string) (bigNum, bool) {
-	if !decNumRe.MatchString(body) {
+	if body == "" || body[0] == '+' || body[0] == '-' {
 		return bnNaN, false
 	}
 	mant := body
@@ -123,7 +125,9 @@ func parseDecimal(sign, body string) (bigNum, bool) {
 		intPart, fracPart = before, after
 	}
 	digits := intPart + fracPart
-	if digits == "" {
+	// A leading sign here (e.g. ".-99", where the integer part is empty) would be
+	// accepted by SetString; reject it to match bignumber.js.
+	if digits == "" || digits[0] == '+' || digits[0] == '-' {
 		return bnNaN, false
 	}
 	num, ok := new(big.Int).SetString(digits, 10)

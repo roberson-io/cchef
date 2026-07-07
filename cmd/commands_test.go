@@ -159,3 +159,44 @@ func TestExecuteList(t *testing.T) {
 		}
 	}
 }
+
+// TestExecuteMoreErrorPaths covers command error/branch paths not in the primary
+// error test: convert's recipe-load failure, bake's runtime op error, url's
+// recipe-load and input-resolution failures, and convert's format auto-detection.
+func TestExecuteMoreErrorPaths(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "nope.json")
+	// convert with an unparseable recipe.
+	if err := execRootErr(t, "recipe", "convert", "-e", `[{"op":`); err == nil {
+		t.Error("convert bad recipe: expected an error")
+	}
+	// bake with a missing input file (resolveInput error).
+	if err := execRootErr(t, "bake", "-e", "To_Hex()", "--in-file", missing); err == nil {
+		t.Error("bake missing input: expected an error")
+	}
+	// A generated operation subcommand with a missing input file (resolveInput error).
+	if err := execRootErr(t, "to-hex", "--in-file", missing); err == nil {
+		t.Error("op missing input: expected an error")
+	}
+	// A generated operation subcommand whose operation fails at runtime.
+	if err := execRootErr(t, "parse-ipv6-address", "not-an-address"); err == nil {
+		t.Error("op runtime error: expected an error")
+	}
+	// url with an unparseable recipe.
+	if err := execRootErr(t, "url", "-e", `[{"op":`); err == nil {
+		t.Error("url bad recipe: expected an error")
+	}
+	// url with a missing input file.
+	if err := execRootErr(t, "url", "-e", "To_Hex()", "--in-file", missing); err == nil {
+		t.Error("url missing input: expected an error")
+	}
+	resetIOFlags()
+}
+
+// TestExecuteRecipeConvertJSONAutoDetect covers convert's target detection for a
+// JSON-format recipe (leading '['): with no --to it defaults to Chef output.
+func TestExecuteRecipeConvertJSONAutoDetect(t *testing.T) {
+	got := execRoot(t, "recipe", "convert", "-e", `[{"op":"To Hex","args":["Space"]}]`)
+	if !strings.Contains(got, "To_Hex(") {
+		t.Fatalf("expected Chef output, got: %s", got)
+	}
+}

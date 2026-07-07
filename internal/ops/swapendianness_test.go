@@ -42,3 +42,10 @@ func TestSwapEndianness(t *testing.T) {
 		},
 	})
 }
+
+// TestSwapEndiannessWordLength covers the non-positive word-length guard.
+func TestSwapEndiannessWordLength(t *testing.T) {
+	if _, err := runOp(t, "Swap endianness", "0011", "Hex", 0, true); err == nil {
+		t.Fatal("expected an error for a zero word length")
+	}
+}

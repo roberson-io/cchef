@@ -148,3 +148,37 @@ func TestParseTLSRecordFixtures(t *testing.T) {
 		},
 	})
 }
+
+// TestTLSHandshakeHelperTruncation directly exercises the sub-parsers' short-input
+// guards; these fire on truncated records but are simplest to drive in isolation.
+func TestTLSHandshakeHelperTruncation(t *testing.T) {
+	rec := newOMap()
+	if got := tlsParseHandshake(newByteStream(nil), rec); got != rec {
+		t.Fatal("tlsParseHandshake(empty) should return the record unchanged")
+	}
+	if got := tlsReadExtension(newByteStream([]byte{0x00, 0x00})); got != nil {
+		t.Fatalf("tlsReadExtension(short) = %v, want nil", got)
+	}
+	ticket := tlsParseNewSessionTicket(newByteStream([]byte{0x00}))
+	if ticket.vals["ticketLifetimeHint"] != "" {
+		t.Fatalf("ticketLifetimeHint = %v, want empty for a truncated ticket", ticket.vals["ticketLifetimeHint"])
+	}
+	// A certificate list length needs 3 bytes; a shorter stream is handled without panic.
+	_ = tlsParseCertificate(newByteStream([]byte{0x00}))
+}
+
+// TestTLSServerHelloSessionID covers the Server Hello session-ID branch (fixtures
+// use empty session IDs).
+func TestTLSServerHelloSessionID(t *testing.T) {
+	var data []byte
+	data = append(data, 0x03, 0x03)          // server version
+	data = append(data, make([]byte, 32)...) // random
+	data = append(data, 0x01, 0xaa)          // session ID: length 1, value 0xaa
+	data = append(data, 0x13, 0x01)          // cipher suite
+	data = append(data, 0x00)                // compression method
+	data = append(data, 0x00, 0x00)          // extensions length 0
+	o := tlsParseServerHello(newByteStream(data))
+	if o.vals["sessionID"] == nil {
+		t.Fatalf("expected sessionID to be set; keys=%v", o.keys)
+	}
+}

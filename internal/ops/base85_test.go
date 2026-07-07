@@ -48,3 +48,33 @@ func TestBase85Fixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestBase85Errors(t *testing.T) {
+	cases := []struct {
+		name, op, input string
+		args            []any
+	}{
+		{"To Base85 rejects wrong-length alphabet", "To Base85", "x", []any{"short", false}},
+		{"From Base85 rejects wrong-length alphabet", "From Base85", "abc", []any{"short", true, "z"}},
+		{"From Base85 rejects all-zero char in alphabet", "From Base85", "abc", []any{base85Standard, true, "!"}},
+		{"From Base85 rejects char not in alphabet", "From Base85", "~~~~~", []any{base85Standard, false, "z"}},
+	}
+	for _, c := range cases {
+		if _, err := runOp(t, c.op, c.input, c.args...); err == nil {
+			t.Fatalf("%s: expected an error", c.name)
+		}
+	}
+}
+
+func TestBase85ValueBranches(t *testing.T) {
+	if out, err := runOp(t, "To Base85", "", base85Standard, false); err != nil || out != "" {
+		t.Fatalf("To Base85(\"\") = %q, %v; want empty", out, err)
+	}
+	if out, err := runOp(t, "From Base85", "", base85Standard, false, "z"); err != nil || out != "" {
+		t.Fatalf("From Base85(\"\") = %q, %v; want empty", out, err)
+	}
+	// base85AlphabetName returns "" for an unrecognised alphabet.
+	if got := base85AlphabetName("not a known 85-char alphabet"); got != "" {
+		t.Fatalf("base85AlphabetName(unknown) = %q, want \"\"", got)
+	}
+}

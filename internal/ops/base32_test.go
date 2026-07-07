@@ -60,3 +60,14 @@ func TestBase32Fixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestBase32Branches(t *testing.T) {
+	// Three input bytes exercise the 3-byte padding case.
+	if _, err := runOp(t, "To Base32", "abc", "A-Z2-7="); err != nil {
+		t.Fatalf("To Base32(abc): %v", err)
+	}
+	// A non-alphabet char with stripping disabled reaches the -1 lookup.
+	if _, err := runOp(t, "From Base32", "!!!!!!!!", "A-Z2-7=", false); err != nil {
+		t.Fatalf("From Base32(!): %v", err)
+	}
+}

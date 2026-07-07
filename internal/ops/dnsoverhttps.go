@@ -57,10 +57,9 @@ func (DNSOverHTTPS) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	q.Set("cd", strconv.FormatBool(dnssec))
 	u.RawQuery = q.Encode()
 
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
+	// Build the request straight from the already-parsed URL rather than
+	// re-serialising and re-parsing it via http.NewRequest.
+	req := &http.Request{Method: http.MethodGet, URL: u, Header: http.Header{}}
 	req.Header.Set("Accept", "application/dns-json")
 
 	resp, err := http.DefaultClient.Do(req)

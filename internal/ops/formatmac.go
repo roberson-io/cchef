@@ -83,16 +83,13 @@ func (FormatMACAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		macCisco := macInsertEvery(cleanMac, 4, ".")
 
 		// EUI-64 IPv6 interface ID: insert fffe in the middle, colon-group, then
-		// flip the universal/local bit of the first octet.
-		macIPv6 := cleanMac
-		if len(cleanMac) >= 6 {
-			macIPv6 = cleanMac[:6] + "fffe" + cleanMac[6:]
-		}
+		// flip the universal/local bit of the first octet. jsSlice mirrors JS
+		// slice's clamping so inputs shorter than 6 chars still get fffe (the
+		// "fffe" guarantees at least 4 chars for the octet flip below).
+		macIPv6 := jsSlice(cleanMac, 0, 6) + "fffe" + jsSlice(cleanMac, 6, len(cleanMac))
 		macIPv6 = macInsertEvery(macIPv6, 4, ":")
-		if len(macIPv6) >= 2 {
-			bite, _ := strconv.ParseUint(macIPv6[:2], 16, 16)
-			macIPv6 = fmt.Sprintf("%02x", bite^2) + macIPv6[2:]
-		}
+		bite, _ := strconv.ParseUint(macIPv6[:2], 16, 16)
+		macIPv6 = fmt.Sprintf("%02x", bite^2) + macIPv6[2:]
 
 		variants := []string{cleanMac, macHyphen, macColon, macCisco, macIPv6}
 		enabled := []bool{noDelim, dashDelim, colonDelim, ciscoStyle, ipv6IntID}

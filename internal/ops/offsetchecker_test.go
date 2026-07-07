@@ -39,3 +39,18 @@ func TestOffsetChecker(t *testing.T) {
 		t.Error("single sample: expected error")
 	}
 }
+
+// TestOffsetCheckerTrailingMatch covers the span-close when a match reaches the
+// end of a shorter sample. The CyberChef-server oracle rejects these inputs, but
+// the output matches CyberChef's OffsetChecker.mjs algorithm exactly (including
+// its quirky trailing "</span>").
+func TestOffsetCheckerTrailingMatch(t *testing.T) {
+	out, err := runOp(t, "Offset checker", "abc\nxb", `\n`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "a<span class='hl5'>b</span>c</span>\nx<span class='hl5'>b</span></span>"
+	if out != want {
+		t.Fatalf("got %q, want %q", out, want)
+	}
+}

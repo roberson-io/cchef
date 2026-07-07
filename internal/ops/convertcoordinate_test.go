@@ -181,6 +181,12 @@ func TestConvertCoordinateFormatAutoDetect(t *testing.T) {
 			"Decimal Degrees", "Auto", "Decimal Degrees", "Comma", "None", 4.0),
 		cc("auto delim direction-preceding", "N51.5074 W0.1278", "51.5074°,-0.1278°,",
 			"Decimal Degrees", "Auto", "Decimal Degrees", "Comma", "None", 4.0),
+		// Direction-following auto-detection (findDelim/findFormat direction paths).
+		cc("auto delim direction-following", "51.5074N 0.1278W", "51.5074°,-0.1278°,",
+			"Auto", "Auto", "Decimal Degrees", "Comma", "None", 4.0),
+		// Auto format with a leading direction exercises findFormat's split[0]=="" arm.
+		cc("auto format direction-preceding", "N51.5074 W0.1278", "51.5074°,-0.1278°,",
+			"Auto", "Auto", "Decimal Degrees", "Comma", "None", 4.0),
 
 		// Direction handling in input and output (findDirs); CyberChef fixtures.
 		cc("dirs in input, not output", "N51.504°,W0.126°,", "51.504°,-0.126°,",
@@ -192,4 +198,112 @@ func TestConvertCoordinateFormatAutoDetect(t *testing.T) {
 		cc("dirs not in input, in converted output", "51.504°,-0.126°,", "N 51° 30' 14.4\",W 0° 7' 33.6\",",
 			"Decimal Degrees", "Comma", "Degrees Minutes Seconds", "Comma", "Before", 3.0),
 	})
+}
+
+// TestConvertCoordinateOutputBranches covers output-format precision handling,
+// hemisphere/direction rendering, and the input normalisation/single-value paths.
+// Values are oracle-verified except where noted (CyberChef errors on single-value
+// coordinate inputs, so those assert cchef's own lenient behaviour).
+func TestConvertCoordinateOutputBranches(t *testing.T) {
+	cc := func(name, in, out string, args ...any) opCase {
+		return opCase{name, in, out, core.Recipe{{Op: "Convert co-ordinate format", Args: args}}}
+	}
+	runCases(t, []opCase{
+		// MGRS output with odd and >10 precision (rounded to even, capped at 10).
+		cc("mgrs out odd precision", "51.5074, -0.1278", "30U XC 99 10,",
+			"Decimal Degrees", "Auto", "Military Grid Reference System", "Comma", "None", 3.0),
+		cc("mgrs out precision over 10", "51.5074, -0.1278", "30U XC 99316 10163,",
+			"Decimal Degrees", "Auto", "Military Grid Reference System", "Comma", "None", 11.0),
+		// OSNG output with odd and >10 precision (rounded to even, capped at 10).
+		cc("osng out odd precision", "51.5074, -0.1278", "TQ 30 80,",
+			"Decimal Degrees", "Auto", "Ordnance Survey National Grid", "Comma", "None", 3.0),
+		cc("osng out precision over 10", "51.5074, -0.1278", "TQ 30028 80380,",
+			"Decimal Degrees", "Auto", "Ordnance Survey National Grid", "Comma", "None", 11.0),
+		// UTM output for a southern-hemisphere coordinate (hemi = "S").
+		cc("utm out southern hemisphere", "-33.8688, 151.2093", "56 S 334368.634 6250948.345,",
+			"Decimal Degrees", "Auto", "Universal Transverse Mercator", "Comma", "None", 3.0),
+		// A leading S/W direction negates the value (Degrees-family input).
+		cc("direction negates value", "S51.5074 W0.1278", "-51.5074°,-0.1278°,",
+			"Decimal Degrees", "Direction Preceding", "Decimal Degrees", "Comma", "None", 4.0),
+		// Negative latitude renders as an S direction (the "-" is stripped).
+		cc("southern latitude output direction", "-33.8688, 151.2093", "S 33.869°,E 151.209°,",
+			"Decimal Degrees", "Auto", "Decimal Degrees", "Comma", "Before", 3.0),
+		// UTM input without a space between zone and hemisphere is normalised.
+		cc("utm input no space", "30N 699316.234 5710163.758", "51.5074°,-0.1278°,",
+			"Universal Transverse Mercator", "Comma", "Decimal Degrees", "Comma", "None", 4.0),
+		// A negative precision is clamped to zero.
+		cc("negative precision clamps to zero", "51.5074, -0.1278", "52°,0°,",
+			"Decimal Degrees", "Auto", "Decimal Degrees", "Comma", "None", -1.0),
+		// Single-value inputs (CyberChef errors on these; cchef emits a single value).
+		cc("dms single value", "51 30 26.64", "51.5074°,",
+			"Degrees Minutes Seconds", "Comma", "Decimal Degrees", "Comma", "None", 5.0),
+		cc("ddm single value", "51 30.444", "51.5074°,",
+			"Degrees Decimal Minutes", "Comma", "Decimal Degrees", "Comma", "None", 5.0),
+	})
+}
+
+// TestConvertCoordinateMoreErrors covers additional error paths: an invalid MGRS
+// reference, out-of-range OSNG output, and a UTM zone the library rejects.
+func TestConvertCoordinateMoreErrors(t *testing.T) {
+	errs := []struct {
+		name, in, inFmt, outFmt string
+		prec                    float64
+	}{
+		{"invalid MGRS", "ZZZZ", "Military Grid Reference System", "Decimal Degrees", 5.0},
+		{"OSNG output out of range", "0, 0", "Decimal Degrees", "Ordnance Survey National Grid", 5.0},
+		{"UTM zone rejected", "99 N 699316.234 5710163.758", "Universal Transverse Mercator", "Decimal Degrees", 5.0},
+		{"MGRS output polar", "89, 0", "Decimal Degrees", "Military Grid Reference System", 5.0},
+		{"UTM output polar", "89, 0", "Decimal Degrees", "Universal Transverse Mercator", 5.0},
+		{"geohash zero precision", "51.5074, -0.1278", "Decimal Degrees", "Geohash", 0.0},
+	}
+	for _, c := range errs {
+		if _, err := runOp(t, "Convert co-ordinate format",
+			c.in, c.inFmt, "Comma", c.outFmt, "Comma", "None", c.prec); err == nil {
+			t.Errorf("%s: expected an error", c.name)
+		}
+	}
+}
+
+// TestCoordinateHelpers directly exercises the direction-detection helpers and
+// the short-input guard in fmtMGRS; findDirs is only ever called with numeric
+// data in convertCoordinates, so its explicit-direction branches are unreachable
+// through the operation.
+func TestCoordinateHelpers(t *testing.T) {
+	if la, lo := findDirs("N51.5 W0.1", "Auto"); la != "N" || lo != "W" {
+		t.Fatalf("findDirs(explicit) = %q,%q; want N,W", la, lo)
+	}
+	// A single explicit direction returns an empty second direction.
+	if la, lo := findDirs("N51.5", "Auto"); la != "N" || lo != "" {
+		t.Fatalf("findDirs(single) = %q,%q; want N,\"\"", la, lo)
+	}
+	// Three directions bypass the <=2 shortcut and use the direction-split path;
+	// leading direction (split[0]=="") and following direction (split[0]!="").
+	if la, lo := findDirs("N51 E0 W1", "Direction Preceding"); la == "" || lo == "" {
+		t.Fatalf("findDirs(leading direction) = %q,%q; want non-empty", la, lo)
+	}
+	if la, lo := findDirs("51N 0E 1W", "Direction Following"); la == "" || lo == "" {
+		t.Fatalf("findDirs(following direction) = %q,%q; want non-empty", la, lo)
+	}
+	if got := findDelim("51.5N 0.1W"); got != "Direction Following" {
+		t.Fatalf("findDelim = %q, want Direction Following", got)
+	}
+	if got := fmtMGRS("30U"); got != "30U" {
+		t.Fatalf("fmtMGRS(short) = %q, want 30U", got)
+	}
+	// A non-direction delimiter with a leading empty field takes findFormat's
+	// split[0]=="" arm.
+	if got := findFormat(",51.5074", ","); got == "" {
+		t.Fatalf("findFormat(leading delimiter) = %q, want a detected format", got)
+	}
+}
+
+// TestConvertCoordinatesUnknownOutputFormatPanics verifies the defensive panic
+// for an output format the arg layer would never allow through.
+func TestConvertCoordinatesUnknownOutputFormatPanics(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected a panic for an unhandled output format")
+		}
+	}()
+	_, _ = convertCoordinates("51.5, -0.1", "Decimal Degrees", "Comma", "Bogus Format", "Comma", "None", 3)
 }

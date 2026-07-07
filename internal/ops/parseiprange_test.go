@@ -82,6 +82,12 @@ func TestParseIPRangeErrors(t *testing.T) {
 		// path above (a multi-line input routes through ipv4ListedRange/ipv6ListedRange).
 		{"IPv4 list subnet out of range", "10.0.0.1\n10.0.0.0/40", "IPv4 CIDR must be less than 32"},
 		{"IPv6 list subnet out of range", "2404:6800:4001::\n2404:6800:4001::/200", "IPv6 CIDR must be less than 128"},
+		// Structurally-valid octets that overflow 255 pass the routing regexes but
+		// fail strToIpv4 inside each range parser.
+		{"hyphenated bad first octet", "256.0.0.0-1.2.3.4", "block out of range"},
+		{"hyphenated bad second octet", "1.2.3.4-256.0.0.0", "block out of range"},
+		{"list CIDR bad octet", "1.2.3.4\n256.0.0.0/24", "block out of range"},
+		{"list plain bad octet", "1.2.3.4\n256.0.0.0", "block out of range"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -90,5 +96,28 @@ func TestParseIPRangeErrors(t *testing.T) {
 				t.Fatalf("got err %v, want containing %q", err, c.wantErr)
 			}
 		})
+	}
+}
+
+// TestParseIPRangeListBranches covers the list/range edge cases: blank lines are
+// skipped, an equal IPv6 range counts as a single address, and a duplicated IPv6
+// entry drives the sort comparator's fully-equal (return false) path.
+func TestParseIPRangeListBranches(t *testing.T) {
+	for _, in := range []string{
+		"1.2.3.4\n\n5.6.7.8", // blank line in an IPv4 list
+		"::1\n\n::2",         // blank line in an IPv6 list
+		"::1\n::1",           // duplicate IPv6 entries -> comparator equal case
+	} {
+		if _, err := pirRecipe().Execute(core.NewDish([]byte(in), core.TypeString)); err != nil {
+			t.Errorf("%q: %v", in, err)
+		}
+	}
+	// An IPv6 range whose endpoints are equal totals exactly one address.
+	out, err := pirRecipe().Execute(core.NewDish([]byte("::1-::1"), core.TypeString))
+	if err != nil {
+		t.Fatalf("::1-::1: %v", err)
+	}
+	if !strings.Contains(out.String(), "Total addresses in range: 1") {
+		t.Errorf("::1-::1: want total of 1, got:\n%s", out.String())
 	}
 }

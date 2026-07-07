@@ -54,3 +54,29 @@ func TestCharcodeFixtures(t *testing.T) {
 		},
 	})
 }
+
+func TestCharcodeBranches(t *testing.T) {
+	if _, err := runOp(t, "To Charcode", "a", "Space", 99.0); err == nil {
+		t.Fatal("To Charcode: expected an error for out-of-range base")
+	}
+	if _, err := runOp(t, "From Charcode", "61", "Space", 99.0); err == nil {
+		t.Fatal("From Charcode: expected an error for out-of-range base")
+	}
+	if _, err := runOp(t, "From Charcode", "zz", "Space", 16.0); err == nil {
+		t.Fatal("From Charcode: expected an error for an invalid code")
+	}
+	if out, err := runOp(t, "From Charcode", "", "Space", 16.0); err != nil || out != "" {
+		t.Fatalf("From Charcode(\"\") = %q, %v; want empty", out, err)
+	}
+	if _, err := runOp(t, "From Charcode", "61  62", "Space", 16.0); err != nil {
+		t.Fatalf("From Charcode(empty token): %v", err)
+	}
+	// charcodeHexPad's wide branches are unreachable via the op (code points cap at
+	// 0x10FFFF) but the helper's contract holds for any caller.
+	if got := charcodeHexPad(16777216); got != 8 {
+		t.Fatalf("charcodeHexPad(1<<24) = %d, want 8", got)
+	}
+	if got := charcodeHexPad(4294967296); got != 2 {
+		t.Fatalf("charcodeHexPad(1<<32) = %d, want 2", got)
+	}
+}

@@ -101,3 +101,10 @@ func TestPRNG(t *testing.T) {
 		t.Fatalf("raw PRNG length = %d", len(o))
 	}
 }
+
+// TestPRNGNegativeBytes covers the non-negative byte-count guard.
+func TestPRNGNegativeBytes(t *testing.T) {
+	if _, err := runOp(t, "Pseudo-Random Number Generator", "", -1, "Hex"); err == nil {
+		t.Fatal("expected an error for a negative byte count")
+	}
+}

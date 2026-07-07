@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -68,4 +69,16 @@ func TestToUNIXTimestampOracle(t *testing.T) {
 			core.Recipe{{Op: "To UNIX Timestamp", Args: []any{"Seconds (s)", true, false}}},
 		},
 	})
+}
+
+// TestFromUNIXTimestampInvalid covers the unparseable-input path (CyberChef
+// returns "Invalid date" text rather than erroring).
+func TestFromUNIXTimestampInvalid(t *testing.T) {
+	out, err := runOp(t, "From UNIX Timestamp", "not a number", "Seconds (s)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "Invalid date") {
+		t.Fatalf("got %q, want Invalid date", out)
+	}
 }

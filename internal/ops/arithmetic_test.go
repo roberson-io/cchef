@@ -116,3 +116,14 @@ func TestArithmeticFixtures(t *testing.T) {
 		{"Divide: negative rounds to 20 places", "10,-3", "-3.33333333333333333333", core.Recipe{{Op: "Divide", Args: []any{"Comma"}}}},
 	})
 }
+
+func TestArithmeticNaNBranches(t *testing.T) {
+	for _, op := range []string{"Median", "Standard Deviation"} {
+		if out, err := runOp(t, op, "", "Space"); err != nil || out != "NaN" {
+			t.Fatalf("%s(empty) = %q, %v; want NaN", op, out, err)
+		}
+	}
+	if out, err := runOp(t, "Standard Deviation", "1 Infinity", "Space"); err != nil || out != "NaN" {
+		t.Fatalf("StdDev(Infinity) = %q, %v; want NaN", out, err)
+	}
+}

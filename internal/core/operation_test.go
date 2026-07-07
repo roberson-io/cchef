@@ -152,3 +152,14 @@ func TestCoerceArgsArityAndDefaults(t *testing.T) {
 		t.Fatal("expected too-many-arguments error")
 	}
 }
+
+// TestCoerceArgWrongTypes covers the type-mismatch errors for boolean and option
+// arguments.
+func TestCoerceArgWrongTypes(t *testing.T) {
+	if _, err := CoerceArg(ArgDef{Name: "b", Type: ArgBoolean}, "not a bool"); err == nil {
+		t.Fatal("expected an error for a non-boolean value")
+	}
+	if _, err := CoerceArg(ArgDef{Name: "o", Type: ArgOption, Value: []string{"x"}}, 123); err == nil {
+		t.Fatal("expected an error for a non-string option value")
+	}
+}

@@ -63,3 +63,18 @@ func TestFromBase92Invalid(t *testing.T) {
 		t.Error("expected error for invalid base92 character '~'")
 	}
 }
+
+func TestBase92Branches(t *testing.T) {
+	if _, err := runOp(t, "From Base92", "\"A"); err == nil {
+		t.Fatal("From Base92: expected an error for a bad first char")
+	}
+	if _, err := runOp(t, "From Base92", "A\""); err == nil {
+		t.Fatal("From Base92: expected an error for a bad second char")
+	}
+	if got := base92Chr(0); got != '!' {
+		t.Fatalf("base92Chr(0) = %q, want '!'", got)
+	}
+	if got := padEnd("xxxx", 2); got != "xxxx" {
+		t.Fatalf("padEnd(xxxx,2) = %q, want xxxx", got)
+	}
+}
