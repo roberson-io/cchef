@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"google.golang.org/protobuf/reflect/protoreflect"
+
 	"github.com/roberson-io/cchef/internal/core"
 )
 
@@ -159,4 +161,29 @@ func TestProtobufEncodeCoercion(t *testing.T) {
 	if coerceBool(nil) {
 		t.Error("coerceBool(nil) should be false")
 	}
+}
+
+// TestProtobufEncodeNonScalarKindPanics verifies the invariant guards in
+// protobufValueFromJSON and protobufAppendField: the caller only ever passes
+// scalar/enum kinds, so a message kind (a caller bug) panics rather than silently
+// mis-encoding.
+func TestProtobufEncodeNonScalarKindPanics(t *testing.T) {
+	md, err := protobufCompileSchema(`syntax="proto3"; message M { Sub s = 1; } message Sub { int32 x = 1; }`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fd := md.Fields().Get(0) // "s" is a message-kind field
+	if fd.Kind() != protoreflect.MessageKind {
+		t.Fatalf("expected a message-kind field, got %s", fd.Kind())
+	}
+	mustPanic := func(name string, fn func()) {
+		defer func() {
+			if recover() == nil {
+				t.Fatalf("%s: expected a panic for a non-scalar kind", name)
+			}
+		}()
+		fn()
+	}
+	mustPanic("protobufValueFromJSON", func() { _, _ = protobufValueFromJSON(fd, "x") })
+	mustPanic("protobufAppendField", func() { _ = protobufAppendField(nil, fd, protoreflect.Value{}) })
 }

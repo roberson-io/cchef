@@ -40,3 +40,23 @@ func TestGroupIPErrors(t *testing.T) {
 		t.Fatal("expected an error for an out-of-range octet")
 	}
 }
+
+// TestStrToIPValidators exercises the strToIpv4/strToIpv6 parser guards directly
+// (callers pre-validate with a regex, so these only fire for arbitrary input):
+// a wrong block count is an error, and a non-hex IPv6 block is treated as an
+// empty "::" segment rather than an error.
+func TestStrToIPValidators(t *testing.T) {
+	if _, err := strToIpv4("1.2.3"); err == nil {
+		t.Error("strToIpv4(1.2.3): expected a block-count error")
+	}
+	if _, err := strToIpv6("1:2"); err == nil {
+		t.Error("strToIpv6(1:2): expected a block-count error")
+	}
+	got, err := strToIpv6("1:2:zzzz")
+	if err != nil {
+		t.Fatalf("strToIpv6(non-hex block): unexpected error %v", err)
+	}
+	if got[0] != 1 || got[1] != 2 {
+		t.Errorf("strToIpv6(1:2:zzzz) = %v; want a leading 1, 2", got)
+	}
+}

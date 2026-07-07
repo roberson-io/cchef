@@ -141,7 +141,9 @@ func protobufScalar(fd protoreflect.FieldDescriptor, v protoreflect.Value, showT
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		return protobufMessageToObject(v.Message(), showTypes)
 	}
-	return nil
+	// Every protoreflect.Kind is a scalar, enum, message or group, all cased
+	// above, so this is unreachable for any valid field descriptor.
+	panic(fmt.Sprintf("protobufScalar: unhandled kind %s for field %s", fd.Kind(), fd.Name()))
 }
 
 // protobufExtractFieldID pulls the field number out of a raw-decode key, which

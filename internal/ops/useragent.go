@@ -60,10 +60,10 @@ func uaTrim(s string) string { return strings.TrimLeft(s, " \t\n\r\f\v") }
 
 // uaStrMapper reverse-maps str to a key whose value equals str (case-insensitive),
 // falling back to the "*" entry, then to str. ok=false means "undefined". Ported
-// from ua-parser-js strMapper (has() is case-insensitive equality). No rule in
-// the ported ruleset sets an undef entry, a "?" key or starUndef, so those three
-// arms never execute and this function always returns ok=true — which is why the
-// "strMapper not found -> delete" arms in uaApplyProps are likewise unreachable.
+// from ua-parser-js strMapper (has() is case-insensitive equality). The current
+// generated ruleset happens not to use undef entries, a "?" key or starUndef, so
+// those arms (and the "strMapper not found -> delete" arms in uaApplyProps) are
+// not reached by real user agents; they are exercised directly in the tests.
 func uaStrMapper(str string, m *uaLookup) (string, bool) {
 	for _, e := range m.entries {
 		if e.undef {

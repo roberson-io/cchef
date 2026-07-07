@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -89,5 +91,25 @@ func TestDiffWordIgnoreWhitespace(t *testing.T) {
 	}
 	if want := "the quick <del>brown</del><ins>red</ins> fox"; out != want {
 		t.Errorf("got %q, want %q", out, want)
+	}
+}
+
+// TestTokenDiffSurrogateSkip drives tokenDiff past 0xD800 distinct tokens so the
+// rune encoder crosses (and skips) the UTF-16 surrogate range. Diffing an input
+// against itself must still reconstruct exactly, proving the post-surrogate runes
+// round-trip correctly.
+func TestTokenDiffSurrogateSkip(t *testing.T) {
+	const n = 0xD801 // one past the surrogate boundary
+	toks := make([]string, n)
+	for i := range toks {
+		toks[i] = strconv.Itoa(i) + ","
+	}
+	out := tokenDiff(toks, toks, func(s string) string { return s })
+	var sb strings.Builder
+	for _, d := range out {
+		sb.WriteString(d.Text)
+	}
+	if sb.String() != strings.Join(toks, "") {
+		t.Fatal("tokenDiff did not reconstruct the input across the surrogate boundary")
 	}
 }

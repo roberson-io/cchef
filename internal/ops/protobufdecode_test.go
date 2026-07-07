@@ -80,6 +80,17 @@ func TestProtobufDecodeBadSchema(t *testing.T) {
 	}
 }
 
+// TestProtobufDecodeStrictUnmarshalError covers the proto.Unmarshal error path:
+// a message field carrying content that the lenient raw parser tolerates (as a
+// byte string) but strict schema decoding rejects as invalid wire format.
+func TestProtobufDecodeStrictUnmarshalError(t *testing.T) {
+	// field 1 (a message) with content 0x07 = wire type 7, which is invalid.
+	if _, err := runOp(t, "Protobuf Decode", string([]byte{0x0a, 0x01, 0x07}),
+		`syntax="proto3"; message M { Sub s = 1; } message Sub { int32 x = 1; }`, false, false); err == nil {
+		t.Fatal("expected a strict-unmarshal error for invalid sub-message wire data")
+	}
+}
+
 // Protobuf Decode (schema-based) verified against the CyberChef-server oracle.
 func TestProtobufDecodeSchema(t *testing.T) {
 	fromHex := core.RecipeOp{Op: "From Hex", Args: []any{"None"}}

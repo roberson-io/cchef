@@ -198,7 +198,9 @@ func protobufAppendField(out []byte, fd protoreflect.FieldDescriptor, v protoref
 		out = protowire.AppendTag(out, num, protowire.BytesType)
 		return protowire.AppendBytes(out, v.Bytes())
 	}
-	return out
+	// The caller handles message/group kinds, so only scalars (all cased above)
+	// reach here; any other kind is a caller bug.
+	panic(fmt.Sprintf("protobufAppendField: non-scalar kind %s for field %s", fd.Kind(), fd.Name()))
 }
 
 // coerceNumber mirrors protobufjs's lenient numeric coercion: JSON numbers pass
@@ -277,5 +279,7 @@ func protobufValueFromJSON(fd protoreflect.FieldDescriptor, v any) (protoreflect
 		}
 		return protoreflect.ValueOfEnum(protoreflect.EnumNumber(int32(coerceNumber(v)))), nil
 	}
-	return protoreflect.Value{}, fmt.Errorf("field %s: unsupported type %s", fd.Name(), fd.Kind())
+	// The caller handles message/group kinds, so only scalars/enums (all cased
+	// above) reach here; any other kind is a caller bug.
+	panic(fmt.Sprintf("protobufValueFromJSON: non-scalar kind %s for field %s", fd.Kind(), fd.Name()))
 }

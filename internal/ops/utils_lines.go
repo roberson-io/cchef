@@ -174,30 +174,36 @@ func ipToUint(s string) (uint64, bool) {
 func naturalCompare(a, b string, hex bool) int {
 	as, bs := sortSegments(a, hex), sortSegments(b, hex)
 	for i := 0; i < len(as) && i < len(bs); i++ {
-		x, y := as[i], bs[i]
-		// sortSegments always alternates numeric/separator segments positionally
-		// (even indices numeric, odd indices not), so x and y at the same index
-		// always share isNum; the two cross-type cases below are kept only to
-		// mirror CyberChef's comparator and cannot fire.
-		switch {
-		case !x.isNum && y.isNum:
-			return 1
-		case x.isNum && !y.isNum:
-			return -1
-		case x.isNum && y.isNum:
-			if x.num != y.num {
-				if x.num < y.num {
-					return -1
-				}
-				return 1
-			}
-		default:
-			if c := localeCompareASCII(x.str, y.str); c != 0 {
-				return c
-			}
+		if r, decided := compareSeg(as[i], bs[i]); decided {
+			return r
 		}
 	}
 	return localeCompareASCII(a, b)
+}
+
+// compareSeg compares two sort segments, returning (result, decided). decided is
+// false when the segments are equal and the caller should move to the next pair.
+// Note: sortSegments always aligns numeric/separator segments positionally, so
+// naturalCompare never calls this with segments of differing isNum — but the
+// cross-type arms are correct comparisons in their own right (a non-numeric
+// segment sorts after a numeric one) and are covered directly by tests.
+func compareSeg(x, y numSeg) (int, bool) {
+	switch {
+	case !x.isNum && y.isNum:
+		return 1, true
+	case x.isNum && !y.isNum:
+		return -1, true
+	case x.isNum && y.isNum:
+		if x.num != y.num {
+			if x.num < y.num {
+				return -1, true
+			}
+			return 1, true
+		}
+		return 0, false
+	default:
+		return localeCompareASCII(x.str, y.str), x.str != y.str
+	}
 }
 
 // localeCompareASCII approximates JavaScript's String.prototype.localeCompare for

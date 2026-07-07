@@ -137,3 +137,29 @@ func TestFilterInvalidRegex(t *testing.T) {
 		t.Fatal("Filter with an invalid regex: expected an error")
 	}
 }
+
+// TestCompareSeg exercises naturalCompare's segment comparator directly,
+// including the cross-type arms that sortSegments' positional alignment never
+// produces (a non-numeric segment sorts after a numeric one, and vice versa).
+func TestCompareSeg(t *testing.T) {
+	num := func(n float64) numSeg { return numSeg{isNum: true, num: n} }
+	txt := func(s string) numSeg { return numSeg{str: s} }
+	cases := []struct {
+		x, y    numSeg
+		want    int
+		decided bool
+	}{
+		{txt("a"), num(5), 1, true},
+		{num(5), txt("a"), -1, true},
+		{num(1), num(2), -1, true},
+		{num(2), num(1), 1, true},
+		{num(3), num(3), 0, false},
+		{txt("a"), txt("b"), -1, true},
+		{txt("x"), txt("x"), 0, false},
+	}
+	for _, c := range cases {
+		if r, d := compareSeg(c.x, c.y); r != c.want || d != c.decided {
+			t.Errorf("compareSeg(%+v,%+v) = %d,%v; want %d,%v", c.x, c.y, r, d, c.want, c.decided)
+		}
+	}
+}

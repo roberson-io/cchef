@@ -86,3 +86,13 @@ func TestAMFErrors(t *testing.T) {
 		t.Fatal("expected an error encoding invalid JSON")
 	}
 }
+
+// TestAMFDecodeUnmarshalableValue covers the JSON-marshal error path: AMF0 can
+// carry a NaN double, which json.Marshal rejects.
+func TestAMFDecodeUnmarshalableValue(t *testing.T) {
+	// AMF0 number marker (0x00) followed by an 8-byte big-endian NaN.
+	nan := string([]byte{0x00, 0x7f, 0xf8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+	if _, err := runOp(t, "AMF Decode", nan, "AMF0"); err == nil {
+		t.Fatal("expected a JSON-marshal error decoding a NaN double")
+	}
+}

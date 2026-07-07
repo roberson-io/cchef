@@ -224,6 +224,9 @@ func (PRNG) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, fmt.Errorf("number of bytes must be non-negative")
 	}
 	b := make([]byte, n)
+	// Since Go 1.24 crypto/rand.Read never returns an error (an entropy failure
+	// is fatal), so this branch is dead by the standard library's contract; the
+	// check is kept because Read's signature still declares the error.
 	if _, err := rand.Read(b); err != nil {
 		return nil, err
 	}

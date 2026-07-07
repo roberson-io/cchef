@@ -1,7 +1,9 @@
 package ops
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"sort"
 	"strconv"
@@ -10,6 +12,32 @@ import (
 
 	"github.com/roberson-io/cchef/internal/core"
 )
+
+// failReader simulates a crypto/rand entropy-source failure.
+type failReader struct{}
+
+func (failReader) Read([]byte) (int, error) { return 0, fmt.Errorf("no entropy") }
+
+// TestShuffleRandFailurePanics injects a failing crypto/rand.Reader (a
+// reassignable package var) so rand.Int returns an error, which Shuffle's randInt
+// treats as unrecoverable and panics on.
+//
+// The PRNG op's rand.Read path (misc.go) is deliberately not covered here: since
+// Go 1.24 crypto/rand.Read never returns an error — an entropy failure triggers a
+// fatal (uncatchable) error rather than a returned one — so its err != nil branch
+// is dead by the standard library's contract and cannot be exercised in a test.
+func TestShuffleRandFailurePanics(t *testing.T) {
+	orig := rand.Reader
+	rand.Reader = failReader{}
+	defer func() { rand.Reader = orig }()
+
+	defer func() {
+		if recover() == nil {
+			t.Error("Shuffle: expected a panic when the entropy source fails")
+		}
+	}()
+	_, _ = runOp(t, "Shuffle", "a,b,c", "Comma")
+}
 
 func TestParseObjectIDTimestamp(t *testing.T) {
 	runCases(t, []opCase{

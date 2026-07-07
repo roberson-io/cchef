@@ -123,11 +123,12 @@ func (FromBase62) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(h)%2 != 0 {
 		h = "0" + h
 	}
-	// h is n.Text(16) (n >= 0) padded to even length, so it is always valid hex
-	// and DecodeString cannot fail; the check is kept for defensiveness.
+	// h is n.Text(16) (n >= 0) padded to even length, so it is always valid hex;
+	// a decode failure would mean big.Int produced non-hex output, which is
+	// impossible, so treat it as a programming error rather than a returned error.
 	out, err := hex.DecodeString(h)
 	if err != nil {
-		return nil, err
+		panic("FromBase62: big.Int.Text(16) produced invalid hex: " + h)
 	}
 	return core.NewDish(out, core.TypeByteArray), nil
 }

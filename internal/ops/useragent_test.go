@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"github.com/dlclark/regexp2"
+
 	"github.com/roberson-io/cchef/internal/core"
 )
 
@@ -1011,4 +1013,91 @@ CPU
 			core.Recipe{{Op: "Parse User Agent", Args: []any{}}},
 		},
 	})
+}
+
+// TestUAStrMapperEngineBranches exercises the strMapper semantics the current
+// ruleset doesn't use: an undef entry is skipped, a "?" key means UNKNOWN, and a
+// "*" fallback mapped to undefined also reports not-found.
+func TestUAStrMapperEngineBranches(t *testing.T) {
+	skip := &uaLookup{entries: []uaLookupEntry{
+		{undef: true, vals: []string{"a"}},
+		{key: "Match", vals: []string{"a"}},
+	}}
+	if got, ok := uaStrMapper("a", skip); !ok || got != "Match" {
+		t.Fatalf("undef skip: got %q, %v; want Match, true", got, ok)
+	}
+	unknown := &uaLookup{entries: []uaLookupEntry{{key: "?", vals: []string{"a"}}}}
+	if got, ok := uaStrMapper("a", unknown); ok || got != "" {
+		t.Fatalf(`"?" key: got %q, %v; want "", false`, got, ok)
+	}
+	starUndef := &uaLookup{hasStar: true, star: "ignored", starUndef: true}
+	if got, ok := uaStrMapper("no-match", starUndef); ok || got != "" {
+		t.Fatalf("starUndef: got %q, %v; want \"\", false", got, ok)
+	}
+}
+
+// TestUAApplyPropsEngineBranches exercises the property-processing arms the ruleset
+// doesn't reach: empty-capture deletes (strTest/strMapper/replace), a strMapper
+// "unknown" result deleting the property, and the replace "trim" processor.
+func TestUAApplyPropsEngineBranches(t *testing.T) {
+	rx := func(p string) *regexp2.Regexp { return regexp2.MustCompile(p, regexp2.None) }
+	unknownMap := &uaLookup{entries: []uaLookupEntry{{key: "?", vals: []string{"x"}}}}
+
+	cases := []struct {
+		name      string
+		props     []uaProp
+		matched   []string
+		wantValue string // "" => the property must be deleted
+	}{
+		{
+			"strTest empty capture deletes",
+			[]uaProp{{prop: "p", kind: "fn", fn: "strTest", testRe: rx("t"), ifTrue: "a", ifFalse: "b"}},
+			[]string{"full"},
+			"",
+		},
+		{
+			"strMapper empty capture deletes",
+			[]uaProp{{prop: "p", kind: "fn", fn: "strMapper", fnMap: unknownMap}},
+			[]string{"full"},
+			"",
+		},
+		{
+			"strMapper unknown value deletes",
+			[]uaProp{{prop: "p", kind: "fn", fn: "strMapper", fnMap: unknownMap}},
+			[]string{"full", "x"},
+			"",
+		},
+		{
+			"replace trim",
+			[]uaProp{{prop: "p", kind: "replace", replRe: rx("Z"), repl: "", replFn: "trim"}},
+			[]string{"full", "  abc"},
+			"abc",
+		},
+		{
+			"replace strMapper unknown value deletes",
+			[]uaProp{{prop: "p", kind: "replace", replRe: rx("Z"), repl: "", replFn: "strMapper", replMap: unknownMap}},
+			[]string{"full", "x"},
+			"",
+		},
+		{
+			"replace empty capture deletes",
+			[]uaProp{{prop: "p", kind: "replace", replRe: rx("Z"), repl: ""}},
+			[]string{"full"},
+			"",
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			res := map[string]string{"p": "preset"}
+			uaApplyProps(res, c.props, c.matched)
+			got, ok := res["p"]
+			if c.wantValue == "" {
+				if ok {
+					t.Fatalf("expected property deleted, got %q", got)
+				}
+			} else if got != c.wantValue {
+				t.Fatalf("got %q, want %q", got, c.wantValue)
+			}
+		})
+	}
 }
