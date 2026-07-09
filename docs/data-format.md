@@ -24,6 +24,7 @@ Operations for encoding and decoding data between common textual representations
 | From Decimal | `from-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | From Float | `from-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
 | From Hex | `from-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
+| From Hex Content | `from-hex-content` | [SNORT](http://manual-snort-org.s3-website-us-east-1.amazonaws.com/node32.html#SECTION00451000000000000000) |
 | From Hexdump | `from-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
 | From HTML Entity | `from-html-entity` | [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) |
 | From Modhex | `from-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
@@ -47,6 +48,7 @@ Operations for encoding and decoding data between common textual representations
 | To Decimal | `to-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | To Float | `to-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
 | To Hex | `to-hex` | [Hexadecimal](https://wikipedia.org/wiki/Hexadecimal) |
+| To Hex Content | `to-hex-content` | [SNORT](http://manual-snort-org.s3-website-us-east-1.amazonaws.com/node32.html#SECTION00451000000000000000) |
 | To Hexdump | `to-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
 | To HTML Entity | `to-html-entity` | [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) |
 | To Modhex | `to-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
@@ -430,6 +432,32 @@ Hello
 ```bash
 $ cchef from-hex --delimiter 'Auto' -i '48:65,6c-6c6f'
 Hello
+```
+
+## From Hex Content
+
+Translates [SNORT](http://manual-snort-org.s3-website-us-east-1.amazonaws.com/node32.html#SECTION00451000000000000000)
+hex-content notation back to raw bytes: each `|<hex>|` block is decoded (spaces
+inside the block are ignored) and everything outside the blocks is passed through
+unchanged. A `|...|` block whose contents are not hexadecimal is left as-is.
+
+**Options**
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef from-hex-content -i 'foo|3d|bar'
+foo=bar
+```
+
+**Embedded bytes (a CRLF inside a request line)**
+
+```bash
+$ cchef from-hex-content -i 'GET /|0d 0a|Host'
+GET /
+Host
 ```
 
 ## From Hexdump
@@ -946,6 +974,41 @@ $ cchef to-hex --delimiter 'Colon' -i 'Hello'
 
 $ cchef to-hex --delimiter '0x with comma' -i 'abc'
 0x61,0x62,0x63
+```
+
+## To Hex Content
+
+Converts special (non-alphanumeric) characters to
+[SNORT](http://manual-snort-org.s3-website-us-east-1.amazonaws.com/node32.html#SECTION00451000000000000000)
+hex-content notation, wrapping runs of hex bytes in `|...|` (e.g. `foo=bar`
+becomes `foo|3d|bar`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--convert` | option | `Only special chars` | Which bytes to hex-encode: `Only special chars`, `Only special chars including spaces`, or `All chars`. |
+| `--print-spaces-between-bytes` | boolean | `false` | Separate consecutive hex bytes within a block with spaces. |
+
+**Simple example**
+
+```bash
+$ cchef to-hex-content -i 'foo=bar'
+foo|3d|bar
+```
+
+**Including spaces, with a multi-byte block**
+
+```bash
+$ cchef to-hex-content --convert 'Only special chars including spaces' -i 'Hello, World!'
+Hello|2c20|World|21|
+```
+
+**All chars, spaced**
+
+```bash
+$ cchef to-hex-content --convert 'All chars' --print-spaces-between-bytes -i 'foo=bar'
+|66 6f 6f 3d 62 61 72|
 ```
 
 ## To Hexdump
