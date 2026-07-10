@@ -204,10 +204,13 @@ tests will fail:
    clig.dev); `TestOpAliasesValid` checks aliases are unique, name a real op, and
    never shadow a canonical subcommand name.
 
-## 7. Update PLAN.md status
+## 7. Update the status counts (PLAN.md **and** both READMEs)
 
-In `PLAN.md` under **Operation implementation status**, make **all** of these
-edits (it is easy to miss one):
+The subcommand count is duplicated across **five** places in three files. It is
+easy to update PLAN.md and miss the READMEs (they then silently drift), so treat
+this as one checklist and update **all** of them:
+
+**In `PLAN.md`** under **Operation implementation status**:
 
 1. Flip the op's `[ ]` to `[x]`. **Some ops are listed in more than one category
    section** (e.g. Unescape Unicode Characters is under Data format *and*
@@ -221,6 +224,19 @@ edits (it is easy to miss one):
    (`internal/ops/`)" bullet) — these count cchef subcommands, which may differ
    from the unique-op count (e.g. `sha256`/`sha512` are two subcommands but one
    CyberChef `SHA2` op).
+
+**In the repo-root `README.md`** (both mention the subcommand count):
+
+5. The **Status** blockquote near the top ("**N operations** so far") and the
+   "The N operations are grouped …" line under `## Operations`.
+
+**In `docs/README.md`**:
+
+6. The **Scope** blockquote near the top ("**Scope:** N operations are currently
+   ported …").
+
+All of the counts in items 4–6 are the same cchef-subcommand number; grep the old
+number across `PLAN.md README.md docs/README.md` to confirm none were missed.
 
 ## 8. Final checks
 

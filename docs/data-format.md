@@ -9,6 +9,7 @@ Operations for encoding and decoding data between common textual representations
 | AMF Decode | `amf-decode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | Caret/M-decode | `caret-m-decode` | [Caret notation](https://en.wikipedia.org/wiki/Caret_notation) |
+| Escape Smart Characters | `escape-smart-characters` | [Punctuation](https://wikipedia.org/wiki/Punctuation) |
 | Escape Unicode Characters | `escape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | From Base32 | `from-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
@@ -127,6 +128,33 @@ This operation takes no options.
 ```bash
 $ cchef caret-m-decode -i '^M^JHello M-^A' | cchef to-hex
 0d 0a 48 65 6c 6c 6f 20 81
+```
+
+## Escape Smart Characters
+
+Converts smart (typographic) Unicode characters — smart quotes, em/en dashes,
+ellipses, `©`, `®`, `™`, arrows, guillemets, and non-ASCII spaces — into their
+plain ASCII equivalents. Characters with no ASCII mapping are handled per the
+option.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--unmappable-characters` | option | `Include` | What to do with non-ASCII characters that have no mapping: `Include` (keep them), `Remove`, or `Replace with '.'`. |
+
+**Simple example**
+
+```bash
+$ cchef escape-smart-characters -i '“Hello” — world…'
+"Hello" -- world...
+```
+
+**Removing unmappable characters**
+
+```bash
+$ cchef escape-smart-characters --unmappable-characters Remove -i 'warning: ☣ hazard'
+warning:  hazard
 ```
 
 ## Escape Unicode Characters

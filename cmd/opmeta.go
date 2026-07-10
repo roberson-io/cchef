@@ -128,6 +128,7 @@ var opCategories = map[string][]string{
 	"Drop bytes":                         {catUtils},
 	"Drop nth bytes":                     {catUtils},
 	"Encode NetBIOS Name":                {catNetworking},
+	"Escape Smart Characters":            {catDataFormat},
 	"Escape Unicode Characters":          {catDataFormat},
 	"Escape string":                      {catUtils},
 	"Expand alphabet range":              {catUtils},

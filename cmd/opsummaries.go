@@ -25,6 +25,7 @@ var opSummaries = map[string]string{
 	"Diff":                           "Highlights differences between two inputs",
 	"Drop nth bytes":                 "Drops every nth byte from a given offset",
 	"Encode NetBIOS Name":            "Encodes a name with NetBIOS name encoding",
+	"Escape Smart Characters":        "Converts typographic Unicode chars to ASCII",
 	"Escape string":                  "Escapes special characters in a string",
 	"Expand alphabet range":          "Expands an alphabet range to its characters",
 	"Extract dates":                  "Extracts dates in common formats",
