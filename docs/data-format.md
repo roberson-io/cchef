@@ -32,6 +32,7 @@ Operations for encoding and decoding data between common textual representations
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | Text-Integer Conversion | `text-integer-conversion` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
@@ -611,6 +612,36 @@ n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
 -----END PUBLIC KEY-----'
 3059301306072a8648ce3d020106082a8648ce3d0301070342000414b41c05bcc3c1ea3a69fe24de4d2029630d58e6559fcfbd847dabbf80ca29867b135cfae0b06d3e707580ccfef870cac92af6a330f7ff8e9d21b40c5d464aa7
 ```
+
+## Show Base64 offsets
+
+When a string sits inside a larger block that is Base64-encoded as a whole, the
+string encodes to one of three different Base64 forms depending on its byte
+[offset](https://wikipedia.org/wiki/Base64#Output_padding) (0, 1, or 2) within the
+block. This shows all three so each candidate encoding can be searched for.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | string | `A-Za-z0-9+/=` | The Base64 alphabet to use. |
+| `--show-variable-chars-and-padding` | boolean | `true` | Annotate the output (as HTML, matching CyberChef) to mark which characters are variable vs. padding. Set `false` for just the three plain offset strings. |
+| `--input-format` | option | `Raw` | `Raw` treats the input as bytes; `Base64` decodes it first. |
+
+**Simple example (plain offsets)**
+
+```bash
+$ cchef show-base64-offsets --show-variable-chars-and-padding=false -i 'SecretData'
+U2VjcmV0RGF0Y
+NlY3JldERhdG
+TZWNyZXREYXRh
+```
+
+**Annotated output**
+
+With the default `--show-variable-chars-and-padding`, the output is the same HTML
+CyberChef produces (`<span>` highlights and tooltips), suitable for rendering in a
+browser rather than reading in a terminal.
 
 ## Swap endianness
 

@@ -67,6 +67,7 @@ var opSummaries = map[string]string{
 	"Rotate right":                   "Rotates each byte's bits right",
 	"SHA3":                           "Computes the SHA-3 (Keccak) digest",
 	"Set Difference":                 "Relative complement of two sets",
+	"Show Base64 offsets":            "Shows a string's three Base64 offset encodings",
 	"Shuffle":                        "Randomly reorders input sections",
 	"Sleep":                          "Pauses, then passes the input through",
 	"Sort":                           "Sorts input sections by the chosen order",

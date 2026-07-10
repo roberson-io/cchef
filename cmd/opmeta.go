@@ -226,6 +226,7 @@ var opCategories = map[string][]string{
 	"Set Difference":                     {catArithmeticLogic},
 	"Set Intersection":                   {catArithmeticLogic},
 	"Set Union":                          {catArithmeticLogic},
+	"Show Base64 offsets":                {catDataFormat},
 	"Show on map":                        {catUtils},
 	"Shuffle":                            {catUtils},
 	"Sleep":                              {catUtils},
