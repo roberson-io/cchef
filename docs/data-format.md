@@ -20,6 +20,7 @@ Operations for encoding and decoding data between common textual representations
 | From Base85 | `from-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
 | From Base92 | `from-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
 | From BCD | `from-bcd` | [Binary-coded decimal](https://wikipedia.org/wiki/Binary-coded_decimal) |
+| From Bech32 | `from-bech32` | [Bech32](https://wikipedia.org/wiki/Bech32) |
 | From Binary | `from-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
 | From Charcode | `from-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | From Decimal | `from-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
@@ -46,6 +47,7 @@ Operations for encoding and decoding data between common textual representations
 | To Base85 | `to-base85` | [Ascii85](https://wikipedia.org/wiki/Ascii85) |
 | To Base92 | `to-base92` | [Base92](https://wikipedia.org/wiki/List_of_numeral_systems) |
 | To BCD | `to-bcd` | [Binary-coded decimal](https://wikipedia.org/wiki/Binary-coded_decimal) |
+| To Bech32 | `to-bech32` | [Bech32](https://wikipedia.org/wiki/Bech32) |
 | To Binary | `to-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
 | To Charcode | `to-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | To Decimal | `to-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
@@ -356,6 +358,43 @@ $ cchef from-bcd -i '0001 0010 0011 0100'
 $ cchef from-bcd --packed --signed --input-format Bytes \
     -i '00000001 00100011 01000101 01100111 10001001 00001101'
 -1234567890
+```
+
+## From Bech32
+
+Decodes a [Bech32 or Bech32m](https://wikipedia.org/wiki/Bech32) string (BIP-0173
+/ BIP-0350) back to its data, verifying the checksum. **Auto-detect** tries
+Bech32 first, then Bech32m. For Bitcoin SegWit HRPs (`bc`, `tb`, `ltc`, …) the
+leading witness-version word is handled specially; other inputs decode
+generically. The output format selects how the decoded bytes are rendered.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--encoding` | option | `Auto-detect` | `Auto-detect`, `Bech32`, or `Bech32m`. |
+| `--output-format` | option | `Raw` | `Raw`, `Hex`, `Bitcoin scriptPubKey`, `HRP: Hex`, or `JSON`. |
+
+**Simple example**
+
+```bash
+$ cchef from-bech32 --encoding Bech32 --output-format Raw -i 'bc1fpjkcmr0gzsgcg'
+Hello
+```
+
+**Bitcoin scriptPubKey and JSON output**
+
+```bash
+$ cchef from-bech32 --output-format 'Bitcoin scriptPubKey' \
+    -i 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4'
+0014751e76e8199196d454941c45d1b3a323f1433bd6
+
+$ cchef from-bech32 --output-format JSON -i 'bc1fpjkcmr0gzsgcg'
+{
+  "hrp": "bc",
+  "encoding": "Bech32",
+  "data": "48656c6c6f"
+}
 ```
 
 ## From Binary
@@ -958,6 +997,39 @@ $ cchef to-bcd -i '1234'
 ```bash
 $ cchef to-bcd --packed --signed --output-format Bytes -i '1234567890'
 00000001 00100011 01000101 01100111 10001001 00001100
+```
+
+## To Bech32
+
+Encodes data as a [Bech32 or Bech32m](https://wikipedia.org/wiki/Bech32) string
+(BIP-0173 / BIP-0350), with a Human-Readable Part (HRP) and a checksum. The
+input is raw bytes or a hex string. In **Bitcoin SegWit** mode the witness
+version is prepended and the witness-program length is validated per BIP-0141;
+in **Generic** mode any data is encoded. The output is capped at 90 characters.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--human-readable-part-hrp` | string | `bc` | The HRP (e.g. `bc`, `tb`, `age`). |
+| `--encoding` | option | `Bech32` | `Bech32` or `Bech32m`. |
+| `--input-format` | option | `Raw bytes` | `Raw bytes` or `Hex`. |
+| `--mode` | option | `Generic` | `Generic` or `Bitcoin SegWit`. |
+| `--witness-version` | number | `0` | SegWit witness version (0-16); only used in Bitcoin SegWit mode. |
+
+**Simple example**
+
+```bash
+$ cchef to-bech32 -i 'Hello'
+bc1fpjkcmr0gzsgcg
+```
+
+**Bitcoin SegWit address**
+
+```bash
+$ echo -n '751e76e8199196d454941c45d1b3a323f1433bd6' \
+    | cchef to-bech32 --input-format Hex --mode 'Bitcoin SegWit' --witness-version 0
+bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
 ```
 
 ## To Binary
