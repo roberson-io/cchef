@@ -196,6 +196,7 @@ var opCategories = map[string][]string{
 	"Parse SSH Host Key":                 {catNetworking},
 	"Parse TCP":                          {catNetworking},
 	"Parse TLS record":                   {catNetworking},
+	"Parse TLV":                          {catDataFormat},
 	"Parse UDP":                          {catNetworking},
 	"Parse UNIX file permissions":        {catUtils},
 	"Parse URI":                          {catNetworking},

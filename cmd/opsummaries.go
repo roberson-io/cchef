@@ -54,6 +54,7 @@ var opSummaries = map[string]string{
 	"Parse IPv4 header":              "Parses an IPv4 header into its fields",
 	"Parse IPv6 address":             "Shows long and short forms of an IPv6 address",
 	"Parse ObjectID timestamp":       "Extracts the timestamp from a MongoDB ObjectID",
+	"Parse TLV":                      "Parses Type-Length-Value data into JSON",
 	"Parse URI":                      "Pretty-prints the parts of a URI",
 	"Parse User Agent":               "Identifies details in a user-agent string",
 	"Parse colour code":              "Converts a colour code between formats",

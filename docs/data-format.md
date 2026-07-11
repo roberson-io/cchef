@@ -32,6 +32,7 @@ Operations for encoding and decoding data between common textual representations
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
@@ -617,6 +618,47 @@ $ cchef hex-to-pem --header-string 'PUBLIC KEY' -i '3059301306072a8648ce3d020106
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFLQcBbzDweo6af4k3k0gKWMNWOZV
 n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
 -----END PUBLIC KEY-----
+```
+
+## Parse TLV
+
+Converts a [Type-Length-Value](https://wikipedia.org/wiki/Type-length-value)
+(TLV) encoded string into a JSON array of `{key, length, value}` records. Each
+record's key and value are emitted as byte arrays. Set the type/key size to `0`
+to parse plain Length-Value (LV) data, in which case the `key` field is omitted.
+
+With **Use BER** enabled the length is read using
+[BER/DER](https://wikipedia.org/wiki/X.690) rules: a length byte with its high
+bit set introduces a big-endian long form whose low bits give the number of
+following length bytes, so the fixed length size is ignored.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--typekey-size` | number | `1` | Bytes of type/key preceding each length. `0` parses Length-Value data with no key. |
+| `--length-size` | number | `1` | Bytes used for each length field (ignored when `--use-ber` is set). |
+| `--use-ber` | boolean | `false` | Decode lengths using BER/DER long-form rules. |
+
+The type/key and length sizes may not both be `0`.
+
+**Simple example**
+
+Key-Length-Value data with one-byte keys and lengths:
+
+```bash
+$ printf '\x04\x05House\x05\x04room\x42\x04door' | cchef parse-tlv --typekey-size 1 --length-size 1
+[{"key":[4],"length":5,"value":[72,111,117,115,101]},{"key":[5],"length":4,"value":[114,111,111,109]},{"key":[66],"length":4,"value":[100,111,111,114]}]
+```
+
+**BER long-form lengths**
+
+The second record encodes its length `5` in BER long form (`0x81 0x05`); the
+fixed length size is ignored:
+
+```bash
+$ printf '\x01\x05Hello\x02\x81\x05World' | cchef parse-tlv --typekey-size 1 --length-size 1 --use-ber
+[{"key":[1],"length":5,"value":[72,101,108,108,111]},{"key":[2],"length":5,"value":[87,111,114,108,100]}]
 ```
 
 ## PEM to Hex
