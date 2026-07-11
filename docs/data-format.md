@@ -8,6 +8,7 @@ Operations for encoding and decoding data between common textual representations
 | --- | --- | --- |
 | AMF Decode | `amf-decode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
+| Avro to JSON | `avro-to-json` | [Apache Avro](https://wikipedia.org/wiki/Apache_Avro) |
 | Caret/M-decode | `caret-m-decode` | [Caret notation](https://en.wikipedia.org/wiki/Caret_notation) |
 | Escape Smart Characters | `escape-smart-characters` | [Punctuation](https://wikipedia.org/wiki/Punctuation) |
 | Escape Unicode Characters | `escape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
@@ -113,6 +114,46 @@ $ cchef amf-encode -i '{"a":1,"b":true}' | cchef to-hex --delimiter None
 ```bash
 $ printf '[1,2,3]' | cchef amf-encode | cchef amf-decode
 [1,2,3]
+```
+
+---
+
+## Avro to JSON
+
+Decodes an [Apache Avro](https://wikipedia.org/wiki/Apache_Avro) Object Container
+File (the binary format with an embedded schema, produced by Avro tooling) into
+JSON. The `null` and `deflate` block codecs are supported. With **Force Valid
+JSON** on (the default) the records are emitted as a single pretty-printed JSON
+value — an object for one record, an array for several; with it off, each record
+is emitted as its own compact JSON line (newline-delimited JSON). Input is raw
+bytes, so pipe binary in via `from-hex` or `--in-file`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--force-valid-json` | boolean | `true` | Emit one valid JSON value; off emits newline-delimited JSON, one record per line. |
+
+**Simple example**
+
+A tiny container file (schema `{"name": string}`, one record) supplied as hex:
+
+```bash
+$ echo 4f626a0104166176726f2e736368656d6196017b2274797065223a227265636f7264\
+222c226e616d65223a22736d616c6c222c226669656c6473223a5b7b226e616d65223a226e61\
+6d65222c2274797065223a22737472696e67227d5d7d146176726f2e636f646563086e756c6c\
+004e0247632e3702e5b75cdab9a62f1541020e0c6d796e616d654e0247632e3702e5b75cdab9\
+a62f1541 | cchef from-hex | cchef avro-to-json
+{
+    "name": "myname"
+}
+```
+
+**Newline-delimited output**
+
+```bash
+$ ... | cchef from-hex | cchef avro-to-json --force-valid-json=false
+{"name":"myname"}
 ```
 
 ---

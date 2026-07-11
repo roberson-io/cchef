@@ -32,7 +32,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 192
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 193
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -45,7 +45,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **192 operations** (`internal/ops/`), each a faithful port with tests
+- **193 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -155,6 +155,18 @@ cchef list                                   # discover operations
   precisely, run the original jsrsasign `hextob64`/CryptoJS in node
   (`~/.nvm/versions/node/*/bin/node` — not on `PATH` as bare `node`) against the
   oracle. Low priority — affects only malformed input, garbage-in/garbage-out.
+- **`Avro to JSON` — 64-bit longs above 2^53.** The from-scratch OCF decoder
+  (`internal/ops/avro.go`) is byte-for-byte faithful to avsc (CyberChef's backing
+  library) across ~2000 differential cases — all Avro types, `null`/`deflate`
+  codecs, unwrapped **and** ambiguous/wrapped unions, and avsc's lenient
+  truncation behaviour. It reads `long` values as exact `int64`; avsc reads them
+  into JS numbers (float64), so a `long` **above 2^53** in a file produced by a
+  non-JS Avro writer would render with full integer precision here versus avsc's
+  lossy value. avsc's own encoder rejects such longs, so this is unreachable for
+  avsc-produced files; low priority. Note also that the **CyberChef-server oracle
+  needs a one-line patch** to test this op at all (`AvroToJSON.run` must be
+  `async`; the upstream CyberChef bug is documented on the `CyberChef` fork's
+  `bugfix/node-api-async-promise-ops` branch).
 - (Done: a repo-root `README.md` and GitHub Actions CI running fmt/vet/test/lint,
   a gosec + govulncheck security job, plus an SBOM scan now exist.)
 
@@ -177,7 +189,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **189 unique** CyberChef operations are covered (188 directly plus
+Currently **190 unique** CyberChef operations are covered (189 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -188,11 +200,11 @@ Currently **189 unique** CyberChef operations are covered (188 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (59/78)
+### Data format (60/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
-- [ ] Avro to JSON
+- [x] Avro to JSON
 - [x] Caret/M-decode
 - [ ] CBOR Decode
 - [ ] CBOR Encode

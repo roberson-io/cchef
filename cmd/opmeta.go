@@ -105,6 +105,7 @@ var opCategories = map[string][]string{
 	"Add line numbers":                   {catUtils},
 	"Adler-32 Checksum":                  {catHashing},
 	"Alternating Caps":                   {catUtils},
+	"Avro to JSON":                       {catDataFormat},
 	"Bit shift left":                     {catEncryptionEncoding},
 	"Bit shift right":                    {catEncryptionEncoding},
 	"Caret/M-decode":                     {catDataFormat},
