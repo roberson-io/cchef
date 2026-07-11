@@ -22,6 +22,7 @@ Operations for encoding and decoding data between common textual representations
 | From BCD | `from-bcd` | [Binary-coded decimal](https://wikipedia.org/wiki/Binary-coded_decimal) |
 | From Bech32 | `from-bech32` | [Bech32](https://wikipedia.org/wiki/Bech32) |
 | From Binary | `from-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
+| From Braille | `from-braille` | [Braille](https://wikipedia.org/wiki/Braille) |
 | From Charcode | `from-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | From Decimal | `from-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | From Float | `from-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
@@ -49,6 +50,7 @@ Operations for encoding and decoding data between common textual representations
 | To BCD | `to-bcd` | [Binary-coded decimal](https://wikipedia.org/wiki/Binary-coded_decimal) |
 | To Bech32 | `to-bech32` | [Bech32](https://wikipedia.org/wiki/Bech32) |
 | To Binary | `to-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
+| To Braille | `to-braille` | [Braille](https://wikipedia.org/wiki/Braille) |
 | To Charcode | `to-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | To Decimal | `to-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | To Float | `to-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
@@ -413,6 +415,22 @@ Converts a binary string back into its raw form.
 ```bash
 $ cchef from-binary -i '01001000 01101001'
 Hi
+```
+
+## From Braille
+
+Converts six-dot [braille](https://wikipedia.org/wiki/Braille) symbols
+(U+2800-U+283F) back to text using CyberChef's braille lookup. Characters that
+are not braille symbols are passed through unchanged. Note that the lookup only
+stores upper-case letters, so decoded text is upper-case.
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef from-braille -i '⠓⠑⠇⠇⠕'
+HELLO
 ```
 
 ## From Charcode
@@ -1048,6 +1066,21 @@ Displays the input as a binary string, each byte zero-padded to the given length
 ```bash
 $ cchef to-binary -i 'Hi'
 01001000 01101001
+```
+
+## To Braille
+
+Converts text to six-dot [braille](https://wikipedia.org/wiki/Braille) symbols
+using CyberChef's braille lookup. Letters are matched case-insensitively;
+characters with no braille mapping are passed through unchanged.
+
+This operation takes no options.
+
+**Simple example**
+
+```bash
+$ cchef to-braille -i 'Hello'
+⠓⠑⠇⠇⠕
 ```
 
 ## To Charcode
