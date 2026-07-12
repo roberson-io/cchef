@@ -11,8 +11,8 @@ GOVULNCHECK_VERSION := v1.5.0
 .DEFAULT_GOAL := all
 .PHONY: all build clean cover fix fix-check fmt fmt-check install-tools lint sast sbom sbom-audit sbom-scan sec test vet vuln
 
-## all: check formatting/modernization, vet, test, build, and lint (mirrors CI)
-all: fmt-check fix-check vet test build lint
+## all: check formatting/modernization, vet, test, build, lint, and security (mirrors CI)
+all: fmt-check fix-check vet test build lint sec
 
 ## build: compile the cchef binary into dist/
 build:
