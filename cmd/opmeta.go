@@ -189,6 +189,7 @@ var opCategories = map[string][]string{
 	"JA4 Fingerprint":                    {catNetworking},
 	"JA4Server Fingerprint":              {catNetworking},
 	"JSON to CSV":                        {catDataFormat},
+	"JSON to YAML":                       {catDataFormat},
 	"Keccak":                             {catHashing},
 	"Levenshtein Distance":               {catUtils},
 	"MD5":                                {catHashing},
@@ -303,6 +304,7 @@ var opCategories = map[string][]string{
 	"Wrap":                               {catUtils},
 	"XOR":                                {catEncryptionEncoding},
 	"XOR Brute Force":                    {catEncryptionEncoding},
+	"YAML to JSON":                       {catDataFormat},
 }
 
 // categoriesOf returns the categories an operation belongs to (sorted), or a

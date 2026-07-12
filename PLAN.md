@@ -35,6 +35,15 @@ fixture cases for parity, and keeps external dependencies minimal:
   Windows-1255, KOI8-R/U) x/text and cptable differ only on bytes the standard
   leaves undefined (chiefly the C1 range 0x80-0x9F); graphic text is byte-exact,
   differential-verified against the oracle.
+- `go.yaml.in/yaml/v3` — backs **JSON to YAML** / **YAML to JSON**, which
+  CyberChef implements over two different JS YAML libraries (`yaml` and
+  `js-yaml`, both YAML 1.2). It was already in the build graph (cobra depends on
+  it), so this adds no new module. Output matches CyberChef for the common cases
+  (order-preserving with a 2-space block style; timestamps as ISO strings;
+  numbers as JS float64); it diverges on a few YAML 1.1-vs-1.2 points documented
+  in `docs/data-format.md` (defensive quoting of `yes`/`no`/`on` and bool-family
+  keys, single- vs double-quote style, astral-character escaping), all
+  differential-verified against the oracle.
 
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
@@ -43,7 +52,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 203
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 205
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -56,7 +65,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **203 operations** (`internal/ops/`), each a faithful port with tests
+- **205 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -200,7 +209,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **200 unique** CyberChef operations are covered (199 directly plus
+Currently **202 unique** CyberChef operations are covered (201 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -211,7 +220,7 @@ Currently **200 unique** CyberChef operations are covered (199 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (70/78)
+### Data format (72/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -251,7 +260,7 @@ Currently **200 unique** CyberChef operations are covered (199 directly plus
 - [x] From Quoted Printable
 - [x] Hex to PEM
 - [x] JSON to CSV
-- [ ] JSON to YAML
+- [x] JSON to YAML
 - [ ] MIME Decoding
 - [ ] Normalise Unicode
 - [ ] Parse ASN.1 hex string
@@ -290,7 +299,7 @@ Currently **200 unique** CyberChef operations are covered (199 directly plus
 - [x] Unescape Unicode Characters
 - [x] URL Decode
 - [x] URL Encode
-- [ ] YAML to JSON
+- [x] YAML to JSON
 
 ### Encryption / Encoding (7/94)
 

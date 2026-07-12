@@ -43,6 +43,7 @@ Operations for encoding and decoding data between common textual representations
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | JSON to CSV | `json-to-csv` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
+| JSON to YAML | `json-to-yaml` | [YAML](https://en.wikipedia.org/wiki/YAML) |
 | Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
@@ -75,6 +76,7 @@ Operations for encoding and decoding data between common textual representations
 | Unescape Unicode Characters | `unescape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
 | URL Encode | `url-encode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
+| YAML to JSON | `yaml-to-json` | [YAML](https://en.wikipedia.org/wiki/YAML) |
 
 ---
 
@@ -983,6 +985,32 @@ a,b.c,b.d
 1,2,3
 ```
 
+## JSON to YAML
+
+Formats a JSON value as [YAML](https://en.wikipedia.org/wiki/YAML). Object key
+order is preserved, numbers keep JSON's formatting (no scientific notation for
+plain integers), and nested collections use a 2-space block style.
+
+> **Fidelity note:** CyberChef uses the JavaScript `yaml` library (YAML 1.2);
+> cchef uses Go's `go.yaml.in/yaml/v3`. Output matches for the common cases but
+> differs on a few YAML 1.1-vs-1.2 points: strings in the `yes`/`no`/`on` family
+> and bool-family keys (`y`, `n`) are quoted defensively, quoted scalars use
+> single quotes rather than double, and astral characters (e.g. emoji) are
+> escaped rather than emitted raw.
+
+**Simple example**
+
+```bash
+$ cchef json-to-yaml -i '{"name":"cchef","tags":["cli","yaml"],"active":true}'
+name: cchef
+tags:
+  - cli
+  - yaml
+active: true
+```
+
+---
+
 ## Parse TLV
 
 Converts a [Type-Length-Value](https://wikipedia.org/wiki/Type-length-value)
@@ -1783,4 +1811,35 @@ Hello%20World!
 ```bash
 $ cchef url-encode --encode-all-special-chars -i 'Hello World!'
 Hello%20World%21
+```
+
+---
+
+## YAML to JSON
+
+Converts [YAML](https://en.wikipedia.org/wiki/YAML) to JSON (pretty-printed with
+4-space indent). Anchors and aliases are resolved, timestamps become ISO-8601
+strings, and numbers become JSON numbers (so integers beyond 2⁵³ lose precision,
+matching CyberChef). Duplicate mapping keys are rejected.
+
+> **Fidelity note:** CyberChef uses the JavaScript `js-yaml` library (YAML 1.2);
+> cchef uses Go's `go.yaml.in/yaml/v3`. Parsing matches for the common cases
+> (including `yes`/`no`/`on` staying strings). Values are read in YAML 1.2 style.
+
+**Simple example**
+
+```bash
+$ cchef yaml-to-json -i 'name: cchef
+tags:
+  - cli
+  - yaml
+active: true'
+{
+    "name": "cchef",
+    "tags": [
+        "cli",
+        "yaml"
+    ],
+    "active": true
+}
 ```
