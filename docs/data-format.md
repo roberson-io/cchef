@@ -45,6 +45,7 @@ Operations for encoding and decoding data between common textual representations
 | JSON to CSV | `json-to-csv` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
 | JSON to YAML | `json-to-yaml` | [YAML](https://en.wikipedia.org/wiki/YAML) |
 | MIME Decoding | `mime-decoding` | [RFC 2047](https://tools.ietf.org/html/rfc2047) |
+| Normalise Unicode | `normalise-unicode` | [Unicode equivalence](https://wikipedia.org/wiki/Unicode_equivalence#Normal_forms) |
 | Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
@@ -1037,6 +1038,36 @@ Subject: café
 ```bash
 $ cchef mime-decoding -i '=?utf-8?q?=C3=89ric?= <eric@example.org>'
 Éric <eric@example.org>
+```
+
+---
+
+## Normalise Unicode
+
+Transforms text to one of the four Unicode [Normalisation
+Forms](https://wikipedia.org/wiki/Unicode_equivalence#Normal_forms). Canonical
+forms (NFC/NFD) preserve the visible text; compatibility forms (NFKC/NFKD)
+additionally fold ligatures, Roman numerals, fractions and similar into their
+plain equivalents.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--normal-form` | option | `NFD` | One of: `NFD`, `NFC`, `NFKD`, `NFKC`. |
+
+**Simple example** (a ligature compatibility-decomposes under NFKD):
+
+```bash
+$ cchef normalise-unicode --normal-form NFKD -i 'ﬁ'
+fi
+```
+
+**Compatibility composition** (Roman numerals fold to ASCII letters under NFKC):
+
+```bash
+$ cchef normalise-unicode --normal-form NFKC -i 'ⅠⅡ'
+III
 ```
 
 ---

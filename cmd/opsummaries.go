@@ -52,6 +52,7 @@ var opSummaries = map[string]string{
 	"JSON to CSV":                    "Converts JSON to CSV (RFC 4180)",
 	"Levenshtein Distance":           "Levenshtein (edit) distance of two samples",
 	"MIME Decoding":                  "Decodes RFC 2047 MIME encoded-word headers",
+	"Normalise Unicode":              "Normalises text (NFC/NFD/NFKC/NFKD)",
 	"Offset checker":                 "Highlights byte offsets shared by samples",
 	"PEM to Hex":                     "Extracts hex DER from PEM blocks",
 	"Pad lines":                      "Pads the start or end of each line",

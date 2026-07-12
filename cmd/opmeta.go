@@ -197,6 +197,7 @@ var opCategories = map[string][]string{
 	"Median":                             {catArithmeticLogic},
 	"MIME Decoding":                      {catDataFormat},
 	"Multiply":                           {catArithmeticLogic},
+	"Normalise Unicode":                  {catDataFormat},
 	"NOT":                                {catEncryptionEncoding},
 	"OR":                                 {catEncryptionEncoding},
 	"Offset checker":                     {catUtils},
