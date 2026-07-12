@@ -98,3 +98,11 @@ func TestChefEdgeCases(t *testing.T) {
 		t.Fatalf("flags not parsed: %#v", r)
 	}
 }
+
+// TestParseRecipeConfigBadJSON covers the invalid-JSON error branch for a
+// bracket-prefixed (JSON) recipe.
+func TestParseRecipeConfigBadJSON(t *testing.T) {
+	if _, err := ParseRecipeConfig("[{"); err == nil {
+		t.Fatal("expected an error for an invalid JSON recipe")
+	}
+}

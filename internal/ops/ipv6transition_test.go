@@ -85,5 +85,11 @@ func TestIPv6TransitionFixtures(t *testing.T) {
 			"Mac Address: 0e:B2:C3:D4:E5:F6\n",
 			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{true, false}}},
 		},
+		// A Nat64 prefix with no embedded IPv4 hextets: cchef's nil-guard returns
+		// empty output, whereas CyberChef throws "Cannot read properties of null".
+		{
+			"nat64 prefix without embedded IPv4 (cchef guards)", "64:ff9b::", "",
+			core.Recipe{{Op: "IPv6 Transition Addresses", Args: []any{false, false}}},
+		},
 	})
 }

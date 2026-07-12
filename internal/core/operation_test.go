@@ -163,3 +163,20 @@ func TestCoerceArgWrongTypes(t *testing.T) {
 		t.Fatal("expected an error for a non-string option value")
 	}
 }
+
+// TestDefaultArgsOption covers the ArgOption branch of DefaultArgs: the default
+// is the choice at DefaultIndex.
+func TestDefaultArgsOption(t *testing.T) {
+	got := DefaultArgs([]ArgDef{{Type: ArgOption, Value: []string{"a", "b", "c"}, DefaultIndex: 2}})
+	if len(got) != 1 || got[0] != "c" {
+		t.Fatalf("DefaultArgs option = %v, want [c]", got)
+	}
+}
+
+// TestCoerceArgsCoerceError covers the per-argument coercion error branch of
+// CoerceArgs (distinct from the too-many-arguments guard).
+func TestCoerceArgsCoerceError(t *testing.T) {
+	if _, err := CoerceArgs([]ArgDef{{Name: "n", Type: ArgNumber}}, []any{"not a number"}); err == nil {
+		t.Fatal("expected a coercion error")
+	}
+}
