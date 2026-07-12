@@ -8,7 +8,6 @@ import (
 	"errors"
 	"io"
 	"math"
-	"strconv"
 	"strings"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -60,14 +59,14 @@ func (AvroToJSON) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var out string
 	if forceJSON {
 		if len(results) == 1 {
-			out = avroStringify(results[0], 4)
+			out = jsStringify(results[0], 4)
 		} else {
-			out = avroStringify(results, 4)
+			out = jsStringify(results, 4)
 		}
 	} else {
 		var sb strings.Builder
 		for _, r := range results {
-			sb.WriteString(avroStringify(r, 0))
+			sb.WriteString(jsStringify(r, 0))
 			sb.WriteByte('\n')
 		}
 		out = sb.String()
@@ -513,19 +512,19 @@ func decodeValue(s *avroSchema, r *areader) (any, error) {
 		}
 		return s.symbols[i], nil
 	case "record":
-		obj := make(avroObject, 0, len(s.fields))
+		obj := make(jsObject, 0, len(s.fields))
 		for _, f := range s.fields {
 			v, err := decodeValue(f.schema, r)
 			if err != nil {
 				return nil, err
 			}
-			obj = append(obj, avroPair{k: f.name, v: v})
+			obj = append(obj, jsPair{k: f.name, v: v})
 		}
 		return obj, nil
 	case "array":
 		return decodeBlocks(r, func() (any, error) { return decodeValue(s.items, r) })
 	case "map":
-		obj := avroObject{}
+		obj := jsObject{}
 		for {
 			count, err := r.readLong()
 			if err != nil {
@@ -549,7 +548,7 @@ func decodeValue(s *avroSchema, r *areader) (any, error) {
 				if err != nil {
 					return nil, err
 				}
-				obj = append(obj, avroPair{k: string(key), v: v})
+				obj = append(obj, jsPair{k: string(key), v: v})
 			}
 		}
 	case "union":
@@ -566,7 +565,7 @@ func decodeValue(s *avroSchema, r *areader) (any, error) {
 			return nil, err
 		}
 		if s.wrapped && branch.kind != "null" {
-			return avroObject{{k: avroBranchName(branch), v: v}}, nil
+			return jsObject{{k: avroBranchName(branch), v: v}}, nil
 		}
 		return v, nil
 	default:
@@ -602,141 +601,10 @@ func decodeBlocks(r *areader, item func() (any, error)) (any, error) {
 	}
 }
 
-// avroBuffer renders a byte slice the way JSON.stringify renders a Node Buffer.
-func avroBuffer(b []byte) avroObject {
-	data := make([]any, len(b))
-	for i, c := range b {
-		data[i] = int64(c)
-	}
-	return avroObject{{k: "type", v: "Buffer"}, {k: "data", v: data}}
-}
-
-// --- value model + JSON.stringify-equivalent serialiser ---
-
-type avroPair struct {
-	k string
-	v any
-}
-
-type avroObject []avroPair
-
-// avroStringify reproduces JavaScript's JSON.stringify(value, null, indent):
-// indent 0 is compact, indent > 0 pretty-prints with that many spaces.
-func avroStringify(v any, indent int) string {
-	var sb strings.Builder
-	avroWrite(&sb, v, indent, "")
-	return sb.String()
-}
-
-func avroWrite(sb *strings.Builder, v any, indent int, cur string) {
-	switch x := v.(type) {
-	case nil:
-		sb.WriteString("null")
-	case bool:
-		if x {
-			sb.WriteString("true")
-		} else {
-			sb.WriteString("false")
-		}
-	case int64:
-		sb.WriteString(strconv.FormatInt(x, 10))
-	case float64:
-		sb.WriteString(avroFormatNumber(x))
-	case string:
-		sb.WriteString(avroJSONString(x))
-	case []any:
-		avroWriteArray(sb, x, indent, cur)
-	case avroObject:
-		avroWriteObject(sb, x, indent, cur)
-	}
-}
-
-func avroWriteArray(sb *strings.Builder, arr []any, indent int, cur string) {
-	if len(arr) == 0 {
-		sb.WriteString("[]")
-		return
-	}
-	if indent == 0 {
-		sb.WriteByte('[')
-		for i, e := range arr {
-			if i > 0 {
-				sb.WriteByte(',')
-			}
-			avroWrite(sb, e, 0, "")
-		}
-		sb.WriteByte(']')
-		return
-	}
-	inner := cur + strings.Repeat(" ", indent)
-	sb.WriteString("[\n")
-	for i, e := range arr {
-		sb.WriteString(inner)
-		avroWrite(sb, e, indent, inner)
-		if i < len(arr)-1 {
-			sb.WriteByte(',')
-		}
-		sb.WriteByte('\n')
-	}
-	sb.WriteString(cur)
-	sb.WriteByte(']')
-}
-
-func avroWriteObject(sb *strings.Builder, obj avroObject, indent int, cur string) {
-	if len(obj) == 0 {
-		sb.WriteString("{}")
-		return
-	}
-	if indent == 0 {
-		sb.WriteByte('{')
-		for i, p := range obj {
-			if i > 0 {
-				sb.WriteByte(',')
-			}
-			sb.WriteString(avroJSONString(p.k))
-			sb.WriteByte(':')
-			avroWrite(sb, p.v, 0, "")
-		}
-		sb.WriteByte('}')
-		return
-	}
-	inner := cur + strings.Repeat(" ", indent)
-	sb.WriteString("{\n")
-	for i, p := range obj {
-		sb.WriteString(inner)
-		sb.WriteString(avroJSONString(p.k))
-		sb.WriteString(": ")
-		avroWrite(sb, p.v, indent, inner)
-		if i < len(obj)-1 {
-			sb.WriteByte(',')
-		}
-		sb.WriteByte('\n')
-	}
-	sb.WriteString(cur)
-	sb.WriteByte('}')
-}
-
-// avroFormatNumber matches JSON.stringify's number output: NaN/Infinity become
-// null, negative zero becomes "0", and everything else uses Go's ECMAScript-
-// compatible float formatting.
-func avroFormatNumber(f float64) string {
-	if math.IsNaN(f) || math.IsInf(f, 0) {
-		return "null"
-	}
-	if f == 0 {
-		return "0"
-	}
-	b, _ := json.Marshal(f)
-	return string(b)
-}
-
-// avroJSONString escapes a string the way JSON.stringify does (no HTML escaping
-// of <, >, &).
-func avroJSONString(s string) string {
-	var b bytes.Buffer
-	enc := json.NewEncoder(&b)
-	enc.SetEscapeHTML(false)
-	_ = enc.Encode(s)
-	return strings.TrimRight(b.String(), "\n")
+// avroBuffer renders a byte slice as a Node Buffer, matching avsc's
+// representation of Avro bytes/fixed values.
+func avroBuffer(b []byte) jsObject {
+	return jsBuffer(b)
 }
 
 func init() {

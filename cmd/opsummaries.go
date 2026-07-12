@@ -16,6 +16,8 @@ var opSummaries = map[string]string{
 	"Bit shift right":                "Shifts each byte's bits right by an amount",
 	"Caret/M-decode":                 "Decodes caret/M-notation escapes (cat -v)",
 	"Cartesian Product":              "Cartesian product of multiple sets",
+	"CBOR Decode":                    "Decodes CBOR (RFC 8949) binary data into JSON",
+	"CBOR Encode":                    "Encodes JSON into canonical CBOR (RFC 8949)",
 	"Count occurrences":              "Counts occurrences of a string in the input",
 	"DateTime Delta":                 "Adds or subtracts a delta to a DateTime",
 	"Dechunk HTTP response":          "Decodes a chunked HTTP response body",

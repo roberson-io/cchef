@@ -110,6 +110,8 @@ var opCategories = map[string][]string{
 	"Bit shift right":                    {catEncryptionEncoding},
 	"Caret/M-decode":                     {catDataFormat},
 	"Cartesian Product":                  {catArithmeticLogic},
+	"CBOR Decode":                        {catDataFormat},
+	"CBOR Encode":                        {catDataFormat},
 	"Change IP format":                   {catNetworking},
 	"Convert area":                       {catUtils},
 	"Convert co-ordinate format":         {catUtils},

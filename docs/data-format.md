@@ -10,6 +10,8 @@ Operations for encoding and decoding data between common textual representations
 | AMF Encode | `amf-encode` | [Action Message Format](https://wikipedia.org/wiki/Action_Message_Format) |
 | Avro to JSON | `avro-to-json` | [Apache Avro](https://wikipedia.org/wiki/Apache_Avro) |
 | Caret/M-decode | `caret-m-decode` | [Caret notation](https://en.wikipedia.org/wiki/Caret_notation) |
+| CBOR Decode | `cbor-decode` | [CBOR](https://wikipedia.org/wiki/CBOR) |
+| CBOR Encode | `cbor-encode` | [CBOR](https://wikipedia.org/wiki/CBOR) |
 | Escape Smart Characters | `escape-smart-characters` | [Punctuation](https://wikipedia.org/wiki/Punctuation) |
 | Escape Unicode Characters | `escape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
@@ -174,6 +176,65 @@ This operation takes no options.
 ```bash
 $ cchef caret-m-decode -i '^M^JHello M-^A' | cchef to-hex
 0d 0a 48 65 6c 6c 6f 20 81
+```
+
+---
+
+## CBOR Decode
+
+Decodes [CBOR](https://wikipedia.org/wiki/CBOR) (Concise Binary Object
+Representation, RFC 8949) binary data into JSON. Byte strings render as Node
+Buffer objects (`{"type": "Buffer", "data": [...]}`), maps keep their key order,
+and date tags (0/1) become ISO strings. Integers beyond JavaScript's safe range
+(2⁵³−1) and bignum tags decode to BigInts, which cannot be represented in JSON —
+those inputs are rejected. Input is raw bytes, so pipe binary in via `from-hex`
+or `--in-file`.
+
+**Simple example**
+
+```bash
+$ echo 'a3 61 61 01 61 62 02 61 63 03' | cchef from-hex | cchef cbor-decode
+{
+    "a": 1,
+    "b": 2,
+    "c": 3
+}
+```
+
+**Mixed array** (a boolean and a double):
+
+```bash
+$ echo '82 f5 fb 40 09 21 fb 54 44 2d 18' | cchef from-hex | cchef cbor-decode
+[
+    true,
+    3.141592653589793
+]
+```
+
+---
+
+## CBOR Encode
+
+Encodes JSON into canonical [CBOR](https://wikipedia.org/wiki/CBOR) (RFC 8949).
+Canonical form uses the shortest encoding for every value — including
+half-precision floats — and orders map keys by their encoded bytes (length
+first), so the output is deterministic. Output is raw bytes; pipe through
+`to-hex` to view it.
+
+**Simple example**
+
+Map keys are emitted in canonical order regardless of input order:
+
+```bash
+$ echo -n '{"c":3,"a":1,"b":2}' | cchef cbor-encode | cchef to-hex
+a3 61 61 01 61 62 02 61 63 03
+```
+
+**Shortest float** (1.5 encodes as a two-byte half-precision float):
+
+```bash
+$ echo -n '1.5' | cchef cbor-encode | cchef to-hex
+f9 3e 00
 ```
 
 ## Escape Smart Characters

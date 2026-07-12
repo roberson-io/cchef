@@ -12,7 +12,6 @@ package ops
 
 import (
 	"encoding/hex"
-	"math"
 	"strings"
 	"testing"
 
@@ -789,35 +788,6 @@ func TestAvroDecodeOCFShort(t *testing.T) {
 		if err != nil || len(res) != 0 {
 			t.Fatalf("avroDecodeOCF(%v) = %v, %v", in, res, err)
 		}
-	}
-}
-
-// TestAvroFormatNumber covers the special-number branches directly.
-func TestAvroFormatNumber(t *testing.T) {
-	cases := map[float64]string{
-		0:                     "0",
-		math.Copysign(0, -1):  "0",
-		1.5:                   "1.5",
-		math.NaN():            "null",
-		math.Inf(1):           "null",
-		math.Inf(-1):          "null",
-		100000002004087730000: "100000002004087730000",
-	}
-	for f, want := range cases {
-		if got := avroFormatNumber(f); got != want {
-			t.Errorf("avroFormatNumber(%v) = %q want %q", f, got, want)
-		}
-	}
-}
-
-// TestAvroStringifyScalars covers the boolean-false and compact-object branches
-// of the serialiser.
-func TestAvroStringifyScalars(t *testing.T) {
-	if got := avroStringify(avroObject{{k: "b", v: false}, {k: "t", v: true}}, 0); got != `{"b":false,"t":true}` {
-		t.Fatalf("compact bools: %q", got)
-	}
-	if got := avroStringify(false, 0); got != "false" {
-		t.Fatalf("bare false: %q", got)
 	}
 }
 
