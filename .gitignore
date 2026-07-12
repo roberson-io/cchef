@@ -7,3 +7,4 @@
 
 # Go module vendoring is not used; build in module mode.
 /vendor/
+.DS_Store

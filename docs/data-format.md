@@ -36,6 +36,7 @@ Operations for encoding and decoding data between common textual representations
 | From Hex Content | `from-hex-content` | [SNORT](http://manual-snort-org.s3-website-us-east-1.amazonaws.com/node32.html#SECTION00451000000000000000) |
 | From Hexdump | `from-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
 | From HTML Entity | `from-html-entity` | [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) |
+| From MessagePack | `from-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | From Modhex | `from-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
@@ -65,6 +66,7 @@ Operations for encoding and decoding data between common textual representations
 | To Hex Content | `to-hex-content` | [SNORT](http://manual-snort-org.s3-website-us-east-1.amazonaws.com/node32.html#SECTION00451000000000000000) |
 | To Hexdump | `to-hexdump` | [Hex dump](https://wikipedia.org/wiki/Hex_dump) |
 | To HTML Entity | `to-html-entity` | [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references) |
+| To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | To Modhex | `to-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | To Quoted Printable | `to-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
@@ -788,6 +790,39 @@ This operation takes no options.
 $ cchef from-html-entity -i '&amp; &lt; &#233; &#x20ac;'
 & < é €
 ```
+
+## From MessagePack
+
+Converts [MessagePack](https://wikipedia.org/wiki/MessagePack) encoded data to
+JSON. MessagePack is a compact binary serialisation format for the same data
+model as JSON. Byte strings render as Node Buffer objects (`{"type": "Buffer",
+"data": [...]}`), map keys are coerced to strings, timestamp extensions become
+ISO date strings, and integers beyond JavaScript's safe range (2⁵³) lose
+precision — matching CyberChef's `notepack.io` backing library. Input is raw
+bytes, so pipe binary in via `from-hex` or `--in-file`.
+
+**Simple example**
+
+```bash
+$ echo '83 a1 61 01 a1 62 02 a1 63 03' | cchef from-hex | cchef from-messagepack
+{
+    "a": 1,
+    "b": 2,
+    "c": 3
+}
+```
+
+**Mixed array** (a boolean and a float):
+
+```bash
+$ echo '92 c3 cb 40 09 21 f9 f0 1b 86 6e' | cchef from-hex | cchef from-messagepack
+[
+    true,
+    3.14159
+]
+```
+
+---
 
 ## From Modhex
 
@@ -1513,6 +1548,39 @@ a &amp; b &lt; &quot;c&quot;
 $ cchef to-html-entity --convert-all-characters --convert-to 'Numeric entities' -i 'Hé'
 &#72;&#233;
 ```
+
+## To MessagePack
+
+Converts JSON to a [MessagePack](https://wikipedia.org/wiki/MessagePack) encoded
+byte buffer. MessagePack is a compact binary serialisation format for the same
+data model as JSON. Non-integer numbers are always encoded as 64-bit floats, and
+object keys are emitted in JavaScript enumeration order (integer-index keys
+first in ascending order, then the remaining keys in insertion order), matching
+CyberChef's `notepack.io` backing library. Output is raw bytes; pipe through
+`to-hex` to view it.
+
+**Simple example**
+
+```bash
+$ echo -n '{"a":1,"b":2,"c":3}' | cchef to-messagepack | cchef to-hex
+83 a1 61 01 a1 62 02 a1 63 03
+```
+
+**Key ordering** (integer-index keys are emitted first, in ascending order):
+
+```bash
+$ echo -n '{"b":1,"2":2,"1":3}' | cchef to-messagepack | cchef to-hex
+83 a1 31 03 a1 32 02 a1 62 01
+```
+
+**Float** (non-integers encode as a 64-bit float):
+
+```bash
+$ echo -n '1.5' | cchef to-messagepack | cchef to-hex
+cb 3f f8 00 00 00 00 00 00
+```
+
+---
 
 ## To Modhex
 

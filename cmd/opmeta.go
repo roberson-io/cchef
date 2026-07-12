@@ -84,6 +84,7 @@ func lastWord(s string) string {
 // is a compile error rather than a silent new group.
 const (
 	catArithmeticLogic    = "Arithmetic / Logic"
+	catCodeTidy           = "Code tidy"
 	catDataFormat         = "Data format"
 	catDateTime           = "Date / Time"
 	catEncryptionEncoding = "Encryption / Encoding"
@@ -129,7 +130,7 @@ var opCategories = map[string][]string{
 	"Decode text":                        {catDataFormat, catLanguage},
 	"Defang IP Addresses":                {catNetworking},
 	"Defang URL":                         {catNetworking},
-	"Diff":                               {catUtils},
+	"Diff":                               {catUtils, catCodeTidy},
 	"Divide":                             {catArithmeticLogic},
 	"Drop bytes":                         {catUtils},
 	"Drop nth bytes":                     {catUtils},
@@ -165,6 +166,7 @@ var opCategories = map[string][]string{
 	"From Hex":                           {catDataFormat},
 	"From Hex Content":                   {catDataFormat},
 	"From Hexdump":                       {catDataFormat},
+	"From MessagePack":                   {catDataFormat, catCodeTidy},
 	"From Modhex":                        {catDataFormat},
 	"From Octal":                         {catDataFormat},
 	"From Quoted Printable":              {catDataFormat},
@@ -279,6 +281,7 @@ var opCategories = map[string][]string{
 	"To Hex Content":                     {catDataFormat},
 	"To Hexdump":                         {catDataFormat},
 	"To Lower case":                      {catUtils},
+	"To MessagePack":                     {catDataFormat, catCodeTidy},
 	"To Modhex":                          {catDataFormat},
 	"To Octal":                           {catDataFormat},
 	"To Quoted Printable":                {catDataFormat},

@@ -12,6 +12,7 @@ import (
 // built from the same constants used in opCategories so the two cannot drift.
 var knownCategories = map[string]bool{
 	catArithmeticLogic:    true,
+	catCodeTidy:           true,
 	catDataFormat:         true,
 	catDateTime:           true,
 	catEncryptionEncoding: true,
