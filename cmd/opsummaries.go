@@ -56,6 +56,7 @@ var opSummaries = map[string]string{
 	"Offset checker":                 "Highlights byte offsets shared by samples",
 	"PEM to Hex":                     "Extracts hex DER from PEM blocks",
 	"Pad lines":                      "Pads the start or end of each line",
+	"Parse ASN.1 hex string":         "Parses ASN.1 hex into a readable structure tree",
 	"Parse DateTime":                 "Parses a DateTime and shows its components",
 	"Parse Ethernet frame":           "Parses an Ethernet frame into fields",
 	"Parse IPv4 header":              "Parses an IPv4 header into its fields",

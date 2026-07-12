@@ -19,6 +19,7 @@ var knownCategories = map[string]bool{
 	catHashing:            true,
 	catLanguage:           true,
 	catNetworking:         true,
+	catPublicKey:          true,
 	catUtils:              true,
 }
 

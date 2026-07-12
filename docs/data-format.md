@@ -46,6 +46,7 @@ Operations for encoding and decoding data between common textual representations
 | JSON to YAML | `json-to-yaml` | [YAML](https://en.wikipedia.org/wiki/YAML) |
 | MIME Decoding | `mime-decoding` | [RFC 2047](https://tools.ietf.org/html/rfc2047) |
 | Normalise Unicode | `normalise-unicode` | [Unicode equivalence](https://wikipedia.org/wiki/Unicode_equivalence#Normal_forms) |
+| Parse ASN.1 hex string | `parse-asn1-hex-string` | [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One) |
 | Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
@@ -1069,6 +1070,60 @@ fi
 $ cchef normalise-unicode --normal-form NFKC -i 'ⅠⅡ'
 III
 ```
+
+---
+
+## Parse ASN.1 hex string
+
+Parses arbitrary [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One)
+data — supplied as a hex string — and prints the decoded BER/DER structure as an
+indented tree. Use [To Hex](#to-hex) first if your data is binary. Whitespace in
+the input is ignored and hex is case-insensitive. Recognised object identifiers
+are shown by name (e.g. `sha256`, `commonName`) alongside their dotted form;
+unknown OIDs show the dotted form only. Long primitive values are abbreviated in
+the middle, with the truncation length configurable.
+
+This operation is also listed under [Public Key](public-key.md).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--starting-index` | number | `0` | Offset, in **hex characters**, at which to start parsing. |
+| `--truncate-octet-strings-longer-than` | number | `32` | Values longer than this many bytes are shown as their first and last *N* hex characters, where *N* is this value. |
+
+**Simple example**
+
+Decoding an `AlgorithmIdentifier` (SHA-256):
+
+```bash
+$ cchef parse-asn1-hex-string -i '300d06096086480165030402010500'
+SEQUENCE
+  ObjectIdentifier sha256 (2 16 840 1 101 3 4 2 1)
+  NULL
+```
+
+**Complex example**
+
+An X.509 `subjectAltName` extension, whose `[2]` (dNSName) entries are decoded as
+text, with octet strings truncated to their first and last 8 hex characters:
+
+```bash
+$ cchef parse-asn1-hex-string -i '30100603551d11040930078205612e636f6d' \
+    --truncate-octet-strings-longer-than 8
+SEQUENCE
+  ObjectIdentifier subjectAltName (2 5 29 17)
+  OCTETSTRING, encapsulates
+    SEQUENCE
+      [2] a.com
+```
+
+**Fidelity note:** cchef reimplements CyberChef's ASN.1 dumper (a wrapper around
+the `jsrsasign` library) in Go, matching its output byte-for-byte, including its
+quirks — e.g. `ENUMERATED` values are rendered with a base-10 read of the hex
+value, and invalid UTF-8 in a string type prints as `null`. One deliberate
+divergence: where `jsrsasign` throws a JavaScript error on a `BMPString` shorter
+than a single UTF-16 code unit, cchef decodes the complete code units it has.
 
 ---
 

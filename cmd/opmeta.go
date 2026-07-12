@@ -91,6 +91,7 @@ const (
 	catHashing            = "Hashing"
 	catLanguage           = "Language"
 	catNetworking         = "Networking"
+	catPublicKey          = "Public Key"
 	catUtils              = "Utils"
 )
 
@@ -182,7 +183,7 @@ var opCategories = map[string][]string{
 	"HTTP request":                       {catNetworking},
 	"Hamming Distance":                   {catUtils},
 	"Head":                               {catUtils},
-	"Hex to PEM":                         {catDataFormat},
+	"Hex to PEM":                         {catDataFormat, catPublicKey},
 	"IPv6 Transition Addresses":          {catNetworking},
 	"JA3 Fingerprint":                    {catNetworking},
 	"JA3S Fingerprint":                   {catNetworking},
@@ -201,15 +202,16 @@ var opCategories = map[string][]string{
 	"NOT":                                {catEncryptionEncoding},
 	"OR":                                 {catEncryptionEncoding},
 	"Offset checker":                     {catUtils},
-	"PEM to Hex":                         {catDataFormat},
+	"PEM to Hex":                         {catDataFormat, catPublicKey},
 	"Pad lines":                          {catUtils},
+	"Parse ASN.1 hex string":             {catDataFormat, catPublicKey},
 	"Parse DateTime":                     {catDateTime},
 	"Parse Ethernet frame":               {catNetworking},
 	"Parse IP range":                     {catNetworking},
 	"Parse IPv4 header":                  {catNetworking},
 	"Parse IPv6 address":                 {catNetworking},
 	"Parse ObjectID timestamp":           {catUtils},
-	"Parse SSH Host Key":                 {catNetworking},
+	"Parse SSH Host Key":                 {catNetworking, catPublicKey},
 	"Parse TCP":                          {catNetworking},
 	"Parse TLS record":                   {catNetworking},
 	"Parse TLV":                          {catDataFormat},

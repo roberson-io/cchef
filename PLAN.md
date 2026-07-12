@@ -52,7 +52,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 207
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 208
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -65,7 +65,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **207 operations** (`internal/ops/`), each a faithful port with tests
+- **208 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -209,7 +209,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **204 unique** CyberChef operations are covered (203 directly plus
+Currently **205 unique** CyberChef operations are covered (204 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -220,7 +220,7 @@ Currently **204 unique** CyberChef operations are covered (203 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (74/78)
+### Data format (75/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -263,7 +263,7 @@ Currently **204 unique** CyberChef operations are covered (203 directly plus
 - [x] JSON to YAML
 - [x] MIME Decoding
 - [x] Normalise Unicode
-- [ ] Parse ASN.1 hex string
+- [x] Parse ASN.1 hex string
 - [x] Parse TLV
 - [x] PEM to Hex
 - [ ] Rison Decode
@@ -398,7 +398,7 @@ Currently **204 unique** CyberChef operations are covered (203 directly plus
 - [ ] XXTEA Decrypt
 - [ ] XXTEA Encrypt
 
-### Public Key (3/31)
+### Public Key (4/31)
 
 - [ ] ECDSA Sign
 - [ ] ECDSA Signature Conversion
@@ -410,7 +410,7 @@ Currently **204 unique** CyberChef operations are covered (203 directly plus
 - [x] Hex to PEM
 - [ ] JWK to PEM
 - [ ] Object Identifier to Hex
-- [ ] Parse ASN.1 hex string
+- [x] Parse ASN.1 hex string
 - [ ] Parse CSR
 - [x] Parse SSH Host Key
 - [ ] Parse X.509 certificate
