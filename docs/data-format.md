@@ -49,6 +49,8 @@ Operations for encoding and decoding data between common textual representations
 | Parse ASN.1 hex string | `parse-asn1-hex-string` | [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One) |
 | Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| Rison Decode | `rison-decode` | [Rison](https://github.com/Nanonid/rison) |
+| Rison Encode | `rison-encode` | [Rison](https://github.com/Nanonid/rison) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | Text-Integer Conversion | `text-integer-conversion` | [Endianness](https://wikipedia.org/wiki/Endianness) |
@@ -1189,6 +1191,78 @@ n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
 -----END PUBLIC KEY-----'
 3059301306072a8648ce3d020106082a8648ce3d0301070342000414b41c05bcc3c1ea3a69fe24de4d2029630d58e6559fcfbd847dabbf80ca29867b135cfae0b06d3e707580ccfef870cac92af6a330f7ff8e9d21b40c5d464aa7
 ```
+
+## Rison Decode
+
+Parses a [Rison](https://github.com/Nanonid/rison) string into JSON. Rison is a
+compact, URI-friendly variant of JSON. The output is pretty-printed JSON.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--decode-option` | option | `Decode` | `Decode` parses a full Rison value; `Decode Object` wraps the input in `(…)` first (object Rison, "o-rison"); `Decode Array` wraps it in `!(…)` (array Rison, "a-rison"). |
+
+**Simple example**
+
+```bash
+$ cchef rison-decode -i '(name:cchef,n:42,tags:!(a,b))'
+{
+    "name": "cchef",
+    "n": 42,
+    "tags": [
+        "a",
+        "b"
+    ]
+}
+```
+
+**Complex example**
+
+Object Rison omits the outer parentheses, so use `Decode Object`:
+
+```bash
+$ cchef rison-decode --decode-option 'Decode Object' -i 'a:1,b:2'
+{
+    "a": 1,
+    "b": 2
+}
+```
+
+## Rison Encode
+
+Serialises JSON into [Rison](https://github.com/Nanonid/rison). Object keys are
+sorted, matching the reference implementation.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--encode-option` | option | `Encode` | `Encode` produces a full Rison value; `Encode Object` drops the outer parentheses (object Rison); `Encode Array` drops the outer `!(…)` (array Rison); `Encode URI` additionally applies Rison's tolerant URI encoding. |
+
+**Simple example**
+
+```bash
+$ cchef rison-encode -i '{"name":"cchef","tags":["a","b"],"n":42}'
+(n:42,name:cchef,tags:!(a,b))
+```
+
+**Complex example**
+
+`Encode URI` percent-encodes for use in a URL (note Rison keeps `,` `:` `@` `$`
+`/` readable where it can, and encodes spaces as `+`):
+
+```bash
+$ cchef rison-encode --encode-option 'Encode URI' -i '{"q":"a b,c"}'
+(q:'a+b,c')
+```
+
+**Fidelity note:** cchef reimplements the `rison` npm library CyberChef wraps,
+matching its output byte-for-byte — including its quirks, such as encoding
+object keys in sorted order and replacing only the first occurrence of each
+escaped sequence in `Encode URI`. Object keys are sorted by UTF-8 byte order,
+which matches the reference implementation's UTF-16 sort for all but astral-plane
+characters.
 
 ## Show Base64 offsets
 

@@ -73,6 +73,8 @@ var opSummaries = map[string]string{
 	"Regular expression":             "Searches the input with your own RE2 regex",
 	"Remove line numbers":            "Removes leading line numbers from each line",
 	"Remove whitespace":              "Removes selected whitespace characters",
+	"Rison Decode":                   "Decodes Rison (compact URI-friendly format) to JSON",
+	"Rison Encode":                   "Encodes JSON to Rison, a compact URI-friendly format",
 	"Rotate left":                    "Rotates each byte's bits left",
 	"Rotate right":                   "Rotates each byte's bits right",
 	"SHA3":                           "Computes the SHA-3 (Keccak) digest",

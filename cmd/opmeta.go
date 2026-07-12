@@ -234,6 +234,8 @@ var opCategories = map[string][]string{
 	"Remove null bytes":                  {catUtils},
 	"Remove whitespace":                  {catUtils},
 	"Reverse":                            {catUtils},
+	"Rison Decode":                       {catDataFormat},
+	"Rison Encode":                       {catDataFormat},
 	"Rotate left":                        {catEncryptionEncoding},
 	"Rotate right":                       {catEncryptionEncoding},
 	"SHA1":                               {catHashing},
