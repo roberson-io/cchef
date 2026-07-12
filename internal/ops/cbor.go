@@ -548,16 +548,6 @@ func cborReadMap(r *creader, ai byte) (any, error) {
 	return obj, nil
 }
 
-// jsIndex returns the position of key k in obj, or -1.
-func jsIndex(obj jsObject, k string) int {
-	for i, p := range obj {
-		if p.k == k {
-			return i
-		}
-	}
-	return -1
-}
-
 func cborReadSimple(r *creader, ai byte) (any, error) {
 	switch ai {
 	case 20:

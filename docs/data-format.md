@@ -12,6 +12,7 @@ Operations for encoding and decoding data between common textual representations
 | Caret/M-decode | `caret-m-decode` | [Caret notation](https://en.wikipedia.org/wiki/Caret_notation) |
 | CBOR Decode | `cbor-decode` | [CBOR](https://wikipedia.org/wiki/CBOR) |
 | CBOR Encode | `cbor-encode` | [CBOR](https://wikipedia.org/wiki/CBOR) |
+| CSV to JSON | `csv-to-json` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
 | Escape Smart Characters | `escape-smart-characters` | [Punctuation](https://wikipedia.org/wiki/Punctuation) |
 | Escape Unicode Characters | `escape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
@@ -37,6 +38,7 @@ Operations for encoding and decoding data between common textual representations
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| JSON to CSV | `json-to-csv` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
 | Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
@@ -235,6 +237,55 @@ a3 61 61 01 61 62 02 61 63 03
 ```bash
 $ echo -n '1.5' | cchef cbor-encode | cchef to-hex
 f9 3e 00
+```
+
+---
+
+## CSV to JSON
+
+Parses [comma-separated values](https://wikipedia.org/wiki/Comma-separated_values)
+into JSON. Quoted fields, doubled quotes and embedded delimiters are handled per
+RFC 4180. Each character of the delimiter arguments is treated as its own
+delimiter, so the default row delimiter `\r\n` splits on either CR or LF.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--cell-delimiters` | string | `,` | Characters that separate cells. |
+| `--row-delimiters` | string | `\r\n` | Characters that separate rows. |
+| `--format` | option | `Array of dictionaries` | `Array of dictionaries` keys each row by the header row; `Array of arrays` emits raw rows. |
+
+**Array of dictionaries** (the default — first row is the header):
+
+```bash
+$ printf 'name,age\r\nAda,36\r\nBob,40\r\n' | cchef csv-to-json
+[
+    {
+        "name": "Ada",
+        "age": "36"
+    },
+    {
+        "name": "Bob",
+        "age": "40"
+    }
+]
+```
+
+**Array of arrays**:
+
+```bash
+$ printf 'name,age\r\nAda,36\r\n' | cchef csv-to-json --format 'Array of arrays'
+[
+    [
+        "name",
+        "age"
+    ],
+    [
+        "Ada",
+        "36"
+    ]
+]
 ```
 
 ## Escape Smart Characters
@@ -777,6 +828,39 @@ $ cchef hex-to-pem --header-string 'PUBLIC KEY' -i '3059301306072a8648ce3d020106
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFLQcBbzDweo6af4k3k0gKWMNWOZV
 n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
 -----END PUBLIC KEY-----
+```
+
+---
+
+## JSON to CSV
+
+Converts JSON to CSV per [RFC 4180](https://wikipedia.org/wiki/Comma-separated_values).
+An array of objects becomes a header row plus one row per object; an array of
+arrays is written row for row. Nested objects and arrays are flattened into
+dotted column names (e.g. `b.c`, `b.0`), and cells containing a delimiter, quote
+or newline are quoted.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--cell-delimiter` | string | `,` | Character(s) between cells. |
+| `--row-delimiter` | string | `\r\n` | Character(s) between rows. |
+
+**Array of objects**:
+
+```bash
+$ echo -n '{"a":1,"b":"2","c":3}' | cchef json-to-csv
+a,b,c
+1,2,3
+```
+
+**Nested JSON** (flattened to dotted columns):
+
+```bash
+$ echo -n '{"a":1,"b":{"c":2,"d":3}}' | cchef json-to-csv
+a,b.c,b.d
+1,2,3
 ```
 
 ## Parse TLV

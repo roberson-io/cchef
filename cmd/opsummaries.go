@@ -48,6 +48,7 @@ var opSummaries = map[string]string{
 	"HMAC":                           "Computes an HMAC over the input with a key",
 	"Hamming Distance":               "Hamming distance between two samples",
 	"Hex to PEM":                     "Wraps a hex DER string in PEM armor",
+	"JSON to CSV":                    "Converts JSON to CSV (RFC 4180)",
 	"Levenshtein Distance":           "Levenshtein (edit) distance of two samples",
 	"Offset checker":                 "Highlights byte offsets shared by samples",
 	"PEM to Hex":                     "Extracts hex DER from PEM blocks",

@@ -3,7 +3,10 @@ package ops
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -23,6 +26,140 @@ type jsObject []jsPair
 // objects and renders it as null inside arrays; at the top level the whole
 // output is empty. Only CBOR decoding produces it.
 type jsUndefined struct{}
+
+// jsArrayIndex reports whether k is a canonical ECMAScript array index (a
+// non-negative integer string with no leading zeros, value < 2^32-1) and, if
+// so, its numeric value.
+func jsArrayIndex(k string) (uint64, bool) {
+	if k == "0" {
+		return 0, true
+	}
+	if k == "" || k[0] < '1' || k[0] > '9' {
+		return 0, false
+	}
+	for i := 0; i < len(k); i++ {
+		if k[i] < '0' || k[i] > '9' {
+			return 0, false
+		}
+	}
+	n, err := strconv.ParseUint(k, 10, 64)
+	if err != nil || n >= 4294967295 {
+		return 0, false
+	}
+	return n, true
+}
+
+// jsESOrder reorders an object's entries the way JavaScript enumerates own
+// string keys (OrdinaryOwnPropertyKeys): integer-index keys first in ascending
+// numeric order, then the remaining keys in insertion order. JSON.stringify and
+// Object.keys both use this order.
+func jsESOrder(obj jsObject) jsObject {
+	type indexed struct {
+		n   uint64
+		pos int
+	}
+	var ints []indexed
+	var rest []int
+	for i, p := range obj {
+		if n, ok := jsArrayIndex(p.k); ok {
+			ints = append(ints, indexed{n, i})
+		} else {
+			rest = append(rest, i)
+		}
+	}
+	if len(ints) == 0 {
+		return obj
+	}
+	sort.SliceStable(ints, func(a, b int) bool { return ints[a].n < ints[b].n })
+	out := make(jsObject, 0, len(obj))
+	for _, it := range ints {
+		out = append(out, obj[it.pos])
+	}
+	for _, i := range rest {
+		out = append(out, obj[i])
+	}
+	return out
+}
+
+// jsIndex returns the position of key k in obj, or -1.
+func jsIndex(obj jsObject, k string) int {
+	for i, p := range obj {
+		if p.k == k {
+			return i
+		}
+	}
+	return -1
+}
+
+// jsonParseOrdered parses JSON preserving object key order (as jsObject), which
+// Go's map-based json.Unmarshal cannot. Numbers become float64 (matching a
+// JavaScript JSON.parse), objects jsObject, arrays []any, and duplicate object
+// keys keep their first position with the last value (JS object semantics). It
+// rejects trailing data after the single top-level value.
+func jsonParseOrdered(data []byte) (any, error) {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	v, err := jsonParseValue(dec)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return nil, errors.New("trailing data after JSON value")
+	}
+	return v, nil
+}
+
+func jsonParseValue(dec *json.Decoder) (any, error) {
+	tok, err := dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	delim, ok := tok.(json.Delim)
+	if !ok {
+		if n, ok := tok.(json.Number); ok {
+			f, err := n.Float64()
+			return f, err
+		}
+		return tok, nil // string, bool, or nil
+	}
+	switch delim {
+	case '{':
+		obj := jsObject{}
+		for dec.More() {
+			keyTok, err := dec.Token()
+			if err != nil {
+				return nil, err
+			}
+			key := keyTok.(string)
+			val, err := jsonParseValue(dec)
+			if err != nil {
+				return nil, err
+			}
+			if i := jsIndex(obj, key); i >= 0 {
+				obj[i].v = val
+			} else {
+				obj = append(obj, jsPair{k: key, v: val})
+			}
+		}
+		if _, err := dec.Token(); err != nil { // consume '}'
+			return nil, err
+		}
+		return obj, nil
+	default: // '['
+		arr := []any{}
+		for dec.More() {
+			val, err := jsonParseValue(dec)
+			if err != nil {
+				return nil, err
+			}
+			arr = append(arr, val)
+		}
+		if _, err := dec.Token(); err != nil { // consume ']'
+			return nil, err
+		}
+		return arr, nil
+	}
+}
 
 // jsBuffer renders a byte slice the way JSON.stringify renders a Node Buffer:
 // {"type":"Buffer","data":[...]}.
@@ -101,9 +238,10 @@ func jsWriteArray(sb *strings.Builder, arr []any, indent int, cur string) {
 }
 
 func jsWriteObject(sb *strings.Builder, obj jsObject, indent int, cur string) {
-	// JSON.stringify omits properties whose value is undefined.
+	// JSON.stringify enumerates in ECMAScript key order and omits properties
+	// whose value is undefined.
 	pairs := make(jsObject, 0, len(obj))
-	for _, p := range obj {
+	for _, p := range jsESOrder(obj) {
 		if _, ok := p.v.(jsUndefined); ok {
 			continue
 		}
