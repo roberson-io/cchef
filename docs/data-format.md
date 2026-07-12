@@ -39,6 +39,7 @@ Operations for encoding and decoding data between common textual representations
 | From MessagePack | `from-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | From Modhex | `from-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | From Octal | `from-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
+| From Punycode | `from-punycode` | [Punycode](https://wikipedia.org/wiki/Punycode) |
 | From Quoted Printable | `from-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | JSON to CSV | `json-to-csv` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
@@ -69,6 +70,7 @@ Operations for encoding and decoding data between common textual representations
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | To Modhex | `to-modhex` | [ModHex](https://en.wikipedia.org/wiki/YubiKey#ModHex) |
 | To Octal | `to-octal` | [Octal](https://wikipedia.org/wiki/Octal) |
+| To Punycode | `to-punycode` | [Punycode](https://wikipedia.org/wiki/Punycode) |
 | To Quoted Printable | `to-quoted-printable` | [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) |
 | Unescape Unicode Characters | `unescape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | URL Decode | `url-decode` | [Percent-encoding](https://wikipedia.org/wiki/Percent-encoding) |
@@ -869,6 +871,36 @@ Hello
 
 ---
 
+## From Punycode
+
+Decodes [Punycode](https://wikipedia.org/wiki/Punycode) (RFC 3492) ASCII back into
+Unicode. By default the whole input is treated as a single Punycode string. With
+the *Internationalised domain name* option, only `xn--` labels of a domain name
+(or the domain of an email address) are decoded, the rest passing through
+unchanged.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--internationalised-domain-name` | boolean | `false` | Decode a domain name (only `xn--` labels) rather than a raw Punycode string. |
+
+**Simple example**
+
+```bash
+$ cchef from-punycode -i 'mnchen-3ya'
+münchen
+```
+
+**Complex example** (decode an internationalised domain name):
+
+```bash
+$ cchef from-punycode --internationalised-domain-name -i 'xn--mnchen-3ya.de'
+münchen.de
+```
+
+---
+
 ## From Quoted Printable
 
 Decodes [Quoted-Printable](https://wikipedia.org/wiki/Quoted-printable) text back
@@ -1633,6 +1665,37 @@ $ cchef to-octal -i 'Hello'
 ```bash
 $ cchef to-octal --delimiter 'Comma' -i 'Hello'
 110,145,154,154,157
+```
+
+---
+
+## To Punycode
+
+Converts Unicode to [Punycode](https://wikipedia.org/wiki/Punycode) (RFC 3492).
+By default the whole input is encoded as a single Punycode string (basic ASCII
+code points keep a trailing `-` delimiter). With the *Internationalised domain
+name* option, each non-ASCII label of a domain name (or the domain of an email
+address) is encoded and prefixed with `xn--`, ASCII labels passing through
+unchanged.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--internationalised-domain-name` | boolean | `false` | Encode a domain name (per-label `xn--`) rather than a raw Punycode string. |
+
+**Simple example**
+
+```bash
+$ cchef to-punycode -i 'münchen'
+mnchen-3ya
+```
+
+**Complex example** (encode an internationalised domain name):
+
+```bash
+$ cchef to-punycode --internationalised-domain-name -i 'münchen.de'
+xn--mnchen-3ya.de
 ```
 
 ---
