@@ -195,6 +195,7 @@ var opCategories = map[string][]string{
 	"MD5":                                {catHashing},
 	"Mean":                               {catArithmeticLogic},
 	"Median":                             {catArithmeticLogic},
+	"MIME Decoding":                      {catDataFormat},
 	"Multiply":                           {catArithmeticLogic},
 	"NOT":                                {catEncryptionEncoding},
 	"OR":                                 {catEncryptionEncoding},

@@ -44,6 +44,7 @@ Operations for encoding and decoding data between common textual representations
 | Hex to PEM | `hex-to-pem` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | JSON to CSV | `json-to-csv` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
 | JSON to YAML | `json-to-yaml` | [YAML](https://en.wikipedia.org/wiki/YAML) |
+| MIME Decoding | `mime-decoding` | [RFC 2047](https://tools.ietf.org/html/rfc2047) |
 | Parse TLV | `parse-tlv` | [Type-length-value](https://wikipedia.org/wiki/Type-length-value) |
 | PEM to Hex | `pem-to-hex` | [Privacy-Enhanced Mail](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
@@ -1007,6 +1008,35 @@ tags:
   - cli
   - yaml
 active: true
+```
+
+---
+
+## MIME Decoding
+
+Decodes [RFC 2047](https://tools.ietf.org/html/rfc2047) MIME encoded-word header
+extensions (`=?charset?encoding?text?=`) so non-ASCII text in message headers is
+rendered as Unicode. Both the `B` (Base64) and `Q` (Quoted-Printable-like)
+encodings are supported, whitespace between adjacent encoded words is dropped per
+the RFC, and the UTF-8, US-ASCII and ISO-8859-* charsets are handled.
+
+> **Fidelity note:** CyberChef decodes charsets with the `codepage` library;
+> cchef uses `golang.org/x/text`, which lacks ISO-8859-11/12 (they resolve to an
+> "Unhandled Charset" error) and substitutes U+FFFD for invalid UTF-8 rather than
+> `codepage`'s non-standard high code point.
+
+**Simple example**
+
+```bash
+$ cchef mime-decoding -i 'Subject: =?UTF-8?B?Y2Fmw6k=?='
+Subject: café
+```
+
+**Multiple encoded words** (adjacent-word whitespace is dropped):
+
+```bash
+$ cchef mime-decoding -i '=?utf-8?q?=C3=89ric?= <eric@example.org>'
+Éric <eric@example.org>
 ```
 
 ---
