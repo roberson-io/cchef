@@ -88,6 +88,7 @@ const (
 	catDateTime           = "Date / Time"
 	catEncryptionEncoding = "Encryption / Encoding"
 	catHashing            = "Hashing"
+	catLanguage           = "Language"
 	catNetworking         = "Networking"
 	catUtils              = "Utils"
 )
@@ -125,6 +126,7 @@ var opCategories = map[string][]string{
 	"DateTime Delta":                     {catDateTime},
 	"Dechunk HTTP response":              {catNetworking},
 	"Decode NetBIOS Name":                {catNetworking},
+	"Decode text":                        {catDataFormat, catLanguage},
 	"Defang IP Addresses":                {catNetworking},
 	"Defang URL":                         {catNetworking},
 	"Diff":                               {catUtils},
@@ -132,6 +134,7 @@ var opCategories = map[string][]string{
 	"Drop bytes":                         {catUtils},
 	"Drop nth bytes":                     {catUtils},
 	"Encode NetBIOS Name":                {catNetworking},
+	"Encode text":                        {catDataFormat, catLanguage},
 	"Escape Smart Characters":            {catDataFormat},
 	"Escape Unicode Characters":          {catDataFormat},
 	"Escape string":                      {catUtils},
@@ -285,7 +288,7 @@ var opCategories = map[string][]string{
 	"Translate DateTime Format":          {catDateTime},
 	"UNIX Timestamp to Windows Filetime": {catDateTime},
 	"URL Decode":                         {catDataFormat, catNetworking},
-	"Unescape Unicode Characters":        {catDataFormat},
+	"Unescape Unicode Characters":        {catDataFormat, catLanguage},
 	"URL Encode":                         {catDataFormat, catNetworking},
 	"Unescape string":                    {catUtils},
 	"Unique":                             {catUtils},

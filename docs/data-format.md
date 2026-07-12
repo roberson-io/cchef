@@ -13,6 +13,8 @@ Operations for encoding and decoding data between common textual representations
 | CBOR Decode | `cbor-decode` | [CBOR](https://wikipedia.org/wiki/CBOR) |
 | CBOR Encode | `cbor-encode` | [CBOR](https://wikipedia.org/wiki/CBOR) |
 | CSV to JSON | `csv-to-json` | [Comma-separated values](https://wikipedia.org/wiki/Comma-separated_values) |
+| Decode text | `decode-text` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
+| Encode text | `encode-text` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | Escape Smart Characters | `escape-smart-characters` | [Punctuation](https://wikipedia.org/wiki/Punctuation) |
 | Escape Unicode Characters | `escape-unicode-characters` | [Unicode](https://wikipedia.org/wiki/Unicode) |
 | From Base | `from-base` | [Radix](https://wikipedia.org/wiki/Radix) |
@@ -286,6 +288,57 @@ $ printf 'name,age\r\nAda,36\r\n' | cchef csv-to-json --format 'Array of arrays'
         "36"
     ]
 ]
+```
+
+---
+
+## Decode text
+
+Decodes bytes from the chosen [character encoding](https://wikipedia.org/wiki/Character_encoding)
+into text. Input is raw bytes, so pipe binary in via `from-hex` or `--in-file`.
+Also listed under [Language](language.md).
+
+> **Charset coverage:** CyberChef supports 152 charsets via the `codepage`
+> library; cchef backs a common subset (UTF-8/16/32, ISO-8859-*, Windows-125x,
+> KOI8, OEM/DOS and EBCDIC US-Canada pages, Shift-JIS, EUC-JP/KR, GBK, Big5)
+> with `golang.org/x/text`. `decode-text --help` lists the available encodings.
+> Graphic characters are byte-exact with CyberChef; a few charsets differ only on
+> bytes the standard leaves undefined (see PLAN.md).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--encoding` | option | `UTF-8 (65001)` | The source character encoding. |
+
+**Example** (Windows-1251 Cyrillic bytes → text):
+
+```bash
+$ echo 'cf f0 e8 e2 e5 f2' | cchef from-hex | cchef decode-text --encoding 'Windows-1251 Cyrillic (1251)'
+Привет
+```
+
+---
+
+## Encode text
+
+Encodes text into the chosen [character encoding](https://wikipedia.org/wiki/Character_encoding),
+emitting raw bytes; pipe through `to-hex` to view them. Characters not
+representable in the target charset become a `0x00` byte (matching CyberChef).
+Also listed under [Language](language.md); see Decode text for the charset
+coverage note.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--encoding` | option | `UTF-8 (65001)` | The target character encoding. |
+
+**Example** (text → Shift-JIS bytes):
+
+```bash
+$ printf '日本語' | cchef encode-text --encoding 'Japanese Shift-JIS (932)' | cchef to-hex
+93 fa 96 7b 8c ea
 ```
 
 ## Escape Smart Characters

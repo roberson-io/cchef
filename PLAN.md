@@ -24,6 +24,17 @@ fixture cases for parity, and keeps external dependencies minimal:
   IPv6 address matchers (whose CyberChef regexes rely on lookahead and
   backreferences Go's RE2 `regexp` cannot express) and for the ~340
   `ua-parser-js` detection regexes; all ported verbatim to preserve parity.
+- `golang.org/x/text/encoding` — backs **Decode text** / **Encode text**, which
+  CyberChef implements over the `codepage` (cptable) npm library's 152 charsets.
+  x/text was already in the build graph (via the geo libraries), so this adds no
+  new module. It covers the common subset (UTF-8/16/32, ISO-8859-*, Windows-125x,
+  KOI8, OEM/DOS and EBCDIC US-Canada pages, Shift-JIS, EUC-JP/KR, GBK, Big5);
+  charsets x/text lacks or that disagree with cptable on graphic characters
+  (most EBCDIC/ISCII/ISO-2022/UTF-7/Taiwan/Mac pages, EBCDIC 1047, Mac
+  Roman/Cyrillic) are omitted. For a few kept charsets (ISO-8859-2..16,
+  Windows-1255, KOI8-R/U) x/text and cptable differ only on bytes the standard
+  leaves undefined (chiefly the C1 range 0x80-0x9F); graphic text is byte-exact,
+  differential-verified against the oracle.
 
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
@@ -32,7 +43,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 197
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 199
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -45,7 +56,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **197 operations** (`internal/ops/`), each a faithful port with tests
+- **199 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -189,7 +200,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **194 unique** CyberChef operations are covered (193 directly plus
+Currently **196 unique** CyberChef operations are covered (195 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -200,7 +211,7 @@ Currently **194 unique** CyberChef operations are covered (193 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (64/78)
+### Data format (66/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -210,8 +221,8 @@ Currently **194 unique** CyberChef operations are covered (193 directly plus
 - [x] CBOR Encode
 - [x] Change IP format
 - [x] CSV to JSON
-- [ ] Decode text
-- [ ] Encode text
+- [x] Decode text
+- [x] Encode text
 - [x] Escape Smart Characters
 - [x] Escape Unicode Characters
 - [x] From Base
@@ -491,12 +502,12 @@ Currently **194 unique** CyberChef operations are covered (193 directly plus
 - [x] VarInt Decode
 - [x] VarInt Encode
 
-### Language (1/7)
+### Language (3/7)
 
 - [ ] Convert Leet Speak
 - [ ] Convert to NATO alphabet
-- [ ] Decode text
-- [ ] Encode text
+- [x] Decode text
+- [x] Encode text
 - [ ] Remove Diacritics
 - [x] Unescape Unicode Characters
 - [ ] Unicode Text Format
