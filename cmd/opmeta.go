@@ -101,6 +101,8 @@ const (
 // to more than one category. TestOpCategoriesMatchRegistry keeps this table in
 // exact sync with the registered operations.
 var opCategories = map[string][]string{
+	"A1Z26 Cipher Decode":                {catEncryptionEncoding},
+	"A1Z26 Cipher Encode":                {catEncryptionEncoding},
 	"ADD":                                {catEncryptionEncoding},
 	"AMF Decode":                         {catDataFormat},
 	"AMF Encode":                         {catDataFormat},

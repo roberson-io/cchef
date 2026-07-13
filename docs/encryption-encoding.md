@@ -6,6 +6,8 @@ Classic ciphers and bitwise operations.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| A1Z26 Cipher Decode | `a1z26-cipher-decode` | [Letter-number cipher](https://www.dcode.fr/letter-number-cipher) |
+| A1Z26 Cipher Encode | `a1z26-cipher-encode` | [Letter-number cipher](https://www.dcode.fr/letter-number-cipher) |
 | ADD | `add` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
 | AND | `and` | [Bitwise AND](https://wikipedia.org/wiki/Bitwise_operation#AND) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
@@ -31,6 +33,59 @@ through `to-hex` to make the output readable.
 > **Decimal / Binary keys.** Matching CyberChef, a `Decimal` key uses only the
 > first integer in the string (`82 226` → the single byte `82`), and a `Binary`
 > key has its whitespace stripped and is read as fixed 8-bit groups.
+
+---
+
+## A1Z26 Cipher Decode
+
+Converts alphabet order numbers back into their corresponding letters (`1` → `a`,
+`26` → `z`). Every number must be between 1 and 26, or the operation errors.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | Separator between numbers: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+
+**Simple example**
+
+```bash
+$ printf '8 5 12 12 15' | cchef a1z26-cipher-decode
+hello
+```
+
+**Comma delimiter**
+
+```bash
+$ printf '8,5,12,12,15' | cchef a1z26-cipher-decode --delimiter Comma
+hello
+```
+
+## A1Z26 Cipher Encode
+
+Converts alphabet characters into their corresponding alphabet order number
+(`a` → `1`, `b` → `2`). Input is lowercased first, and non-alphabet characters
+are dropped.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Space` | Separator between numbers: `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`. |
+
+**Simple example**
+
+```bash
+$ printf 'Hello, World!' | cchef a1z26-cipher-encode
+8 5 12 12 15 23 15 18 12 4
+```
+
+**Comma delimiter**
+
+```bash
+$ printf 'Hello, World!' | cchef a1z26-cipher-encode --delimiter Comma
+8,5,12,12,15,23,15,18,12,4
+```
 
 ---
 

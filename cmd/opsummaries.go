@@ -7,6 +7,8 @@ package cmd
 // each under maxSummaryLen so help and `cchef list` do not wrap; the full
 // description remains the Long help.
 var opSummaries = map[string]string{
+	"A1Z26 Cipher Decode":            "Converts number sequences back to letters",
+	"A1Z26 Cipher Encode":            "Converts letters to their alphabet position",
 	"AMF Decode":                     "Deserializes AMF binary data into JSON",
 	"AMF Encode":                     "Serializes JSON into AMF binary data",
 	"Add line numbers":               "Prepends a line number to each line",
