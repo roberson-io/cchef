@@ -24,17 +24,17 @@ fixture cases for parity, and keeps external dependencies minimal:
   IPv6 address matchers (whose CyberChef regexes rely on lookahead and
   backreferences Go's RE2 `regexp` cannot express) and for the ~340
   `ua-parser-js` detection regexes; all ported verbatim to preserve parity.
-- `golang.org/x/text/encoding` — backs **Decode text** / **Encode text**, which
-  CyberChef implements over the `codepage` (cptable) npm library's 152 charsets.
-  x/text was already in the build graph (via the geo libraries), so this adds no
-  new module. It covers the common subset (UTF-8/16/32, ISO-8859-*, Windows-125x,
-  KOI8, OEM/DOS and EBCDIC US-Canada pages, Shift-JIS, EUC-JP/KR, GBK, Big5);
-  charsets x/text lacks or that disagree with cptable on graphic characters
-  (most EBCDIC/ISCII/ISO-2022/UTF-7/Taiwan/Mac pages, EBCDIC 1047, Mac
-  Roman/Cyrillic) are omitted. For a few kept charsets (ISO-8859-2..16,
-  Windows-1255, KOI8-R/U) x/text and cptable differ only on bytes the standard
-  leaves undefined (chiefly the C1 range 0x80-0x9F); graphic text is byte-exact,
-  differential-verified against the oracle.
+- **Codepage engine** (`internal/ops/codepage.go`) — **Decode text** /
+  **Encode text** / **Text Encoding Brute Force** are backed by a from-scratch Go
+  port of the `codepage` (cptable) npm library CyberChef wraps, reproducing its
+  decode/encode byte-for-byte across all **152** charsets (including cptable's
+  cached-vs-general dispatch quirks and its UTF-7 encoder truncation bug). No new
+  module: the 140 table-backed codepages' decode tables are extracted from
+  cptable into an embedded gzipped blob (`codepage_data.bin.gz`, ~1.2 MB) by
+  `tools/cpgen/gen.js`, encode tables derive from them at load, and the seven
+  magic encodings (UTF-8/16/32, UTF-7, US-ASCII) are algorithmic. The five
+  ISO-2022 charsets are unsupported by cptable itself and error, as upstream
+  does. Differential-verified against cptable for all 152 charsets.
 - `go.yaml.in/yaml/v3` — backs **JSON to YAML** / **YAML to JSON**, which
   CyberChef implements over two different JS YAML libraries (`yaml` and
   `js-yaml`, both YAML 1.2). It was already in the build graph (cobra depends on
@@ -52,7 +52,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 210
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 211
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -65,7 +65,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **210 operations** (`internal/ops/`), each a faithful port with tests
+- **211 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -209,7 +209,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **207 unique** CyberChef operations are covered (206 directly plus
+Currently **208 unique** CyberChef operations are covered (207 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -220,7 +220,7 @@ Currently **207 unique** CyberChef operations are covered (206 directly plus
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (77/78)
+### Data format (78/78)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -270,7 +270,7 @@ Currently **207 unique** CyberChef operations are covered (206 directly plus
 - [x] Rison Encode
 - [x] Show Base64 offsets
 - [x] Swap endianness
-- [ ] Text Encoding Brute Force
+- [x] Text Encoding Brute Force
 - [x] Text-Integer Conversion
 - [x] To Base
 - [x] To Base32

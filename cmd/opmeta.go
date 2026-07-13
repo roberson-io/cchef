@@ -267,6 +267,7 @@ var opCategories = map[string][]string{
 	"Tail":                               {catUtils},
 	"Take bytes":                         {catUtils},
 	"Take nth bytes":                     {catUtils},
+	"Text Encoding Brute Force":          {catDataFormat},
 	"Text-Integer Conversion":            {catDataFormat},
 	"To Base":                            {catDataFormat},
 	"To Base32":                          {catDataFormat},

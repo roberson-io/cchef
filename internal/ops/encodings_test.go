@@ -3,13 +3,15 @@ package ops
 // Tests for the Decode text / Encode text operations.
 //
 // CyberChef's ops wrap the `codepage` (cptable) npm library over a 152-charset
-// table; cchef backs the supported subset with golang.org/x/text. There are no
-// upstream fixtures, so the vectors below were generated from CyberChef via the
-// CyberChef-server oracle and cover the charset families plus the round-trip and
-// unmappable-character behaviour. Ordinary tests — edit as needed.
+// table; cchef reimplements cptable byte-for-byte (see codepage.go). There are
+// no upstream fixtures, so the vectors below were generated from that library
+// and cover the charset families plus the round-trip and unmappable-character
+// behaviour. Ordinary tests — edit as needed.
 
 import (
 	"bytes"
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -84,17 +86,24 @@ func TestEncodeTextVectors(t *testing.T) {
 	}
 }
 
-// TestTextRoundTrip encodes then decodes an ASCII string through every supported
-// charset (ASCII is representable in all of them) and expects the original back.
+// TestTextRoundTrip encodes then decodes an ASCII string through every
+// supported charset (ASCII is representable in all of them) and expects the
+// original back. The five ISO-2022 charsets are unsupported by cptable, UTF-7's
+// encoder truncates non-direct characters (a cptable bug exercised in
+// TestCodepageEngineDifferential), and codepage 21027 has no uppercase letters
+// (they encode to 0x00), so those are skipped here.
 func TestTextRoundTrip(t *testing.T) {
 	const sample = "Hello, World! 123"
-	for _, e := range textEncodings {
-		t.Run(e.name, func(t *testing.T) {
-			enc, err := EncodeText{}.Run(sdish(sample), []any{e.name})
+	for _, c := range cpCharsets {
+		if c.kind == "none" || c.kind == "utf7" || c.cp == 21027 {
+			continue
+		}
+		t.Run(c.name, func(t *testing.T) {
+			enc, err := EncodeText{}.Run(sdish(sample), []any{c.name})
 			if err != nil {
 				t.Fatalf("encode: %v", err)
 			}
-			dec, err := DecodeText{}.Run(abytes(string(enc.Bytes())), []any{e.name})
+			dec, err := DecodeText{}.Run(abytes(string(enc.Bytes())), []any{c.name})
 			if err != nil {
 				t.Fatalf("decode: %v", err)
 			}
@@ -139,5 +148,59 @@ func TestTextInvalidEncoding(t *testing.T) {
 	}
 	if _, err := (EncodeText{}).Run(sdish("x"), []any{"Bogus (99999)"}); err == nil {
 		t.Fatal("encode: expected error for unknown encoding")
+	}
+}
+
+// TestTextEncodingBruteForce checks the full 152-charset JSON output (both
+// modes) against CyberChef's own run() reproduced with cptable (see
+// tools/cpgen/gen_bruteforce.js). The five ISO-2022 charsets yield
+// "Could not decode.", matching upstream.
+func TestTextEncodingBruteForce(t *testing.T) {
+	b, err := os.ReadFile("testdata/textbruteforce_vectors.json")
+	if err != nil {
+		t.Fatalf("read vectors: %v", err)
+	}
+	var v struct {
+		DecodeHex, DecodeJSON, EncodeStr, EncodeJSON string
+	}
+	if err := json.Unmarshal(b, &v); err != nil {
+		t.Fatalf("parse vectors: %v", err)
+	}
+
+	dec, err := TextEncodingBruteForce{}.Run(abytes(string(cborBytes(t, v.DecodeHex))), []any{"Decode"})
+	if err != nil {
+		t.Fatalf("decode mode: %v", err)
+	}
+	if dec.String() != v.DecodeJSON {
+		t.Fatalf("decode mode JSON mismatch:\n got %q\nwant %q", dec.String(), v.DecodeJSON)
+	}
+
+	enc, err := TextEncodingBruteForce{}.Run(sdish(v.EncodeStr), []any{"Encode"})
+	if err != nil {
+		t.Fatalf("encode mode: %v", err)
+	}
+	if enc.String() != v.EncodeJSON {
+		t.Fatalf("encode mode JSON mismatch:\n got %q\nwant %q", enc.String(), v.EncodeJSON)
+	}
+
+	// Exercise Args coercion via a recipe.
+	out, err := core.Recipe{{Op: "Text Encoding Brute Force", Args: []any{"Decode"}}}.Execute(sdish("hi"))
+	if err != nil {
+		t.Fatalf("brute force via recipe: %v", err)
+	}
+	if len(out.String()) == 0 {
+		t.Fatal("brute force via recipe: empty output")
+	}
+}
+
+// TestTextUnsupportedCharset covers the error paths of Encode/Decode text for the
+// ISO-2022 charsets, which cptable does not support.
+func TestTextUnsupportedCharset(t *testing.T) {
+	const iso = "ISO 2022 Korean (50225)"
+	if _, err := (EncodeText{}).Run(sdish("hi"), []any{iso}); err == nil {
+		t.Error("encode: expected error for unsupported charset")
+	}
+	if _, err := (DecodeText{}).Run(abytes("hi"), []any{iso}); err == nil {
+		t.Error("decode: expected error for unsupported charset")
 	}
 }

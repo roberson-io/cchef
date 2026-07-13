@@ -91,6 +91,7 @@ var opSummaries = map[string]string{
 	"Swap endianness":                "Reverses byte order within each word",
 	"Take bytes":                     "Keeps a range of bytes from the input",
 	"Take nth bytes":                 "Keeps every nth byte from a given offset",
+	"Text Encoding Brute Force":      "Tries every character encoding on the input",
 	"Text-Integer Conversion":        "Converts text to/from a big integer (dec/hex)",
 	"To Base":                        "Converts a decimal number to base 2-36",
 	"To Base32":                      "Base32-encodes bytes (A-Z, 2-7)",

@@ -53,6 +53,7 @@ Operations for encoding and decoding data between common textual representations
 | Rison Encode | `rison-encode` | [Rison](https://github.com/Nanonid/rison) |
 | Show Base64 offsets | `show-base64-offsets` | [Base64 padding](https://wikipedia.org/wiki/Base64#Output_padding) |
 | Swap endianness | `swap-endianness` | [Endianness](https://wikipedia.org/wiki/Endianness) |
+| Text Encoding Brute Force | `text-encoding-brute-force` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | Text-Integer Conversion | `text-integer-conversion` | [Endianness](https://wikipedia.org/wiki/Endianness) |
 | To Base | `to-base` | [Radix](https://wikipedia.org/wiki/Radix) |
 | To Base32 | `to-base32` | [Base32](https://wikipedia.org/wiki/Base32) |
@@ -309,12 +310,12 @@ Decodes bytes from the chosen [character encoding](https://wikipedia.org/wiki/Ch
 into text. Input is raw bytes, so pipe binary in via `from-hex` or `--in-file`.
 Also listed under [Language](language.md).
 
-> **Charset coverage:** CyberChef supports 152 charsets via the `codepage`
-> library; cchef backs a common subset (UTF-8/16/32, ISO-8859-*, Windows-125x,
-> KOI8, OEM/DOS and EBCDIC US-Canada pages, Shift-JIS, EUC-JP/KR, GBK, Big5)
-> with `golang.org/x/text`. `decode-text --help` lists the available encodings.
-> Graphic characters are byte-exact with CyberChef; a few charsets differ only on
-> bytes the standard leaves undefined (see PLAN.md).
+> **Charset coverage:** cchef reimplements CyberChef's `codepage` (cptable)
+> library, so all **152** charsets are supported and byte-exact with CyberChef —
+> UTF-8/16/32, UTF-7, US-ASCII, the ISO-8859, Windows-125x, KOI8, OEM/DOS,
+> EBCDIC, Mac and ISCII pages, Shift-JIS, EUC, GBK, Big5, Johab, GB18030 and the
+> Taiwan legacy DBCS sets. `decode-text --help` lists them. The five ISO-2022
+> charsets are unsupported by cptable itself and error, exactly as upstream does.
 
 **Options**
 
@@ -1319,6 +1320,37 @@ $ cchef swap-endianness --data-format Hex --word-length-bytes 4 -i 0a0b0c0d
 $ cchef swap-endianness --data-format Raw --word-length-bytes 2 -i ABCD
 BADC
 ```
+
+## Text Encoding Brute Force
+
+Enumerates every supported [character encoding](https://wikipedia.org/wiki/Character_encoding)
+for the input, so you can quickly spot the correct one. The output is a JSON
+object mapping each of the 152 charset names to the result (or `Could not decode.`
+for the five ISO-2022 charsets cptable does not support).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--mode` | option | `Encode` | `Decode` treats the input bytes as each charset and decodes to text; `Encode` encodes the input text in each charset (rendered as UTF-8/Latin-1). |
+
+**Example** (decode Windows-1251 Cyrillic bytes — the `Windows-1251` row reads
+correctly):
+
+```bash
+$ printf '\xcf\xf0\xe8\xe2\xe5\xf2' | cchef text-encoding-brute-force --mode Decode
+{
+    ...
+    "Windows-1251 Cyrillic (1251)": "Привет",
+    "Windows-1252 Latin (1252)": "Ïðèâåò",
+    "KOI8-R Russian Cyrillic (20866)": "оПХБЕР",
+    ...
+    "ISO 2022 Korean (50225)": "Could not decode.",
+    ...
+}
+```
+
+(Output elided — the real object has one entry per charset.)
 
 ## Text-Integer Conversion
 
