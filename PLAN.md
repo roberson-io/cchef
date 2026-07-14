@@ -52,7 +52,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 213
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 217
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -65,7 +65,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **213 operations** (`internal/ops/`), each a faithful port with tests
+- **217 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -209,7 +209,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **210 unique** CyberChef operations are covered (209 directly plus
+Currently **214 unique** CyberChef operations are covered (213 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -301,14 +301,14 @@ Currently **210 unique** CyberChef operations are covered (209 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (9/94)
+### Encryption / Encoding (13/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
-- [ ] AES Decrypt
-- [ ] AES Encrypt
-- [ ] AES Key Unwrap
-- [ ] AES Key Wrap
+- [x] AES Decrypt
+- [x] AES Encrypt
+- [x] AES Key Unwrap
+- [x] AES Key Wrap
 - [ ] Affine Cipher Decode
 - [ ] Affine Cipher Encode
 - [ ] Ascon Decrypt

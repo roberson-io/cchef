@@ -9,6 +9,10 @@ Classic ciphers and bitwise operations.
 | A1Z26 Cipher Decode | `a1z26-cipher-decode` | [Letter-number cipher](https://www.dcode.fr/letter-number-cipher) |
 | A1Z26 Cipher Encode | `a1z26-cipher-encode` | [Letter-number cipher](https://www.dcode.fr/letter-number-cipher) |
 | ADD | `add` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
+| AES Decrypt | `aes-decrypt` | [Advanced Encryption Standard](https://wikipedia.org/wiki/Advanced_Encryption_Standard) |
+| AES Encrypt | `aes-encrypt` | [Advanced Encryption Standard](https://wikipedia.org/wiki/Advanced_Encryption_Standard) |
+| AES Key Unwrap | `aes-key-unwrap` | [Key wrap](https://wikipedia.org/wiki/Key_wrap) |
+| AES Key Wrap | `aes-key-wrap` | [Key wrap](https://wikipedia.org/wiki/Key_wrap) |
 | AND | `and` | [Bitwise AND](https://wikipedia.org/wiki/Bitwise_operation#AND) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
@@ -112,6 +116,142 @@ $ printf 'hello' | cchef add --key 01 --key-type Hex | cchef to-hex --delimiter 
 ```bash
 $ printf 'hello' | cchef add --key '01 02' --key-type Hex | cchef to-hex --delimiter None
 69676d6e70
+```
+
+---
+
+## AES Decrypt
+
+Reference: [Advanced Encryption Standard](https://wikipedia.org/wiki/Advanced_Encryption_Standard)
+
+Decrypts AES ciphertext. The key length selects the algorithm (16 bytes =
+AES-128, 24 = AES-192, 32 = AES-256). In CBC and ECB mode PKCS#7 padding is
+removed unless a `NoPadding` mode is chosen; in GCM mode the `--gcm-tag` is
+verified and decryption fails if it does not authenticate.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | Decryption key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | Initialization vector; empty defaults to 16 null bytes. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv-length` | number | `16` | IV length in bytes when taken from the input. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `GCM`, `ECB`, `CBC/NoPadding`, `ECB/NoPadding`. |
+| `--input-format` | option | `Hex` | How to read the input: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Raw` | How to render the output: `Raw` bytes or `Hex`. |
+| `--gcm-tag` | string | (empty) | Authentication tag (GCM mode only). |
+| `--gcm-tag-type` | option | `Hex` | Tag encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--additional-authenticated-data` | string | (empty) | AAD (GCM mode only). |
+| `--additional-authenticated-data-type` | option | `Hex` | AAD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv-from-input` | option | `Off` | Take the IV from the input: `Off`, `From start`, `From end`. |
+
+**Simple example**
+
+```bash
+$ printf '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' | cchef aes-decrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
+The quick brown fox jumps over the lazy dog.
+```
+
+---
+
+## AES Encrypt
+
+Reference: [Advanced Encryption Standard](https://wikipedia.org/wiki/Advanced_Encryption_Standard)
+
+Encrypts input with AES. The key length selects the algorithm (16 bytes =
+AES-128, 24 = AES-192, 32 = AES-256). CBC and ECB use PKCS#7 padding; GCM
+appends the authentication tag to the output. An empty IV defaults to 16 null
+bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | Encryption key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | Initialization vector; empty defaults to 16 null bytes. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `GCM`, `ECB`, `CBC/NoPadding`, `ECB/NoPadding`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw` bytes or `Hex`. |
+| `--output-format` | option | `Hex` | How to render the output: `Hex` or `Raw` bytes. |
+| `--additional-authenticated-data` | string | (empty) | AAD (GCM mode only). |
+| `--additional-authenticated-data-type` | option | `Hex` | AAD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--include-iv-in-output` | option | `Off` | Add the IV to the output: `Off`, `Prepend`, `Append`. |
+
+**Simple example**
+
+```bash
+$ printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC
+2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498
+```
+
+**GCM with additional authenticated data**
+
+In GCM mode the authentication tag is appended after the ciphertext.
+
+```bash
+$ printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --additional-authenticated-data 'additional data' --additional-authenticated-data-type UTF8
+daa58faa056c52756aa488aeafbd265b6effcf4eca58220a97b0005b1a9b1e1c9e7a6725d35f5f79b9493de7
+
+Tag: 3b5378917f67b0aade9891fc6c291646
+```
+
+---
+
+## AES Key Unwrap
+
+Reference: [Key wrap](https://wikipedia.org/wiki/Key_wrap)
+
+Reverses AES Key Wrap (RFC 3394): decrypts wrapped 64-bit blocks with a
+key-encryption key (KEK) and verifies the 64-bit integrity IV, failing with
+`IV mismatch` if the wrapped data is corrupt.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key-kek` | string | (empty) | Key-encryption key; 16, 24 or 32 bytes. |
+| `--key-kek-type` | option | `Hex` | KEK encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | `a6a6a6a6a6a6a6a6` | 64-bit integrity IV. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--input-format` | option | `Hex` | Input encoding: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Hex` | Output encoding: `Hex` or `Raw` bytes. |
+
+**Simple example**
+
+```bash
+$ printf '1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5' | cchef aes-key-unwrap --key-kek 000102030405060708090a0b0c0d0e0f
+00112233445566778899aabbccddeeff
+```
+
+---
+
+## AES Key Wrap
+
+Reference: [Key wrap](https://wikipedia.org/wiki/Key_wrap)
+
+Wraps key material using the RFC 3394 AES key-wrap algorithm: a key-encryption
+key (KEK) and a 64-bit integrity IV protect 64-bit blocks. The input must be a
+multiple of 8 bytes and at least 16 bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key-kek` | string | (empty) | Key-encryption key; 16, 24 or 32 bytes. |
+| `--key-kek-type` | option | `Hex` | KEK encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | `a6a6a6a6a6a6a6a6` | 64-bit integrity IV. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--input-format` | option | `Hex` | Input encoding: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Hex` | Output encoding: `Hex` or `Raw` bytes. |
+
+**Simple example**
+
+```bash
+$ printf '00112233445566778899aabbccddeeff' | cchef aes-key-wrap --key-kek 000102030405060708090a0b0c0d0e0f
+1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5
 ```
 
 ---

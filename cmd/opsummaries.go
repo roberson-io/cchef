@@ -9,6 +9,10 @@ package cmd
 var opSummaries = map[string]string{
 	"A1Z26 Cipher Decode":            "Converts number sequences back to letters",
 	"A1Z26 Cipher Encode":            "Converts letters to their alphabet position",
+	"AES Decrypt":                    "Decrypts AES (CBC, CFB, OFB, CTR, GCM, ECB)",
+	"AES Encrypt":                    "Encrypts with AES (CBC, CFB, OFB, CTR, GCM, ECB)",
+	"AES Key Unwrap":                 "Unwraps key material with RFC3394 AES-KW",
+	"AES Key Wrap":                   "Wraps key material with RFC3394 AES-KW",
 	"AMF Decode":                     "Deserializes AMF binary data into JSON",
 	"AMF Encode":                     "Serializes JSON into AMF binary data",
 	"Add line numbers":               "Prepends a line number to each line",

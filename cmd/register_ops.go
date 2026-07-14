@@ -16,6 +16,14 @@ func init() {
 	}
 }
 
+// reservedFlagRenames gives descriptive flag names to operation arguments whose
+// derived name would otherwise collide with a global IO flag. The cipher ops'
+// "Input"/"Output" Raw-vs-Hex selectors become --input-format/--output-format.
+var reservedFlagRenames = map[string]string{
+	"input":  "input-format",
+	"output": "output-format",
+}
+
 // flagGetter reads the current value of a flag and returns it as the canonical
 // argument value for its ArgDef.
 type flagGetter func(*cobra.Command) (any, error)
@@ -32,10 +40,19 @@ func buildOpCommand(op core.Operation) *cobra.Command {
 		Long:    fmt.Sprintf("%s\n\nCyberChef operation: %q (module %s)", meta.Description, meta.Name, meta.Module),
 	}
 
-	used := map[string]bool{}
+	// Reserve the global IO flag names so an operation argument that collapses to
+	// one of them is renamed rather than colliding with the --input/--output/
+	// --in-file flags added by addIOFlags below. The cipher ops have Raw/Hex
+	// selector arguments literally named "Input"/"Output"; give those the
+	// descriptive --input-format/--output-format names instead of a bare suffix.
+	used := map[string]bool{"input": true, "in-file": true, "output": true}
 	getters := make([]flagGetter, len(op.Args()))
 	for i, def := range op.Args() {
-		getters[i] = addArgFlag(cmd, def, uniqueFlagName(flagName(def.Name), used))
+		name := flagName(def.Name)
+		if alt, ok := reservedFlagRenames[name]; ok {
+			name = alt
+		}
+		getters[i] = addArgFlag(cmd, def, uniqueFlagName(name, used))
 	}
 
 	addIOFlags(cmd)
@@ -138,7 +155,8 @@ func addArgFlag(cmd *cobra.Command, def core.ArgDef, name string) flagGetter {
 		if len(def.ToggleValues) > 0 {
 			dfltMode = def.ToggleValues[0]
 		}
-		f.String(name, "", def.Name)
+		dfltVal, _ := def.Value.(string)
+		f.String(name, dfltVal, def.Name)
 		f.String(modeName, dfltMode, fmt.Sprintf("type of %s (one of %v)", def.Name, def.ToggleValues))
 		return func(c *cobra.Command) (any, error) {
 			val, err := c.Flags().GetString(name)
