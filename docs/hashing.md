@@ -9,6 +9,9 @@ are the exceptions).
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
 | Adler-32 Checksum | `adler-32-checksum` | [Adler-32](https://wikipedia.org/wiki/Adler-32) |
+| Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
+| Bcrypt compare | `bcrypt-compare` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
+| Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
 | Keccak | `keccak` | [SHA-3 / Keccak](https://wikipedia.org/wiki/SHA-3) |
 | MD5 | `md5` | [MD5](https://wikipedia.org/wiki/MD5) |
@@ -32,6 +35,50 @@ Computes the Adler-32 checksum, output as an 8-digit hex string. Takes no option
 ```bash
 $ cchef adler-32-checksum -i 'Wikipedia'
 11e60398
+```
+
+## Bcrypt
+
+Generates a bcrypt password hash. See the detailed entry under
+[Encryption / Encoding](encryption-encoding.md#bcrypt).
+
+## Bcrypt compare
+
+Tests whether the input password matches a given bcrypt hash, returning
+`Match: <password>` or `No match`. A malformed hash yields an error describing the
+problem (e.g. an invalid salt version).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--hash` | string | (empty) | The bcrypt hash to test the input against. |
+
+**Simple example**
+
+```bash
+$ cchef bcrypt-compare -i "dolphin" --hash '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+Match: dolphin
+```
+
+A non-matching password returns `No match`:
+
+```bash
+$ cchef bcrypt-compare -i "wrong" --hash '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+No match
+```
+
+## Bcrypt parse
+
+Parses a bcrypt hash into its components: the cost (rounds), the salt, the
+password-hash portion, and the full hash. Takes no options.
+
+```bash
+$ cchef bcrypt-parse -i '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+Rounds: 10
+Salt: $2a$10$qyon0LQCmMxpFFjwWH6Qh.
+Password hash: dDdhqntQh./IN0RXCc3XIMILuOYZKgK
+Full hash: $2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK
 ```
 
 ## HMAC

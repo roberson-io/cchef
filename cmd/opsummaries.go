@@ -25,6 +25,8 @@ var opSummaries = map[string]string{
 	"Atbash Cipher":                  "Mirror-substitution cipher (a<->z, b<->y)",
 	"Bacon Cipher Decode":            "Decodes a Baconian steganographic cipher",
 	"Bacon Cipher Encode":            "Encodes text as a Baconian cipher",
+	"Bcrypt":                         "Hashes a password with bcrypt",
+	"Bcrypt parse":                   "Extracts the rounds, salt and hash from a bcrypt hash",
 	"Bit shift left":                 "Shifts each byte's bits left by an amount",
 	"Bit shift right":                "Shifts each byte's bits right by an amount",
 	"Caret/M-decode":                 "Decodes caret/M-notation escapes (cat -v)",

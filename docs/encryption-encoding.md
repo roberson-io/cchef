@@ -21,6 +21,7 @@ Classic ciphers and bitwise operations.
 | Atbash Cipher | `atbash-cipher` | [Atbash](https://wikipedia.org/wiki/Atbash) |
 | Bacon Cipher Decode | `bacon-cipher-decode` | [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher) |
 | Bacon Cipher Encode | `bacon-cipher-encode` | [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher) |
+| Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -508,6 +509,34 @@ $ cchef bacon-cipher-encode -i "HELLO"
 ```bash
 $ cchef bacon-cipher-encode -i "Hi!" --translation A/B --keep-extra-characters
 AABBBABAAA!
+```
+
+---
+
+## Bcrypt
+
+Reference: [Bcrypt](https://wikipedia.org/wiki/Bcrypt)
+
+Hashes the input password with bcrypt, an adaptive password-hashing function
+built on the Blowfish cipher. A random salt is generated each run, so the output
+differs every time (verify a password with **Bcrypt compare**). The cost is
+clamped to the 4–31 range and the output uses the `$2b$` version.
+
+This operation is also listed under [Hashing](hashing.md).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rounds` | number | `10` | Cost (log2 of the iteration count); clamped to 4–31. |
+
+**Simple example**
+
+Because the salt is random, each invocation yields a different hash:
+
+```bash
+$ cchef bcrypt -i "hunter2" --rounds 8
+$2b$08$S6G81rTdmnLNORA5WFAWIOqCFDmyB0Jpq3KI7m1eSFwV5hKocZmB6
 ```
 
 ---

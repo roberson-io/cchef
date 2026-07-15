@@ -19,6 +19,12 @@ fixture cases for parity, and keeps external dependencies minimal:
   Keccak-256/512. Keccak-224/384 (not in that package) use a small local
   Keccak-f sponge, cross-validated against x/crypto (256/512) and the stdlib
   `crypto/sha3` (SHA-3 mode) in tests.
+- `golang.org/x/crypto/bcrypt` — backs **Bcrypt** / **Bcrypt compare** /
+  **Bcrypt parse** (CyberChef wraps npm `bcryptjs`). Same already-required module
+  as `sha3`, so **no new dependency**. A thin bcryptjs-compat layer matches its
+  behaviour: cost clamped to [4,31], password truncated to 72 bytes, `$2b$`
+  version prefix, and bcryptjs's exact error strings — cross-validated byte-for-byte
+  against the `bcryptjs` oracle (hashes verify in both directions).
 - `github.com/dlclark/regexp2` — pure-Go, PCRE-compatible regex (no cgo, no
   transitive deps). Used for the Defang IP / Defang URL / Parse IP range / Parse
   IPv6 address matchers (whose CyberChef regexes rely on lookahead and
@@ -52,7 +58,7 @@ differential-tested against it; no runtime dependency on the JS library is added
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 224
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 227
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -65,7 +71,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **224 operations** (`internal/ops/`), each a faithful port with tests
+- **227 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -209,7 +215,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **221 unique** CyberChef operations are covered (220 directly plus
+Currently **224 unique** CyberChef operations are covered (223 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -301,7 +307,7 @@ Currently **221 unique** CyberChef operations are covered (220 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (20/94)
+### Encryption / Encoding (21/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -316,7 +322,7 @@ Currently **221 unique** CyberChef operations are covered (220 directly plus
 - [x] Atbash Cipher
 - [x] Bacon Cipher Decode
 - [x] Bacon Cipher Encode
-- [ ] Bcrypt
+- [x] Bcrypt
 - [ ] Bifid Cipher Decode
 - [ ] Bifid Cipher Encode
 - [ ] Blowfish Decrypt
@@ -634,7 +640,7 @@ Currently **221 unique** CyberChef operations are covered (220 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (7/50)
+### Hashing (10/50)
 
 - [x] Adler-32 Checksum
 - [ ] Analyse hash
@@ -642,9 +648,9 @@ Currently **221 unique** CyberChef operations are covered (220 directly plus
 - [ ] Argon2 compare
 - [ ] Ascon Hash
 - [ ] Ascon MAC
-- [ ] Bcrypt
-- [ ] Bcrypt compare
-- [ ] Bcrypt parse
+- [x] Bcrypt
+- [x] Bcrypt compare
+- [x] Bcrypt parse
 - [ ] BLAKE2b
 - [ ] BLAKE2s
 - [ ] BLAKE3
