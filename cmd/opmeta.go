@@ -118,6 +118,7 @@ var opCategories = map[string][]string{
 	"Alternating Caps":                   {catUtils},
 	"Ascon Decrypt":                      {catEncryptionEncoding},
 	"Ascon Encrypt":                      {catEncryptionEncoding},
+	"Atbash Cipher":                      {catEncryptionEncoding},
 	"Avro to JSON":                       {catDataFormat},
 	"Bit shift left":                     {catEncryptionEncoding},
 	"Bit shift right":                    {catEncryptionEncoding},

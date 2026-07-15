@@ -22,6 +22,7 @@ var opSummaries = map[string]string{
 	"Alternating Caps":               "Applies aLtErNaTiNg capitalisation",
 	"Ascon Decrypt":                  "Ascon-AEAD128 authenticated decryption (SP 800-232)",
 	"Ascon Encrypt":                  "Ascon-AEAD128 authenticated encryption (SP 800-232)",
+	"Atbash Cipher":                  "Mirror-substitution cipher (a<->z, b<->y)",
 	"Bit shift left":                 "Shifts each byte's bits left by an amount",
 	"Bit shift right":                "Shifts each byte's bits right by an amount",
 	"Caret/M-decode":                 "Decodes caret/M-notation escapes (cat -v)",

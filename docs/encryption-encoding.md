@@ -18,6 +18,7 @@ Classic ciphers and bitwise operations.
 | AND | `and` | [Bitwise AND](https://wikipedia.org/wiki/Bitwise_operation#AND) |
 | Ascon Decrypt | `ascon-decrypt` | [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher)) |
 | Ascon Encrypt | `ascon-encrypt` | [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher)) |
+| Atbash Cipher | `atbash-cipher` | [Atbash](https://wikipedia.org/wiki/Atbash) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -418,6 +419,24 @@ same value is required to decrypt.
 ```bash
 $ printf 'Secret' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
 c5f46fb2c8f14b1d1006a0230236f4163573a24c5f30
+```
+
+---
+
+## Atbash Cipher
+
+Reference: [Atbash](https://wikipedia.org/wiki/Atbash)
+
+A mono-alphabetic substitution cipher that maps each letter to its mirror in the
+alphabet (`a`<->`z`, `b`<->`y`, …). Case is preserved and non-alphabetic
+characters pass through unchanged. Atbash takes no options and is its own
+inverse, so running it a second time restores the original text.
+
+**Simple example**
+
+```bash
+$ cchef atbash-cipher -i "The quick brown fox."
+Gsv jfrxp yildm ulc.
 ```
 
 ---
