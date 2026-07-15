@@ -26,6 +26,8 @@ Classic ciphers and bitwise operations.
 | Bifid Cipher Encode | `bifid-cipher-encode` | [Bifid cipher](https://wikipedia.org/wiki/Bifid_cipher) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
+| Blowfish Decrypt | `blowfish-decrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
+| Blowfish Encrypt | `blowfish-encrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
 | OR | `or` | [Bitwise OR](https://wikipedia.org/wiki/Bitwise_operation#OR) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
@@ -648,6 +650,74 @@ $ printf '80ff' | cchef from-hex | cchef bit-shift-right --amount 1 --type 'Logi
 407f
 $ printf '80ff' | cchef from-hex | cchef bit-shift-right --amount 1 --type 'Arithmetic shift' | cchef to-hex --delimiter None
 c0ff
+```
+
+---
+
+## Blowfish Decrypt
+
+Reference: [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher))
+
+Decrypts Blowfish ciphertext. The key must be 4–56 bytes and, for every mode
+except ECB, the IV must be exactly 8 bytes. CBC and ECB expect PKCS#7-padded,
+block-aligned input; decryption fails if the padding or length is invalid.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | Key (4–56 bytes), interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | 8-byte IV (ignored for ECB), interpreted per `--iv-type`. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `ECB`. |
+| `--input-format` | option | `Hex` | How to read the ciphertext: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Raw` | How to render the plaintext: `Raw` bytes or `Hex`. |
+
+**Simple example**
+
+```bash
+$ cchef blowfish-decrypt -i 398433f39e938286a35fc240521435b6972f3fe96846b54ab9351aa5fa9e10a6a94074e883d1cb36cb9657c817274b60 --key 0011223344556677 --iv ffeeddccbbaa9988 --mode CBC
+The quick brown fox jumps over the lazy dog.
+```
+
+---
+
+## Blowfish Encrypt
+
+Reference: [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher))
+
+Encrypts input with the Blowfish block cipher (64-bit block). The key must be
+4–56 bytes and, for every mode except ECB, the IV must be exactly 8 bytes. CBC
+and ECB apply PKCS#7 padding; CFB, OFB and CTR are streaming and leave the length
+unchanged.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | Key (4–56 bytes), interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | 8-byte IV (ignored for ECB), interpreted per `--iv-type`. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `ECB`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw` bytes or `Hex`. |
+| `--output-format` | option | `Hex` | How to render the output: `Hex` or `Raw` bytes. |
+
+**Simple example**
+
+```bash
+$ cchef blowfish-encrypt -i "The quick brown fox jumps over the lazy dog." --key 0011223344556677 --iv ffeeddccbbaa9988 --mode CBC
+398433f39e938286a35fc240521435b6972f3fe96846b54ab9351aa5fa9e10a6a94074e883d1cb36cb9657c817274b60
+```
+
+**Streaming mode (CTR)**
+
+CTR leaves the length unchanged (no padding):
+
+```bash
+$ cchef blowfish-encrypt -i "secret" --key 0011223344556677 --iv 0000000000000000 --mode CTR
+c5a8e6a22ed5
 ```
 
 ---

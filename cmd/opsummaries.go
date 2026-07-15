@@ -31,6 +31,8 @@ var opSummaries = map[string]string{
 	"Bifid Cipher Encode":            "Encodes text with a keyed Bifid cipher",
 	"Bit shift left":                 "Shifts each byte's bits left by an amount",
 	"Bit shift right":                "Shifts each byte's bits right by an amount",
+	"Blowfish Decrypt":               "Decrypts with the Blowfish block cipher",
+	"Blowfish Encrypt":               "Encrypts with the Blowfish block cipher",
 	"Caret/M-decode":                 "Decodes caret/M-notation escapes (cat -v)",
 	"Cartesian Product":              "Cartesian product of multiple sets",
 	"CBOR Decode":                    "Decodes CBOR (RFC 8949) binary data into JSON",
