@@ -19,6 +19,8 @@ Classic ciphers and bitwise operations.
 | Ascon Decrypt | `ascon-decrypt` | [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher)) |
 | Ascon Encrypt | `ascon-encrypt` | [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher)) |
 | Atbash Cipher | `atbash-cipher` | [Atbash](https://wikipedia.org/wiki/Atbash) |
+| Bacon Cipher Decode | `bacon-cipher-decode` | [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher) |
+| Bacon Cipher Encode | `bacon-cipher-encode` | [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -437,6 +439,75 @@ inverse, so running it a second time restores the original text.
 ```bash
 $ cchef atbash-cipher -i "The quick brown fox."
 Gsv jfrxp yildm ulc.
+```
+
+---
+
+## Bacon Cipher Decode
+
+Reference: [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher)
+
+Recovers a message concealed with the Baconian cipher, where each letter is
+represented by five symbols. Invalid characters are stripped, the remaining
+symbols are grouped into fives, and each group is looked up in the alphabet;
+groups with no letter become `?`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | option | `Standard (I=J and U=V)` | `Standard (I=J and U=V)` (24 letters) or `Complete` (26 letters). |
+| `--translation` | option | `0/1` | How the two symbols are represented: `0/1`, `A/B`, `Case` (upper=1, lower=0), or `A-M/N-Z first letter` (each word's first letter). |
+| `--invert-translation` | boolean | `false` | Swap the two symbols before decoding. |
+
+**Simple example**
+
+```bash
+$ cchef bacon-cipher-decode -i "00111 00100 01010 01010 01101"
+HELLO
+```
+
+**Case translation**
+
+Upper-case letters are ones and lower-case letters are zeroes; everything else is
+ignored.
+
+```bash
+$ cchef bacon-cipher-decode -i "hELLo wORLd" --translation Case
+PP
+```
+
+---
+
+## Bacon Cipher Encode
+
+Reference: [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher)
+
+Conceals a message with the Baconian cipher, encoding each letter as five binary
+digits (or `A`/`B`). By default non-letters are dropped and the output is grouped
+into fives; "keep extra characters" instead preserves them inline.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet` | option | `Standard (I=J and U=V)` | `Standard (I=J and U=V)` (24 letters) or `Complete` (26 letters). |
+| `--translation` | option | `0/1` | Symbols to emit: `0/1` or `A/B`. |
+| `--keep-extra-characters` | boolean | `false` | Keep non-letters inline instead of dropping them and grouping into fives. |
+| `--invert-translation` | boolean | `false` | Swap the two symbols in the output. |
+
+**Simple example**
+
+```bash
+$ cchef bacon-cipher-encode -i "HELLO"
+00111 00100 01010 01010 01101
+```
+
+**A/B, keeping extra characters**
+
+```bash
+$ cchef bacon-cipher-encode -i "Hi!" --translation A/B --keep-extra-characters
+AABBBABAAA!
 ```
 
 ---
