@@ -22,6 +22,8 @@ Classic ciphers and bitwise operations.
 | Bacon Cipher Decode | `bacon-cipher-decode` | [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher) |
 | Bacon Cipher Encode | `bacon-cipher-encode` | [Bacon's cipher](https://wikipedia.org/wiki/Bacon%27s_cipher) |
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
+| Bifid Cipher Decode | `bifid-cipher-decode` | [Bifid cipher](https://wikipedia.org/wiki/Bifid_cipher) |
+| Bifid Cipher Encode | `bifid-cipher-encode` | [Bifid cipher](https://wikipedia.org/wiki/Bifid_cipher) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -537,6 +539,61 @@ Because the salt is random, each invocation yields a different hash:
 ```bash
 $ cchef bcrypt -i "hunter2" --rounds 8
 $2b$08$S6G81rTdmnLNORA5WFAWIOqCFDmyB0Jpq3KI7m1eSFwV5hKocZmB6
+```
+
+---
+
+## Bifid Cipher Decode
+
+Reference: [Bifid cipher](https://wikipedia.org/wiki/Bifid_cipher)
+
+Deciphers text enciphered with the Bifid cipher using the same keyword. The
+keyword builds a 5×5 Polybius square (J is folded onto I); letter case is
+preserved and non-alphabetic characters pass through unchanged. An empty keyword
+uses the plain alphabet.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--keyword` | string | (empty) | Alphabet keyword (letters only); must match the one used to encode. |
+
+**Simple example**
+
+```bash
+$ cchef bifid-cipher-decode -i "Kqhknw rm grsn" --keyword "Schrodinger"
+Attack at dawn
+```
+
+---
+
+## Bifid Cipher Encode
+
+Reference: [Bifid cipher](https://wikipedia.org/wiki/Bifid_cipher)
+
+Enciphers text with the Bifid cipher, which fractionates each letter's
+coordinates in a keyword-seeded 5×5 Polybius square and transposes them. J is
+folded onto I, letter case is preserved, and non-alphabetic characters pass
+through unchanged.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--keyword` | string | (empty) | Alphabet keyword (letters only); an empty keyword uses the plain alphabet. |
+
+**Simple example**
+
+```bash
+$ cchef bifid-cipher-encode -i "Attack at dawn" --keyword "Schrodinger"
+Kqhknw rm grsn
+```
+
+**Without a keyword**
+
+```bash
+$ cchef bifid-cipher-encode -i "Hello, World!"
+Fnpol, Parrd!
 ```
 
 ---

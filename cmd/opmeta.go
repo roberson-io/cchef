@@ -125,6 +125,8 @@ var opCategories = map[string][]string{
 	"Bcrypt":                             {catEncryptionEncoding, catHashing},
 	"Bcrypt compare":                     {catHashing},
 	"Bcrypt parse":                       {catHashing},
+	"Bifid Cipher Decode":                {catEncryptionEncoding},
+	"Bifid Cipher Encode":                {catEncryptionEncoding},
 	"Bit shift left":                     {catEncryptionEncoding},
 	"Bit shift right":                    {catEncryptionEncoding},
 	"Caret/M-decode":                     {catDataFormat},
