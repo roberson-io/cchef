@@ -20,6 +20,8 @@ var opSummaries = map[string]string{
 	"Affine Cipher Decode":           "Decrypts an Affine cipher: (y - b) * a⁻¹ mod 26",
 	"Affine Cipher Encode":           "Encrypts with an Affine cipher: (ax + b) mod 26",
 	"Alternating Caps":               "Applies aLtErNaTiNg capitalisation",
+	"Ascon Decrypt":                  "Ascon-AEAD128 authenticated decryption (SP 800-232)",
+	"Ascon Encrypt":                  "Ascon-AEAD128 authenticated encryption (SP 800-232)",
 	"Bit shift left":                 "Shifts each byte's bits left by an amount",
 	"Bit shift right":                "Shifts each byte's bits right by an amount",
 	"Caret/M-decode":                 "Decodes caret/M-notation escapes (cat -v)",

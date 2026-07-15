@@ -16,6 +16,8 @@ Classic ciphers and bitwise operations.
 | Affine Cipher Decode | `affine-cipher-decode` | [Affine cipher](https://wikipedia.org/wiki/Affine_cipher) |
 | Affine Cipher Encode | `affine-cipher-encode` | [Affine cipher](https://wikipedia.org/wiki/Affine_cipher) |
 | AND | `and` | [Bitwise AND](https://wikipedia.org/wiki/Bitwise_operation#AND) |
+| Ascon Decrypt | `ascon-decrypt` | [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher)) |
+| Ascon Encrypt | `ascon-encrypt` | [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher)) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -333,6 +335,89 @@ ANDs each byte of the input with the repeating key.
 ```bash
 $ printf 'hello' | cchef and --key 0f --key-type Hex | cchef to-hex --delimiter None
 08050c0c0f
+```
+
+---
+
+## Ascon Decrypt
+
+Reference: [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher))
+
+Ascon-AEAD128 authenticated decryption (NIST SP 800-232). Decrypts the
+ciphertext (with its trailing 128-bit tag) and verifies authenticity: the key,
+nonce and associated data must match those used to encrypt, or decryption fails.
+The key and nonce must each be exactly 16 bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 16-byte key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--nonce` | string | (empty) | 16-byte nonce, interpreted per `--nonce-type`. |
+| `--nonce-type` | option | `Hex` | Nonce encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--associated-data` | string | (empty) | Associated data, interpreted per `--associated-data-type`. |
+| `--associated-data-type` | option | `Hex` | AD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--input-format` | option | `Hex` | How to read the ciphertext: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Raw` | How to render the plaintext: `Raw` bytes or `Hex`. |
+
+**Simple example**
+
+```bash
+$ cchef ascon-decrypt -i af14bce6b9b6588c3aa63f9ddc5a0cf5f565f358b0 --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+Hello
+```
+
+**With associated data**
+
+The associated data must match what was used at encryption time, or
+authentication fails.
+
+```bash
+$ cchef ascon-decrypt -i c5f46fb2c8f14b1d1006a0230236f4163573a24c5f30 --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+Secret
+```
+
+---
+
+## Ascon Encrypt
+
+Reference: [Ascon (cipher)](https://wikipedia.org/wiki/Ascon_(cipher))
+
+Ascon-AEAD128 authenticated encryption (NIST SP 800-232), a lightweight AEAD
+scheme designed for constrained devices. The output is the ciphertext followed
+by a 128-bit authentication tag. The key and nonce must each be exactly 16
+bytes; never reuse a nonce with the same key. Associated data is authenticated
+but not encrypted.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 16-byte key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--nonce` | string | (empty) | 16-byte nonce, interpreted per `--nonce-type`. |
+| `--nonce-type` | option | `Hex` | Nonce encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--associated-data` | string | (empty) | Associated data, interpreted per `--associated-data-type`. |
+| `--associated-data-type` | option | `Hex` | AD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw` bytes or `Hex`. |
+| `--output-format` | option | `Hex` | How to render the output: `Hex` or `Raw` bytes. |
+
+**Simple example**
+
+```bash
+$ printf 'Hello' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+af14bce6b9b6588c3aa63f9ddc5a0cf5f565f358b0
+```
+
+**With associated data**
+
+Associated data (e.g. a header) is authenticated alongside the ciphertext; the
+same value is required to decrypt.
+
+```bash
+$ printf 'Secret' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+c5f46fb2c8f14b1d1006a0230236f4163573a24c5f30
 ```
 
 ---

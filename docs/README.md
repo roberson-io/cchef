@@ -5,7 +5,7 @@ the "Cyber Swiss Army Knife". Every operation is a subcommand that reads input a
 writes output, so operations chain together through Unix pipes or as a single
 recipe.
 
-> **Scope:** 219 operations are currently ported, covering the whole architecture.
+> **Scope:** 221 operations are currently ported, covering the whole architecture.
 > More operations are added over time against the same interfaces. Run `cchef list`
 > to see everything currently available.
 
@@ -64,7 +64,7 @@ Within each category, operations are listed alphabetically.
 | [Code tidy](code-tidy.md) | Diff, From MessagePack, To MessagePack |
 | [Data format](data-format.md) | AMF Decode, AMF Encode, Avro to JSON, Caret/M-decode, CBOR Decode, CBOR Encode, CSV to JSON, Decode text, Encode text, Escape Smart Characters, Escape Unicode Characters, From Base, From Base32, From Base45, From Base58, From Base62, From Base64, From Base85, From Base92, From BCD, From Bech32, From Binary, From Braille, From Charcode, From Decimal, From Float, From Hex, From Hex Content, From Hexdump, From HTML Entity, From MessagePack, From Modhex, From Octal, From Punycode, From Quoted Printable, Hex to PEM, JSON to CSV, JSON to YAML, MIME Decoding, Normalise Unicode, Parse ASN.1 hex string, Parse TLV, PEM to Hex, Rison Decode, Rison Encode, Show Base64 offsets, Swap endianness, Text Encoding Brute Force, Text-Integer Conversion, To Base, To Base32, To Base45, To Base58, To Base62, To Base64, To Base85, To Base92, To BCD, To Bech32, To Binary, To Braille, To Charcode, To Decimal, To Float, To Hex, To Hex Content, To Hexdump, To HTML Entity, To MessagePack, To Modhex, To Octal, To Punycode, To Quoted Printable, Unescape Unicode Characters, URL Decode, URL Encode, YAML to JSON |
 | [Date / Time](date-time.md) | DateTime Delta, Extract dates, From UNIX Timestamp, Get Time, Parse DateTime, To UNIX Timestamp, Translate DateTime Format, UNIX Timestamp to Windows Filetime, Windows Filetime to UNIX Timestamp |
-| [Encryption / Encoding](encryption-encoding.md) | A1Z26 Cipher Decode, A1Z26 Cipher Encode, ADD, AES Decrypt, AES Encrypt, AES Key Unwrap, AES Key Wrap, Affine Cipher Decode, Affine Cipher Encode, AND, Bit shift left, Bit shift right, NOT, OR, ROR13, ROT13, ROT47, ROT8000, Rotate left, Rotate right, SUB, XOR, XOR Brute Force |
+| [Encryption / Encoding](encryption-encoding.md) | A1Z26 Cipher Decode, A1Z26 Cipher Encode, ADD, AES Decrypt, AES Encrypt, AES Key Unwrap, AES Key Wrap, Affine Cipher Decode, Affine Cipher Encode, AND, Ascon Decrypt, Ascon Encrypt, Bit shift left, Bit shift right, NOT, OR, ROR13, ROT13, ROT47, ROT8000, Rotate left, Rotate right, SUB, XOR, XOR Brute Force |
 | [Hashing](hashing.md) | Adler-32 Checksum, HMAC, Keccak, MD5, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512 |
 | [Language](language.md) | Decode text, Encode text, Unescape Unicode Characters |
 | [Networking](networking.md) | Change IP format, Dechunk HTTP response, Decode NetBIOS Name, Defang IP Addresses, Defang URL, DNS over HTTPS, Encode NetBIOS Name, Fang URL, Format MAC addresses, Group IP addresses, HASSH Client Fingerprint, HASSH Server Fingerprint, HTTP request, IPv6 Transition Addresses, JA3 Fingerprint, JA3S Fingerprint, JA4 Fingerprint, JA4Server Fingerprint, Parse Ethernet frame, Parse IP range, Parse IPv4 header, Parse IPv6 address, Parse SSH Host Key, Parse TCP, Parse TLS record, Parse UDP, Parse URI, Parse User Agent, Protobuf Decode, Protobuf Encode, Strip HTTP headers, Strip IPv4 header, Strip TCP header, Strip UDP header, URL Decode, URL Encode, VarInt Decode, VarInt Encode |
