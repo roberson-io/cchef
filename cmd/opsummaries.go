@@ -17,6 +17,8 @@ var opSummaries = map[string]string{
 	"AMF Encode":                     "Serializes JSON into AMF binary data",
 	"Add line numbers":               "Prepends a line number to each line",
 	"Adler-32 Checksum":              "Computes the Adler-32 checksum as hex",
+	"Affine Cipher Decode":           "Decrypts an Affine cipher: (y - b) * a⁻¹ mod 26",
+	"Affine Cipher Encode":           "Encrypts with an Affine cipher: (ax + b) mod 26",
 	"Alternating Caps":               "Applies aLtErNaTiNg capitalisation",
 	"Bit shift left":                 "Shifts each byte's bits left by an amount",
 	"Bit shift right":                "Shifts each byte's bits right by an amount",

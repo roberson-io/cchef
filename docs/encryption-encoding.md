@@ -13,6 +13,8 @@ Classic ciphers and bitwise operations.
 | AES Encrypt | `aes-encrypt` | [Advanced Encryption Standard](https://wikipedia.org/wiki/Advanced_Encryption_Standard) |
 | AES Key Unwrap | `aes-key-unwrap` | [Key wrap](https://wikipedia.org/wiki/Key_wrap) |
 | AES Key Wrap | `aes-key-wrap` | [Key wrap](https://wikipedia.org/wiki/Key_wrap) |
+| Affine Cipher Decode | `affine-cipher-decode` | [Affine cipher](https://wikipedia.org/wiki/Affine_cipher) |
+| Affine Cipher Encode | `affine-cipher-encode` | [Affine cipher](https://wikipedia.org/wiki/Affine_cipher) |
 | AND | `and` | [Bitwise AND](https://wikipedia.org/wiki/Bitwise_operation#AND) |
 | Bit shift left | `bit-shift-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
@@ -252,6 +254,65 @@ multiple of 8 bytes and at least 16 bytes.
 ```bash
 $ printf '00112233445566778899aabbccddeeff' | cchef aes-key-wrap --key-kek 000102030405060708090a0b0c0d0e0f
 1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5
+```
+
+---
+
+## Affine Cipher Decode
+
+Reference: [Affine cipher](https://wikipedia.org/wiki/Affine_cipher)
+
+Decrypts text enciphered with the Affine cipher. Each letter is mapped to its
+position in the alphabet and transformed by `(y - b) * a⁻¹ % 26`, where `a⁻¹` is
+the modular inverse of `a` modulo 26. Case is preserved and non-alphabetic
+characters pass through unchanged. `a` and `b` must be non-negative integers and
+`a` must be coprime to 26 (the same keys used to encode).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--a` | number | `1` | The multiplier `a`; must be coprime to 26. |
+| `--b` | number | `0` | The additive constant `b`. |
+
+**Simple example**
+
+```bash
+$ cchef affine-cipher-decode -i "Rclla, Oaplx!" --a 5 --b 8
+Hello, World!
+```
+
+---
+
+## Affine Cipher Encode
+
+Reference: [Affine cipher](https://wikipedia.org/wiki/Affine_cipher)
+
+Enciphers text with the Affine cipher, a monoalphabetic substitution where each
+letter is mapped to its position in the alphabet and transformed by
+`(ax + b) % 26`. Case is preserved and non-alphabetic characters pass through
+unchanged. `a` and `b` must be non-negative integers and `a` must be coprime to
+26; with `a = 1, b = 0` the input is unchanged.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--a` | number | `1` | The multiplier `a`; must be coprime to 26. |
+| `--b` | number | `0` | The additive constant `b`. |
+
+**Simple example**
+
+```bash
+$ cchef affine-cipher-encode -i "Hello, World!" --a 5 --b 8
+Rclla, Oaplx!
+```
+
+**Complex example**
+
+```bash
+$ cchef affine-cipher-encode -i "some keys are shaped as locks. index[me]" --a 23 --b 23
+vhnl tldv xyl vcxelo xv qhrtv. zkolg[nl]
 ```
 
 ---
