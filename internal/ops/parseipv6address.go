@@ -16,25 +16,21 @@ func init() {
 // utilsBin renders n as binary, zero-padded to length (CyberChef Utils.bin).
 func utilsBin(n, length int) string { return fmt.Sprintf("%0*b", length, n) }
 
-// ipv6MulticastScope returns the scope description for a multicast prefix.
+// ipv6MulticastScopes maps a multicast prefix hextet to its scope description.
+var ipv6MulticastScopes = map[int]string{
+	0xff01: "\n\nReserved Multicast Block for Interface Local Scope",
+	0xff02: "\n\nReserved Multicast Block for Link Local Scope",
+	0xff03: "\n\nReserved Multicast Block for Realm Local Scope",
+	0xff04: "\n\nReserved Multicast Block for Admin Local Scope",
+	0xff05: "\n\nReserved Multicast Block for Site Local Scope",
+	0xff08: "\n\nReserved Multicast Block for Organisation Local Scope",
+	0xff0e: "\n\nReserved Multicast Block for Global Scope",
+}
+
+// ipv6MulticastScope returns the scope description for a multicast prefix, or ""
+// for an unrecognised hextet.
 func ipv6MulticastScope(hextet int) string {
-	switch hextet {
-	case 0xff01:
-		return "\n\nReserved Multicast Block for Interface Local Scope"
-	case 0xff02:
-		return "\n\nReserved Multicast Block for Link Local Scope"
-	case 0xff03:
-		return "\n\nReserved Multicast Block for Realm Local Scope"
-	case 0xff04:
-		return "\n\nReserved Multicast Block for Admin Local Scope"
-	case 0xff05:
-		return "\n\nReserved Multicast Block for Site Local Scope"
-	case 0xff08:
-		return "\n\nReserved Multicast Block for Organisation Local Scope"
-	case 0xff0e:
-		return "\n\nReserved Multicast Block for Global Scope"
-	}
-	return ""
+	return ipv6MulticastScopes[hextet]
 }
 
 // ipv6MulticastAddress returns the well-known address description for a multicast
@@ -97,51 +93,35 @@ func (ParseIPv6Address) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "Longhand:  %s\nShorthand: %s\n", ipv6ToStr(ipv6, false), shorthand)
+	describeIPv6Type(&b, ipv6, shorthand)
+	writeEUI64(&b, ipv6)
+	return core.NewDish([]byte(b.String()), core.TypeString), nil
+}
 
-	// mappedIPv4 packs the last two hextets into a 32-bit IPv4 value.
-	mappedIPv4 := func() uint32 { return uint32(ipv6[6]<<16 + ipv6[7]) } // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
+// ipv6MappedIPv4 packs the last two hextets into a 32-bit IPv4 value.
+func ipv6MappedIPv4(ipv6 [8]int) uint32 {
+	return uint32(ipv6[6]<<16 + ipv6[7]) // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
+}
 
+// describeIPv6Type appends the address-type classification and any embedded IPv4
+// details, keyed on the address's high hextets. Ported from the switch in
+// CyberChef's ParseIPv6Address.mjs; the hex literals are IPv6 prefixes, each
+// documented by the range line it prints. The RFC-defined categories are split
+// into groups: special/embedded-IPv4 addresses, the 2001:: space, and the
+// higher reserved ranges.
+func describeIPv6Type(b *strings.Builder, ipv6 [8]int, shorthand string) {
+	if describeSpecialIPv6(b, ipv6, shorthand) {
+		return
+	}
 	switch {
-	case shorthand == "::":
-		b.WriteString("\nUnspecified address corresponding to 0.0.0.0/32 in IPv4.")
-		b.WriteString("\nUnspecified address range: ::/128")
-	case shorthand == "::1":
-		b.WriteString("\nLoopback address to the local host corresponding to 127.0.0.1/8 in IPv4.")
-		b.WriteString("\nLoopback addresses range: ::1/128")
-	case ipv6[0] == 0 && ipv6[1] == 0 && ipv6[2] == 0 && ipv6[3] == 0 && ipv6[4] == 0 && ipv6[5] == 0xffff:
-		b.WriteString("\nIPv4-mapped IPv6 address detected. IPv6 clients will be handled natively by default, and IPv4 clients appear as IPv6 clients at their IPv4-mapped IPv6 address.")
-		fmt.Fprintf(&b, "\nMapped IPv4 address: %s", ipv4ToStr(mappedIPv4()))
-		b.WriteString("\nIPv4-mapped IPv6 addresses range: ::ffff:0:0/96")
-	case ipv6[0] == 0 && ipv6[1] == 0 && ipv6[2] == 0 && ipv6[3] == 0 && ipv6[4] == 0xffff && ipv6[5] == 0:
-		b.WriteString("\nIPv4-translated address detected. Used by Stateless IP/ICMP Translation (SIIT). See RFCs 6145 and 6052 for more details.")
-		fmt.Fprintf(&b, "\nTranslated IPv4 address: %s", ipv4ToStr(mappedIPv4()))
-		b.WriteString("\nIPv4-translated addresses range: ::ffff:0:0:0/96")
-	case ipv6[0] == 0x100:
-		b.WriteString("\nDiscard prefix detected. This is used when forwarding traffic to a sinkhole router to mitigate the effects of a denial-of-service attack. See RFC 6666 for more details.")
-		b.WriteString("\nDiscard range: 100::/64")
-	case ipv6[0] == 0x64 && ipv6[1] == 0xff9b && ipv6[2] == 0 && ipv6[3] == 0 && ipv6[4] == 0 && ipv6[5] == 0:
-		b.WriteString("\n'Well-Known' prefix for IPv4/IPv6 translation detected. See RFC 6052 for more details.")
-		fmt.Fprintf(&b, "\nTranslated IPv4 address: %s", ipv4ToStr(mappedIPv4()))
-		b.WriteString("\n'Well-Known' prefix range: 64:ff9b::/96")
-	case ipv6[0] == 0x2001 && ipv6[1] == 0:
-		writeTeredo(&b, ipv6)
-	case ipv6[0] == 0x2001 && ipv6[1] == 0x2 && ipv6[2] == 0:
-		b.WriteString("\nAssigned to the Benchmarking Methodology Working Group (BMWG) for benchmarking IPv6. Corresponds to 198.18.0.0/15 for benchmarking IPv4. See RFC 5180 for more details.")
-		b.WriteString("\nBMWG range: 2001:2::/48")
-	case ipv6[0] == 0x2001 && ipv6[1] >= 0x10 && ipv6[1] <= 0x1f:
-		b.WriteString("\nDeprecated, previously ORCHIDv1 (Overlay Routable Cryptographic Hash Identifiers).\nORCHIDv1 range: 2001:10::/28\nORCHIDv2 now uses 2001:20::/28.")
-	case ipv6[0] == 0x2001 && ipv6[1] >= 0x20 && ipv6[1] <= 0x2f:
-		b.WriteString("\nORCHIDv2 (Overlay Routable Cryptographic Hash Identifiers).\nThese are non-routed IPv6 addresses used for Cryptographic Hash Identifiers.")
-		b.WriteString("\nORCHIDv2 range: 2001:20::/28")
-	case ipv6[0] == 0x2001 && ipv6[1] == 0xdb8:
-		b.WriteString("\nThis is a documentation IPv6 address. This range should be used whenever an example IPv6 address is given or to model networking scenarios. Corresponds to 192.0.2.0/24, 198.51.100.0/24, and 203.0.113.0/24 in IPv4.")
-		b.WriteString("\nDocumentation range: 2001:db8::/32")
+	case ipv6[0] == 0x2001:
+		describe2001Prefix(b, ipv6)
 	case ipv6[0] == 0x2002:
 		b.WriteString("\n6to4 transition IPv6 address detected. See RFC 3056 for more details.\n6to4 prefix range: 2002::/16")
 		interfaceIDStr := strconv.FormatInt(int64(ipv6[4]), 16) + strconv.FormatInt(int64(ipv6[5]), 16) +
 			strconv.FormatInt(int64(ipv6[6]), 16) + strconv.FormatInt(int64(ipv6[7]), 16)
 		interfaceID, _ := new(big.Int).SetString(interfaceIDStr, 16)
-		fmt.Fprintf(&b, "\n\nEncapsulated IPv4 address: %s\nSLA ID: %d\nInterface ID (base 16): %s\nInterface ID (base 10): %s",
+		fmt.Fprintf(b, "\n\nEncapsulated IPv4 address: %s\nSLA ID: %d\nInterface ID (base 16): %s\nInterface ID (base 10): %s",
 			ipv4ToStr(uint32(ipv6[1]<<16+ipv6[2])), ipv6[3], interfaceIDStr, interfaceID.String()) // #nosec G115 -- two 16-bit hextets packed into exactly 32 bits
 	case ipv6[0] >= 0xfc00 && ipv6[0] <= 0xfdff:
 		b.WriteString("\nThis is a unique local address comparable to the IPv4 private addresses 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16. See RFC 4193 for more details.")
@@ -155,20 +135,86 @@ func (ParseIPv6Address) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		b.WriteString(ipv6MulticastScope(ipv6[0]))
 		b.WriteString(ipv6MulticastAddress(ipv6))
 	}
+}
 
-	// Modified EUI-64 (FF:FE in the 12th and 13th octets).
-	if (ipv6[5]&0xff) == 0xff && (ipv6[6]>>8) == 0xfe {
-		b.WriteString("\n\nThis IPv6 address contains a modified EUI-64 address, identified by the presence of FF:FE in the 12th and 13th octets.")
-		intIdent := utilsHex(ipv6[4]>>8, 2) + ":" + utilsHex(ipv6[4]&0xff, 2) + ":" +
-			utilsHex(ipv6[5]>>8, 2) + ":" + utilsHex(ipv6[5]&0xff, 2) + ":" +
-			utilsHex(ipv6[6]>>8, 2) + ":" + utilsHex(ipv6[6]&0xff, 2) + ":" +
-			utilsHex(ipv6[7]>>8, 2) + ":" + utilsHex(ipv6[7]&0xff, 2)
-		mac := utilsHex((ipv6[4]>>8)^2, 2) + ":" + utilsHex(ipv6[4]&0xff, 2) + ":" +
-			utilsHex(ipv6[5]>>8, 2) + ":" + utilsHex(ipv6[6]&0xff, 2) + ":" +
-			utilsHex(ipv6[7]>>8, 2) + ":" + utilsHex(ipv6[7]&0xff, 2)
-		fmt.Fprintf(&b, "\nInterface identifier: %s\nMAC address:          %s", intIdent, mac)
+// ipv6ZeroRange reports whether hextets [from, to] (inclusive) are all zero.
+func ipv6ZeroRange(ipv6 [8]int, from, to int) bool {
+	for i := from; i <= to; i++ {
+		if ipv6[i] != 0 {
+			return false
+		}
 	}
-	return core.NewDish([]byte(b.String()), core.TypeString), nil
+	return true
+}
+
+// describeSpecialIPv6 handles the unspecified/loopback addresses and the
+// low-prefix embedded-IPv4 forms (mapped, translated, discard, well-known). It
+// reports whether the address matched one of these categories.
+func describeSpecialIPv6(b *strings.Builder, ipv6 [8]int, shorthand string) bool {
+	switch {
+	case shorthand == "::":
+		b.WriteString("\nUnspecified address corresponding to 0.0.0.0/32 in IPv4.")
+		b.WriteString("\nUnspecified address range: ::/128")
+	case shorthand == "::1":
+		b.WriteString("\nLoopback address to the local host corresponding to 127.0.0.1/8 in IPv4.")
+		b.WriteString("\nLoopback addresses range: ::1/128")
+	case ipv6ZeroRange(ipv6, 0, 4) && ipv6[5] == 0xffff:
+		b.WriteString("\nIPv4-mapped IPv6 address detected. IPv6 clients will be handled natively by default, and IPv4 clients appear as IPv6 clients at their IPv4-mapped IPv6 address.")
+		fmt.Fprintf(b, "\nMapped IPv4 address: %s", ipv4ToStr(ipv6MappedIPv4(ipv6)))
+		b.WriteString("\nIPv4-mapped IPv6 addresses range: ::ffff:0:0/96")
+	case ipv6ZeroRange(ipv6, 0, 3) && ipv6[4] == 0xffff && ipv6[5] == 0:
+		b.WriteString("\nIPv4-translated address detected. Used by Stateless IP/ICMP Translation (SIIT). See RFCs 6145 and 6052 for more details.")
+		fmt.Fprintf(b, "\nTranslated IPv4 address: %s", ipv4ToStr(ipv6MappedIPv4(ipv6)))
+		b.WriteString("\nIPv4-translated addresses range: ::ffff:0:0:0/96")
+	case ipv6[0] == 0x100:
+		b.WriteString("\nDiscard prefix detected. This is used when forwarding traffic to a sinkhole router to mitigate the effects of a denial-of-service attack. See RFC 6666 for more details.")
+		b.WriteString("\nDiscard range: 100::/64")
+	case ipv6[0] == 0x64 && ipv6[1] == 0xff9b && ipv6ZeroRange(ipv6, 2, 5):
+		b.WriteString("\n'Well-Known' prefix for IPv4/IPv6 translation detected. See RFC 6052 for more details.")
+		fmt.Fprintf(b, "\nTranslated IPv4 address: %s", ipv4ToStr(ipv6MappedIPv4(ipv6)))
+		b.WriteString("\n'Well-Known' prefix range: 64:ff9b::/96")
+	default:
+		return false
+	}
+	return true
+}
+
+// describe2001Prefix classifies the 2001:: address space by its second hextet
+// (Teredo, BMWG, ORCHIDv1/v2, documentation). An unrecognised sub-prefix writes
+// nothing, matching the original fall-through behaviour.
+func describe2001Prefix(b *strings.Builder, ipv6 [8]int) {
+	switch {
+	case ipv6[1] == 0:
+		writeTeredo(b, ipv6)
+	case ipv6[1] == 0x2 && ipv6[2] == 0:
+		b.WriteString("\nAssigned to the Benchmarking Methodology Working Group (BMWG) for benchmarking IPv6. Corresponds to 198.18.0.0/15 for benchmarking IPv4. See RFC 5180 for more details.")
+		b.WriteString("\nBMWG range: 2001:2::/48")
+	case ipv6[1] >= 0x10 && ipv6[1] <= 0x1f:
+		b.WriteString("\nDeprecated, previously ORCHIDv1 (Overlay Routable Cryptographic Hash Identifiers).\nORCHIDv1 range: 2001:10::/28\nORCHIDv2 now uses 2001:20::/28.")
+	case ipv6[1] >= 0x20 && ipv6[1] <= 0x2f:
+		b.WriteString("\nORCHIDv2 (Overlay Routable Cryptographic Hash Identifiers).\nThese are non-routed IPv6 addresses used for Cryptographic Hash Identifiers.")
+		b.WriteString("\nORCHIDv2 range: 2001:20::/28")
+	case ipv6[1] == 0xdb8:
+		b.WriteString("\nThis is a documentation IPv6 address. This range should be used whenever an example IPv6 address is given or to model networking scenarios. Corresponds to 192.0.2.0/24, 198.51.100.0/24, and 203.0.113.0/24 in IPv4.")
+		b.WriteString("\nDocumentation range: 2001:db8::/32")
+	}
+}
+
+// writeEUI64 appends the modified-EUI-64 interface identifier and MAC address
+// when the address carries the FF:FE marker in its 12th and 13th octets.
+func writeEUI64(b *strings.Builder, ipv6 [8]int) {
+	if (ipv6[5]&0xff) != 0xff || (ipv6[6]>>8) != 0xfe {
+		return
+	}
+	b.WriteString("\n\nThis IPv6 address contains a modified EUI-64 address, identified by the presence of FF:FE in the 12th and 13th octets.")
+	intIdent := utilsHex(ipv6[4]>>8, 2) + ":" + utilsHex(ipv6[4]&0xff, 2) + ":" +
+		utilsHex(ipv6[5]>>8, 2) + ":" + utilsHex(ipv6[5]&0xff, 2) + ":" +
+		utilsHex(ipv6[6]>>8, 2) + ":" + utilsHex(ipv6[6]&0xff, 2) + ":" +
+		utilsHex(ipv6[7]>>8, 2) + ":" + utilsHex(ipv6[7]&0xff, 2)
+	mac := utilsHex((ipv6[4]>>8)^2, 2) + ":" + utilsHex(ipv6[4]&0xff, 2) + ":" +
+		utilsHex(ipv6[5]>>8, 2) + ":" + utilsHex(ipv6[6]&0xff, 2) + ":" +
+		utilsHex(ipv6[7]>>8, 2) + ":" + utilsHex(ipv6[7]&0xff, 2)
+	fmt.Fprintf(b, "\nInterface identifier: %s\nMAC address:          %s", intIdent, mac)
 }
 
 // writeTeredo appends the Teredo tunnelling analysis for a 2001:0::/32 address.

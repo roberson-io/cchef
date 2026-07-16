@@ -344,56 +344,75 @@ func cborReadValue(r *creader) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	major := ib >> 5
-	ai := ib & 0x1f
+	major := ib >> cborMajorShift
+	ai := ib & cborAIMask
 	switch major {
-	case 0:
-		n, err := cborReadArg(r, ai)
-		if err != nil {
-			return nil, err
-		}
-		if n > maxSafeInt {
-			return cborBigInt{}, nil
-		}
-		return int64(n), nil
-	case 1:
-		n, err := cborReadArg(r, ai)
-		if err != nil {
-			return nil, err
-		}
-		if n >= maxSafeInt {
-			return cborBigInt{}, nil
-		}
-		return -1 - int64(n), nil
-	case 2:
-		b, err := cborReadString(r, ai, 2)
-		if err != nil {
-			return nil, err
-		}
-		return jsBuffer(b), nil
-	case 3:
-		b, err := cborReadString(r, ai, 3)
-		if err != nil {
-			return nil, err
-		}
-		return string(b), nil
+	case 0, 1:
+		return cborReadInt(r, ai, major)
+	case 2, 3:
+		return cborReadStringValue(r, ai, major)
 	case 4:
 		return cborReadArray(r, ai)
 	case 5:
 		return cborReadMap(r, ai)
 	case 6:
-		tag, err := cborReadArg(r, ai)
-		if err != nil {
-			return nil, err
-		}
-		inner, err := cborReadValue(r)
-		if err != nil {
-			return nil, err
-		}
-		return cborApplyTag(tag, inner), nil
+		return cborReadTag(r, ai)
 	default: // 7
 		return cborReadSimple(r, ai)
 	}
+}
+
+// A CBOR initial byte packs the major type in its high 3 bits and the
+// additional-info in its low 5 bits.
+const (
+	cborMajorShift = 5
+	cborAIMask     = 0x1f
+)
+
+// cborReadInt reads an unsigned (major 0) or negative (major 1) integer,
+// promoting values beyond JS's safe range to a bigint.
+func cborReadInt(r *creader, ai, major byte) (any, error) {
+	n, err := cborReadArg(r, ai)
+	if err != nil {
+		return nil, err
+	}
+	if major == 0 {
+		if n > maxSafeInt {
+			return cborBigInt{}, nil
+		}
+		return int64(n), nil
+	}
+	if n >= maxSafeInt {
+		return cborBigInt{}, nil
+	}
+	return -1 - int64(n), nil
+}
+
+// cborReadStringValue reads a byte string (major 2, as a Buffer) or text string
+// (major 3, as a Go string).
+func cborReadStringValue(r *creader, ai, major byte) (any, error) {
+	b, err := cborReadString(r, ai, major)
+	if err != nil {
+		return nil, err
+	}
+	if major == 2 {
+		return jsBuffer(b), nil
+	}
+	return string(b), nil
+}
+
+// cborReadTag reads a tag (major 6) and its tagged value, then applies the tag's
+// semantics.
+func cborReadTag(r *creader, ai byte) (any, error) {
+	tag, err := cborReadArg(r, ai)
+	if err != nil {
+		return nil, err
+	}
+	inner, err := cborReadValue(r)
+	if err != nil {
+		return nil, err
+	}
+	return cborApplyTag(tag, inner), nil
 }
 
 // cborReadArg reads the argument (length or value) that follows an initial byte

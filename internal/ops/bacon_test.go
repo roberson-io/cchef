@@ -231,3 +231,27 @@ func TestBaconEncodeFixtures(t *testing.T) {
 		},
 	})
 }
+
+// --- direct tests for the helpers extracted from BaconCipherDecode.Run ---
+
+// TestBaconCleanInput documents stripping characters not used by the translation.
+func TestBaconCleanInput(t *testing.T) {
+	if got := baconCleanInput("0a1b!x", "0/1"); got != "01" {
+		t.Fatalf("0/1: %q", got)
+	}
+}
+
+// TestBaconNormalizeToBits documents mapping the cleaned input to a 0/1 string.
+func TestBaconNormalizeToBits(t *testing.T) {
+	if got := baconNormalizeToBits("AaBb", "A/B"); got != "0011" {
+		t.Fatalf("A/B: %q", got)
+	}
+}
+
+// TestBaconDecodeBits documents grouping bits into fives and mapping each code to
+// a letter: 00000=A, 00001=B in the Complete alphabet.
+func TestBaconDecodeBits(t *testing.T) {
+	if got := baconDecodeBits("0000000001", baconComplete); got != "AB" {
+		t.Fatalf("decode: %q", got)
+	}
+}

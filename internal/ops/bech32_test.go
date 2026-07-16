@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"encoding/hex"
+	"slices"
 	"strings"
 	"testing"
 
@@ -449,6 +451,95 @@ func TestBech32Errors(t *testing.T) {
 			_, err := c.recipe.Execute(core.NewDish([]byte(c.input), core.TypeString))
 			if err == nil || !strings.Contains(err.Error(), c.errSub) {
 				t.Fatalf("got err %v, want substring %q", err, c.errSub)
+			}
+		})
+	}
+}
+
+// --- direct tests for the helpers extracted from bech32Decode ---
+
+// TestBech32DecodeDataChars documents the data-character mapping: each Bech32
+// charset character maps to its 5-bit value, and any other character errors.
+func TestBech32DecodeDataChars(t *testing.T) {
+	// Charset "qpzry9x8gf2tvdw0s3jn54khce6mua7l": q=0, p=1, z=2, r=3.
+	got, err := bech32DecodeDataChars("qpzr", 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !slices.Equal(got, []int{0, 1, 2, 3}) {
+		t.Fatalf("got %v, want [0 1 2 3]", got)
+	}
+	// 'b', 'i', 'o' and '1' are excluded from the Bech32 charset.
+	for _, bad := range []string{"qpb", "i", "o", "1"} {
+		if _, err := bech32DecodeDataChars(bad, 0); err == nil {
+			t.Fatalf("expected error for %q", bad)
+		}
+	}
+}
+
+// TestBech32DetectEncoding documents checksum verification and encoding
+// selection, anchored on a known-good Bech32 string (decodes to "Hello").
+func TestBech32DetectEncoding(t *testing.T) {
+	data, err := bech32DecodeDataChars("fpjkcmr0gzsgcg", 2) // data part of bc1fpjkcmr0gzsgcg
+	if err != nil {
+		t.Fatalf("decoding data part: %v", err)
+	}
+	// Explicit and Auto both accept the valid Bech32 checksum.
+	for _, enc := range []string{"Bech32", "Auto"} {
+		if used, err := bech32DetectEncoding("bc", data, enc); err != nil || used != "Bech32" {
+			t.Fatalf("%s: got (%q, %v), want (\"Bech32\", nil)", enc, used, err)
+		}
+	}
+	// Demanding Bech32m rejects a Bech32 checksum.
+	if _, err := bech32DetectEncoding("bc", data, "Bech32m"); err == nil {
+		t.Fatal("expected checksum error when forcing Bech32m")
+	}
+}
+
+// TestBech32DecodeWords documents word→byte conversion for both the plain path
+// and the SegWit path (witness version split off, program validated).
+func TestBech32DecodeWords(t *testing.T) {
+	// Non-SegWit: bc1fpjkcmr0gzsgcg decodes to "Hello".
+	data, _ := bech32DecodeDataChars("fpjkcmr0gzsgcg", 2)
+	bytes, wv, err := bech32DecodeWords(data[:len(data)-6], false)
+	if err != nil || wv != -1 || string(bytes) != "Hello" {
+		t.Fatalf("plain: got (%q, %d, %v)", bytes, wv, err)
+	}
+
+	// SegWit v0: the BIP-0173 example address, program is a 20-byte hash.
+	seg, _ := bech32DecodeDataChars("qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", 2)
+	sbytes, swv, err := bech32DecodeWords(seg[:len(seg)-6], true)
+	if err != nil || swv != 0 || sbytes[0] != 0 {
+		t.Fatalf("segwit: got version %d, first byte %d, err %v", swv, sbytes[0], err)
+	}
+	if hex.EncodeToString(sbytes[1:]) != "751e76e8199196d454941c45d1b3a323f1433bd6" {
+		t.Fatalf("segwit program = %x", sbytes[1:])
+	}
+}
+
+// TestBech32ParseParts documents the input validation and HRP/data split.
+func TestBech32ParseParts(t *testing.T) {
+	// Valid: all-lowercase and all-uppercase both parse (case is normalised).
+	for _, s := range []string{"bc1fpjkcmr0gzsgcg", "BC1FPJKCMR0GZSGCG"} {
+		hrp, dataPart, sep, err := bech32ParseParts(s)
+		if err != nil || hrp != "bc" || dataPart != "fpjkcmr0gzsgcg" || sep != 2 {
+			t.Fatalf("%s: got (%q, %q, %d, %v)", s, hrp, dataPart, sep, err)
+		}
+	}
+
+	bad := []struct{ name, in, sub string }{
+		{"empty", "", "cannot be empty"},
+		{"too long", strings.Repeat("q", 91), "maximum length"},
+		{"mixed case", "Bc1fpjkcmr0gzsgcg", "mixed case"},
+		{"no separator", "bcfpjkcmr", "no separator"},
+		{"empty hrp", "1fpjkcmr0gzsgcg", "cannot be empty"},
+		{"data too short", "bc1qqqq", "too short"},
+		{"bad hrp char", "b\x01c1fpjkcmr0gzsgcg", "invalid character"},
+	}
+	for _, c := range bad {
+		t.Run(c.name, func(t *testing.T) {
+			if _, _, _, err := bech32ParseParts(c.in); err == nil || !strings.Contains(err.Error(), c.sub) {
+				t.Fatalf("got err %v, want substring %q", err, c.sub)
 			}
 		})
 	}

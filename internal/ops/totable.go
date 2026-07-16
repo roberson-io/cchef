@@ -32,49 +32,72 @@ func parseCSV(data string, cellDelims, lineDelims []rune) [][]string {
 	if len(r) > 0 && r[0] == '\uFEFF' { // strip BOM
 		r = r[1:]
 	}
-	var lines [][]string
-	var line []string
-	var cell strings.Builder
-	renderNext, inString := false, false
-
+	p := &csvParser{cellDelims: cellDelims, lineDelims: lineDelims}
 	for i := 0; i < len(r); i++ {
-		b := r[i]
 		var next rune
 		if i+1 < len(r) {
 			next = r[i+1]
 		}
-		switch {
-		case renderNext:
-			cell.WriteRune(b)
-			renderNext = false
-		case b == '"' && !inString:
-			inString = true
-		case b == '"' && inString:
-			if next == '"' {
-				renderNext = true
-			} else {
-				inString = false
-			}
-		case !inString && slices.Contains(cellDelims, b):
-			line = append(line, cell.String())
-			cell.Reset()
-		case !inString && slices.Contains(lineDelims, b):
-			line = append(line, cell.String())
-			cell.Reset()
-			lines = append(lines, line)
-			line = nil
-			if slices.Contains(lineDelims, next) && next != b {
-				i++
-			}
-		default:
-			cell.WriteRune(b)
+		if p.feed(r[i], next) {
+			i++ // a two-rune line delimiter (e.g. \r\n) was consumed
 		}
 	}
-	if len(line) > 0 {
-		line = append(line, cell.String())
-		lines = append(lines, line)
+	return p.finish()
+}
+
+// csvParser is the state machine that splits delimited text into rows of cells,
+// honouring quoted fields and "" escaped quotes.
+type csvParser struct {
+	cellDelims, lineDelims []rune
+	lines                  [][]string
+	line                   []string
+	cell                   strings.Builder
+	renderNext, inString   bool
+}
+
+// feed processes one rune (next is the following rune, for delimiter lookahead).
+// It returns true when the following rune was also consumed as part of a
+// two-rune line delimiter.
+func (p *csvParser) feed(b, next rune) bool {
+	switch {
+	case p.renderNext:
+		p.cell.WriteRune(b)
+		p.renderNext = false
+	case b == '"' && !p.inString:
+		p.inString = true
+	case b == '"' && p.inString:
+		if next == '"' {
+			p.renderNext = true
+		} else {
+			p.inString = false
+		}
+	case !p.inString && slices.Contains(p.cellDelims, b):
+		p.endCell()
+	case !p.inString && slices.Contains(p.lineDelims, b):
+		p.endCell()
+		p.lines = append(p.lines, p.line)
+		p.line = nil
+		return slices.Contains(p.lineDelims, next) && next != b
+	default:
+		p.cell.WriteRune(b)
 	}
-	return lines
+	return false
+}
+
+// endCell finishes the current cell and appends it to the current row.
+func (p *csvParser) endCell() {
+	p.line = append(p.line, p.cell.String())
+	p.cell.Reset()
+}
+
+// finish flushes a trailing row (one without a final line delimiter) and returns
+// all parsed rows.
+func (p *csvParser) finish() [][]string {
+	if len(p.line) > 0 {
+		p.endCell()
+		p.lines = append(p.lines, p.line)
+	}
+	return p.lines
 }
 
 // ToTable renders delimited data as an ASCII, HTML or Markdown table.

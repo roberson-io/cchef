@@ -187,3 +187,77 @@ func TestProtobufEncodeNonScalarKindPanics(t *testing.T) {
 	mustPanic("protobufValueFromJSON", func() { _, _ = protobufValueFromJSON(fd, "x") })
 	mustPanic("protobufAppendField", func() { _ = protobufAppendField(nil, fd, protoreflect.Value{}) })
 }
+
+// --- direct tests for the wire-family value helpers extracted from
+// protobufAppendField, keyed on protoreflect.Kind so no descriptor is needed ---
+
+func TestProtobufVarintValue(t *testing.T) {
+	cases := []struct {
+		kind protoreflect.Kind
+		v    protoreflect.Value
+		want uint64
+	}{
+		{protoreflect.BoolKind, protoreflect.ValueOfBool(true), 1},
+		{protoreflect.BoolKind, protoreflect.ValueOfBool(false), 0},
+		{protoreflect.Int64Kind, protoreflect.ValueOfInt64(5), 5},
+		{protoreflect.Uint64Kind, protoreflect.ValueOfUint64(9), 9},
+		{protoreflect.Sint64Kind, protoreflect.ValueOfInt64(-1), 1}, // zigzag(-1)=1
+		{protoreflect.Sint32Kind, protoreflect.ValueOfInt64(-1), 1}, // zigzag32(-1)=1
+		{protoreflect.EnumKind, protoreflect.ValueOfEnum(3), 3},
+	}
+	for _, c := range cases {
+		if got := protobufVarintValue(c.kind, c.v); got != c.want {
+			t.Errorf("%s: got %d want %d", c.kind, got, c.want)
+		}
+	}
+}
+
+func TestProtobufFixed32Value(t *testing.T) {
+	if got := protobufFixed32Value(protoreflect.Fixed32Kind, protoreflect.ValueOfUint64(7)); got != 7 {
+		t.Errorf("fixed32: %d", got)
+	}
+	if got := protobufFixed32Value(protoreflect.Sfixed32Kind, protoreflect.ValueOfInt64(-1)); got != 0xffffffff {
+		t.Errorf("sfixed32: %d", got)
+	}
+	if got := protobufFixed32Value(protoreflect.FloatKind, protoreflect.ValueOfFloat64(1.0)); got != 0x3f800000 {
+		t.Errorf("float: %#x", got)
+	}
+}
+
+func TestProtobufFixed64Value(t *testing.T) {
+	if got := protobufFixed64Value(protoreflect.Fixed64Kind, protoreflect.ValueOfUint64(7)); got != 7 {
+		t.Errorf("fixed64: %d", got)
+	}
+	if got := protobufFixed64Value(protoreflect.Sfixed64Kind, protoreflect.ValueOfInt64(-1)); got != 0xffffffffffffffff {
+		t.Errorf("sfixed64: %d", got)
+	}
+	if got := protobufFixed64Value(protoreflect.DoubleKind, protoreflect.ValueOfFloat64(1.0)); got != 0x3ff0000000000000 {
+		t.Errorf("double: %#x", got)
+	}
+}
+
+// --- direct tests for the branchy leaf helpers extracted from
+// protobufValueFromJSON ---
+
+func TestProtobufStringValue(t *testing.T) {
+	if got := protobufStringValue("hi").String(); got != "hi" {
+		t.Errorf("string: %q", got)
+	}
+	// Non-string coerces via fmt %v.
+	if got := protobufStringValue(float64(150)).String(); got != "150" {
+		t.Errorf("coerced: %q", got)
+	}
+}
+
+func TestProtobufBytesValue(t *testing.T) {
+	v, err := protobufBytesValue("f", "aGk=")
+	if err != nil || string(v.Bytes()) != "hi" {
+		t.Fatalf("valid: %q %v", v.Bytes(), err)
+	}
+	if _, err := protobufBytesValue("f", 5); err == nil {
+		t.Error("expected error for non-string")
+	}
+	if _, err := protobufBytesValue("f", "!!!not base64"); err == nil {
+		t.Error("expected error for invalid base64")
+	}
+}

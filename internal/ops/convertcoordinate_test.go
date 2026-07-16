@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -306,4 +307,163 @@ func TestConvertCoordinatesUnknownOutputFormatPanics(t *testing.T) {
 		}
 	}()
 	_, _ = convertCoordinates("51.5, -0.1", "Decimal Degrees", "Comma", "Bogus Format", "Comma", "None", 3)
+}
+
+// --- direct tests for the helpers extracted from convertCoordinates ---
+
+// TestClampGridPrecision documents the grid-precision rounding: odd values round
+// up, and the maximum is 10.
+func TestClampGridPrecision(t *testing.T) {
+	cases := map[int]int{0: 0, 1: 2, 2: 2, 5: 6, 10: 10, 11: 10, 20: 10}
+	for in, want := range cases {
+		if got := clampGridPrecision(in); got != want {
+			t.Fatalf("clampGridPrecision(%d) = %d, want %d", in, got, want)
+		}
+	}
+}
+
+// TestApplyInputDirections documents the S/W sign negation for degree formats,
+// including CyberChef's quirky "W only negates a positive value" precedence.
+func TestApplyInputDirections(t *testing.T) {
+	// Non-degree formats are untouched.
+	if lat, lon := applyInputDirections("Geohash", "S W", 1, 2); lat != 1 || lon != 2 {
+		t.Fatalf("non-degree changed values: %v %v", lat, lon)
+	}
+	// "S ... W" negates latitude (S) and longitude (W, since lon is positive).
+	if lat, lon := applyInputDirections("Degrees Minutes Seconds", "51 S 0 W", 51, 0.5); lat != -51 || lon != -0.5 {
+		t.Fatalf("got %v %v, want -51 -0.5", lat, lon)
+	}
+	// A single N marker leaves a positive latitude positive.
+	if lat, _ := applyInputDirections("Decimal Degrees", "51 N", 51, 0); lat != 51 {
+		t.Fatalf("N negated latitude: %v", lat)
+	}
+}
+
+// TestAssembleDirectionalOutput documents direction placement and sign stripping.
+func TestAssembleDirectionalOutput(t *testing.T) {
+	// Before: markers precede each coordinate; the S/W signs are stripped.
+	got := assembleDirectionalOutput("-51.5", "-0.1", "S", "W", "Before", ",", true)
+	if got != "S 51.5,W 0.1," {
+		t.Fatalf("Before pair: %q", got)
+	}
+	// None: no markers, signs retained, single value (not a pair).
+	got = assembleDirectionalOutput("51.5", "", "N", "E", "None", ",", false)
+	if got != "51.5," {
+		t.Fatalf("None single: %q", got)
+	}
+}
+
+// TestParseDegreeInput documents the shared degree parser, including the quirks
+// it must preserve: DMS accepts >= 3 fields, and the others need an exact count.
+func TestParseDegreeInput(t *testing.T) {
+	id := func(f []float64) float64 { return f[0] }
+
+	// Decimal Degrees pair: one field per coordinate.
+	lat, lon, err := parseDegreeInput("Decimal Degrees", []string{"51.5", "0.1"}, "", true, 1, id)
+	if err != nil || lat != 51.5 || lon != 0.1 {
+		t.Fatalf("DD pair: %v %v %v", lat, lon, err)
+	}
+	// Too few fields errors, and the message names the format.
+	if _, _, err := parseDegreeInput("Decimal Degrees", []string{"51.5", ""}, "", true, 1, id); err == nil ||
+		!strings.Contains(err.Error(), "Decimal Degrees") {
+		t.Fatalf("expected a Decimal Degrees field-count error, got %v", err)
+	}
+}
+
+// TestTokeniseCoordInput documents the tokenising phase for degree vs grid input.
+func TestTokeniseCoordInput(t *testing.T) {
+	// Degree formats split into per-coordinate tokens; a pair is detected.
+	in, split, isPair := tokeniseCoordInput("51.5,0.1", "Decimal Degrees", ",")
+	if in != "51.5,0.1" || len(split) != 2 || !isPair {
+		t.Fatalf("degree: in=%q split=%v pair=%v", in, split, isPair)
+	}
+	// Grid formats (coordNoChange) strip the delimiter and are treated as a pair.
+	in, split, isPair = tokeniseCoordInput("ST 1234 5678", "Ordnance Survey National Grid", " ")
+	if split != nil || !isPair {
+		t.Fatalf("grid: split=%v pair=%v", split, isPair)
+	}
+	_ = in
+}
+
+// --- direct tests for the helpers extracted from findDirs ---
+
+// TestDirFromValue documents mapping a signed coordinate string to its hemisphere
+// letter (empty stays empty; non-numeric is treated as positive).
+func TestDirFromValue(t *testing.T) {
+	cases := []struct{ in, neg, pos, want string }{
+		{"", "S", "N", ""},
+		{"-5", "S", "N", "S"},
+		{"5", "S", "N", "N"},
+		{"-0.1", "W", "E", "W"},
+		{"abc", "W", "E", "E"}, // unparseable -> positive
+	}
+	for _, c := range cases {
+		if got := dirFromValue(c.in, c.neg, c.pos); got != c.want {
+			t.Fatalf("dirFromValue(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+// TestSplitLatLong documents splitting the input into lat/long substrings.
+func TestSplitLatLong(t *testing.T) {
+	lat, long := splitLatLong("51.5,0.1", ",")
+	if lat != "51.5" || long != "0.1" {
+		t.Fatalf("pair: %q, %q", lat, long)
+	}
+	// No delimiter present: the whole string is the latitude.
+	lat, long = splitLatLong("51.5", ",")
+	if lat != "51.5" || long != "" {
+		t.Fatalf("single: %q, %q", lat, long)
+	}
+}
+
+// --- direct tests for the helpers extracted from findFormat ---
+
+// TestFirstNonEmpty documents choosing the first non-empty split token.
+func TestFirstNonEmpty(t *testing.T) {
+	if got := firstNonEmpty([]string{"a", "b"}); got != "a" {
+		t.Fatalf("got %q", got)
+	}
+	if got := firstNonEmpty([]string{"", "b"}); got != "b" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+// TestFindTestData documents extracting the first coordinate token to classify.
+func TestFindTestData(t *testing.T) {
+	if td, ok := findTestData("51.5,0.1", ","); !ok || td != "51.5" {
+		t.Fatalf("pair: %q, %v", td, ok)
+	}
+	if td, ok := findTestData("51.5", ","); !ok || td != "51.5" { // no delim in input
+		t.Fatalf("single: %q, %v", td, ok)
+	}
+	if _, ok := findTestData("51.5", ""); ok { // no delimiter -> no test data
+		t.Fatal("empty delim should give no test data")
+	}
+}
+
+// TestDetectGridFormat documents grid-format detection (returns "" for
+// degree-style input, which contains °/'/").
+func TestDetectGridFormat(t *testing.T) {
+	if got := detectGridFormat("gcpvj0duq", ","); got != "Geohash" {
+		t.Fatalf("geohash: %q", got)
+	}
+	if got := detectGridFormat("51° 30'", ","); got != "" {
+		t.Fatalf("degree input should not be a grid: %q", got)
+	}
+}
+
+// TestDetectDegreeFormat documents degree-format classification by field count.
+func TestDetectDegreeFormat(t *testing.T) {
+	cases := map[string]string{
+		"51 30 26": "Degrees Minutes Seconds",
+		"51 30":    "Degrees Decimal Minutes",
+		"51.5":     "Decimal Degrees",
+		"":         "",
+	}
+	for in, want := range cases {
+		if got := detectDegreeFormat(in); got != want {
+			t.Fatalf("detectDegreeFormat(%q) = %q, want %q", in, got, want)
+		}
+	}
 }

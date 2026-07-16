@@ -62,6 +62,44 @@ exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
 differential-tested against it; no runtime dependency on the JS library is added.
 
+### Dependency policy and planned reductions
+
+**Policy.** `golang.org/x/*` modules and libraries with large-organization
+backing (e.g. `google.golang.org/protobuf`, `go.yaml.in/yaml`) are acceptable
+long-term dependencies. The concern is with modules maintained by individuals —
+especially clearly-unmaintained ones (`elobuff/goamf`, last touched 2014) — which
+carry supply-chain and bit-rot risk. Those are candidates for in-repo
+reimplementation, following the precedent already set by the codepage engine and
+the generated ua-parser rule tables (reimplement rather than depend, and
+differential-verify byte-for-byte against the CyberChef-server oracle).
+
+**Planned reimplementations** (each to be removed once its Go replacement is
+oracle-verified across the same inputs as the current op):
+
+- [ ] `github.com/sergi/go-diff` (**Diff**) — reimplement the diff-match-patch
+  Myers diff (`DiffMain`/`DiffMainRunes`) in-repo.
+- [ ] `github.com/mmcloughlin/geohash` (**Convert co-ordinate format**) —
+  reimplement geohash encode/decode (bit-interleaving; small).
+- [ ] `github.com/im7mortal/UTM`, `github.com/klaus-tockloth/coco` (MGRS),
+  `github.com/wroge/wgs84` (**Convert co-ordinate format**) — reimplement the
+  remaining coordinate math (transverse Mercator, MGRS grid lettering, WGS84/
+  OSGB36 Helmert datum transforms); precision-sensitive, verify against the oracle.
+- [ ] `github.com/elobuff/goamf` (**AMF Encode/Decode**) — reimplement AMF0/AMF3
+  serialization in-repo. Highest priority: unmaintained, and removing it also
+  drops its indirect `github.com/jcoene/gologger` dependency.
+- [ ] `golang.org/x/text/encoding/charmap` (**MIME Decoding**) — route the
+  ISO-8859 decoders through the existing in-repo codepage engine, which already
+  covers all 16 ISO-8859 charsets. Note: this removes the `charmap`/`encoding`
+  *usage* but **not** the `golang.org/x/text` module, which stays for
+  `unicode/norm` (Unicode normalization is out of scope to reimplement — it needs
+  the full Unicode Character Database — and `x/text` is an acceptable `x/*` dep).
+
+**Explicitly kept** (reimplementation uneconomical or the module is an acceptable
+`x/*`/large-org dependency): `dlclark/regexp2` (backtracking PCRE engine RE2
+cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
+`.proto` compiler), `golang.org/x/text/unicode/norm`, `golang.org/x/crypto`, and
+`go.yaml.in/yaml/v3` (already pulled in transitively by cobra).
+
 ## Current status
 
 The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 242

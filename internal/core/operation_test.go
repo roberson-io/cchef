@@ -180,3 +180,44 @@ func TestCoerceArgsCoerceError(t *testing.T) {
 		t.Fatal("expected a coercion error")
 	}
 }
+
+// --- direct tests for the per-type coercers extracted from CoerceArg ---
+
+// TestCoerceNumber documents numeric coercion and the min-bound check.
+func TestCoerceNumber(t *testing.T) {
+	if got, err := coerceNumber(ArgDef{Name: "n"}, 5); err != nil || got.(float64) != 5 {
+		t.Fatalf("int->float: %v, %v", got, err)
+	}
+	lo := 10.0
+	if _, err := coerceNumber(ArgDef{Name: "n", Min: &lo}, 5); err == nil {
+		t.Fatal("expected below-minimum error")
+	}
+	if _, err := coerceNumber(ArgDef{Name: "n"}, "abc"); err == nil {
+		t.Fatal("expected non-numeric error")
+	}
+}
+
+// TestCoerceOption documents option validation against the allowed list.
+func TestCoerceOption(t *testing.T) {
+	def := ArgDef{Name: "o", Value: []string{"a", "b"}}
+	if got, err := coerceOption(def, "a"); err != nil || got.(string) != "a" {
+		t.Fatalf("valid: %v, %v", got, err)
+	}
+	if _, err := coerceOption(def, "c"); err == nil {
+		t.Fatal("expected not-in-list error")
+	}
+	if _, err := coerceOption(def, 5); err == nil {
+		t.Fatal("expected non-string error")
+	}
+}
+
+// TestCoerceToggleString documents toggle-string coercion and mode validation.
+func TestCoerceToggleString(t *testing.T) {
+	def := ArgDef{Name: "t", ToggleValues: []string{"Hex"}}
+	if _, err := coerceToggleString(def, ToggleString{Value: "x", Option: "Hex"}); err != nil {
+		t.Fatalf("valid mode: %v", err)
+	}
+	if _, err := coerceToggleString(def, ToggleString{Value: "x", Option: "Bad"}); err == nil {
+		t.Fatal("expected invalid-mode error")
+	}
+}

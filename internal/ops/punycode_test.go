@@ -10,6 +10,7 @@ package ops
 // are ordinary tests — edit as needed.
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -177,5 +178,19 @@ func TestPunycodeRoundTrip(t *testing.T) {
 		if dec.String() != s {
 			t.Fatalf("round-trip %q = %q", s, dec.String())
 		}
+	}
+}
+
+// TestPunyDecodeDelta documents the variable-length-integer helper extracted from
+// punyDecode. Digit 0 ('a') is always below the threshold, so it terminates the
+// generalised-variable-length integer immediately, leaving i unchanged.
+func TestPunyDecodeDelta(t *testing.T) {
+	i, index, err := punyDecodeDelta([]rune("a"), 0, 0, punyInitialBias)
+	if err != nil || i != 0 || index != 1 {
+		t.Fatalf("got i=%d index=%d err=%v", i, index, err)
+	}
+	// Running out of input mid-integer is an error.
+	if _, _, err := punyDecodeDelta([]rune(""), 0, 0, punyInitialBias); !errors.Is(err, errPunyInvalidInput) {
+		t.Fatalf("expected errPunyInvalidInput, got %v", err)
 	}
 }

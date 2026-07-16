@@ -245,3 +245,92 @@ func TestParseASN1HexStringHelpers(t *testing.T) {
 		t.Errorf("asn1GetChildIdx bitstring: %v %v", idx, err)
 	}
 }
+
+// --- direct tests for the helpers extracted from asn1Dump ---
+
+// TestASN1DumpChildren documents the shared "header + recursively-dumped
+// children" rendering used by SEQUENCE/SET/constructed context tags.
+func TestASN1DumpChildren(t *testing.T) {
+	// SEQUENCE { INTEGER 1 } = 3003020101; its one child (the INTEGER) is at
+	// hex offset 4.
+	const e = "3003020101"
+	d, err := asn1GetChildIdx(e, 0)
+	if err != nil {
+		t.Fatalf("asn1GetChildIdx: %v", err)
+	}
+	got, err := asn1DumpChildren(e, 32, d, "", "SEQUENCE", "")
+	if err != nil {
+		t.Fatalf("asn1DumpChildren: %v", err)
+	}
+	if got != "SEQUENCE\n  INTEGER 01\n" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+// TestASN1DumpContextTag documents context/application/private tag handling and
+// the UNKNOWN fallback.
+func TestASN1DumpContextTag(t *testing.T) {
+	cases := []struct{ name, e, z, want string }{
+		{"primitive [0]", "800141", "80", "[0] 41\n"},
+		{"constructed [0]", "a003020101", "a0", "[0]\n  INTEGER 01\n"},
+		{"unknown tag", "0f0100", "0f", "UNKNOWN(15) 00\n"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := asn1DumpContextTag(c.e, 32, 0, "", "", c.z)
+			if err != nil {
+				t.Fatalf("asn1DumpContextTag: %v", err)
+			}
+			if got != c.want {
+				t.Fatalf("got %q, want %q", got, c.want)
+			}
+		})
+	}
+}
+
+// TestASN1TruncValue documents the long-value truncation helper.
+func TestASN1TruncValue(t *testing.T) {
+	if got := asn1TruncValue("0011", 2); got != "0011" { // short: passthrough
+		t.Fatalf("short: %q", got)
+	}
+	if got := asn1TruncValue("00112233445566778899", 2); got != "00..(total 10bytes)..99" {
+		t.Fatalf("long: %q", got)
+	}
+}
+
+// TestASN1DumpEncapsulated documents the shared BITSTRING/OCTETSTRING rendering:
+// recurse when the inner hex is valid ASN.1, otherwise show the raw value.
+func TestASN1DumpEncapsulated(t *testing.T) {
+	// Not encapsulated: "41" is not valid ASN.1 hex.
+	got, err := asn1DumpEncapsulated("OCTETSTRING", "41", "41", 32, "", "")
+	if err != nil || got != "OCTETSTRING 41\n" {
+		t.Fatalf("plain: %q, %v", got, err)
+	}
+	// Encapsulated: a nested SEQUENCE { INTEGER 1 }.
+	got, err = asn1DumpEncapsulated("OCTETSTRING", "3003020101", "3003020101", 32, "", "")
+	if err != nil || got != "OCTETSTRING, encapsulates\n  SEQUENCE\n    INTEGER 01\n" {
+		t.Fatalf("encapsulated: %q, %v", got, err)
+	}
+}
+
+// TestASN1DumpPrimitive documents the primitive value-tag dispatch and its
+// "handled" signal.
+func TestASN1DumpPrimitive(t *testing.T) {
+	cases := []struct{ name, e, z, want string }{
+		{"null", "0500", "05", "NULL\n"},
+		{"integer", "020101", "02", "INTEGER 01\n"},
+		{"boolean true", "0101ff", "01", "BOOLEAN TRUE\n"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, handled, err := asn1DumpPrimitive(c.e, 32, 0, "", "", c.z)
+			if err != nil || !handled || got != c.want {
+				t.Fatalf("got (%q, %v, %v), want %q", got, handled, err, c.want)
+			}
+		})
+	}
+	// A constructed tag is not a primitive.
+	if _, handled, _ := asn1DumpPrimitive("3003020101", 32, 0, "", "", "30"); handled {
+		t.Fatal("SEQUENCE should not be handled by asn1DumpPrimitive")
+	}
+}

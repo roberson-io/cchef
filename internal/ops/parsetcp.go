@@ -136,47 +136,8 @@ func (ParseTCP) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	windowScaleShift := 0
 	if dataOffset > 5 {
-		remaining := dataOffset*4 - 20
-		options := newOMap()
-		for remaining > 0 {
-			kind := s.readInt(1)
-			option := newOMap()
-			option.set("Kind", kind)
-			opt, ok := tcpOptionKindLookup[kind]
-			if !ok {
-				opt = tcpOpt{name: "Reserved", length: true}
-			}
-			optLength := 0
-			if opt.length {
-				optLength = s.readInt(1)
-				option.set("Length", optLength)
-				if optLength > 2 {
-					var value any
-					switch {
-					case opt.parser != nil:
-						value = opt.parser(s.getBytes(optLength - 2))
-					case optLength <= 6:
-						value = s.readInt(optLength - 2)
-					default:
-						value = "0x" + toHexFast(s.getBytes(optLength-2))
-					}
-					option.set("Value", value)
-					if kind == 3 {
-						if om, ok := value.(*omap); ok {
-							if sc, ok := om.vals["Shift count"].(int); ok {
-								windowScaleShift = sc
-							}
-						}
-					}
-				}
-			}
-			options.set(opt.name, option)
-			length := 1
-			if optLength != 0 {
-				length = optLength
-			}
-			remaining -= length
-		}
+		var options *omap
+		options, windowScaleShift = parseTCPOptions(s, dataOffset)
 		tcp.set("Options", options)
 	}
 
@@ -194,4 +155,68 @@ func (ParseTCP) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, err
 	}
 	return core.NewDish(out, core.TypeJSON), nil
+}
+
+// parseTCPOptions parses the TCP options that follow the fixed 20-byte header
+// (present when dataOffset > 5), returning the options map and any window-scale
+// shift count found in a Window Scale (kind 3) option.
+func parseTCPOptions(s *byteStream, dataOffset int) (*omap, int) {
+	windowScaleShift := 0
+	remaining := dataOffset*4 - 20
+	options := newOMap()
+	for remaining > 0 {
+		kind := s.readInt(1)
+		option := newOMap()
+		option.set("Kind", kind)
+		opt, ok := tcpOptionKindLookup[kind]
+		if !ok {
+			opt = tcpOpt{name: "Reserved", length: true}
+		}
+		optLength := 0
+		if opt.length {
+			optLength = s.readInt(1)
+			option.set("Length", optLength)
+			if optLength > 2 {
+				value := parseTCPOptionValue(s, opt, optLength)
+				option.set("Value", value)
+				if kind == 3 {
+					if sc, ok := tcpWindowScale(value); ok {
+						windowScaleShift = sc
+					}
+				}
+			}
+		}
+		options.set(opt.name, option)
+		length := 1
+		if optLength != 0 {
+			length = optLength
+		}
+		remaining -= length
+	}
+	return options, windowScaleShift
+}
+
+// parseTCPOptionValue reads a single option's value (optLength-2 payload bytes):
+// a custom parser if the option defines one, a short integer for values that fit
+// in <= 4 bytes, otherwise a hex dump.
+func parseTCPOptionValue(s *byteStream, opt tcpOpt, optLength int) any {
+	switch {
+	case opt.parser != nil:
+		return opt.parser(s.getBytes(optLength - 2))
+	case optLength <= 6:
+		return s.readInt(optLength - 2)
+	default:
+		return "0x" + toHexFast(s.getBytes(optLength-2))
+	}
+}
+
+// tcpWindowScale extracts the "Shift count" from a parsed Window Scale option
+// value (a *omap), reporting whether one was present.
+func tcpWindowScale(value any) (int, bool) {
+	if om, ok := value.(*omap); ok {
+		if sc, ok := om.vals["Shift count"].(int); ok {
+			return sc, true
+		}
+	}
+	return 0, false
 }

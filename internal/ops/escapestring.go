@@ -81,13 +81,7 @@ func escapeRune(r rune, i int, runes []rune, level string, q rune, jsonCompat, e
 		return e
 	}
 	if r == 0 {
-		// \0 is ambiguous when followed by a digit, and is invalid in JSON.
-		// (Reduced fidelity: jsesc leaves a raw null byte in Minimal mode; we
-		// escape it, which differs only for that rarely-used combination.)
-		if jsonCompat || (i+1 < len(runes) && runes[i+1] >= '0' && runes[i+1] <= '9') {
-			return escHex(0, jsonCompat, es6, upper)
-		}
-		return `\0`
+		return escapeNull(i, runes, jsonCompat, es6, upper)
 	}
 	// U+2028/U+2029 are invalid in JS string literals, so jsesc escapes them at
 	// every level, including Minimal.
@@ -99,18 +93,41 @@ func escapeRune(r rune, i int, runes []rune, level string, q rune, jsonCompat, e
 	if level == "Minimal" {
 		return string(r)
 	}
-	if r >= 0x20 && r <= 0x7e {
-		if level == "Everything" {
-			// jsesc escapes every quote character as a backslash escape even in
-			// escapeEverything mode (the selected quote is handled above).
-			if r == '\'' || r == '"' || r == '`' {
-				return `\` + string(r)
-			}
-			return escHex(r, jsonCompat, es6, upper)
-		}
-		return string(r)
+	if r >= asciiPrintableMin && r <= asciiPrintableMax {
+		return escapePrintable(r, level, jsonCompat, es6, upper)
 	}
 	return escHex(r, jsonCompat, es6, upper)
+}
+
+// asciiPrintableMin/Max bound the printable ASCII range (space through '~').
+const (
+	asciiPrintableMin = 0x20
+	asciiPrintableMax = 0x7e
+)
+
+// escapeNull escapes a NUL byte. It is ambiguous when followed by a digit, and
+// invalid in JSON, so those cases hex-escape it; otherwise "\0". (Reduced
+// fidelity: jsesc leaves a raw null byte in Minimal mode; we escape it, which
+// differs only for that rarely-used combination.)
+func escapeNull(i int, runes []rune, jsonCompat, es6, upper bool) string {
+	if jsonCompat || (i+1 < len(runes) && runes[i+1] >= '0' && runes[i+1] <= '9') {
+		return escHex(0, jsonCompat, es6, upper)
+	}
+	return `\0`
+}
+
+// escapePrintable handles a printable-ASCII rune (not Minimal mode): a literal,
+// except that Everything mode hex-escapes it, with quotes backslash-escaped.
+func escapePrintable(r rune, level string, jsonCompat, es6, upper bool) string {
+	if level == "Everything" {
+		// jsesc escapes every quote character as a backslash escape even in
+		// escapeEverything mode (the selected quote is handled above).
+		if r == '\'' || r == '"' || r == '`' {
+			return `\` + string(r)
+		}
+		return escHex(r, jsonCompat, es6, upper)
+	}
+	return string(r)
 }
 
 // quoteRune maps a quote-style name to its character.

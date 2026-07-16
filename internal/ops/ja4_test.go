@@ -85,3 +85,38 @@ func TestJA4Fingerprint(t *testing.T) {
 		},
 	})
 }
+
+// --- direct tests for the helpers extracted from toJA4 ---
+
+// TestJA4ClientSummary documents the extension scan for version/sni/alpn.
+func TestJA4ClientSummary(t *testing.T) {
+	h := &ja4Hello{helloVersion: 0x0303}
+	if v, sni, alpn := ja4ClientSummary(h); v != 0x0303 || sni != "i" || alpn != "00" {
+		t.Fatalf("no extensions: %v %q %q", v, sni, alpn)
+	}
+	h.extensions = []ja4Ext{{typ: 0x0000}} // server_name present
+	if _, sni, _ := ja4ClientSummary(h); sni != "d" {
+		t.Fatalf("sni: got %q want d", sni)
+	}
+}
+
+// TestJA4Ciphers documents cipher-suite collection, count and sorting.
+func TestJA4Ciphers(t *testing.T) {
+	h := &ja4Hello{cipherData: [][]byte{{0x13, 0x02}, {0x13, 0x01}}}
+	cipherLen, sortedRaw, origRaw := ja4Ciphers(h)
+	if cipherLen != "02" || sortedRaw != "1301,1302" || origRaw != "1302,1301" {
+		t.Fatalf("got %q %q %q", cipherLen, sortedRaw, origRaw)
+	}
+}
+
+// TestJA4Extensions documents extension collection plus the signature_algorithms
+// suffix appended to both raw strings.
+func TestJA4Extensions(t *testing.T) {
+	h := &ja4Hello{extensions: []ja4Ext{
+		{typ: 0x000d, typeData: []byte{0x00, 0x0d}, value: []byte{0x00, 0x02, 0x04, 0x03}},
+	}}
+	extLen, sortedRaw, origRaw := ja4Extensions(h)
+	if extLen != "01" || sortedRaw != "000d_0403" || origRaw != "000d_0403" {
+		t.Fatalf("got %q %q %q", extLen, sortedRaw, origRaw)
+	}
+}

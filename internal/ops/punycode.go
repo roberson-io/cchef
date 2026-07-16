@@ -270,29 +270,10 @@ func punyDecode(input string) (string, error) {
 
 	for index < len(r) {
 		oldi := i
-		w := 1
-		for k := punyBase; ; k += punyBase {
-			if index >= len(r) {
-				return "", errPunyInvalidInput
-			}
-			digit := punyBasicToDigit(int(r[index]))
-			index++
-			if digit >= punyBase {
-				return "", errPunyInvalidInput
-			}
-			if digit > (punyMaxInt-i)/w {
-				return "", errPunyOverflow
-			}
-			i += digit * w
-			t := punyThreshold(k, bias)
-			if digit < t {
-				break
-			}
-			baseMinusT := punyBase - t
-			if w > punyMaxInt/baseMinusT {
-				return "", errPunyOverflow
-			}
-			w *= baseMinusT
+		var err error
+		i, index, err = punyDecodeDelta(r, index, i, bias)
+		if err != nil {
+			return "", err
 		}
 
 		out := len(output) + 1
@@ -317,6 +298,37 @@ func punyDecode(input string) (string, error) {
 		sb.WriteRune(rune(cp)) // #nosec G115 -- basic code points are < 0x80 and inserted ones are bounded to <= 0x10FFFF above
 	}
 	return sb.String(), nil
+}
+
+// punyDecodeDelta consumes the generalised variable-length integer starting at
+// index, accumulating it into i, and returns the updated i and index (advanced
+// past the consumed digits).
+func punyDecodeDelta(r []rune, index, i, bias int) (int, int, error) {
+	w := 1
+	for k := punyBase; ; k += punyBase {
+		if index >= len(r) {
+			return 0, 0, errPunyInvalidInput
+		}
+		digit := punyBasicToDigit(int(r[index]))
+		index++
+		if digit >= punyBase {
+			return 0, 0, errPunyInvalidInput
+		}
+		if digit > (punyMaxInt-i)/w {
+			return 0, 0, errPunyOverflow
+		}
+		i += digit * w
+		t := punyThreshold(k, bias)
+		if digit < t {
+			break
+		}
+		baseMinusT := punyBase - t
+		if w > punyMaxInt/baseMinusT {
+			return 0, 0, errPunyOverflow
+		}
+		w *= baseMinusT
+	}
+	return i, index, nil
 }
 
 // --- IDN layer ---

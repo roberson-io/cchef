@@ -105,56 +105,74 @@ func uaApplyProps(res map[string]string, props []uaProp, matched []string) {
 		if k < len(matched) {
 			match = matched[k]
 		}
-		switch p.kind {
-		case "cap":
-			set(res, p.prop, match)
-		case "static":
-			res[p.prop] = p.static
-		case "fn":
-			switch p.fn {
-			case "lowerize":
-				res[p.prop] = strings.ToLower(match)
-			case "trim":
-				res[p.prop] = uaTrim(match)
-			case "strTest":
-				if match != "" {
-					res[p.prop] = uaStrTest(match, p)
-				} else {
-					delete(res, p.prop)
-				}
-			case "strMapper":
-				if match != "" {
-					if v, ok := uaStrMapper(match, p.fnMap); ok {
-						res[p.prop] = v
-					} else {
-						delete(res, p.prop)
-					}
-				} else {
-					delete(res, p.prop)
-				}
-			}
-		case "replace":
-			if match != "" {
-				v, _ := p.replRe.Replace(match, p.repl, -1, -1)
-				switch p.replFn {
-				case "lowerize":
-					v = strings.ToLower(v)
-				case "trim":
-					v = uaTrim(v)
-				case "strMapper":
-					if mv, ok := uaStrMapper(v, p.replMap); ok {
-						res[p.prop] = mv
-					} else {
-						delete(res, p.prop)
-					}
-					continue
-				}
+		applyUAProp(res, p, match)
+	}
+}
+
+// applyUAProp applies one property extractor to the result map: a capture, a
+// static value, a function transform, or a regex replacement.
+func applyUAProp(res map[string]string, p uaProp, match string) {
+	switch p.kind {
+	case "cap":
+		set(res, p.prop, match)
+	case "static":
+		res[p.prop] = p.static
+	case "fn":
+		applyUAFn(res, p, match)
+	case "replace":
+		applyUAReplace(res, p, match)
+	}
+}
+
+// applyUAFn applies the "fn" property forms (lowerize/trim/strTest/strMapper) to
+// the match.
+func applyUAFn(res map[string]string, p uaProp, match string) {
+	switch p.fn {
+	case "lowerize":
+		res[p.prop] = strings.ToLower(match)
+	case "trim":
+		res[p.prop] = uaTrim(match)
+	case "strTest":
+		if match != "" {
+			res[p.prop] = uaStrTest(match, p)
+		} else {
+			delete(res, p.prop)
+		}
+	case "strMapper":
+		if match != "" {
+			if v, ok := uaStrMapper(match, p.fnMap); ok {
 				res[p.prop] = v
 			} else {
 				delete(res, p.prop)
 			}
+		} else {
+			delete(res, p.prop)
 		}
 	}
+}
+
+// applyUAReplace applies the "replace" property form: a regex replacement,
+// optionally post-processed (lowerize/trim/strMapper). An empty match deletes.
+func applyUAReplace(res map[string]string, p uaProp, match string) {
+	if match == "" {
+		delete(res, p.prop)
+		return
+	}
+	v, _ := p.replRe.Replace(match, p.repl, -1, -1)
+	switch p.replFn {
+	case "lowerize":
+		v = strings.ToLower(v)
+	case "trim":
+		v = uaTrim(v)
+	case "strMapper":
+		if mv, ok := uaStrMapper(v, p.replMap); ok {
+			res[p.prop] = mv
+		} else {
+			delete(res, p.prop)
+		}
+		return
+	}
+	res[p.prop] = v
 }
 
 // set assigns match to prop when truthy, otherwise clears it (JS `x ? x : undefined`).

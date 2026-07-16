@@ -379,76 +379,23 @@ func asn1Dump(e string, ommitLongOctet, l int, indent string, x509ExtName ...str
 		extName = x509ExtName[0]
 	}
 
-	// q truncates a long value to its first/last ommitLongOctet hex chars.
-	q := func(a string) string {
-		if len(a) <= ommitLongOctet*2 {
-			return a
+	z := jsSubstr(e, l, 2)
+
+	// The text-string tags all render as "<Name> '<utf8>'" (unquoted for the
+	// time types).
+	if t, ok := asn1TextTags[z]; ok {
+		v := hextoutf8(asn1GetV(e, l))
+		if t.quoted {
+			return indent + t.name + " '" + v + "'\n", nil
 		}
-		return jsSubstr(a, 0, ommitLongOctet) + "..(total " + strconv.Itoa(len(a)/2) +
-			"bytes).." + jsSubstr(a, len(a)-ommitLongOctet, ommitLongOctet)
+		return indent + t.name + " " + v + "\n", nil
 	}
 
-	z := jsSubstr(e, l, 2)
+	if out, ok, err := asn1DumpPrimitive(e, ommitLongOctet, l, indent, extName, z); ok {
+		return out, err
+	}
+
 	switch z {
-	case "01":
-		if asn1GetV(e, l) == "00" {
-			return indent + "BOOLEAN FALSE\n", nil
-		}
-		return indent + "BOOLEAN TRUE\n", nil
-	case "02":
-		return indent + "INTEGER " + q(asn1GetV(e, l)) + "\n", nil
-	case "03":
-		h := asn1GetV(e, l)
-		if asn1IsASN1HEX(jsSubstrFrom(h, 2)) {
-			inner, err := asn1Dump(jsSubstrFrom(h, 2), ommitLongOctet, 0, indent+"  ", extName)
-			if err != nil {
-				return "", err
-			}
-			return indent + "BITSTRING, encapsulates\n" + inner, nil
-		}
-		return indent + "BITSTRING " + q(h) + "\n", nil
-	case "04":
-		h := asn1GetV(e, l)
-		if asn1IsASN1HEX(h) {
-			inner, err := asn1Dump(h, ommitLongOctet, 0, indent+"  ", extName)
-			if err != nil {
-				return "", err
-			}
-			return indent + "OCTETSTRING, encapsulates\n" + inner, nil
-		}
-		return indent + "OCTETSTRING " + q(h) + "\n", nil
-	case "05":
-		return indent + "NULL\n", nil
-	case "06":
-		b := asn1OidHexToInt(asn1GetV(e, l))
-		o := oid2name(b)
-		a := strings.ReplaceAll(b, ".", " ")
-		if o != "" {
-			return indent + "ObjectIdentifier " + o + " (" + a + ")\n", nil
-		}
-		return indent + "ObjectIdentifier (" + a + ")\n", nil
-	case "0a":
-		n, ok := jsParseInt(asn1GetV(e, l), 10)
-		if !ok {
-			return indent + "ENUMERATED NaN\n", nil
-		}
-		return indent + "ENUMERATED " + strconv.Itoa(n) + "\n", nil
-	case "0c":
-		return indent + "UTF8String '" + hextoutf8(asn1GetV(e, l)) + "'\n", nil
-	case "13":
-		return indent + "PrintableString '" + hextoutf8(asn1GetV(e, l)) + "'\n", nil
-	case "14":
-		return indent + "TeletexString '" + hextoutf8(asn1GetV(e, l)) + "'\n", nil
-	case "16":
-		return indent + "IA5String '" + hextoutf8(asn1GetV(e, l)) + "'\n", nil
-	case "17":
-		return indent + "UTCTime " + hextoutf8(asn1GetV(e, l)) + "\n", nil
-	case "18":
-		return indent + "GeneralizedTime " + hextoutf8(asn1GetV(e, l)) + "\n", nil
-	case "1a":
-		return indent + "VisualString '" + hextoutf8(asn1GetV(e, l)) + "'\n", nil
-	case "1e":
-		return indent + "BMPString '" + ucs2hextoutf8(asn1GetV(e, l)) + "'\n", nil
 	case "30":
 		if jsSubstr(e, l, 4) == "3000" {
 			return indent + "SEQUENCE {}\n", nil
@@ -463,34 +410,120 @@ func asn1Dump(e string, ommitLongOctet, l int, indent string, x509ExtName ...str
 		if (len(d) == 2 || len(d) == 3) && jsSubstr(e, d[0], 2) == "06" && jsSubstr(e, d[len(d)-1], 2) == "04" {
 			childExt = asn1OidName(asn1GetV(e, d[0]))
 		}
-		var k strings.Builder
-		k.WriteString(indent + "SEQUENCE\n")
-		for _, di := range d {
-			s, err := asn1Dump(e, ommitLongOctet, di, indent+"  ", childExt)
-			if err != nil {
-				return "", err
-			}
-			k.WriteString(s)
-		}
-		return k.String(), nil
+		return asn1DumpChildren(e, ommitLongOctet, d, indent, "SEQUENCE", childExt)
 	case "31":
 		d, err := asn1GetChildIdx(e, l)
 		if err != nil {
 			return "", err
 		}
-		var k strings.Builder
-		k.WriteString(indent + "SET\n")
-		for _, di := range d {
-			s, err := asn1Dump(e, ommitLongOctet, di, indent+"  ", extName)
-			if err != nil {
-				return "", err
-			}
-			k.WriteString(s)
-		}
-		return k.String(), nil
+		return asn1DumpChildren(e, ommitLongOctet, d, indent, "SET", extName)
 	}
 
-	// Non-universal tags: context/application/private classes, else UNKNOWN.
+	return asn1DumpContextTag(e, ommitLongOctet, l, indent, extName, z)
+}
+
+// asn1TruncValue truncates a long value to its first/last ommitLongOctet hex
+// characters, noting the total byte count.
+func asn1TruncValue(a string, ommitLongOctet int) string {
+	if len(a) <= ommitLongOctet*2 {
+		return a
+	}
+	return jsSubstr(a, 0, ommitLongOctet) + "..(total " + strconv.Itoa(len(a)/2) +
+		"bytes).." + jsSubstr(a, len(a)-ommitLongOctet, ommitLongOctet)
+}
+
+// asn1DumpEncapsulated renders a BITSTRING/OCTETSTRING: when innerHex is itself
+// valid ASN.1 it is decoded one level deeper ("encapsulates"), otherwise the
+// (possibly truncated) displayValue is shown.
+func asn1DumpEncapsulated(label, innerHex, displayValue string, ommitLongOctet int, indent, extName string) (string, error) {
+	if asn1IsASN1HEX(innerHex) {
+		inner, err := asn1Dump(innerHex, ommitLongOctet, 0, indent+"  ", extName)
+		if err != nil {
+			return "", err
+		}
+		return indent + label + ", encapsulates\n" + inner, nil
+	}
+	return indent + label + " " + displayValue + "\n", nil
+}
+
+// asn1DumpPrimitive renders the primitive value tags (boolean, integer, bit /
+// octet string, null, object identifier, enumerated, BMP string). The bool
+// return reports whether the tag was handled here.
+func asn1DumpPrimitive(e string, ommitLongOctet, l int, indent, extName, z string) (string, bool, error) {
+	switch z {
+	case "01":
+		if asn1GetV(e, l) == "00" {
+			return indent + "BOOLEAN FALSE\n", true, nil
+		}
+		return indent + "BOOLEAN TRUE\n", true, nil
+	case "02":
+		return indent + "INTEGER " + asn1TruncValue(asn1GetV(e, l), ommitLongOctet) + "\n", true, nil
+	case "03":
+		h := asn1GetV(e, l)
+		out, err := asn1DumpEncapsulated("BITSTRING", jsSubstrFrom(h, 2), asn1TruncValue(h, ommitLongOctet), ommitLongOctet, indent, extName)
+		return out, true, err
+	case "04":
+		h := asn1GetV(e, l)
+		out, err := asn1DumpEncapsulated("OCTETSTRING", h, asn1TruncValue(h, ommitLongOctet), ommitLongOctet, indent, extName)
+		return out, true, err
+	case "05":
+		return indent + "NULL\n", true, nil
+	case "06":
+		b := asn1OidHexToInt(asn1GetV(e, l))
+		o := oid2name(b)
+		a := strings.ReplaceAll(b, ".", " ")
+		if o != "" {
+			return indent + "ObjectIdentifier " + o + " (" + a + ")\n", true, nil
+		}
+		return indent + "ObjectIdentifier (" + a + ")\n", true, nil
+	case "0a":
+		n, ok := jsParseInt(asn1GetV(e, l), 10)
+		if !ok {
+			return indent + "ENUMERATED NaN\n", true, nil
+		}
+		return indent + "ENUMERATED " + strconv.Itoa(n) + "\n", true, nil
+	case "1e":
+		return indent + "BMPString '" + ucs2hextoutf8(asn1GetV(e, l)) + "'\n", true, nil
+	default:
+		return "", false, nil
+	}
+}
+
+// asn1TextTags maps the ASN.1 text-string tag bytes to their display name and
+// whether the value is quoted (the time types are not).
+var asn1TextTags = map[string]struct {
+	name   string
+	quoted bool
+}{
+	"0c": {"UTF8String", true},
+	"13": {"PrintableString", true},
+	"14": {"TeletexString", true},
+	"16": {"IA5String", true},
+	"17": {"UTCTime", false},
+	"18": {"GeneralizedTime", false},
+	"1a": {"VisualString", true},
+}
+
+// asn1DumpChildren renders header followed by each child at the given indices,
+// recursively dumped one level deeper. Shared by SEQUENCE, SET and constructed
+// context tags.
+func asn1DumpChildren(e string, ommitLongOctet int, indices []int, indent, header, childExt string) (string, error) {
+	var k strings.Builder
+	k.WriteString(indent + header + "\n")
+	for _, di := range indices {
+		s, err := asn1Dump(e, ommitLongOctet, di, indent+"  ", childExt)
+		if err != nil {
+			return "", err
+		}
+		k.WriteString(s)
+	}
+	return k.String(), nil
+}
+
+// asn1DumpContextTag renders a non-universal tag (context/application/private
+// class, high bit set) as a constructed "[n]" group or a primitive "[n] value",
+// falling back to UNKNOWN for anything else.
+func asn1DumpContextTag(e string, ommitLongOctet, l int, indent, extName, z string) (string, error) {
 	zi, ok := jsParseInt(z, 16)
 	if ok && zi&128 != 0 {
 		n := zi & 31
@@ -499,16 +532,7 @@ func asn1Dump(e string, ommitLongOctet, l int, indent string, x509ExtName ...str
 			if err != nil {
 				return "", err
 			}
-			var k strings.Builder
-			k.WriteString(indent + "[" + strconv.Itoa(n) + "]\n")
-			for _, di := range d {
-				s, err := asn1Dump(e, ommitLongOctet, di, indent+"  ", extName)
-				if err != nil {
-					return "", err
-				}
-				k.WriteString(s)
-			}
-			return k.String(), nil
+			return asn1DumpChildren(e, ommitLongOctet, d, indent, "["+strconv.Itoa(n)+"]", extName)
 		}
 		// primitive
 		h := asn1GetV(e, l)

@@ -26,6 +26,22 @@ var aesModes = []string{"CBC", "CFB", "OFB", "CTR", "GCM", "ECB", "CBC/NoPadding
 
 // --- shared helpers ---
 
+// Valid AES key lengths, in bytes (AES-128 / AES-192 / AES-256).
+const (
+	aesKey128 = 16
+	aesKey192 = 24
+	aesKey256 = 32
+)
+
+// validateAESKeyLen reports whether key is a valid AES key length.
+func validateAESKeyLen(key []byte) error {
+	switch len(key) {
+	case aesKey128, aesKey192, aesKey256:
+		return nil
+	}
+	return aesKeyLenError(len(key))
+}
+
 // aesKeyLenError returns CyberChef's verbatim invalid-key-length message.
 func aesKeyLenError(n int) error {
 	//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
@@ -336,8 +352,8 @@ func (AESEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return nil, aesKeyLenError(len(key))
+	if err := validateAESKeyLen(key); err != nil {
+		return nil, err
 	}
 
 	input := decodeAESInput(in, inputType)
@@ -351,21 +367,30 @@ func (AESEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, err
 	}
 
-	var out, tag []byte
+	out, tag := aesEncryptMode(mode, block, iv, input, aad, noPadding)
+	out = applyIncludeIV(out, iv, includeIV)
+	return formatAESOutput(out, tag, mode, outputType), nil
+}
+
+// aesMaybePad applies PKCS#7 padding to a full block size unless NoPadding was
+// selected.
+func aesMaybePad(input []byte, noPadding bool) []byte {
+	if noPadding {
+		return input
+	}
+	return pkcs7Pad(input, aes.BlockSize)
+}
+
+// aesEncryptMode encrypts input under the given AES mode, returning the
+// ciphertext and (GCM only) the authentication tag.
+func aesEncryptMode(mode string, block cipher.Block, iv, input, aad []byte, noPadding bool) (out, tag []byte) {
 	switch mode {
 	case "CBC":
-		data := input
-		if !noPadding {
-			data = pkcs7Pad(input, aes.BlockSize)
-		}
+		data := aesMaybePad(input, noPadding)
 		out = make([]byte, len(data))
 		cipher.NewCBCEncrypter(block, aesIV16(iv)).CryptBlocks(out, data)
 	case "ECB":
-		data := input
-		if !noPadding {
-			data = pkcs7Pad(input, aes.BlockSize)
-		}
-		out = ecbEncrypt(block, data)
+		out = ecbEncrypt(block, aesMaybePad(input, noPadding))
 	case "CFB":
 		out = aesCFB(block, aesIV16(iv), input, false)
 	case "OFB":
@@ -376,25 +401,34 @@ func (AESEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "GCM":
 		out, tag = aesGCMEncrypt(block, iv, input, aad)
 	}
+	return out, tag
+}
 
+// applyIncludeIV prepends or appends the IV to the output, per the includeIV arg.
+func applyIncludeIV(out, iv []byte, includeIV string) []byte {
 	switch includeIV {
 	case "Prepend":
-		out = append(append([]byte{}, iv...), out...)
+		return append(append([]byte{}, iv...), out...)
 	case "Append":
-		out = append(out, iv...)
+		return append(out, iv...)
 	}
+	return out
+}
 
+// formatAESOutput renders the ciphertext as hex or raw bytes, appending the GCM
+// tag when present.
+func formatAESOutput(out, tag []byte, mode, outputType string) *core.Dish {
 	if outputType == "Hex" {
 		s := hex.EncodeToString(out)
 		if mode == "GCM" {
 			s += "\n\nTag: " + hex.EncodeToString(tag)
 		}
-		return core.NewDish([]byte(s), core.TypeString), nil
+		return core.NewDish([]byte(s), core.TypeString)
 	}
 	if mode == "GCM" {
-		return core.NewDish([]byte(string(out)+"\n\nTag: "+string(tag)), core.TypeString), nil
+		return core.NewDish([]byte(string(out)+"\n\nTag: "+string(tag)), core.TypeString)
 	}
-	return core.NewDish(out, core.TypeString), nil
+	return core.NewDish(out, core.TypeString)
 }
 
 // --- AES Decrypt ---
@@ -447,8 +481,8 @@ func (AESDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return nil, aesKeyLenError(len(key))
+	if err := validateAESKeyLen(key); err != nil {
+		return nil, err
 	}
 	gcmTagBytes, err := convertToByteArray(tagArg.Value, tagArg.Option)
 	if err != nil {

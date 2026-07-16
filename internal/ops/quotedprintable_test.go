@@ -109,3 +109,31 @@ func TestFromQuotedPrintable(t *testing.T) {
 		{"invalid hex kept literal", "keep=ZZliteral", "6b6565703d5a5a6c69746572616c", dec()},
 	})
 }
+
+// --- direct tests for the helpers extracted from qpSoftBreaks ---
+
+// TestQPTrimIncompleteHex documents trimming a trailing incomplete "=" escape.
+func TestQPTrimIncompleteHex(t *testing.T) {
+	if got := qpTrimIncompleteHex("abc=", 0, 100); got != "abc" {
+		t.Fatalf("qpTrimIncompleteHex = %q, want %q", got, "abc")
+	}
+}
+
+// TestQPTrimLine documents the break-decision: a line ending in a bare CR drops
+// the CR.
+func TestQPTrimLine(t *testing.T) {
+	if got := qpTrimLine("abc\r", 0, 100); got != "abc" {
+		t.Fatalf("qpTrimLine = %q, want %q", got, "abc")
+	}
+}
+
+// TestQPAppendSoftBreak documents soft-break insertion: a non-final line gets a
+// trailing "=\r\n"; the final line does not.
+func TestQPAppendSoftBreak(t *testing.T) {
+	if line, pos := qpAppendSoftBreak("hello", 0, 10); line != "hello=\r\n" || pos != 5 {
+		t.Fatalf("non-final: %q, %d", line, pos)
+	}
+	if line, pos := qpAppendSoftBreak("hello", 0, 5); line != "hello" || pos != 5 {
+		t.Fatalf("final: %q, %d", line, pos)
+	}
+}

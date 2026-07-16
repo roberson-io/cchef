@@ -53,56 +53,9 @@ func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s0 := samples[0]
 	inMatch := false
 	for i := range s0 {
-		chr := s0[i]
-		match := false
-		for s := 1; s < n; s++ {
-			if i >= len(samples[s]) || samples[s][i] != chr {
-				match = false
-				break
-			}
-			match = true
-		}
+		match := offsetAllMatch(samples, i, s0[i])
 		for s := range n {
-			smp := samples[s]
-			if len(smp) <= i {
-				if inMatch {
-					outputs[s].WriteString("</span>")
-				}
-				if s == n-1 {
-					inMatch = false
-				}
-				continue
-			}
-			cur := escapeHTML(string(smp[i]))
-			switch {
-			case match && !inMatch:
-				outputs[s].WriteString("<span class='hl5'>" + cur)
-				if len(smp) == i+1 {
-					outputs[s].WriteString("</span>")
-				}
-				if s == n-1 {
-					inMatch = true
-				}
-			case !match && inMatch:
-				outputs[s].WriteString("</span>" + cur)
-				if s == n-1 {
-					inMatch = false
-				}
-			default:
-				outputs[s].WriteString(cur)
-				if inMatch && len(smp) == i+1 {
-					outputs[s].WriteString("</span>")
-					if len(smp)-1 != i {
-						inMatch = false
-					}
-				}
-			}
-			if len(s0)-1 == i {
-				if inMatch {
-					outputs[s].WriteString("</span>")
-				}
-				outputs[s].WriteString(escapeHTML(string(smp[i+1:])))
-			}
+			inMatch = writeOffsetSample(outputs[s], samples, s0, s, i, n, match, inMatch)
 		}
 	}
 
@@ -111,4 +64,70 @@ func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		parts2[i] = o.String()
 	}
 	return core.NewDish([]byte(strings.Join(parts2, escapeHTML(sampleDelim))), core.TypeString), nil
+}
+
+// offsetAllMatch reports whether every other sample has s0's character chr at
+// offset i (a sample too short to reach i does not match).
+func offsetAllMatch(samples [][]rune, i int, chr rune) bool {
+	for s := 1; s < len(samples); s++ {
+		if i >= len(samples[s]) || samples[s][i] != chr {
+			return false
+		}
+	}
+	return true
+}
+
+// writeOffsetSample appends sample s's character at offset i to its output,
+// opening/closing the highlight <span> as the match state changes. inMatch (the
+// shared highlight state) is only updated on the last sample, so it is threaded
+// through the return value. Ported faithfully from OffsetChecker.mjs.
+func writeOffsetSample(out *strings.Builder, samples [][]rune, s0 []rune, s, i, n int, match, inMatch bool) bool {
+	smp := samples[s]
+	isLast := s == n-1
+	if len(smp) <= i {
+		if inMatch {
+			out.WriteString("</span>")
+		}
+		if isLast {
+			inMatch = false
+		}
+		return inMatch
+	}
+	cur := escapeHTML(string(smp[i]))
+	switch {
+	case match && !inMatch:
+		out.WriteString("<span class='hl5'>" + cur)
+		if len(smp) == i+1 {
+			out.WriteString("</span>")
+		}
+		if isLast {
+			inMatch = true
+		}
+	case !match && inMatch:
+		out.WriteString("</span>" + cur)
+		if isLast {
+			inMatch = false
+		}
+	default:
+		out.WriteString(cur)
+		if inMatch && len(smp) == i+1 {
+			out.WriteString("</span>")
+			if len(smp)-1 != i {
+				inMatch = false
+			}
+		}
+	}
+	if len(s0)-1 == i {
+		writeOffsetTail(out, smp, i, inMatch)
+	}
+	return inMatch
+}
+
+// writeOffsetTail runs on the final offset of s0: it closes any open highlight
+// and appends the remainder of a sample longer than s0.
+func writeOffsetTail(out *strings.Builder, smp []rune, i int, inMatch bool) {
+	if inMatch {
+		out.WriteString("</span>")
+	}
+	out.WriteString(escapeHTML(string(smp[i+1:])))
 }

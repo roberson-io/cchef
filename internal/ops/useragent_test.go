@@ -1101,3 +1101,43 @@ func TestUAApplyPropsEngineBranches(t *testing.T) {
 		})
 	}
 }
+
+// --- direct tests for the helpers extracted from uaApplyProps ---
+
+// TestApplyUAProp documents the kind dispatch (static sets a literal; cap sets
+// the capture).
+func TestApplyUAProp(t *testing.T) {
+	res := map[string]string{}
+	applyUAProp(res, uaProp{kind: "static", prop: "os", static: "Linux"}, "")
+	if res["os"] != "Linux" {
+		t.Fatalf("static: %v", res)
+	}
+	applyUAProp(res, uaProp{kind: "cap", prop: "name"}, "Chrome")
+	if res["name"] != "Chrome" {
+		t.Fatalf("cap: %v", res)
+	}
+}
+
+// TestApplyUAFn documents the fn dispatch: lowerize, and strTest deleting on an
+// empty match.
+func TestApplyUAFn(t *testing.T) {
+	res := map[string]string{}
+	applyUAFn(res, uaProp{fn: "lowerize", prop: "name"}, "CHROME")
+	if res["name"] != "chrome" {
+		t.Fatalf("lowerize: %v", res)
+	}
+	res["v"] = "x"
+	applyUAFn(res, uaProp{fn: "strTest", prop: "v"}, "")
+	if _, ok := res["v"]; ok {
+		t.Fatalf("strTest with empty match should delete: %v", res)
+	}
+}
+
+// TestApplyUAReplace documents that an empty match deletes the property.
+func TestApplyUAReplace(t *testing.T) {
+	res := map[string]string{"v": "x"}
+	applyUAReplace(res, uaProp{prop: "v"}, "")
+	if _, ok := res["v"]; ok {
+		t.Fatalf("replace with empty match should delete: %v", res)
+	}
+}

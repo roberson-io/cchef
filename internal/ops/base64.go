@@ -10,6 +10,14 @@ import (
 // stdBase64Alphabet is the RFC 4648 alphabet (the CyberChef default).
 const stdBase64Alphabet = "A-Za-z0-9+/="
 
+// Base64 alphabet sizes. The alphabet has 64 symbols; a 65th entry is the
+// padding character. base64AlphabetSize doubles as the padding sentinel index
+// (a valid 6-bit value is 0-63, so 64 marks a padding slot).
+const (
+	base64AlphabetSize = 64
+	base64PaddedSize   = 65
+)
+
 func init() {
 	core.Register(ToBase64{})
 	core.Register(FromBase64{})
@@ -46,8 +54,8 @@ func toBase64(data []byte, alph string) string {
 	}
 	alphabet := []rune(expandAlphRange(alph))
 	pad := ""
-	if len(alphabet) == 65 {
-		pad = string(alphabet[64])
+	if len(alphabet) == base64PaddedSize {
+		pad = string(alphabet[base64AlphabetSize])
 	}
 
 	var out strings.Builder
@@ -63,7 +71,7 @@ func toBase64(data []byte, alph string) string {
 
 		e0 := c0 >> 2
 		e1 := (c0 & 3) << 4
-		e2, e3 := 64, 64
+		e2, e3 := base64AlphabetSize, base64AlphabetSize
 		if c1 >= 0 {
 			e1 |= c1 >> 4
 			e2 = (c1 & 15) << 2
@@ -75,12 +83,12 @@ func toBase64(data []byte, alph string) string {
 
 		out.WriteRune(alphabet[e0])
 		out.WriteRune(alphabet[e1])
-		if e2 == 64 {
+		if e2 == base64AlphabetSize {
 			out.WriteString(pad)
 		} else {
 			out.WriteRune(alphabet[e2])
 		}
-		if e3 == 64 {
+		if e3 == base64AlphabetSize {
 			out.WriteString(pad)
 		} else {
 			out.WriteRune(alphabet[e3])
@@ -97,17 +105,9 @@ func toBase64(data []byte, alph string) string {
 // that is simply dropped). Strict mode rejects 4n+1 lengths, misplaced padding,
 // and non-alphabet characters, matching CyberChef.
 func fromBase64(data, alph string, removeNonAlph, strict bool) ([]byte, error) {
-	alphabet := []rune(expandAlphRange(alph))
-	if len(alphabet) != 64 && len(alphabet) != 65 {
-		return nil, fmt.Errorf("Base64 alphabet must be 64 characters, or 65 with padding; got %d", len(alphabet))
-	}
-	idx := make(map[rune]int, len(alphabet))
-	for i, c := range alphabet {
-		idx[c] = i
-	}
-	padIndex := -1
-	if len(alphabet) == 65 {
-		padIndex = 64
+	alphabet, idx, padIndex, err := buildBase64Alphabet(alph)
+	if err != nil {
+		return nil, err
 	}
 
 	r := []rune(data)
@@ -132,19 +132,8 @@ func fromBase64(data, alph string, removeNonAlph, strict bool) ([]byte, error) {
 	}
 
 	if strict {
-		if len(r)%4 == 1 {
-			return nil, fmt.Errorf("invalid Base64 input length (%d): cannot be 4n+1, even without padding characters", len(r))
-		}
-		if padIndex >= 0 {
-			pad := alphabet[padIndex]
-			if p := runeIndex(r, pad); p >= 0 {
-				if p < len(r)-2 || r[len(r)-1] != pad {
-					return nil, fmt.Errorf("Base64 padding character (%c) not used in the correct place", pad)
-				}
-				if len(r)%4 != 0 {
-					return nil, fmt.Errorf("Base64 not padded to a multiple of 4")
-				}
-			}
+		if err := checkStrictBase64Padding(r, alphabet, padIndex); err != nil {
+			return nil, err
 		}
 	}
 
@@ -154,20 +143,73 @@ func fromBase64(data, alph string, removeNonAlph, strict bool) ([]byte, error) {
 		if strict && (e1 < 0 || e2 < 0 || e3 < 0 || e4 < 0) {
 			return nil, fmt.Errorf("Base64 input contains non-alphabet character(s)")
 		}
-		chr1 := (e1 << 2) | (e2 >> 4)
-		chr2 := ((e2 & 15) << 4) | (e3 >> 2)
-		chr3 := ((e3 & 3) << 6) | e4
-		if chr1 >= 0 && chr1 < 256 {
-			out = append(out, byte(chr1)) // #nosec G115 -- range-checked to [0,256)
-		}
-		if chr2 >= 0 && chr2 < 256 && e3 != padIndex {
-			out = append(out, byte(chr2)) // #nosec G115 -- range-checked to [0,256)
-		}
-		if chr3 >= 0 && chr3 < 256 && e4 != padIndex {
-			out = append(out, byte(chr3)) // #nosec G115 -- range-checked to [0,256)
-		}
+		out = base64EmitQuad(out, e1, e2, e3, e4, padIndex)
 	}
 	return out, nil
+}
+
+// base64EmitQuad decodes one Base64 quad (four 6-bit values, -1 for missing or
+// non-alphabet) into up to three output bytes, skipping bytes that come from
+// padding positions.
+func base64EmitQuad(out []byte, e1, e2, e3, e4, padIndex int) []byte {
+	chr1 := (e1 << 2) | (e2 >> 4)
+	chr2 := ((e2 & 15) << 4) | (e3 >> 2)
+	chr3 := ((e3 & 3) << 6) | e4
+	if chr1 >= 0 && chr1 < 256 {
+		out = append(out, byte(chr1)) // #nosec G115 -- range-checked to [0,256)
+	}
+	if chr2 >= 0 && chr2 < 256 && e3 != padIndex {
+		out = append(out, byte(chr2)) // #nosec G115 -- range-checked to [0,256)
+	}
+	if chr3 >= 0 && chr3 < 256 && e4 != padIndex {
+		out = append(out, byte(chr3)) // #nosec G115 -- range-checked to [0,256)
+	}
+	return out
+}
+
+// buildBase64Alphabet expands the alphabet specification and returns the rune
+// slice, a rune->value index, and the padding character's index (-1 when the
+// alphabet has no padding character). It errors unless the alphabet is 64
+// characters, or 65 with padding.
+func buildBase64Alphabet(alph string) (alphabet []rune, idx map[rune]int, padIndex int, err error) {
+	alphabet = []rune(expandAlphRange(alph))
+	if len(alphabet) != base64AlphabetSize && len(alphabet) != base64PaddedSize {
+		return nil, nil, 0, fmt.Errorf("Base64 alphabet must be %d characters, or %d with padding; got %d", base64AlphabetSize, base64PaddedSize, len(alphabet))
+	}
+	idx = make(map[rune]int, len(alphabet))
+	for i, c := range alphabet {
+		idx[c] = i
+	}
+	padIndex = -1
+	if len(alphabet) == base64PaddedSize {
+		padIndex = base64AlphabetSize
+	}
+	return alphabet, idx, padIndex, nil
+}
+
+// checkStrictBase64Padding validates length and padding placement for strict
+// Base64 decoding: the length may not be 4n+1, and any padding character must
+// appear only in the last one or two positions of a length that is a multiple
+// of four.
+func checkStrictBase64Padding(r, alphabet []rune, padIndex int) error {
+	if len(r)%4 == 1 {
+		return fmt.Errorf("invalid Base64 input length (%d): cannot be 4n+1, even without padding characters", len(r))
+	}
+	if padIndex < 0 {
+		return nil
+	}
+	pad := alphabet[padIndex]
+	p := runeIndex(r, pad)
+	if p < 0 {
+		return nil
+	}
+	if p < len(r)-2 || r[len(r)-1] != pad {
+		return fmt.Errorf("Base64 padding character (%c) not used in the correct place", pad)
+	}
+	if len(r)%4 != 0 {
+		return fmt.Errorf("Base64 not padded to a multiple of 4")
+	}
+	return nil
 }
 
 // runeIndex returns the index of the first occurrence of c in r, or -1.

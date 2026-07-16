@@ -50,43 +50,50 @@ func (ToHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var sb strings.Builder
 	for _, r := range in.String() {
-		c := int(r)
-		entity, named := htmlByteToEntity[c]
-		switch {
-		case convertAll && numeric:
-			fmt.Fprintf(&sb, "&#%d;", c)
-		case convertAll && hexa:
-			fmt.Fprintf(&sb, "&#x%02x;", c)
-		case convertAll:
-			if named {
-				sb.WriteString(entity)
-			} else {
-				fmt.Fprintf(&sb, "&#%d;", c)
-			}
-		case numeric:
-			if c > 255 || named {
-				fmt.Fprintf(&sb, "&#%d;", c)
-			} else {
-				sb.WriteRune(r)
-			}
-		case hexa:
-			if c > 255 || named {
-				fmt.Fprintf(&sb, "&#x%02x;", c)
-			} else {
-				sb.WriteRune(r)
-			}
-		default:
-			switch {
-			case named:
-				sb.WriteString(entity)
-			case c > 255:
-				fmt.Fprintf(&sb, "&#%d;", c)
-			default:
-				sb.WriteRune(r)
-			}
-		}
+		sb.WriteString(htmlEncodeRune(r, convertAll, numeric, hexa))
 	}
 	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+}
+
+// latin1Max is the highest code point representable in a single Latin-1 byte;
+// above it a character is always escaped rather than emitted verbatim.
+const latin1Max = 255
+
+// htmlEncodeRune returns the encoding of one code point for To HTML Entity,
+// honouring the convert-all flag and the numeric/hex mode selection.
+func htmlEncodeRune(r rune, convertAll, numeric, hexa bool) string {
+	c := int(r)
+	entity, named := htmlByteToEntity[c]
+	switch {
+	case convertAll && numeric:
+		return fmt.Sprintf("&#%d;", c)
+	case convertAll && hexa:
+		return fmt.Sprintf("&#x%02x;", c)
+	case convertAll:
+		if named {
+			return entity
+		}
+		return fmt.Sprintf("&#%d;", c)
+	case numeric:
+		if c > latin1Max || named {
+			return fmt.Sprintf("&#%d;", c)
+		}
+		return string(r)
+	case hexa:
+		if c > latin1Max || named {
+			return fmt.Sprintf("&#x%02x;", c)
+		}
+		return string(r)
+	default:
+		switch {
+		case named:
+			return entity
+		case c > latin1Max:
+			return fmt.Sprintf("&#%d;", c)
+		default:
+			return string(r)
+		}
+	}
 }
 
 // FromHTMLEntity converts HTML entities back into raw characters.

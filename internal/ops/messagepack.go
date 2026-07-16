@@ -360,22 +360,39 @@ func msgpackParsePrefixed(r *mreader, prefix byte) (any, error) {
 		return msgpackBin(r, prefix)
 	case 0xc7, 0xc8, 0xc9:
 		return msgpackExt(r, prefix)
-	case 0xca:
+	case 0xca, 0xcb:
+		return msgpackFloat(r, prefix)
+	case 0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3:
+		return msgpackNumber(r, prefix)
+	case 0xd4, 0xd5, 0xd6, 0xd7, 0xd8:
+		return msgpackFixExt(r, prefix)
+	case 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf:
+		return msgpackParseSized(r, prefix)
+	default: // 0xc1 and any gap
+		return nil, errors.New("could not parse MessagePack byte")
+	}
+}
+
+// msgpackFloat decodes a 32-bit (0xca) or 64-bit (0xcb) IEEE-754 float.
+func msgpackFloat(r *mreader, prefix byte) (any, error) {
+	if prefix == 0xca {
 		b, err := r.take(4)
 		if err != nil {
 			return nil, err
 		}
 		return float64(math.Float32frombits(binary.BigEndian.Uint32(b))), nil
-	case 0xcb:
-		b, err := r.take(8)
-		if err != nil {
-			return nil, err
-		}
-		return math.Float64frombits(binary.BigEndian.Uint64(b)), nil
-	case 0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3:
-		return msgpackNumber(r, prefix)
-	case 0xd4, 0xd5, 0xd6, 0xd7, 0xd8:
-		return msgpackFixExt(r, prefix)
+	}
+	b, err := r.take(8)
+	if err != nil {
+		return nil, err
+	}
+	return math.Float64frombits(binary.BigEndian.Uint64(b)), nil
+}
+
+// msgpackParseSized decodes the length-prefixed str/array/map families, whose
+// length is an 8-, 16- or 32-bit big-endian count.
+func msgpackParseSized(r *mreader, prefix byte) (any, error) {
+	switch prefix {
 	case 0xd9:
 		return msgpackStrN(r, r.u8)
 	case 0xda:
@@ -388,10 +405,8 @@ func msgpackParsePrefixed(r *mreader, prefix byte) (any, error) {
 		return msgpackArrayN(r, r.u32)
 	case 0xde:
 		return msgpackMapN(r, r.u16)
-	case 0xdf:
+	default: // 0xdf
 		return msgpackMapN(r, r.u32)
-	default: // 0xc1 and any gap
-		return nil, errors.New("could not parse MessagePack byte")
 	}
 }
 

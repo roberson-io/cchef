@@ -31,3 +31,37 @@ func TestFromHTMLEntity(t *testing.T) {
 		{"epsi quirk decodes cleanly", "&epsi;,", "ϵ,", from},
 	})
 }
+
+// --- direct tests for htmlEncodeRune, extracted from ToHTMLEntity.Run ---
+
+// TestHTMLEncodeRune documents the per-rune encoding across modes and the
+// convert-all flag, for a named char ('&'), a plain ASCII char ('A'), and a
+// char above the Latin-1 range ('€').
+func TestHTMLEncodeRune(t *testing.T) {
+	cases := []struct {
+		name                      string
+		r                         rune
+		convertAll, numeric, hexa bool
+		want                      string
+	}{
+		{"named default", '&', false, false, false, "&amp;"},
+		{"named numeric", '&', false, true, false, "&#38;"},
+		{"named hex", '&', false, false, true, "&#x26;"},
+		{"named convertAll", '&', true, false, false, "&amp;"},
+		{"named convertAll+numeric", '&', true, true, false, "&#38;"},
+		{"named convertAll+hex", '&', true, false, true, "&#x26;"},
+		{"ascii default", 'A', false, false, false, "A"},
+		{"ascii numeric", 'A', false, true, false, "A"},
+		{"ascii hex", 'A', false, false, true, "A"},
+		{"ascii convertAll", 'A', true, false, false, "&#65;"},
+		{"supra default", '中', false, false, false, "&#20013;"},
+		{"supra numeric", '中', false, true, false, "&#20013;"},
+		{"supra hex", '中', false, false, true, "&#x4e2d;"},
+		{"named supra default", '€', false, false, false, "&euro;"},
+	}
+	for _, c := range cases {
+		if got := htmlEncodeRune(c.r, c.convertAll, c.numeric, c.hexa); got != c.want {
+			t.Errorf("%s: got %q want %q", c.name, got, c.want)
+		}
+	}
+}

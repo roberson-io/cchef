@@ -146,51 +146,23 @@ func protobufAppendJSONScalar(out []byte, fd protoreflect.FieldDescriptor, v any
 	return protobufAppendField(out, fd, pv), nil
 }
 
-// protobufAppendField appends one tagged scalar field value to out.
+// protobufAppendField appends one tagged scalar field value to out, dispatching
+// on the field's protobuf wire type (varint, fixed32, fixed64 or length-delimited).
 func protobufAppendField(out []byte, fd protoreflect.FieldDescriptor, v protoreflect.Value) []byte {
 	num := fd.Number()
-	switch fd.Kind() {
-	case protoreflect.BoolKind:
-		b := uint64(0)
-		if v.Bool() {
-			b = 1
-		}
+	kind := fd.Kind()
+	switch kind {
+	case protoreflect.BoolKind, protoreflect.Int32Kind, protoreflect.Int64Kind,
+		protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Sint32Kind,
+		protoreflect.Sint64Kind, protoreflect.EnumKind:
 		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, b)
-	case protoreflect.Int32Kind, protoreflect.Int64Kind:
-		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, uint64(v.Int())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-	case protoreflect.Uint32Kind, protoreflect.Uint64Kind:
-		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, v.Uint())
-	case protoreflect.Sint32Kind:
-		n := int32(v.Int()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, uint64(uint32((n<<1)^(n>>31)))) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-	case protoreflect.Sint64Kind:
-		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, protowire.EncodeZigZag(v.Int()))
-	case protoreflect.EnumKind:
-		out = protowire.AppendTag(out, num, protowire.VarintType)
-		return protowire.AppendVarint(out, uint64(v.Enum())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-	case protoreflect.Fixed32Kind:
+		return protowire.AppendVarint(out, protobufVarintValue(kind, v))
+	case protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind, protoreflect.FloatKind:
 		out = protowire.AppendTag(out, num, protowire.Fixed32Type)
-		return protowire.AppendFixed32(out, uint32(v.Uint())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-	case protoreflect.Sfixed32Kind:
-		out = protowire.AppendTag(out, num, protowire.Fixed32Type)
-		return protowire.AppendFixed32(out, uint32(v.Int())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-	case protoreflect.FloatKind:
-		out = protowire.AppendTag(out, num, protowire.Fixed32Type)
-		return protowire.AppendFixed32(out, math.Float32bits(float32(v.Float())))
-	case protoreflect.Fixed64Kind:
+		return protowire.AppendFixed32(out, protobufFixed32Value(kind, v))
+	case protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind, protoreflect.DoubleKind:
 		out = protowire.AppendTag(out, num, protowire.Fixed64Type)
-		return protowire.AppendFixed64(out, v.Uint())
-	case protoreflect.Sfixed64Kind:
-		out = protowire.AppendTag(out, num, protowire.Fixed64Type)
-		return protowire.AppendFixed64(out, uint64(v.Int())) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
-	case protoreflect.DoubleKind:
-		out = protowire.AppendTag(out, num, protowire.Fixed64Type)
-		return protowire.AppendFixed64(out, math.Float64bits(v.Float()))
+		return protowire.AppendFixed64(out, protobufFixed64Value(kind, v))
 	case protoreflect.StringKind:
 		out = protowire.AppendTag(out, num, protowire.BytesType)
 		return protowire.AppendString(out, v.String())
@@ -201,6 +173,55 @@ func protobufAppendField(out []byte, fd protoreflect.FieldDescriptor, v protoref
 	// The caller handles message/group kinds, so only scalars (all cased above)
 	// reach here; any other kind is a caller bug.
 	panic(fmt.Sprintf("protobufAppendField: non-scalar kind %s for field %s", fd.Kind(), fd.Name()))
+}
+
+// protobufVarintValue encodes a varint-wire field value to its uint64 payload.
+func protobufVarintValue(kind protoreflect.Kind, v protoreflect.Value) uint64 {
+	switch kind {
+	case protoreflect.BoolKind:
+		if v.Bool() {
+			return 1
+		}
+		return 0
+	case protoreflect.Int32Kind, protoreflect.Int64Kind:
+		return uint64(v.Int()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+	case protoreflect.Uint32Kind, protoreflect.Uint64Kind:
+		return v.Uint()
+	case protoreflect.Sint32Kind:
+		n := int32(v.Int())                         // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+		return uint64(uint32((n << 1) ^ (n >> 31))) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+	case protoreflect.Sint64Kind:
+		return protowire.EncodeZigZag(v.Int())
+	case protoreflect.EnumKind:
+		return uint64(v.Enum()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+	}
+	return 0 // unreachable: caller restricts kind to the varint family
+}
+
+// protobufFixed32Value encodes a fixed32-wire field value to its 32-bit payload.
+func protobufFixed32Value(kind protoreflect.Kind, v protoreflect.Value) uint32 {
+	switch kind {
+	case protoreflect.Fixed32Kind:
+		return uint32(v.Uint()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+	case protoreflect.Sfixed32Kind:
+		return uint32(v.Int()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+	case protoreflect.FloatKind:
+		return math.Float32bits(float32(v.Float()))
+	}
+	return 0 // unreachable: caller restricts kind to the fixed32 family
+}
+
+// protobufFixed64Value encodes a fixed64-wire field value to its 64-bit payload.
+func protobufFixed64Value(kind protoreflect.Kind, v protoreflect.Value) uint64 {
+	switch kind {
+	case protoreflect.Fixed64Kind:
+		return v.Uint()
+	case protoreflect.Sfixed64Kind:
+		return uint64(v.Int()) // #nosec G115 -- narrowed to the declared protobuf field width (wire semantics)
+	case protoreflect.DoubleKind:
+		return math.Float64bits(v.Float())
+	}
+	return 0 // unreachable: caller restricts kind to the fixed64 family
 }
 
 // coerceNumber mirrors protobufjs's lenient numeric coercion: JSON numbers pass
@@ -255,20 +276,9 @@ func protobufValueFromJSON(fd protoreflect.FieldDescriptor, v any) (protoreflect
 	case protoreflect.DoubleKind:
 		return protoreflect.ValueOfFloat64(coerceNumber(v)), nil
 	case protoreflect.StringKind:
-		if s, ok := v.(string); ok {
-			return protoreflect.ValueOfString(s), nil
-		}
-		return protoreflect.ValueOfString(fmt.Sprintf("%v", v)), nil
+		return protobufStringValue(v), nil
 	case protoreflect.BytesKind:
-		s, ok := v.(string)
-		if !ok {
-			return protoreflect.Value{}, fmt.Errorf("field %s: expected a base64 string", fd.Name())
-		}
-		b, err := base64.StdEncoding.DecodeString(s)
-		if err != nil {
-			return protoreflect.Value{}, fmt.Errorf("field %s: invalid base64 bytes", fd.Name())
-		}
-		return protoreflect.ValueOfBytes(b), nil
+		return protobufBytesValue(fd.Name(), v)
 	case protoreflect.EnumKind:
 		if s, ok := v.(string); ok {
 			ev := fd.Enum().Values().ByName(protoreflect.Name(s))
@@ -282,4 +292,26 @@ func protobufValueFromJSON(fd protoreflect.FieldDescriptor, v any) (protoreflect
 	// The caller handles message/group kinds, so only scalars/enums (all cased
 	// above) reach here; any other kind is a caller bug.
 	panic(fmt.Sprintf("protobufValueFromJSON: non-scalar kind %s for field %s", fd.Kind(), fd.Name()))
+}
+
+// protobufStringValue converts a JSON value to a string field value, coercing
+// non-string inputs via fmt %v (matching protobufjs's leniency).
+func protobufStringValue(v any) protoreflect.Value {
+	if s, ok := v.(string); ok {
+		return protoreflect.ValueOfString(s)
+	}
+	return protoreflect.ValueOfString(fmt.Sprintf("%v", v))
+}
+
+// protobufBytesValue converts a base64 JSON string to a bytes field value.
+func protobufBytesValue(name protoreflect.Name, v any) (protoreflect.Value, error) {
+	s, ok := v.(string)
+	if !ok {
+		return protoreflect.Value{}, fmt.Errorf("field %s: expected a base64 string", name)
+	}
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return protoreflect.Value{}, fmt.Errorf("field %s: invalid base64 bytes", name)
+	}
+	return protoreflect.ValueOfBytes(b), nil
 }

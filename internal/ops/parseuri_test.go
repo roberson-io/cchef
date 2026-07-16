@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -37,5 +38,31 @@ func TestParseURIError(t *testing.T) {
 	// A URI with no scheme before "://" fails url.Parse.
 	if _, err := runOp(t, "Parse URI", "://x"); err == nil {
 		t.Fatal("Parse URI (missing scheme): expected an error")
+	}
+}
+
+// --- direct tests for the helpers extracted from ParseURI.Run ---
+
+// TestParseOrderedQuery documents insertion-ordered query parsing with repeated
+// keys (multiple values collect in order).
+func TestParseOrderedQuery(t *testing.T) {
+	order, values := parseOrderedQuery("a=1&b=2&a=3")
+	if len(order) != 2 || order[0] != "a" || order[1] != "b" {
+		t.Fatalf("order: %v", order)
+	}
+	if len(values["a"]) != 2 || values["a"][0] != "1" || values["a"][1] != "3" {
+		t.Fatalf("values[a]: %v", values["a"])
+	}
+	if o, _ := parseOrderedQuery(""); len(o) != 0 {
+		t.Fatalf("empty query -> %v", o)
+	}
+}
+
+// TestWriteURIQuery documents the "Arguments:" section rendering.
+func TestWriteURIQuery(t *testing.T) {
+	var b strings.Builder
+	writeURIQuery(&b, "x=1")
+	if b.String() != "Arguments:\n\tx = 1\n" {
+		t.Fatalf("got %q", b.String())
 	}
 }

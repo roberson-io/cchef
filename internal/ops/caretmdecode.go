@@ -38,65 +38,106 @@ const (
 	cmCar  // "^"
 )
 
+// caretOffset is the control-code offset in caret notation (^X = X ^ 0x40);
+// metaBit is the high bit set by the M- meta prefix.
+const (
+	caretOffset = 64
+	metaBit     = 128
+)
+
 // Run decodes the input. Ported from CaretMdecode.mjs. Each input byte is
 // treated as a character code (0-255), matching CyberChef's charCodeAt over its
 // Latin-1 string view of the bytes.
 func (CaretMDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
-	out := make([]byte, 0, len(data))
-	prev := cmNone
-
+	d := &cmDecoder{out: make([]byte, 0, len(data))}
 	for _, c := range data {
-		switch prev {
-		case cmMCar:
-			switch {
-			case c > 63 && c <= 95:
-				out = append(out, c+64)
-			case c == 63:
-				out = append(out, 255)
-			default:
-				out = append(out, 77, 45, 94, c)
-			}
-			prev = cmNone
-		case cmMDsh:
-			switch {
-			case c == '^':
-				prev = cmMCar
-			case c >= 32 && c <= 126:
-				out = append(out, c+128)
-				prev = cmNone
-			default:
-				out = append(out, 77, 45, c)
-				prev = cmNone
-			}
-		case cmM:
-			if c == '-' {
-				prev = cmMDsh
-			} else {
-				out = append(out, 77, c)
-				prev = cmNone
-			}
-		case cmCar:
-			switch {
-			case c > 63 && c <= 126:
-				out = append(out, c-64)
-			case c == 63:
-				out = append(out, 127)
-			default:
-				out = append(out, 94, c)
-			}
-			prev = cmNone
-		default: // cmNone
-			switch c {
-			case 'M':
-				prev = cmM
-			case '^':
-				prev = cmCar
-			default:
-				out = append(out, c)
-			}
-		}
+		d.feed(c)
 	}
+	return core.NewDish(d.out, core.TypeByteArray), nil
+}
 
-	return core.NewDish(out, core.TypeByteArray), nil
+// cmDecoder is the caret/M-notation state machine: it accumulates decoded bytes
+// while tracking the escape prefix (prev) seen so far.
+type cmDecoder struct {
+	out  []byte
+	prev int
+}
+
+// feed processes one input byte, dispatching on the current escape state.
+func (d *cmDecoder) feed(c byte) {
+	switch d.prev {
+	case cmMCar:
+		d.afterMCaret(c)
+	case cmMDsh:
+		d.afterMDash(c)
+	case cmM:
+		d.afterM(c)
+	case cmCar:
+		d.afterCaret(c)
+	default: // cmNone
+		d.atStart(c)
+	}
+}
+
+// afterMCaret handles the byte after an "M-^" prefix.
+func (d *cmDecoder) afterMCaret(c byte) {
+	switch {
+	case c > '?' && c <= '_':
+		d.out = append(d.out, c+caretOffset)
+	case c == '?':
+		d.out = append(d.out, 255)
+	default:
+		d.out = append(d.out, 'M', '-', '^', c)
+	}
+	d.prev = cmNone
+}
+
+// afterMDash handles the byte after an "M-" prefix.
+func (d *cmDecoder) afterMDash(c byte) {
+	switch {
+	case c == '^':
+		d.prev = cmMCar
+	case c >= ' ' && c <= '~':
+		d.out = append(d.out, c+metaBit)
+		d.prev = cmNone
+	default:
+		d.out = append(d.out, 'M', '-', c)
+		d.prev = cmNone
+	}
+}
+
+// afterM handles the byte after an "M" prefix.
+func (d *cmDecoder) afterM(c byte) {
+	if c == '-' {
+		d.prev = cmMDsh
+	} else {
+		d.out = append(d.out, 'M', c)
+		d.prev = cmNone
+	}
+}
+
+// afterCaret handles the byte after a "^" prefix.
+func (d *cmDecoder) afterCaret(c byte) {
+	switch {
+	case c > '?' && c <= '~':
+		d.out = append(d.out, c-caretOffset)
+	case c == '?':
+		d.out = append(d.out, 127)
+	default:
+		d.out = append(d.out, '^', c)
+	}
+	d.prev = cmNone
+}
+
+// atStart handles a byte in the initial state, looking for an escape prefix.
+func (d *cmDecoder) atStart(c byte) {
+	switch c {
+	case 'M':
+		d.prev = cmM
+	case '^':
+		d.prev = cmCar
+	default:
+		d.out = append(d.out, c)
+	}
 }

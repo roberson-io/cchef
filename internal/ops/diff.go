@@ -64,35 +64,48 @@ func (Diff) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, fmt.Errorf("incorrect number of samples, perhaps you need to modify the sample delimiter or add more samples?")
 	}
 
+	diffs, err := computeDiffs(diffBy, samples[0], samples[1], ignoreWhitespace)
+	if err != nil {
+		return nil, err
+	}
+	out := renderDiffs(diffs, showAdded, showRemoved, showSubtraction)
+	return core.NewDish([]byte(out), core.TypeString), nil
+}
+
+// computeDiffs diffs samples a and b at the granularity selected by diffBy.
+func computeDiffs(diffBy, a, b string, ignoreWhitespace bool) ([]diffmatchpatch.Diff, error) {
 	identity := func(s string) string { return s }
-	var diffs []diffmatchpatch.Diff
 	switch diffBy {
 	case "Character":
 		dmp := diffmatchpatch.New()
-		diffs = dmp.DiffMain(samples[0], samples[1], false)
+		return dmp.DiffMain(a, b, false), nil
 	case "Word":
 		key := identity
 		if ignoreWhitespace {
 			key = diffWordWSKey
 		}
-		diffs = tokenDiff(diffTokenize(samples[0], reDiffWord), diffTokenize(samples[1], reDiffWord), key)
+		return tokenDiff(diffTokenize(a, reDiffWord), diffTokenize(b, reDiffWord), key), nil
 	case "Line":
 		key := identity
 		if ignoreWhitespace {
 			key = strings.TrimSpace
 		}
-		diffs = tokenDiff(diffTokenize(samples[0], reDiffLine), diffTokenize(samples[1], reDiffLine), key)
+		return tokenDiff(diffTokenize(a, reDiffLine), diffTokenize(b, reDiffLine), key), nil
 	case "Sentence":
-		diffs = tokenDiff(sentenceTokenize(samples[0]), sentenceTokenize(samples[1]), identity)
+		return tokenDiff(sentenceTokenize(a), sentenceTokenize(b), identity), nil
 	case "CSS":
-		diffs = tokenDiff(splitKeep(reDiffCSS, samples[0]), splitKeep(reDiffCSS, samples[1]), identity)
+		return tokenDiff(splitKeep(reDiffCSS, a), splitKeep(reDiffCSS, b), identity), nil
 	case "JSON":
 		// CyberChef's diffJson here behaves as a line diff over the raw input.
-		diffs = tokenDiff(diffTokenize(samples[0], reDiffLine), diffTokenize(samples[1], reDiffLine), identity)
+		return tokenDiff(diffTokenize(a, reDiffLine), diffTokenize(b, reDiffLine), identity), nil
 	default:
 		return nil, fmt.Errorf("invalid 'Diff by' option")
 	}
+}
 
+// renderDiffs turns a diff into CyberChef's HTML markup, honouring the show
+// flags (<ins> for additions, <del> for removals, equal text unless subtracting).
+func renderDiffs(diffs []diffmatchpatch.Diff, showAdded, showRemoved, showSubtraction bool) string {
 	var b strings.Builder
 	for _, d := range diffs {
 		switch d.Type {
@@ -110,7 +123,7 @@ func (Diff) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			}
 		}
 	}
-	return core.NewDish([]byte(b.String()), core.TypeString), nil
+	return b.String()
 }
 
 // diffTokenize returns all non-overlapping matches of re (used for word/line modes).

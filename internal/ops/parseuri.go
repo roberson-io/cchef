@@ -46,32 +46,45 @@ func (ParseURI) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 
 	var out strings.Builder
+	writeURIComponents(&out, u)
+	writeURIQuery(&out, u.RawQuery)
+	if u.Fragment != "" {
+		fmt.Fprintf(&out, "Hash:\t\t#%s\n", u.EscapedFragment())
+	}
+	return core.NewDish([]byte(out.String()), core.TypeString), nil
+}
+
+// writeURIComponents writes the protocol/auth/host/port/path lines that are
+// present. The path defaults to "/" when a host is present but no path is given
+// (matching Node).
+func writeURIComponents(out *strings.Builder, u *url.URL) {
 	if u.Scheme != "" {
-		fmt.Fprintf(&out, "Protocol:\t%s:\n", u.Scheme)
+		fmt.Fprintf(out, "Protocol:\t%s:\n", u.Scheme)
 	}
 	if u.User != nil {
-		fmt.Fprintf(&out, "Auth:\t\t%s\n", u.User.String())
+		fmt.Fprintf(out, "Auth:\t\t%s\n", u.User.String())
 	}
 	if h := u.Hostname(); h != "" {
-		fmt.Fprintf(&out, "Hostname:\t%s\n", h)
+		fmt.Fprintf(out, "Hostname:\t%s\n", h)
 	}
 	if p := u.Port(); p != "" {
-		fmt.Fprintf(&out, "Port:\t\t%s\n", p)
+		fmt.Fprintf(out, "Port:\t\t%s\n", p)
 	}
-	// Node defaults the path to "/" when a host is present but no path is given.
 	pathname := u.Path
 	if pathname == "" && u.Host != "" {
 		pathname = "/"
 	}
 	if pathname != "" {
-		fmt.Fprintf(&out, "Path name:\t%s\n", pathname)
+		fmt.Fprintf(out, "Path name:\t%s\n", pathname)
 	}
+}
 
-	// Node's url.parse(..., true) always yields a query object, so "Arguments:"
-	// is always printed. Parse RawQuery manually to preserve insertion order.
+// parseOrderedQuery parses a raw query string into its keys (in first-seen order)
+// and each key's values (in order), preserving repeats.
+func parseOrderedQuery(rawQuery string) ([]string, map[string][]string) {
 	var order []string
 	values := map[string][]string{}
-	for part := range strings.SplitSeq(u.RawQuery, "&") {
+	for part := range strings.SplitSeq(rawQuery, "&") {
 		if part == "" {
 			continue
 		}
@@ -83,6 +96,13 @@ func (ParseURI) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		values[k] = append(values[k], v)
 	}
+	return order, values
+}
+
+// writeURIQuery writes the "Arguments:" section, right-padding the keys to align
+// their values. Node always emits this section, even for an empty query.
+func writeURIQuery(out *strings.Builder, rawQuery string) {
+	order, values := parseOrderedQuery(rawQuery)
 	padding := 0
 	for _, k := range order {
 		if len(k) > padding {
@@ -97,9 +117,4 @@ func (ParseURI) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		out.WriteString("\n")
 	}
-
-	if u.Fragment != "" {
-		fmt.Fprintf(&out, "Hash:\t\t#%s\n", u.EscapedFragment())
-	}
-	return core.NewDish([]byte(out.String()), core.TypeString), nil
 }

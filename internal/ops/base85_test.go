@@ -78,3 +78,43 @@ func TestBase85ValueBranches(t *testing.T) {
 		t.Fatalf("base85AlphabetName(unknown) = %q, want \"\"", got)
 	}
 }
+
+// --- direct tests for the helpers extracted from FromBase85.Run ---
+
+// stdB85Idx builds the index map for the standard Ascii85 alphabet ('!'..'u').
+func stdB85Idx() map[rune]int {
+	idx := map[rune]int{}
+	for i, c := range []rune("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu") {
+		idx[c] = i
+	}
+	return idx
+}
+
+// TestDecodeBase85Group documents decoding one 5-digit group (and a partial
+// group) plus the invalid-character error.
+func TestDecodeBase85Group(t *testing.T) {
+	idx := stdB85Idx()
+	// "9jqo^" is the Ascii85 encoding of "Man " (0x4D616E20).
+	got, err := decodeBase85Group([]rune("9jqo^"), 0, idx)
+	if err != nil || string(got) != "Man " {
+		t.Fatalf("full group: %q, %v", got, err)
+	}
+	// A partial 2-char group yields 1 byte.
+	got, err = decodeBase85Group([]rune("9j"), 0, idx)
+	if err != nil || len(got) != 1 {
+		t.Fatalf("partial group: %q (%d bytes), %v", got, len(got), err)
+	}
+	// A character outside the alphabet errors.
+	if _, err := decodeBase85Group([]rune("~~~~~"), 0, idx); err == nil {
+		t.Fatal("expected invalid-character error")
+	}
+}
+
+// TestFilterBase85 documents non-alphabet filtering (whitespace dropped, alphabet
+// kept).
+func TestFilterBase85(t *testing.T) {
+	got := filterBase85([]rune("9j qo^"), stdB85Idx(), -1)
+	if string(got) != "9jqo^" {
+		t.Fatalf("filterBase85 = %q, want %q", string(got), "9jqo^")
+	}
+}

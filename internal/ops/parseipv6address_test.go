@@ -182,3 +182,105 @@ func TestParseIPv6AddressMulticastDefaults(t *testing.T) {
 		}
 	}
 }
+
+// --- direct tests for the helpers extracted from ParseIPv6Address.Run ---
+
+// TestIPv6MappedIPv4 documents packing the last two hextets into an IPv4 value.
+func TestIPv6MappedIPv4(t *testing.T) {
+	ipv6 := [8]int{0, 0, 0, 0, 0, 0xffff, 0x0102, 0x0304}
+	if got := ipv6MappedIPv4(ipv6); got != 0x01020304 {
+		t.Fatalf("ipv6MappedIPv4 = %#x, want 0x01020304", got)
+	}
+}
+
+// TestDescribeIPv6Type documents the classification switch for representative
+// address types.
+func TestDescribeIPv6Type(t *testing.T) {
+	cases := []struct {
+		name      string
+		ipv6      [8]int
+		shorthand string
+		wantSub   string
+	}{
+		{"unspecified", [8]int{}, "::", "Unspecified address"},
+		{"loopback", [8]int{0, 0, 0, 0, 0, 0, 0, 1}, "::1", "Loopback address"},
+		{"mapped IPv4", [8]int{0, 0, 0, 0, 0, 0xffff, 0x0102, 0x0304}, "::ffff:102:304", "IPv4-mapped IPv6 address"},
+		{"multicast link-local", [8]int{0xff02, 0, 0, 0, 0, 0, 0, 1}, "ff02::1", "reserved multicast address"},
+		{"documentation", [8]int{0x2001, 0xdb8, 0, 0, 0, 0, 0, 0}, "2001:db8::", "documentation IPv6 address"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var b strings.Builder
+			describeIPv6Type(&b, c.ipv6, c.shorthand)
+			if !strings.Contains(b.String(), c.wantSub) {
+				t.Fatalf("output %q missing %q", b.String(), c.wantSub)
+			}
+		})
+	}
+}
+
+// TestWriteEUI64 documents the modified-EUI-64 interface/MAC extraction, keyed on
+// the FF:FE marker in the middle hextets.
+func TestWriteEUI64(t *testing.T) {
+	// Marker: (ipv6[5] & 0xff) == 0xff and (ipv6[6] >> 8) == 0xfe.
+	ipv6 := [8]int{0x2001, 0xdb8, 0, 0, 0x0211, 0x22ff, 0xfe33, 0x4455}
+	var b strings.Builder
+	writeEUI64(&b, ipv6)
+	out := b.String()
+	if !strings.Contains(out, "modified EUI-64") || !strings.Contains(out, "MAC address") {
+		t.Fatalf("EUI-64 output missing expected fields: %q", out)
+	}
+
+	// A non-EUI-64 address writes nothing.
+	var b2 strings.Builder
+	writeEUI64(&b2, [8]int{0x2001, 0, 0, 0, 0, 0, 0, 1})
+	if b2.Len() != 0 {
+		t.Fatalf("expected no output for non-EUI-64 address, got %q", b2.String())
+	}
+}
+
+// TestDescribeSpecialIPv6 documents the special/embedded-IPv4 group and its
+// "handled" signal.
+func TestDescribeSpecialIPv6(t *testing.T) {
+	var b strings.Builder
+	if !describeSpecialIPv6(&b, [8]int{0, 0, 0, 0, 0, 0xffff, 0x0102, 0x0304}, "::ffff:102:304") {
+		t.Fatal("mapped IPv4 should be handled")
+	}
+	if !strings.Contains(b.String(), "Mapped IPv4 address") {
+		t.Fatalf("missing mapped IPv4 detail: %q", b.String())
+	}
+	// A 2001:: address is not a "special" address; the group reports unhandled.
+	var b2 strings.Builder
+	if describeSpecialIPv6(&b2, [8]int{0x2001, 0, 0, 0, 0, 0, 0, 0}, "2001::") {
+		t.Fatal("2001:: should not be handled by the special group")
+	}
+}
+
+// TestDescribe2001Prefix documents the 2001:: sub-allocation classification.
+func TestDescribe2001Prefix(t *testing.T) {
+	var b strings.Builder
+	describe2001Prefix(&b, [8]int{0x2001, 0xdb8, 0, 0, 0, 0, 0, 0})
+	if !strings.Contains(b.String(), "documentation IPv6 address") {
+		t.Fatalf("2001:db8:: not classified: %q", b.String())
+	}
+	// An unrecognised 2001 sub-prefix writes nothing.
+	var b2 strings.Builder
+	describe2001Prefix(&b2, [8]int{0x2001, 0x50, 0, 0, 0, 0, 0, 0})
+	if b2.Len() != 0 {
+		t.Fatalf("unexpected output for unknown 2001 sub-prefix: %q", b2.String())
+	}
+}
+
+// TestIPv6ZeroRange documents the inclusive all-zero-hextets check.
+func TestIPv6ZeroRange(t *testing.T) {
+	ip := [8]int{0, 0, 0, 5, 0, 0, 0, 0}
+	if !ipv6ZeroRange(ip, 0, 2) {
+		t.Fatal("hextets 0-2 are zero")
+	}
+	if ipv6ZeroRange(ip, 0, 3) {
+		t.Fatal("hextet 3 is non-zero")
+	}
+	if !ipv6ZeroRange(ip, 4, 7) {
+		t.Fatal("hextets 4-7 are zero")
+	}
+}

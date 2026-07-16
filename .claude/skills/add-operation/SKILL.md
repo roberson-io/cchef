@@ -114,6 +114,25 @@ whether the `.mjs` iterates:
 Also note CyberChef's byteArray→string conversion is UTF-8 in some ops and
 Latin-1 in others — verify against the fixtures/oracle.
 
+### Keep it readable: complexity and magic numbers
+
+A faithful port does not have to be a monolith. As you implement:
+
+- **Watch function complexity.** Don't let `Run` (or a helper) grow into one long
+  tangle of nested branches and phases. Split distinct phases (parse → transform
+  → format) into small, well-named helpers. `make complexity` reports functions
+  over the cyclomatic threshold (Go Report Card's gocyclo check); a new op should
+  not add functions to that list without good reason (an inherently branchy
+  lookup/dispatch is acceptable — a tangled multi-phase `Run` is not). When you
+  extract a helper, follow TDD for the extraction too: write its direct unit test
+  first, then extract (see the `tdd-for-refactor-extractions` convention).
+- **No magic numbers.** Give domain-specific numeric literals named `const`s with
+  a short comment, and reference the constant everywhere (including error message
+  text via `%d`), rather than repeating the bare value. Byte-level constants that
+  are self-evident in context (`& 0xff`, `< 256`) are fine; a limit or code that
+  carries meaning (a max length, a protocol sign nibble, a program-length bound)
+  gets a name. This keeps the value defined once and the intent explicit.
+
 ### Mapping CyberChef ingredients → `core.ArgType`
 
 | CyberChef type | core.ArgType | Notes |
@@ -268,6 +287,10 @@ invocation). Do not commit unless the user asks.
 - **Alphabetize** operations in all `docs/` files.
 - **Cover the new code** to ~100% with genuine tests; delete dead branches rather
   than fake-testing them.
+- **Keep it readable**: split multi-phase logic into named helpers (write the
+  helper's test first, then extract) so no function is needlessly complex — check
+  with `make complexity`; and give meaningful numeric literals named `const`s
+  instead of leaving magic numbers.
 - **CLI metadata is central**: every new op needs a `cmd/opmeta.go` category
   entry (enforced by test); check its derived `list`/help summary and add a
   curated one in `cmd/opsummaries.go` if it truncates.

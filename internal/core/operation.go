@@ -87,17 +87,7 @@ func CoerceArg(def ArgDef, value any) (any, error) {
 		return s, nil
 
 	case ArgNumber:
-		n, err := toFloat(value)
-		if err != nil {
-			return nil, fmt.Errorf("arg %q: %w", def.Name, err)
-		}
-		if def.Min != nil && n < *def.Min {
-			return nil, fmt.Errorf("arg %q: %v below minimum %v", def.Name, n, *def.Min)
-		}
-		if def.Max != nil && n > *def.Max {
-			return nil, fmt.Errorf("arg %q: %v above maximum %v", def.Name, n, *def.Max)
-		}
-		return n, nil
+		return coerceNumber(def, value)
 
 	case ArgBoolean:
 		b, ok := value.(bool)
@@ -107,29 +97,55 @@ func CoerceArg(def ArgDef, value any) (any, error) {
 		return b, nil
 
 	case ArgOption:
-		s, ok := value.(string)
-		if !ok {
-			return nil, fmt.Errorf("arg %q: expected option string, got %T", def.Name, value)
-		}
-		opts, _ := def.Value.([]string)
-		if slices.Contains(opts, s) {
-			return s, nil
-		}
-		return nil, fmt.Errorf("arg %q: %q is not one of %v", def.Name, s, opts)
+		return coerceOption(def, value)
 
 	case ArgToggleString:
-		ts, err := toToggleString(value)
-		if err != nil {
-			return nil, fmt.Errorf("arg %q: %w", def.Name, err)
-		}
-		if len(def.ToggleValues) > 0 && !slices.Contains(def.ToggleValues, ts.Option) {
-			return nil, fmt.Errorf("arg %q: mode %q is not one of %v", def.Name, ts.Option, def.ToggleValues)
-		}
-		return ts, nil
+		return coerceToggleString(def, value)
 
 	default:
 		return nil, fmt.Errorf("arg %q: unknown type %q", def.Name, def.Type)
 	}
+}
+
+// coerceNumber coerces value to a float64 and enforces the optional Min/Max.
+func coerceNumber(def ArgDef, value any) (any, error) {
+	n, err := toFloat(value)
+	if err != nil {
+		return nil, fmt.Errorf("arg %q: %w", def.Name, err)
+	}
+	if def.Min != nil && n < *def.Min {
+		return nil, fmt.Errorf("arg %q: %v below minimum %v", def.Name, n, *def.Min)
+	}
+	if def.Max != nil && n > *def.Max {
+		return nil, fmt.Errorf("arg %q: %v above maximum %v", def.Name, n, *def.Max)
+	}
+	return n, nil
+}
+
+// coerceOption checks value is one of the option's allowed strings.
+func coerceOption(def ArgDef, value any) (any, error) {
+	s, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("arg %q: expected option string, got %T", def.Name, value)
+	}
+	opts, _ := def.Value.([]string)
+	if slices.Contains(opts, s) {
+		return s, nil
+	}
+	return nil, fmt.Errorf("arg %q: %q is not one of %v", def.Name, s, opts)
+}
+
+// coerceToggleString coerces value to a ToggleString and validates its mode
+// against the declared ToggleValues.
+func coerceToggleString(def ArgDef, value any) (any, error) {
+	ts, err := toToggleString(value)
+	if err != nil {
+		return nil, fmt.Errorf("arg %q: %w", def.Name, err)
+	}
+	if len(def.ToggleValues) > 0 && !slices.Contains(def.ToggleValues, ts.Option) {
+		return nil, fmt.Errorf("arg %q: mode %q is not one of %v", def.Name, ts.Option, def.ToggleValues)
+	}
+	return ts, nil
 }
 
 // CoerceArgs coerces a full argument list against an operation's definitions,

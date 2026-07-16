@@ -98,3 +98,62 @@ func TestBase64Branches(t *testing.T) {
 		t.Fatal("From Base64(bad alphabet): expected an alphabet-length error")
 	}
 }
+
+// --- direct tests for the helpers extracted from fromBase64 ---
+
+// TestBuildBase64Alphabet documents alphabet expansion and padding detection.
+func TestBuildBase64Alphabet(t *testing.T) {
+	alphabet, idx, padIndex, err := buildBase64Alphabet("A-Za-z0-9+/=")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(alphabet) != 65 || padIndex != 64 {
+		t.Fatalf("len=%d padIndex=%d, want 65 and 64", len(alphabet), padIndex)
+	}
+	if idx['A'] != 0 || idx['='] != 64 {
+		t.Fatalf("idx['A']=%d idx['=']=%d", idx['A'], idx['='])
+	}
+
+	// A 64-character alphabet has no padding character.
+	_, _, padIndex, err = buildBase64Alphabet("A-Za-z0-9+/")
+	if err != nil || padIndex != -1 {
+		t.Fatalf("unpadded: padIndex=%d, err=%v", padIndex, err)
+	}
+
+	// The wrong length is rejected.
+	if _, _, _, err := buildBase64Alphabet("ABC"); err == nil {
+		t.Fatal("expected error for a 3-character alphabet")
+	}
+}
+
+// TestCheckStrictBase64Padding documents the strict length/padding rules.
+func TestCheckStrictBase64Padding(t *testing.T) {
+	alphabet, _, padIndex, _ := buildBase64Alphabet("A-Za-z0-9+/=")
+	ok := func(s string) error { return checkStrictBase64Padding([]rune(s), alphabet, padIndex) }
+
+	if err := ok("TWFu"); err != nil { // "Man", no padding, length 4
+		t.Fatalf("valid unpadded: %v", err)
+	}
+	if err := ok("TQ=="); err != nil { // "M", two pad chars at the end
+		t.Fatalf("valid padded: %v", err)
+	}
+	if err := ok("TWFuX"); err == nil { // length 4n+1
+		t.Fatal("expected 4n+1 length error")
+	}
+	if err := ok("TW=u"); err == nil { // padding not at the end
+		t.Fatal("expected misplaced-padding error")
+	}
+}
+
+// TestBase64EmitQuad documents decoding one quad, including padding-skipped bytes.
+func TestBase64EmitQuad(t *testing.T) {
+	// "TWFu" -> T=19 W=22 F=5 u=46 -> "Man".
+	if got := base64EmitQuad(nil, 19, 22, 5, 46, -1); string(got) != "Man" {
+		t.Fatalf("got %q, want \"Man\"", got)
+	}
+	// A trailing pad in the fourth position drops the third output byte.
+	got := base64EmitQuad(nil, 19, 22, 5, 64, 64)
+	if len(got) != 2 {
+		t.Fatalf("padded quad emitted %d bytes, want 2", len(got))
+	}
+}

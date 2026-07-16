@@ -81,6 +81,56 @@ func mimeLatin1(b []byte) string {
 	return string(r)
 }
 
+// mimeWord is one located RFC 2047 encoded word (=?charset?enc?text?=): the
+// index it starts at, its charset and encoding byte, the raw encoded text, and
+// the index just past its closing "?=".
+type mimeWord struct {
+	start   int
+	charset string
+	enc     rune
+	text    []rune
+	end     int
+}
+
+// mimeLocateWord finds the next encoded word in header, returning ok=false when
+// no complete word is present (mirroring the loop's original break conditions).
+func mimeLocateWord(header []rune) (mimeWord, bool) {
+	start := mimeIndexOf(header, "=?")
+	if start == -1 {
+		return mimeWord{}, false
+	}
+	cur := start + 2
+
+	idx := mimeIndexOf(header[cur:], "?")
+	if idx == -1 {
+		return mimeWord{}, false
+	}
+	charset := string(header[cur : cur+idx])
+	cur += idx + 1
+
+	if len(header) < cur+len("Q??=") {
+		return mimeWord{}, false
+	}
+	enc := header[cur]
+	cur++
+	if header[cur] != '?' {
+		return mimeWord{}, false
+	}
+	cur++
+
+	j := mimeIndexOf(header[cur:], "?=")
+	if j == -1 {
+		return mimeWord{}, false
+	}
+	return mimeWord{
+		start:   start,
+		charset: charset,
+		enc:     enc,
+		text:    header[cur : cur+j],
+		end:     cur + j + 2,
+	}, true
+}
+
 // mimeDecodeHeaders ports MIMEDecoding.decodeHeaders: it finds RFC 2047 encoded
 // words (=?charset?encoding?text?=), decodes each, and drops the whitespace
 // between adjacent encoded words.
@@ -97,66 +147,41 @@ func mimeDecodeHeaders(headerStr string) (string, error) {
 	isBetweenWords := false
 
 	for {
-		start := mimeIndexOf(header, "=?")
-		if start == -1 {
+		w, ok := mimeLocateWord(header)
+		if !ok {
 			break
 		}
-		cur := start + 2
-
-		idx := mimeIndexOf(header[cur:], "?")
-		if idx == -1 {
-			break
-		}
-		charset := string(header[cur : cur+idx])
-		cur += idx + 1
-
-		if len(header) < cur+len("Q??=") {
-			break
-		}
-		enc := header[cur]
-		cur++
-		if header[cur] != '?' {
-			break
-		}
-		cur++
-
-		j := mimeIndexOf(header[cur:], "?=")
-		if j == -1 {
-			break
-		}
-		text := header[cur : cur+j]
-		end := cur + j + 2
 
 		var data []byte
 		var err error
-		switch unicode.ToLower(enc) {
+		switch unicode.ToLower(w.enc) {
 		case 'b':
-			data, err = fromBase64(string(text), stdBase64Alphabet, true, false)
+			data, err = fromBase64(string(w.text), stdBase64Alphabet, true, false)
 			if err != nil {
 				return "", err
 			}
 		case 'q':
-			data, err = mimeParseQEncodedWord(text)
+			data, err = mimeParseQEncodedWord(w.text)
 			if err != nil {
 				return "", err
 			}
 		default:
 			isBetweenWords = false
-			decoded.WriteString(string(mimeSlice(header, 0, start+2)))
-			header = mimeSliceFrom(header, start+2)
-			data = mimeRunesToBytes(text)
+			decoded.WriteString(string(mimeSlice(header, 0, w.start+2)))
+			header = mimeSliceFrom(header, w.start+2)
+			data = mimeRunesToBytes(w.text)
 		}
 
-		if start > 0 && (!isBetweenWords || runeSearchNonWS(mimeSlice(header, 0, start)) > -1) {
-			decoded.WriteString(string(mimeSlice(header, 0, start)))
+		if w.start > 0 && (!isBetweenWords || runeSearchNonWS(mimeSlice(header, 0, w.start)) > -1) {
+			decoded.WriteString(string(mimeSlice(header, 0, w.start)))
 		}
-		s, err := mimeConvertFromCharset(charset, data)
+		s, err := mimeConvertFromCharset(w.charset, data)
 		if err != nil {
 			return "", err
 		}
 		decoded.WriteString(s)
 
-		header = mimeSliceFrom(header, end)
+		header = mimeSliceFrom(header, w.end)
 		isBetweenWords = true
 	}
 

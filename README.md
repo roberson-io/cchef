@@ -1,7 +1,6 @@
 # cchef
 
 [![CI](https://github.com/roberson-io/cchef/actions/workflows/ci.yml/badge.svg)](https://github.com/roberson-io/cchef/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/roberson-io/cchef)](https://goreportcard.com/report/github.com/roberson-io/cchef)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **CyberChef on the command line.** `cchef` is a Go port of the data-transformation

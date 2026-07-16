@@ -221,86 +221,33 @@ var (
 	utf7SetD   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'(),-./:?"
 )
 
+// UTF-16 surrogate-pair constants for encoding code points above the BMP.
+const (
+	supplementaryBase = 0x10000 // first code point above the Basic Multilingual Plane
+	surrogateHigh     = 0xD800  // high (leading) surrogate base; also the surrogate range start
+	surrogateLow      = 0xDC00  // low (trailing) surrogate base
+	surrogateEnd      = 0xDFFF  // last surrogate code unit
+	surrogateShift    = 10      // bits carried by the high surrogate
+	surrogateMask     = 0x3FF   // 10-bit mask for each surrogate half
+)
+
+// magicDecode decodes data under one of the algorithmic ("magic") encodings,
+// dispatching to a per-encoding decoder.
 func magicDecode(m string, data []byte) (string, error) {
 	var units []uint16
 	switch m {
 	case "utf8":
-		i := 0
-		if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
-			i = 3
-		}
-		for i < len(data) {
-			var w int
-			j := 1
-			d := data[i]
-			switch {
-			case d < 128:
-				w = int(d)
-			case d < 224:
-				w = int(d&31)<<6 + int(at(data, i+1)&63)
-				j = 2
-			case d < 240:
-				w = int(d&15)<<12 + int(at(data, i+1)&63)<<6 + int(at(data, i+2)&63)
-				j = 3
-			default:
-				w = int(d&7)<<18 + int(at(data, i+1)&63)<<12 + int(at(data, i+2)&63)<<6 + int(at(data, i+3)&63)
-				j = 4
-			}
-			if w < 0x10000 {
-				units = append(units, uint16(w))
-			} else {
-				w -= 0x10000
-				units = append(units, uint16(0xD800+((w>>10)&1023)), uint16(0xDC00+(w&1023)))
-			}
-			i += j
-		}
+		units = decodeUTF8(data)
 	case "ascii":
-		for _, b := range data {
-			units = append(units, uint16(b))
-		}
+		units = decodeASCII(data)
 	case "utf16le":
-		i := 0
-		if len(data) >= 2 && data[0] == 0xFF && data[1] == 0xFE {
-			i = 2
-		}
-		for ; i+1 < len(data); i += 2 {
-			units = append(units, uint16(data[i+1])<<8|uint16(data[i]))
-		}
+		units = decodeUTF16(data, true)
 	case "utf16be":
-		i := 0
-		if len(data) >= 2 && data[0] == 0xFE && data[1] == 0xFF {
-			i = 2
-		}
-		for ; i+1 < len(data); i += 2 {
-			units = append(units, uint16(data[i])<<8|uint16(data[i+1]))
-		}
+		units = decodeUTF16(data, false)
 	case "utf32le":
-		i := 0
-		if len(data) >= 4 && data[0] == 0xFF && data[1] == 0xFE && data[2] == 0 && data[3] == 0 {
-			i = 4
-		}
-		for ; i < len(data); i += 4 {
-			// JS computes (data[i+3]<<24) as a signed int32, so a high leading
-			// byte makes the sum negative and fromCharCode keeps the low 16 bits.
-			// #nosec G115 -- reproduces JS's signed int32 <<24 (overflow is intentional; see appendUTF32)
-			w := int(int32(uint32(at(data, i+3))<<24)) + int(at(data, i+2))<<16 + int(at(data, i+1))<<8 + int(at(data, i))
-			units = appendUTF32(units, w)
-		}
+		units = decodeUTF32LE(data)
 	case "utf32be":
-		i := 0
-		if len(data) >= 4 && data[3] == 0xFF && data[2] == 0xFE && data[1] == 0 && data[0] == 0 {
-			i = 4
-		}
-		for ; i < len(data); i += 4 {
-			if i+3 >= len(data) {
-				// The unshifted trailing byte is undefined in JS -> NaN -> NUL.
-				units = append(units, 0)
-				continue
-			}
-			// #nosec G115 -- reproduces JS's signed int32 <<24 (overflow is intentional; see appendUTF32)
-			w := int(int32(uint32(data[i])<<24)) + int(data[i+1])<<16 + int(data[i+2])<<8 + int(data[i+3])
-			units = appendUTF32(units, w)
-		}
+		units = decodeUTF32BE(data)
 	case "utf7":
 		return utf7Decode(data)
 	default:
@@ -309,11 +256,113 @@ func magicDecode(m string, data []byte) (string, error) {
 	return string(utf16.Decode(units)), nil
 }
 
-// appendUTF32 appends a codepoint as UTF-16 code unit(s).
+// decodeASCII maps each byte directly to a code unit.
+func decodeASCII(data []byte) []uint16 {
+	var units []uint16
+	for _, b := range data {
+		units = append(units, uint16(b))
+	}
+	return units
+}
+
+// decodeUTF8 decodes a UTF-8 byte stream (skipping a leading BOM), folding each
+// 1-4 byte sequence into a code point emitted via appendUTF32. The lead-byte
+// thresholds (128/224/240) and continuation masks are the standard UTF-8 bit
+// patterns.
+func decodeUTF8(data []byte) []uint16 {
+	var units []uint16
+	i := 0
+	if len(data) >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF {
+		i = 3
+	}
+	for i < len(data) {
+		var w int
+		j := 1
+		d := data[i]
+		switch {
+		case d < 128:
+			w = int(d)
+		case d < 224:
+			w = int(d&31)<<6 + int(at(data, i+1)&63)
+			j = 2
+		case d < 240:
+			w = int(d&15)<<12 + int(at(data, i+1)&63)<<6 + int(at(data, i+2)&63)
+			j = 3
+		default:
+			w = int(d&7)<<18 + int(at(data, i+1)&63)<<12 + int(at(data, i+2)&63)<<6 + int(at(data, i+3)&63)
+			j = 4
+		}
+		units = appendUTF32(units, w)
+		i += j
+	}
+	return units
+}
+
+// decodeUTF16 decodes a UTF-16 byte stream in the given byte order, skipping a
+// matching leading BOM.
+func decodeUTF16(data []byte, littleEndian bool) []uint16 {
+	i := 0
+	if littleEndian {
+		if len(data) >= 2 && data[0] == 0xFF && data[1] == 0xFE {
+			i = 2
+		}
+	} else if len(data) >= 2 && data[0] == 0xFE && data[1] == 0xFF {
+		i = 2
+	}
+	var units []uint16
+	for ; i+1 < len(data); i += 2 {
+		if littleEndian {
+			units = append(units, uint16(data[i+1])<<8|uint16(data[i]))
+		} else {
+			units = append(units, uint16(data[i])<<8|uint16(data[i+1]))
+		}
+	}
+	return units
+}
+
+// decodeUTF32LE decodes a little-endian UTF-32 stream, skipping a leading BOM.
+func decodeUTF32LE(data []byte) []uint16 {
+	i := 0
+	if len(data) >= 4 && data[0] == 0xFF && data[1] == 0xFE && data[2] == 0 && data[3] == 0 {
+		i = 4
+	}
+	var units []uint16
+	for ; i < len(data); i += 4 {
+		// JS computes (data[i+3]<<24) as a signed int32, so a high leading byte
+		// makes the sum negative and fromCharCode keeps the low 16 bits.
+		// #nosec G115 -- reproduces JS's signed int32 <<24 (overflow is intentional; see appendUTF32)
+		w := int(int32(uint32(at(data, i+3))<<24)) + int(at(data, i+2))<<16 + int(at(data, i+1))<<8 + int(at(data, i))
+		units = appendUTF32(units, w)
+	}
+	return units
+}
+
+// decodeUTF32BE decodes a big-endian UTF-32 stream, skipping a leading BOM. A
+// short trailing group decodes to NUL, matching JS's undefined-byte behaviour.
+func decodeUTF32BE(data []byte) []uint16 {
+	i := 0
+	if len(data) >= 4 && data[3] == 0xFF && data[2] == 0xFE && data[1] == 0 && data[0] == 0 {
+		i = 4
+	}
+	var units []uint16
+	for ; i < len(data); i += 4 {
+		if i+3 >= len(data) {
+			units = append(units, 0)
+			continue
+		}
+		// #nosec G115 -- reproduces JS's signed int32 <<24 (overflow is intentional; see appendUTF32)
+		w := int(int32(uint32(data[i])<<24)) + int(data[i+1])<<16 + int(data[i+2])<<8 + int(data[i+3])
+		units = appendUTF32(units, w)
+	}
+	return units
+}
+
+// appendUTF32 appends a code point as UTF-16 code unit(s): a surrogate pair for
+// code points above the BMP, otherwise a single unit (low 16 bits).
 func appendUTF32(units []uint16, w int) []uint16 {
-	if w > 0xFFFF {
-		w -= 0x10000
-		return append(units, uint16(0xD800+((w>>10)&0x3FF)), uint16(0xDC00+(w&0x3FF)))
+	if w >= supplementaryBase {
+		w -= supplementaryBase
+		return append(units, uint16(surrogateHigh+((w>>surrogateShift)&surrogateMask)), uint16(surrogateLow+(w&surrogateMask)))
 	}
 	return append(units, uint16(w)) // #nosec G115 -- low 16 bits, mirroring JS fromCharCode(ToUint16)
 }
@@ -327,66 +376,96 @@ func at(data []byte, i int) byte {
 	return 0
 }
 
+// magicEncode encodes s under one of the algorithmic ("magic") encodings,
+// dispatching to a per-encoding encoder over its UTF-16 code units.
 func magicEncode(m string, s string) ([]byte, error) {
 	units := utf16.Encode([]rune(s))
-	var out []byte
 	switch m {
 	case "utf8":
-		for i := 0; i < len(units); i++ {
-			w := int(units[i])
-			switch {
-			case w <= 0x7F:
-				out = append(out, byte(w))
-			case w <= 0x7FF:
-				out = append(out, byte(192+(w>>6)), byte(128+(w&63)))
-			case w >= 0xD800 && w <= 0xDFFF:
-				w -= 0xD800
-				i++
-				ww := int(getUnit(units, i)) - 0xDC00 + (w << 10)
-				out = append(out, byte(240+((ww>>18)&0x07)), byte(144+((ww>>12)&0x3F)),
-					byte(128+((ww>>6)&0x3F)), byte(128+(ww&0x3F)))
-			default:
-				out = append(out, byte(224+(w>>12)), byte(128+((w>>6)&63)), byte(128+(w&63))) // #nosec G115 -- UTF-8 bytes from masked 6-bit groups
-			}
-		}
+		return encodeUTF8(units), nil
 	case "ascii":
-		// cptable's ascii encoder uses Node's Buffer 'ascii' path (the low byte
-		// of each UTF-16 code unit), not the browser-only throwing path.
-		for _, w := range units {
-			out = append(out, byte(w&0xff))
-		}
+		return encodeASCII(units), nil
 	case "utf16le":
-		for _, w := range units {
-			out = append(out, byte(w&255), byte(w>>8))
-		}
+		return encodeUTF16(units, true), nil
 	case "utf16be":
-		for _, w := range units {
-			out = append(out, byte(w>>8), byte(w&255))
-		}
+		return encodeUTF16(units, false), nil
 	case "utf32le":
-		for i := 0; i < len(units); i++ {
-			w := int(units[i])
-			if w >= 0xD800 && w <= 0xDFFF {
-				i++
-				w = 0x10000 + ((w - 0xD800) << 10) + (int(getUnit(units, i)) - 0xDC00)
-			}
-			out = append(out, byte(w&255), byte((w>>8)&255), byte((w>>16)&255), byte((w>>24)&255))
-		}
+		return encodeUTF32(units, true), nil
 	case "utf32be":
-		for i := 0; i < len(units); i++ {
-			w := int(units[i])
-			if w >= 0xD800 && w <= 0xDFFF {
-				i++
-				w = 0x10000 + ((w - 0xD800) << 10) + (int(getUnit(units, i)) - 0xDC00)
-			}
-			out = append(out, byte((w>>24)&255), byte((w>>16)&255), byte((w>>8)&255), byte(w&255))
-		}
+		return encodeUTF32(units, false), nil
 	case "utf7":
 		return utf7Encode(units), nil
 	default:
 		return nil, fmt.Errorf("unsupported magic: %s", m)
 	}
-	return out, nil
+}
+
+// encodeUTF8 encodes code units as UTF-8. The 1/2/3-byte lead bytes and
+// continuation masks are the standard UTF-8 patterns; the 4-byte surrogate path
+// reproduces cptable's quirk of encoding (codepoint - 0x10000) rather than the
+// codepoint itself.
+func encodeUTF8(units []uint16) []byte {
+	var out []byte
+	for i := 0; i < len(units); i++ {
+		w := int(units[i])
+		switch {
+		case w <= 0x7F:
+			out = append(out, byte(w))
+		case w <= 0x7FF:
+			out = append(out, byte(192+(w>>6)), byte(128+(w&63)))
+		case w >= surrogateHigh && w <= surrogateEnd:
+			w -= surrogateHigh
+			i++
+			ww := int(getUnit(units, i)) - surrogateLow + (w << surrogateShift)
+			out = append(out, byte(240+((ww>>18)&0x07)), byte(144+((ww>>12)&0x3F)),
+				byte(128+((ww>>6)&0x3F)), byte(128+(ww&0x3F)))
+		default:
+			out = append(out, byte(224+(w>>12)), byte(128+((w>>6)&63)), byte(128+(w&63))) // #nosec G115 -- UTF-8 bytes from masked 6-bit groups
+		}
+	}
+	return out
+}
+
+// encodeASCII encodes the low byte of each code unit. cptable's ascii encoder
+// uses Node's Buffer 'ascii' path, not the browser-only throwing path.
+func encodeASCII(units []uint16) []byte {
+	out := make([]byte, 0, len(units))
+	for _, w := range units {
+		out = append(out, byte(w&0xff))
+	}
+	return out
+}
+
+// encodeUTF16 encodes code units in the given byte order.
+func encodeUTF16(units []uint16, littleEndian bool) []byte {
+	out := make([]byte, 0, len(units)*2)
+	for _, w := range units {
+		if littleEndian {
+			out = append(out, byte(w&255), byte(w>>8))
+		} else {
+			out = append(out, byte(w>>8), byte(w&255))
+		}
+	}
+	return out
+}
+
+// encodeUTF32 encodes code points (combining surrogate pairs) in the given byte
+// order, four bytes each.
+func encodeUTF32(units []uint16, littleEndian bool) []byte {
+	var out []byte
+	for i := 0; i < len(units); i++ {
+		w := int(units[i])
+		if w >= surrogateHigh && w <= surrogateEnd {
+			i++
+			w = supplementaryBase + ((w - surrogateHigh) << surrogateShift) + (int(getUnit(units, i)) - surrogateLow)
+		}
+		if littleEndian {
+			out = append(out, byte(w&255), byte((w>>8)&255), byte((w>>16)&255), byte((w>>24)&255))
+		} else {
+			out = append(out, byte((w>>24)&255), byte((w>>16)&255), byte((w>>8)&255), byte(w&255))
+		}
+	}
+	return out
 }
 
 func getUnit(units []uint16, i int) uint16 {
@@ -428,14 +507,7 @@ func utf7Encode(units []uint16) []byte {
 
 // utf7Decode ports cptable's UTF-7 decoder.
 func utf7Decode(data []byte) (string, error) {
-	i := 0
-	if len(data) >= 4 && data[0] == 0x2B && data[1] == 0x2F && data[2] == 0x76 {
-		if len(data) >= 5 && data[3] == 0x38 && data[4] == 0x2D {
-			i = 5
-		} else if data[3] == 0x38 || data[3] == 0x39 || data[3] == 0x2B || data[3] == 0x2F {
-			i = 4
-		}
-	}
+	i := utf7SkipBOM(data)
 	var units []uint16
 	for i < len(data) {
 		if data[i] != 0x2b { // not '+'
@@ -443,12 +515,12 @@ func utf7Decode(data []byte) (string, error) {
 			i++
 			continue
 		}
-		j := 1
 		if at(data, i+1) == 0x2d { // "+-" -> "+"
 			units = append(units, uint16('+'))
 			i += 2
 			continue
 		}
+		j := 1
 		for i+j < len(data) && isUTF7Base64(data[i+j]) {
 			j++
 		}
@@ -457,33 +529,54 @@ func utf7Decode(data []byte) (string, error) {
 			j++
 			dash = 1
 		}
-		var tt []byte
-		for l := 1; l < j-dash; {
-			e1 := indexByte(utf7Base64, at(data, i+l))
-			l++
-			e2 := indexByte(utf7Base64, at(data, i+l))
-			l++
-			tt = append(tt, byte(e1<<2|e2>>4)) // #nosec G115 -- base64 sextets assemble a byte
-			e3 := indexByte(utf7Base64, at(data, i+l))
-			l++
-			if e3 == -1 {
-				break
-			}
-			tt = append(tt, byte((e2&15)<<4|e3>>2)) // #nosec G115 -- base64 sextets assemble a byte
-			e4 := indexByte(utf7Base64, at(data, i+l))
-			l++
-			if e4 == -1 {
-				break
-			}
-			if e4 < 64 {
-				tt = append(tt, byte((e3&3)<<6|e4)) // #nosec G115 -- base64 sextets assemble a byte
-			}
-		}
+		tt := utf7DecodeBase64Run(data, i, j, dash)
 		dec, _ := magicDecode("utf16be", tt) // utf16be decoding never errors
 		units = append(units, utf16.Encode([]rune(dec))...)
 		i += j
 	}
 	return string(utf16.Decode(units)), nil
+}
+
+// utf7SkipBOM returns the offset past an optional UTF-7 byte-order mark
+// ("+/v8-", or "+/v" followed by one of 8/9/+//), or 0 when absent.
+func utf7SkipBOM(data []byte) int {
+	if len(data) >= 4 && data[0] == 0x2B && data[1] == 0x2F && data[2] == 0x76 {
+		if len(data) >= 5 && data[3] == 0x38 && data[4] == 0x2D {
+			return 5
+		}
+		if data[3] == 0x38 || data[3] == 0x39 || data[3] == 0x2B || data[3] == 0x2F {
+			return 4
+		}
+	}
+	return 0
+}
+
+// utf7DecodeBase64Run decodes the modified-base64 shifted run starting at i
+// (spanning j bytes, with dash=1 if it ends in '-') into its raw UTF-16BE bytes.
+func utf7DecodeBase64Run(data []byte, i, j, dash int) []byte {
+	var tt []byte
+	for l := 1; l < j-dash; {
+		e1 := indexByte(utf7Base64, at(data, i+l))
+		l++
+		e2 := indexByte(utf7Base64, at(data, i+l))
+		l++
+		tt = append(tt, byte(e1<<2|e2>>4)) // #nosec G115 -- base64 sextets assemble a byte
+		e3 := indexByte(utf7Base64, at(data, i+l))
+		l++
+		if e3 == -1 {
+			break
+		}
+		tt = append(tt, byte((e2&15)<<4|e3>>2)) // #nosec G115 -- base64 sextets assemble a byte
+		e4 := indexByte(utf7Base64, at(data, i+l))
+		l++
+		if e4 == -1 {
+			break
+		}
+		if e4 < 64 {
+			tt = append(tt, byte((e3&3)<<6|e4)) // #nosec G115 -- base64 sextets assemble a byte
+		}
+	}
+	return tt
 }
 
 func isUTF7Base64(b byte) bool {

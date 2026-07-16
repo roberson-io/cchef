@@ -74,42 +74,15 @@ func (ChangeIPFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			continue
 		}
 
-		var baIP []byte
-		switch inFormat {
-		case "Dotted Decimal":
-			for oct := range strings.SplitSeq(line, ".") {
-				v, _ := strconv.Atoi(oct)
-				baIP = append(baIP, byte(v)) // #nosec G115 -- octet from dotted-decimal, bounded to a byte (faithful truncation)
-			}
-		case "Decimal":
-			baIP = ipFromNumber(line, 10)
-		case "Octal":
-			baIP = ipFromNumber(line, 8)
-		case "Hex":
-			baIP = hexToBytes(line)
-		default:
-			return nil, fmt.Errorf("unsupported input IP format")
+		baIP, err := ipParseInput(inFormat, line)
+		if err != nil {
+			return nil, err
 		}
-
-		switch outFormat {
-		case "Dotted Decimal":
-			parts := make([]string, len(baIP))
-			for i, b := range baIP {
-				parts[i] = strconv.Itoa(int(b))
-			}
-			out.WriteString(strings.Join(parts, ".") + "\n")
-		case "Decimal":
-			out.WriteString(strconv.FormatUint(uint64(ipToUint32(baIP)), 10) + "\n")
-		case "Octal":
-			out.WriteString("0" + strconv.FormatUint(uint64(ipToUint32(baIP)), 8) + "\n")
-		case "Hex":
-			for _, b := range baIP {
-				fmt.Fprintf(&out, "%02x", b)
-			}
-			out.WriteString("\n")
-		default:
-			return nil, fmt.Errorf("unsupported output IP format")
+		formatted, err := ipFormatOutput(outFormat, baIP)
+		if err != nil {
+			return nil, err
 		}
+		out.WriteString(formatted + "\n")
 	}
 
 	s := out.String()
@@ -117,6 +90,51 @@ func (ChangeIPFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		s = s[:len(s)-1] // drop the trailing newline
 	}
 	return core.NewDish([]byte(s), core.TypeString), nil
+}
+
+// ipParseInput decodes one input line into IP bytes according to inFormat.
+func ipParseInput(inFormat, line string) ([]byte, error) {
+	switch inFormat {
+	case "Dotted Decimal":
+		var baIP []byte
+		for oct := range strings.SplitSeq(line, ".") {
+			v, _ := strconv.Atoi(oct)
+			baIP = append(baIP, byte(v)) // #nosec G115 -- octet from dotted-decimal, bounded to a byte (faithful truncation)
+		}
+		return baIP, nil
+	case "Decimal":
+		return ipFromNumber(line, 10), nil
+	case "Octal":
+		return ipFromNumber(line, 8), nil
+	case "Hex":
+		return hexToBytes(line), nil
+	default:
+		return nil, fmt.Errorf("unsupported input IP format")
+	}
+}
+
+// ipFormatOutput renders IP bytes as a string according to outFormat.
+func ipFormatOutput(outFormat string, baIP []byte) (string, error) {
+	switch outFormat {
+	case "Dotted Decimal":
+		parts := make([]string, len(baIP))
+		for i, b := range baIP {
+			parts[i] = strconv.Itoa(int(b))
+		}
+		return strings.Join(parts, "."), nil
+	case "Decimal":
+		return strconv.FormatUint(uint64(ipToUint32(baIP)), 10), nil
+	case "Octal":
+		return "0" + strconv.FormatUint(uint64(ipToUint32(baIP)), 8), nil
+	case "Hex":
+		var hex strings.Builder
+		for _, b := range baIP {
+			fmt.Fprintf(&hex, "%02x", b)
+		}
+		return hex.String(), nil
+	default:
+		return "", fmt.Errorf("unsupported output IP format")
+	}
 }
 
 // ipToUint32 packs the first four bytes of an IP byte array into a 32-bit value.

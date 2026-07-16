@@ -354,3 +354,24 @@ func TestCBORRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+// --- direct tests for the major-type helpers extracted from cborReadValue ---
+
+// TestCborReadInt documents unsigned (major 0) and negative (major 1) integers.
+func TestCborReadInt(t *testing.T) {
+	// ai < 24 encodes the value directly; no further bytes needed.
+	if v, err := cborReadInt(&creader{}, 5, 0); err != nil || v != int64(5) {
+		t.Fatalf("unsigned: %v, %v", v, err)
+	}
+	if v, err := cborReadInt(&creader{}, 0, 1); err != nil || v != int64(-1) {
+		t.Fatalf("negative: %v, %v", v, err)
+	}
+}
+
+// TestCborReadStringValue documents text strings (major 3).
+func TestCborReadStringValue(t *testing.T) {
+	v, err := cborReadStringValue(&creader{data: []byte("hi")}, 2, 3)
+	if err != nil || v != "hi" {
+		t.Fatalf("text string: %v, %v", v, err)
+	}
+}

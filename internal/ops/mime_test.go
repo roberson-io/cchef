@@ -125,3 +125,24 @@ func TestMIMEDecodingErrors(t *testing.T) {
 		}
 	}
 }
+
+// TestMimeLocateWord documents the encoded-word locator extracted from
+// mimeDecodeHeaders: it parses the =?charset?enc?text?= structure.
+func TestMimeLocateWord(t *testing.T) {
+	w, ok := mimeLocateWord([]rune("=?utf-8?B?aGVsbG8=?="))
+	if !ok {
+		t.Fatal("expected an encoded word")
+	}
+	if w.start != 0 || w.charset != "utf-8" || w.enc != 'B' ||
+		string(w.text) != "aGVsbG8=" || w.end != 20 {
+		t.Fatalf("got %+v", w)
+	}
+
+	if _, ok := mimeLocateWord([]rune("plain text, no words")); ok {
+		t.Fatal("expected no encoded word")
+	}
+	// A "=?" with no closing "?=" is not a complete word.
+	if _, ok := mimeLocateWord([]rune("=?utf-8?B?abc")); ok {
+		t.Fatal("expected incomplete word to be rejected")
+	}
+}

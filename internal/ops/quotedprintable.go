@@ -92,15 +92,21 @@ func (ToQuotedPrintable) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // without splitting =XX escapes or multi-byte UTF-8 sequences. Matches the
 // behaviour of mimelib's _addQPSoftLinebreaks (which CyberChef uses), verified
 // against it directly in TestQPSoftBreaksDirect.
+const (
+	qpLineLengthMax = 76                  // RFC 2045 maximum encoded line length
+	qpLineMargin    = qpLineLengthMax / 3 // window at the line end to search for a nicer break
+	qpEscapeLen     = 3                   // length of an "=XX" escape
+	qpASCIIMax      = 128                 // code points below this are single-byte ASCII
+	qpUTF8LeadMin   = 0xc0                // start of the UTF-8 lead-byte range
+)
+
 func qpSoftBreaks(s string) string {
-	const lineLengthMax = 76
-	const lineMargin = lineLengthMax / 3
 	n := len(s)
 	pos := 0
 	var result strings.Builder
 
 	for pos < n {
-		end := min(pos+lineLengthMax, n)
+		end := min(pos+qpLineLengthMax, n)
 		line := s[pos:end]
 
 		if idx := strings.Index(line, "\r\n"); idx >= 0 {
@@ -115,53 +121,79 @@ func qpSoftBreaks(s string) string {
 			continue
 		}
 
-		tail := line[max(0, len(line)-lineMargin):]
+		// A newline within the end-of-line window ends the line there.
+		tail := line[max(0, len(line)-qpLineMargin):]
 		if nl := strings.IndexByte(tail, '\n'); nl >= 0 {
 			matchLen := len(tail) - nl
 			line = line[:len(line)-(matchLen-1)]
 			result.WriteString(line)
 			pos += len(line)
 			continue
-		} else if len(line) > lineLengthMax-lineMargin && qpSpaceBreakRE.MatchString(tail) {
-			m := qpSpaceBreakRE.FindString(tail)
-			line = line[:len(line)-(len(m)-1)]
-		} else if strings.HasSuffix(line, "\r") {
-			line = line[:len(line)-1]
-		} else if qpIncompleteHexRE.MatchString(line) {
-			if m := qpIncomplete1RE.FindString(line); m != "" {
-				line = line[:len(line)-len(m)]
-			}
-			for len(line) > 3 && len(line) < n-pos && !qpFullHexRE.MatchString(line) {
-				m := qpHexEndRE.FindString(line)
-				if m == "" {
-					break
-				}
-				code, _ := strconv.ParseUint(m[1:3], 16, 16)
-				if code < 128 {
-					break
-				}
-				line = line[:len(line)-3]
-				if code >= 0xc0 {
-					break
-				}
-			}
 		}
 
-		if pos+len(line) < n && !strings.HasSuffix(line, "\n") {
-			if len(line) == lineLengthMax && qpHexEndRE.MatchString(line) {
-				line = line[:len(line)-3]
-			} else if len(line) == lineLengthMax {
-				line = line[:len(line)-1]
-			}
-			pos += len(line)
-			line += "=\r\n"
-		} else {
-			pos += len(line)
-		}
+		line = qpTrimLine(line, pos, n)
+		line, pos = qpAppendSoftBreak(line, pos, n)
 		result.WriteString(line)
 	}
 
 	return result.String()
+}
+
+// qpTrimLine shortens a full-width line to a nicer break point: at a space/
+// punctuation boundary, before a trailing bare CR, or before an incomplete
+// escape sequence.
+func qpTrimLine(line string, pos, n int) string {
+	tail := line[max(0, len(line)-qpLineMargin):]
+	switch {
+	case len(line) > qpLineLengthMax-qpLineMargin && qpSpaceBreakRE.MatchString(tail):
+		m := qpSpaceBreakRE.FindString(tail)
+		return line[:len(line)-(len(m)-1)]
+	case strings.HasSuffix(line, "\r"):
+		return line[:len(line)-1]
+	case qpIncompleteHexRE.MatchString(line):
+		return qpTrimIncompleteHex(line, pos, n)
+	}
+	return line
+}
+
+// qpTrimIncompleteHex trims a trailing incomplete "=" escape, then backs off
+// whole "=XX" escapes that are the tail of a multi-byte UTF-8 sequence so a soft
+// break never splits a character.
+func qpTrimIncompleteHex(line string, pos, n int) string {
+	if m := qpIncomplete1RE.FindString(line); m != "" {
+		line = line[:len(line)-len(m)]
+	}
+	for len(line) > qpEscapeLen && len(line) < n-pos && !qpFullHexRE.MatchString(line) {
+		m := qpHexEndRE.FindString(line)
+		if m == "" {
+			break
+		}
+		code, _ := strconv.ParseUint(m[1:3], 16, 16)
+		if code < qpASCIIMax {
+			break
+		}
+		line = line[:len(line)-qpEscapeLen]
+		if code >= qpUTF8LeadMin {
+			break
+		}
+	}
+	return line
+}
+
+// qpAppendSoftBreak appends a soft line break ("=\r\n") to a non-final line,
+// trimming a final escape/char if the line is exactly the maximum width, and
+// advances pos. The final line is returned unchanged.
+func qpAppendSoftBreak(line string, pos, n int) (string, int) {
+	if pos+len(line) >= n || strings.HasSuffix(line, "\n") {
+		return line, pos + len(line)
+	}
+	if len(line) == qpLineLengthMax && qpHexEndRE.MatchString(line) {
+		line = line[:len(line)-qpEscapeLen]
+	} else if len(line) == qpLineLengthMax {
+		line = line[:len(line)-1]
+	}
+	pos += len(line)
+	return line + "=\r\n", pos
 }
 
 // FromQuotedPrintable decodes a Quoted-Printable string back into raw bytes.

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"os"
+	"slices"
 	"testing"
 )
 
@@ -105,5 +106,138 @@ func TestCodepageEngineDifferential(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// --- direct tests for the per-encoding decoders extracted from magicDecode ---
+
+// TestDecodeASCII documents byte→code-unit passthrough.
+func TestDecodeASCII(t *testing.T) {
+	if got := decodeASCII([]byte{0x41, 0x80}); !slices.Equal(got, []uint16{0x41, 0x80}) {
+		t.Fatalf("decodeASCII = %v", got)
+	}
+}
+
+// TestDecodeUTF8 documents 1/2/3-byte sequences and BOM stripping.
+func TestDecodeUTF8(t *testing.T) {
+	cases := []struct {
+		name string
+		in   []byte
+		want []uint16
+	}{
+		{"ascii", []byte{0x41}, []uint16{0x41}},
+		{"two-byte é", []byte{0xC3, 0xA9}, []uint16{0xE9}},
+		{"three-byte €", []byte{0xE2, 0x82, 0xAC}, []uint16{0x20AC}},
+		{"BOM stripped", []byte{0xEF, 0xBB, 0xBF, 0x41}, []uint16{0x41}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := decodeUTF8(c.in); !slices.Equal(got, c.want) {
+				t.Fatalf("decodeUTF8(%x) = %v, want %v", c.in, got, c.want)
+			}
+		})
+	}
+}
+
+// TestDecodeUTF16 documents both byte orders and their BOMs.
+func TestDecodeUTF16(t *testing.T) {
+	if got := decodeUTF16([]byte{0x41, 0x00}, true); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("LE = %v", got)
+	}
+	if got := decodeUTF16([]byte{0xFF, 0xFE, 0x41, 0x00}, true); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("LE BOM = %v", got)
+	}
+	if got := decodeUTF16([]byte{0x00, 0x41}, false); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("BE = %v", got)
+	}
+	if got := decodeUTF16([]byte{0xFE, 0xFF, 0x00, 0x41}, false); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("BE BOM = %v", got)
+	}
+}
+
+// TestDecodeUTF32 documents both byte orders (little-endian BOM, big-endian
+// short-trailing-byte handling).
+func TestDecodeUTF32(t *testing.T) {
+	if got := decodeUTF32LE([]byte{0x41, 0, 0, 0}); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("LE = %v", got)
+	}
+	if got := decodeUTF32LE([]byte{0xFF, 0xFE, 0, 0, 0x41, 0, 0, 0}); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("LE BOM = %v", got)
+	}
+	if got := decodeUTF32BE([]byte{0, 0, 0, 0x41}); !slices.Equal(got, []uint16{0x41}) {
+		t.Fatalf("BE = %v", got)
+	}
+}
+
+// --- direct tests for the per-encoding encoders extracted from magicEncode ---
+
+// TestEncodeASCII documents low-byte passthrough.
+func TestEncodeASCII(t *testing.T) {
+	if got := encodeASCII([]uint16{0x41, 0x80}); !slices.Equal(got, []byte{0x41, 0x80}) {
+		t.Fatalf("encodeASCII = %v", got)
+	}
+}
+
+// TestEncodeUTF8 documents 1/2/3-byte sequences.
+func TestEncodeUTF8(t *testing.T) {
+	cases := []struct {
+		name string
+		in   []uint16
+		want []byte
+	}{
+		{"ascii", []uint16{0x41}, []byte{0x41}},
+		{"two-byte é", []uint16{0xE9}, []byte{0xC3, 0xA9}},
+		{"three-byte €", []uint16{0x20AC}, []byte{0xE2, 0x82, 0xAC}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := encodeUTF8(c.in); !slices.Equal(got, c.want) {
+				t.Fatalf("encodeUTF8(%x) = %x, want %x", c.in, got, c.want)
+			}
+		})
+	}
+}
+
+// TestEncodeUTF16 documents both byte orders.
+func TestEncodeUTF16(t *testing.T) {
+	if got := encodeUTF16([]uint16{0x0041}, true); !slices.Equal(got, []byte{0x41, 0x00}) {
+		t.Fatalf("LE = %x", got)
+	}
+	if got := encodeUTF16([]uint16{0x0041}, false); !slices.Equal(got, []byte{0x00, 0x41}) {
+		t.Fatalf("BE = %x", got)
+	}
+}
+
+// TestEncodeUTF32 documents both byte orders.
+func TestEncodeUTF32(t *testing.T) {
+	if got := encodeUTF32([]uint16{0x0041}, true); !slices.Equal(got, []byte{0x41, 0, 0, 0}) {
+		t.Fatalf("LE = %x", got)
+	}
+	if got := encodeUTF32([]uint16{0x0041}, false); !slices.Equal(got, []byte{0, 0, 0, 0x41}) {
+		t.Fatalf("BE = %x", got)
+	}
+}
+
+// --- direct tests for the helpers extracted from utf7Decode ---
+
+// TestUTF7SkipBOM documents skipping the optional UTF-7 BOM ("+/v8-" or "+/v…").
+func TestUTF7SkipBOM(t *testing.T) {
+	if got := utf7SkipBOM([]byte{0x41}); got != 0 { // no BOM
+		t.Fatalf("no BOM = %d", got)
+	}
+	if got := utf7SkipBOM([]byte{0x2b, 0x2f, 0x76, 0x38, 0x2d}); got != 5 { // "+/v8-"
+		t.Fatalf("full BOM = %d", got)
+	}
+	if got := utf7SkipBOM([]byte{0x2b, 0x2f, 0x76, 0x38, 0x41}); got != 4 { // "+/v8" + data
+		t.Fatalf("short BOM = %d", got)
+	}
+}
+
+// TestUTF7DecodeBase64Run documents decoding a modified-base64 run into its
+// UTF-16BE bytes: "+AGk-" carries the two bytes 0x00 0x69 (the letter 'i').
+func TestUTF7DecodeBase64Run(t *testing.T) {
+	got := utf7DecodeBase64Run([]byte("+AGk-"), 0, 5, 1)
+	if !slices.Equal(got, []byte{0x00, 0x69}) {
+		t.Fatalf("utf7DecodeBase64Run = %v, want [0 105]", got)
 	}
 }

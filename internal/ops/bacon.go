@@ -183,44 +183,59 @@ func (BaconCipherDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alpha := baconAlphabetByName(args[0].(string))
 	translation := args[1].(string)
 	invert := args[2].(bool)
-	input := in.String()
 
-	// Remove invalid characters (BACON_CLEARER_MAP). The A-M/N-Z variant has no
-	// clearer entry, so CyberChef calls `replace(undefined, "")`, which coerces
-	// undefined to the string "undefined" and strips its first literal occurrence.
-	switch translation {
-	case "0/1":
-		input = baconKeep(input, func(c byte) bool { return c == '0' || c == '1' })
-	case "A/B":
-		input = baconKeep(input, func(c byte) bool { return c == 'A' || c == 'B' || c == 'a' || c == 'b' })
-	case "Case":
-		input = baconKeep(input, func(c byte) bool {
-			return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-		})
-	default: // "A-M/N-Z first letter"
-		input = strings.Replace(input, "undefined", "", 1)
-	}
-
-	// Normalize to a 0/1 string (BACON_NORMALIZE_MAP / special cases).
-	switch translation {
-	case "A/B":
-		input = baconMapBytes(input, map[byte]byte{'A': '0', 'a': '0', 'B': '1', 'b': '1'})
-	case "Case":
-		input = baconMapBytes(input, baconCaseMap)
-	case "A-M/N-Z first letter":
-		input = baconFirstLetterBits(input)
-	}
-
+	input := baconCleanInput(in.String(), translation)
+	input = baconNormalizeToBits(input, translation)
 	if invert {
 		input = swapZeroAndOne(input)
 	}
+	return core.NewDish([]byte(baconDecodeBits(input, alpha)), core.TypeString), nil
+}
 
-	// Group into fives and map each 5-bit code to a letter (or "?" if out of range).
+// baconCodeLen is the number of bits per Baconian letter code.
+const baconCodeLen = 5
+
+// baconCleanInput removes characters not used by the translation (BACON_CLEARER_MAP).
+// The A-M/N-Z variant has no clearer entry, so CyberChef calls
+// `replace(undefined, "")`, which coerces undefined to the string "undefined"
+// and strips its first literal occurrence.
+func baconCleanInput(input, translation string) string {
+	switch translation {
+	case "0/1":
+		return baconKeep(input, func(c byte) bool { return c == '0' || c == '1' })
+	case "A/B":
+		return baconKeep(input, func(c byte) bool { return c == 'A' || c == 'B' || c == 'a' || c == 'b' })
+	case "Case":
+		return baconKeep(input, func(c byte) bool {
+			return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+		})
+	default: // "A-M/N-Z first letter"
+		return strings.Replace(input, "undefined", "", 1)
+	}
+}
+
+// baconNormalizeToBits maps the cleaned input to a 0/1 string
+// (BACON_NORMALIZE_MAP / special cases).
+func baconNormalizeToBits(input, translation string) string {
+	switch translation {
+	case "A/B":
+		return baconMapBytes(input, map[byte]byte{'A': '0', 'a': '0', 'B': '1', 'b': '1'})
+	case "Case":
+		return baconMapBytes(input, baconCaseMap)
+	case "A-M/N-Z first letter":
+		return baconFirstLetterBits(input)
+	}
+	return input
+}
+
+// baconDecodeBits groups the 0/1 string into 5-bit codes and maps each to its
+// letter (or "?" when the code is out of the alphabet's range).
+func baconDecodeBits(bits string, alpha baconAlphabet) string {
 	var out strings.Builder
-	for i := 0; i+5 <= len(input); i += 5 {
+	for i := 0; i+baconCodeLen <= len(bits); i += baconCodeLen {
 		n := 0
-		for j := range 5 {
-			n = n<<1 | int(input[i+j]-'0')
+		for j := range baconCodeLen {
+			n = n<<1 | int(bits[i+j]-'0')
 		}
 		if n < len(alpha.alphabet) {
 			out.WriteByte(alpha.alphabet[n])
@@ -228,7 +243,7 @@ func (BaconCipherDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			out.WriteByte('?')
 		}
 	}
-	return core.NewDish([]byte(out.String()), core.TypeString), nil
+	return out.String()
 }
 
 // baconCaseMap turns upper-case letters into '1' and lower-case into '0' (the

@@ -50,82 +50,110 @@ func (ParseUNIXFilePermissions) Run(in *core.Dish, args []any) (*core.Dish, erro
 	var p unixPerms
 	textual := false
 
-	if m := reOctalPerms.FindStringSubmatch(input); m != nil {
-		octal := m[1]
-		var d, u, g, o int
-		if len(octal) == 4 {
-			d, u, g, o = octDigit(octal[0]), octDigit(octal[1]), octDigit(octal[2]), octDigit(octal[3])
-		} else {
-			if len(octal) > 0 {
-				u = octDigit(octal[0])
-			}
-			if len(octal) > 1 {
-				g = octDigit(octal[1])
-			}
-			if len(octal) > 2 {
-				o = octDigit(octal[2])
-			}
-		}
-		p.su, p.sg, p.sb = d>>2&1 == 1, d>>1&1 == 1, d&1 == 1
-		p.ru, p.wu, p.eu = u>>2&1 == 1, u>>1&1 == 1, u&1 == 1
-		p.rg, p.wg, p.eg = g>>2&1 == 1, g>>1&1 == 1, g&1 == 1
-		p.ro, p.wo, p.eo = o>>2&1 == 1, o>>1&1 == 1, o&1 == 1
-	} else if m := reTextualPerms.FindStringSubmatch(input); m != nil {
+	switch {
+	case reOctalPerms.MatchString(input):
+		p = parseOctalPerms(reOctalPerms.FindStringSubmatch(input)[1])
+	case reTextualPerms.MatchString(input):
+		p = parseTextualPerms(reTextualPerms.FindStringSubmatch(input)[1])
 		textual = true
-		t := m[1]
-		at := func(i int) byte {
-			if i < len(t) {
-				return t[i]
-			}
-			return 0
-		}
-		switch at(0) {
-		case 'd':
-			p.d = true
-		case 'l':
-			p.sl = true
-		case 'p':
-			p.np = true
-		case 's':
-			p.s = true
-		case 'c':
-			p.cd = true
-		case 'b':
-			p.bd = true
-		case 'D':
-			p.dr = true
-		}
-		p.ru, p.wu = at(1) == 'r', at(2) == 'w'
-		switch at(3) {
-		case 'x':
-			p.eu = true
-		case 's':
-			p.eu, p.su = true, true
-		case 'S':
-			p.su = true
-		}
-		p.rg, p.wg = at(4) == 'r', at(5) == 'w'
-		switch at(6) {
-		case 'x':
-			p.eg = true
-		case 's':
-			p.eg, p.sg = true, true
-		case 'S':
-			p.sg = true
-		}
-		p.ro, p.wo = at(7) == 'r', at(8) == 'w'
-		switch at(9) {
-		case 'x':
-			p.eo = true
-		case 't':
-			p.eo, p.sb = true, true
-		case 'T':
-			p.sb = true
-		}
-	} else {
+	default:
 		return nil, fmt.Errorf("invalid input format; enter permissions in octal (e.g. 755) or textual (e.g. drwxr-xr-x) format")
 	}
 
+	return core.NewDish([]byte(describePerms(p, textual)), core.TypeString), nil
+}
+
+// parseOctalPerms parses an octal permission string (3 or 4 digits) into the
+// permission bits; each digit's bits are read/write/execute (4/2/1).
+func parseOctalPerms(octal string) unixPerms {
+	var p unixPerms
+	var d, u, g, o int
+	if len(octal) == 4 {
+		d, u, g, o = octDigit(octal[0]), octDigit(octal[1]), octDigit(octal[2]), octDigit(octal[3])
+	} else {
+		if len(octal) > 0 {
+			u = octDigit(octal[0])
+		}
+		if len(octal) > 1 {
+			g = octDigit(octal[1])
+		}
+		if len(octal) > 2 {
+			o = octDigit(octal[2])
+		}
+	}
+	p.su, p.sg, p.sb = d>>2&1 == 1, d>>1&1 == 1, d&1 == 1
+	p.ru, p.wu, p.eu = u>>2&1 == 1, u>>1&1 == 1, u&1 == 1
+	p.rg, p.wg, p.eg = g>>2&1 == 1, g>>1&1 == 1, g&1 == 1
+	p.ro, p.wo, p.eo = o>>2&1 == 1, o>>1&1 == 1, o&1 == 1
+	return p
+}
+
+// applyPermTypeChar sets the file-type bit for the leading character of a
+// textual permission string. A regular-file '-' (or anything else) sets nothing.
+func applyPermTypeChar(p *unixPerms, c byte) {
+	switch c {
+	case 'd':
+		p.d = true
+	case 'l':
+		p.sl = true
+	case 'p':
+		p.np = true
+	case 's':
+		p.s = true
+	case 'c':
+		p.cd = true
+	case 'b':
+		p.bd = true
+	case 'D':
+		p.dr = true
+	}
+}
+
+// parseTextualPerms parses a textual permission string (e.g. drwxr-sr-x) into
+// the permission bits, including the type character and the setuid/setgid/sticky
+// markers in the execute slots.
+func parseTextualPerms(t string) unixPerms {
+	var p unixPerms
+	at := func(i int) byte {
+		if i < len(t) {
+			return t[i]
+		}
+		return 0
+	}
+	applyPermTypeChar(&p, at(0))
+	p.ru, p.wu = at(1) == 'r', at(2) == 'w'
+	switch at(3) {
+	case 'x':
+		p.eu = true
+	case 's':
+		p.eu, p.su = true, true
+	case 'S':
+		p.su = true
+	}
+	p.rg, p.wg = at(4) == 'r', at(5) == 'w'
+	switch at(6) {
+	case 'x':
+		p.eg = true
+	case 's':
+		p.eg, p.sg = true, true
+	case 'S':
+		p.sg = true
+	}
+	p.ro, p.wo = at(7) == 'r', at(8) == 'w'
+	switch at(9) {
+	case 'x':
+		p.eo = true
+	case 't':
+		p.eo, p.sb = true, true
+	case 'T':
+		p.sb = true
+	}
+	return p
+}
+
+// describePerms renders the permission report: textual and octal forms, the file
+// type (textual input only), any special-flag notes, and the permission matrix.
+func describePerms(p unixPerms, textual bool) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Textual representation: %s", permsToStr(p))
 	fmt.Fprintf(&b, "\nOctal representation:   %s", permsToOctal(p))
@@ -142,7 +170,7 @@ func (ParseUNIXFilePermissions) Run(in *core.Dish, args []any) (*core.Dish, erro
 		b.WriteString("\nThe sticky bit is set")
 	}
 	b.WriteString(permsMatrix(p))
-	return core.NewDish([]byte(b.String()), core.TypeString), nil
+	return b.String()
 }
 
 func octDigit(c byte) int { return int(c - '0') }

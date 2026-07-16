@@ -7,9 +7,14 @@ DIST    := dist
 GOLANGCI_VERSION := v2.12.2
 GOSEC_VERSION := v2.27.1
 GOVULNCHECK_VERSION := v1.5.0
+GOCYCLO_VERSION := v0.6.0
+
+# Cyclomatic-complexity threshold reported by `make complexity` (Go Report
+# Card's gocyclo check flags functions above 15).
+GOCYCLO_OVER := 15
 
 .DEFAULT_GOAL := all
-.PHONY: all build clean cover fix fix-check fmt fmt-check install-tools lint sast sbom sbom-audit sbom-scan sec test vet vuln
+.PHONY: all build clean complexity cover fix fix-check fmt fmt-check install-tools lint sast sbom sbom-audit sbom-scan sec test vet vuln
 
 ## all: check formatting/modernization, vet, test, build, lint, and security (mirrors CI)
 all: fmt-check fix-check vet test build lint sec
@@ -22,6 +27,20 @@ build:
 ## clean: remove build artifacts
 clean:
 	rm -rf $(DIST) coverage.out
+
+## complexity: report functions above the cyclomatic-complexity threshold
+## (Go Report Card's gocyclo check, run with maintained tooling; excludes
+## tests). Informational — prints offenders and a count, never fails the build.
+complexity:
+	@out=$$($(GO) run github.com/fzipp/gocyclo/cmd/gocyclo@$(GOCYCLO_VERSION) \
+		-over $(GOCYCLO_OVER) -ignore '_test\.go$$' internal/ cmd/); \
+	if [ -n "$$out" ]; then \
+		echo "$$out"; \
+		echo; \
+		echo "$$(echo "$$out" | wc -l | tr -d ' ') function(s) over complexity $(GOCYCLO_OVER)."; \
+	else \
+		echo "No functions over complexity $(GOCYCLO_OVER)."; \
+	fi
 
 ## cover: run tests, write a cross-package coverage profile, and print the total
 cover:

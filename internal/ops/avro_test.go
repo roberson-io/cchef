@@ -12,6 +12,7 @@ package ops
 
 import (
 	"encoding/hex"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -863,5 +864,163 @@ func TestAvroBlockFramingErrors(t *testing.T) {
 	sizeOverflow := append(append([]byte(nil), base...), 0x02, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80)
 	if _, err := avroDecodeOCF(sizeOverflow); err == nil || !strings.Contains(err.Error(), "overflow") {
 		t.Fatalf("size overflow: %v", err)
+	}
+}
+
+// --- direct tests for the composite decoders extracted from decodeValue ---
+// Avro encodes longs as zig-zag varints: 1 -> 0x02, n -> 0x02*n for small n.
+
+// TestDecodeRecord documents record decoding into an insertion-ordered object.
+func TestDecodeRecord(t *testing.T) {
+	schema := &avroSchema{kind: "record", fields: []avroField{
+		{name: "flag", schema: &avroSchema{kind: "boolean"}},
+		{name: "n", schema: &avroSchema{kind: "int"}},
+	}}
+	// boolean true (0x01), int 5 (zig-zag 10 -> 0x0A).
+	r := &areader{data: []byte{0x01, 0x0A}}
+	got, err := decodeRecord(schema, r)
+	if err != nil {
+		t.Fatalf("decodeRecord: %v", err)
+	}
+	want := jsObject{{k: "flag", v: true}, {k: "n", v: int64(5)}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %#v, want %#v", got, want)
+	}
+}
+
+// TestDecodeMap documents block-encoded map decoding terminated by a zero count.
+func TestDecodeMap(t *testing.T) {
+	schema := &avroSchema{kind: "map", values: &avroSchema{kind: "int"}}
+	// count 1 (0x02), key "x" (len 1 -> 0x02, 'x'=0x78), value int 7 (0x0E), count 0 (0x00).
+	r := &areader{data: []byte{0x02, 0x02, 0x78, 0x0E, 0x00}}
+	got, err := decodeMap(schema, r)
+	if err != nil {
+		t.Fatalf("decodeMap: %v", err)
+	}
+	want := jsObject{{k: "x", v: int64(7)}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %#v, want %#v", got, want)
+	}
+}
+
+// TestDecodeUnion documents branch selection by index for an unwrapped union.
+func TestDecodeUnion(t *testing.T) {
+	schema := &avroSchema{kind: "union", branches: []*avroSchema{
+		{kind: "null"}, {kind: "int"},
+	}}
+	// branch index 1 (0x02), int 3 (zig-zag 6 -> varint 0x06).
+	r := &areader{data: []byte{0x02, 0x06}}
+	got, err := decodeUnion(schema, r)
+	if err != nil {
+		t.Fatalf("decodeUnion: %v", err)
+	}
+	if got != int64(3) {
+		t.Fatalf("got %#v, want int64(3)", got)
+	}
+	// Out-of-range branch index errors.
+	if _, err := decodeUnion(schema, &areader{data: []byte{0x08}}); err == nil {
+		t.Fatal("expected union index out of range error")
+	}
+}
+
+// TestDecodePrimitive documents the primitive-type decoders and the "handled"
+// signal for non-primitive kinds.
+func TestDecodePrimitive(t *testing.T) {
+	nul, handled, err := decodePrimitive(&avroSchema{kind: "null"}, &areader{})
+	if !handled || err != nil || nul != nil {
+		t.Fatalf("null: (%v, %v, %v)", nul, handled, err)
+	}
+	b, _, _ := decodePrimitive(&avroSchema{kind: "boolean"}, &areader{data: []byte{0x01}})
+	if b != true {
+		t.Fatalf("boolean: %v", b)
+	}
+	n, _, _ := decodePrimitive(&avroSchema{kind: "int"}, &areader{data: []byte{0x0A}})
+	if n != int64(5) {
+		t.Fatalf("int: %v", n)
+	}
+	s, _, _ := decodePrimitive(&avroSchema{kind: "string"}, &areader{data: []byte{0x02, 0x78}})
+	if s != "x" {
+		t.Fatalf("string: %v", s)
+	}
+	// A complex kind is not handled here.
+	if _, handled, _ := decodePrimitive(&avroSchema{kind: "record"}, &areader{}); handled {
+		t.Fatal("record should not be handled by decodePrimitive")
+	}
+}
+
+// --- direct tests for the phases extracted from avroDecodeOCF ---
+
+// TestAvroReadHeader documents the lenient/error header behaviours.
+func TestAvroReadHeader(t *testing.T) {
+	// Fewer than 4 bytes: no records (done, no error).
+	if _, _, _, done, err := avroReadHeader(&areader{data: []byte{1, 2}}); !done || err != nil {
+		t.Fatalf("short: done=%v err=%v", done, err)
+	}
+	// Bad magic errors.
+	if _, _, _, _, err := avroReadHeader(&areader{data: []byte{0, 0, 0, 0, 9}}); err == nil {
+		t.Fatal("expected bad-magic error")
+	}
+	// Bare magic (no header body): done, no error.
+	if _, _, _, done, err := avroReadHeader(&areader{data: avroMagic}); !done || err != nil {
+		t.Fatalf("bare magic: done=%v err=%v", done, err)
+	}
+}
+
+// TestAvroReadBlock documents decoding one data block and the sync-mismatch
+// error, using the null codec and an int schema.
+func TestAvroReadBlock(t *testing.T) {
+	schema := &avroSchema{kind: "int"}
+	sync := make([]byte, 16) // all-zero sync marker
+
+	// count 1 (0x02), block size 1 (0x02), block = int 5 (0x0A), then the sync.
+	data := append([]byte{0x02, 0x02, 0x0A}, sync...)
+	recs, done, err := avroReadBlock(&areader{data: data}, schema, "null", sync)
+	if err != nil || done || len(recs) != 1 || recs[0] != int64(5) {
+		t.Fatalf("block: recs=%v done=%v err=%v", recs, done, err)
+	}
+
+	// A sync marker that doesn't match is corruption.
+	wrong := make([]byte, 16)
+	wrong[0] = 0xFF
+	if _, _, err := avroReadBlock(&areader{data: data}, schema, "null", wrong); err == nil {
+		t.Fatal("expected sync-mismatch error")
+	}
+}
+
+// --- direct tests for the node parsers extracted from parseAvroSchema ---
+
+// TestParseAvroString documents primitive names, named-type lookup, and the
+// unknown-type error.
+func TestParseAvroString(t *testing.T) {
+	if s, err := parseAvroString("int", map[string]*avroSchema{}, ""); err != nil || s.kind != "int" {
+		t.Fatalf("primitive: %+v, %v", s, err)
+	}
+	ref := &avroSchema{kind: "record", name: "Foo"}
+	if s, err := parseAvroString("Foo", map[string]*avroSchema{"Foo": ref}, ""); err != nil || s != ref {
+		t.Fatalf("named lookup: %+v, %v", s, err)
+	}
+	if _, err := parseAvroString("Nope", map[string]*avroSchema{}, ""); err == nil {
+		t.Fatal("expected unknown-type error")
+	}
+}
+
+// TestParseAvroUnion documents union parsing (a JSON array of branch schemas).
+func TestParseAvroUnion(t *testing.T) {
+	s, err := parseAvroUnion([]any{"null", "int"}, map[string]*avroSchema{}, "")
+	if err != nil || s.kind != "union" || len(s.branches) != 2 || s.branches[0].kind != "null" {
+		t.Fatalf("union: %+v, %v", s, err)
+	}
+}
+
+// TestParseAvroObject documents object parsing: complex types (array) and a
+// primitive wrapped in an object.
+func TestParseAvroObject(t *testing.T) {
+	arr, err := parseAvroObject(map[string]any{"type": "array", "items": "int"}, map[string]*avroSchema{}, "")
+	if err != nil || arr.kind != "array" || arr.items.kind != "int" {
+		t.Fatalf("array: %+v, %v", arr, err)
+	}
+	prim, err := parseAvroObject(map[string]any{"type": "long"}, map[string]*avroSchema{}, "")
+	if err != nil || prim.kind != "long" {
+		t.Fatalf("wrapped primitive: %+v, %v", prim, err)
 	}
 }

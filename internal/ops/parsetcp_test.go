@@ -61,3 +61,41 @@ func TestParseTCPBranches(t *testing.T) {
 		}
 	}
 }
+
+// --- direct tests for the helpers extracted from ParseTCP.Run ---
+
+// TestParseTCPOptionValue documents the three option-value forms: a custom
+// parser, a short integer (<= 6 bytes), and a long hex dump.
+func TestParseTCPOptionValue(t *testing.T) {
+	// Custom parser: receives optLength-2 bytes.
+	parsed := parseTCPOptionValue(newByteStream([]byte{0xaa, 0xbb, 0xcc}),
+		tcpOpt{parser: func(b []byte) any { return len(b) }}, 5)
+	if parsed != 3 {
+		t.Errorf("parser: got %v want 3", parsed)
+	}
+	// Short integer: optLength 4 -> readInt(2), big-endian 0x0005.
+	if got := parseTCPOptionValue(newByteStream([]byte{0x00, 0x05}), tcpOpt{}, 4); got != 5 {
+		t.Errorf("int: got %v want 5", got)
+	}
+	// Long value: optLength 9 -> "0x" + hex of 7 bytes.
+	got := parseTCPOptionValue(newByteStream([]byte{1, 2, 3, 4, 5, 6, 7}), tcpOpt{}, 9)
+	if got != "0x01020304050607" {
+		t.Errorf("hex: got %v", got)
+	}
+}
+
+// TestTCPWindowScale documents extracting the window-scale shift count from a
+// parsed option value (a *omap with a "Shift count" entry).
+func TestTCPWindowScale(t *testing.T) {
+	om := newOMap()
+	om.set("Shift count", 7)
+	if sc, ok := tcpWindowScale(om); !ok || sc != 7 {
+		t.Errorf("omap: got %d %v", sc, ok)
+	}
+	if _, ok := tcpWindowScale("not an omap"); ok {
+		t.Error("non-omap should not yield a shift count")
+	}
+	if _, ok := tcpWindowScale(newOMap()); ok {
+		t.Error("omap without Shift count should not yield one")
+	}
+}

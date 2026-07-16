@@ -71,3 +71,14 @@ func TestBase32Branches(t *testing.T) {
 		t.Fatalf("From Base32(!): %v", err)
 	}
 }
+
+// TestBase32EmitGroup documents decoding one 8-symbol group (as decoded indices,
+// 32 = the "=" pad) into its bytes, honouring padding: "MY"=f, "MZXW6"=foo.
+func TestBase32EmitGroup(t *testing.T) {
+	if got := base32EmitGroup(nil, [8]int{12, 24, 32, 32, 32, 32, 32, 32}); string(got) != "f" {
+		t.Fatalf("f: %q", got)
+	}
+	if got := base32EmitGroup(nil, [8]int{12, 25, 23, 22, 30, 32, 32, 32}); string(got) != "foo" {
+		t.Fatalf("foo: %q", got)
+	}
+}

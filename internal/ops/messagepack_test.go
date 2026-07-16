@@ -446,3 +446,25 @@ func TestMessagePackRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+// --- direct tests for the type-family helpers extracted from msgpackParsePrefixed ---
+
+// TestMsgpackFloat documents the float32 (0xca) and float64 (0xcb) decoders.
+func TestMsgpackFloat(t *testing.T) {
+	// 1.5 as big-endian float32 (0x3FC00000) and float64 (0x3FF8...).
+	if v, err := msgpackFloat(&mreader{data: []byte{0x3F, 0xC0, 0x00, 0x00}}, 0xca); err != nil || v != 1.5 {
+		t.Fatalf("float32: %v, %v", v, err)
+	}
+	if v, err := msgpackFloat(&mreader{data: []byte{0x3F, 0xF8, 0, 0, 0, 0, 0, 0}}, 0xcb); err != nil || v != 1.5 {
+		t.Fatalf("float64: %v, %v", v, err)
+	}
+}
+
+// TestMsgpackParseSized documents dispatching the length-prefixed str/array/map
+// family: str8 (0xd9) with an 8-bit length.
+func TestMsgpackParseSized(t *testing.T) {
+	v, err := msgpackParseSized(&mreader{data: []byte{0x02, 'h', 'i'}}, 0xd9)
+	if err != nil || v != "hi" {
+		t.Fatalf("str8: %v, %v", v, err)
+	}
+}

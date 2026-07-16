@@ -82,3 +82,41 @@ func TestFuzzyMatchInternals(t *testing.T) {
 		t.Fatal("fuzzyMatchRecursive with maxMatches=0 should abort")
 	}
 }
+
+// TestFuzzyScore documents the scoring phase extracted from fuzzyMatchRecursive:
+// base score, the first-letter bonus, and the sequential bonus for adjacent
+// matches. For "abc" fully matched at [0,1,2] with the default weights:
+// 100 + firstLetter(15) + 2*sequential(15) = 145.
+func TestFuzzyScore(t *testing.T) {
+	got := fuzzyScore([]int{0, 1, 2}, 3, []rune("abc"), fuzzyDefaultWeights)
+	if got != 145 {
+		t.Fatalf("fuzzyScore = %v, want 145", got)
+	}
+	// A camelCase boundary (lower then upper) adds the camel bonus.
+	// "aB" matched at [1]: 100 + leadingPenalty(-5) + unmatched(-1) + camel(30) = 124.
+	if got := fuzzyScore([]int{1}, 1, []rune("aB"), fuzzyDefaultWeights); got != 124 {
+		t.Fatalf("camel fuzzyScore = %v, want 124", got)
+	}
+}
+
+// TestFuzzyBest documents the "best recursive alternative" tracker: it keeps the
+// highest-scoring matched result and ignores unmatched or lower-scoring ones.
+func TestFuzzyBest(t *testing.T) {
+	var b fuzzyBest
+	b.consider(true, 50, []int{1, 2})
+	if !b.matched || b.score != 50 {
+		t.Fatalf("first: %+v", b)
+	}
+	b.consider(true, 60, []int{3}) // higher score wins
+	if b.score != 60 || len(b.matches) != 1 || b.matches[0] != 3 {
+		t.Fatalf("higher: %+v", b)
+	}
+	b.consider(true, 40, []int{4}) // lower score ignored
+	if b.score != 60 {
+		t.Fatalf("lower changed score: %+v", b)
+	}
+	b.consider(false, 99, []int{9}) // unmatched ignored
+	if b.score != 60 {
+		t.Fatalf("unmatched changed score: %+v", b)
+	}
+}

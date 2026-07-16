@@ -181,9 +181,27 @@ func toJA4(data []byte) (map[string]string, error) {
 		return nil, fingerprintError("data is not a valid TLS Client Hello (QUIC is not yet supported)")
 	}
 
-	version := h.helloVersion
-	sni := "i"
-	alpn := "00"
+	version, sni, alpn := ja4ClientSummary(h)
+	ver := tlsVersionMapper(version)
+
+	cipherLen, sortedCiphersRaw, origCiphersRaw := ja4Ciphers(h)
+	extLen, sortedExtsRaw, origExtsRaw := ja4Extensions(h)
+
+	prefix := "t" + ver + sni + cipherLen + extLen + alpn
+	return map[string]string{
+		"JA4":    prefix + "_" + sha256Trunc12(sortedCiphersRaw) + "_" + sha256Trunc12(sortedExtsRaw),
+		"JA4_o":  prefix + "_" + sha256Trunc12(origCiphersRaw) + "_" + sha256Trunc12(origExtsRaw),
+		"JA4_r":  prefix + "_" + sortedCiphersRaw + "_" + sortedExtsRaw,
+		"JA4_ro": prefix + "_" + origCiphersRaw + "_" + origExtsRaw,
+	}, nil
+}
+
+// ja4ClientSummary scans the Client Hello extensions for the negotiated version,
+// whether a server_name is present ("d"/"i"), and the ALPN fingerprint.
+func ja4ClientSummary(h *ja4Hello) (version int, sni, alpn string) {
+	version = h.helloVersion
+	sni = "i"
+	alpn = "00"
 	for _, ext := range h.extensions {
 		switch ext.typ {
 		case 0x002b: // supported_versions
@@ -196,8 +214,12 @@ func toJA4(data []byte) (map[string]string, error) {
 			}
 		}
 	}
-	ver := tlsVersionMapper(version)
+	return version, sni, alpn
+}
 
+// ja4Ciphers collects the non-GREASE cipher suites as hex, returning the padded
+// count and both the sorted and original-order comma-joined lists.
+func ja4Ciphers(h *ja4Hello) (cipherLen, sortedRaw, origRaw string) {
 	var origCiphers []string
 	for _, cd := range h.cipherData {
 		v := int(cd[0])<<8 | int(cd[1])
@@ -205,12 +227,16 @@ func toJA4(data []byte) (map[string]string, error) {
 			origCiphers = append(origCiphers, toHexFast(cd))
 		}
 	}
-	cipherLen := pad2Count(len(origCiphers))
+	cipherLen = pad2Count(len(origCiphers))
 	sortedCiphers := append([]string(nil), origCiphers...)
 	sort.Strings(sortedCiphers)
-	sortedCiphersRaw := strings.Join(sortedCiphers, ",")
-	origCiphersRaw := strings.Join(origCiphers, ",")
+	return cipherLen, strings.Join(sortedCiphers, ","), strings.Join(origCiphers, ",")
+}
 
+// ja4Extensions collects the non-GREASE extensions as hex and the
+// signature_algorithms list, returning the padded count and both the sorted and
+// original-order raw strings (each suffixed with "_" + signature algorithms).
+func ja4Extensions(h *ja4Hello) (extLen, sortedRaw, origRaw string) {
 	var origExts []string
 	signatureAlgorithms := ""
 	extCount := 0
@@ -229,7 +255,7 @@ func toJA4(data []byte) (map[string]string, error) {
 			signatureAlgorithms = commaEvery4(toHexFast(sa))
 		}
 	}
-	extLen := pad2Count(extCount)
+	extLen = pad2Count(extCount)
 
 	var sortedExts []string
 	for _, e := range origExts {
@@ -238,16 +264,9 @@ func toJA4(data []byte) (map[string]string, error) {
 		}
 	}
 	sort.Strings(sortedExts)
-	sortedExtsRaw := strings.Join(sortedExts, ",") + "_" + signatureAlgorithms
-	origExtsRaw := strings.Join(origExts, ",") + "_" + signatureAlgorithms
-
-	prefix := "t" + ver + sni + cipherLen + extLen + alpn
-	return map[string]string{
-		"JA4":    prefix + "_" + sha256Trunc12(sortedCiphersRaw) + "_" + sha256Trunc12(sortedExtsRaw),
-		"JA4_o":  prefix + "_" + sha256Trunc12(origCiphersRaw) + "_" + sha256Trunc12(origExtsRaw),
-		"JA4_r":  prefix + "_" + sortedCiphersRaw + "_" + sortedExtsRaw,
-		"JA4_ro": prefix + "_" + origCiphersRaw + "_" + origExtsRaw,
-	}, nil
+	sortedRaw = strings.Join(sortedExts, ",") + "_" + signatureAlgorithms
+	origRaw = strings.Join(origExts, ",") + "_" + signatureAlgorithms
+	return extLen, sortedRaw, origRaw
 }
 
 // toJA4S computes the JA4S fingerprints from a TLS Server Hello. Ported from

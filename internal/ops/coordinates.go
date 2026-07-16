@@ -13,6 +13,14 @@ import (
 	"github.com/wroge/wgs84"
 )
 
+// Coordinate conversion constants.
+const (
+	minutesPerDegree   = 60     // arc-minutes in a degree
+	secondsPerDegree   = 3600   // arc-seconds in a degree
+	osgbGridSquareSize = 100000 // size of an OS National Grid 100 km square, in metres
+	maxGridPrecision   = 10     // maximum digits for MGRS / OS National Grid output
+)
+
 // coordFormats mirrors CyberChef's FORMATS (ConvertCoordinates.mjs).
 var coordFormats = []string{
 	"Degrees Minutes Seconds",
@@ -72,7 +80,7 @@ func splitInput(input string) []float64 {
 }
 
 func convDMSToDD(degrees, minutes, seconds float64) float64 {
-	conv := math.Abs(degrees) + minutes/60 + seconds/3600
+	conv := math.Abs(degrees) + minutes/minutesPerDegree + seconds/secondsPerDegree
 	if isNegativeZero(degrees) || degrees < 0 {
 		conv = -conv
 	}
@@ -80,7 +88,7 @@ func convDMSToDD(degrees, minutes, seconds float64) float64 {
 }
 
 func convDDMToDD(degrees, minutes float64) float64 {
-	conv := math.Abs(degrees) + minutes/60
+	conv := math.Abs(degrees) + minutes/minutesPerDegree
 	if isNegativeZero(degrees) || degrees < 0 {
 		conv = -conv
 	}
@@ -94,8 +102,8 @@ func convDDToDD(degrees float64, precision int) string {
 func convDDToDMS(decDegrees float64, precision int) string {
 	absDegrees := math.Abs(decDegrees)
 	degrees := math.Floor(absDegrees)
-	minutes := math.Floor(60 * (absDegrees - degrees))
-	seconds := coordRound(3600*(absDegrees-degrees)-60*minutes, precision)
+	minutes := math.Floor(minutesPerDegree * (absDegrees - degrees))
+	seconds := coordRound(secondsPerDegree*(absDegrees-degrees)-minutesPerDegree*minutes, precision)
 	out := jsNum(degrees) + "° " + jsNum(minutes) + "' " + jsNum(seconds) + "\""
 	if isNegativeZero(decDegrees) || decDegrees < 0 {
 		out = "-" + out
@@ -106,7 +114,7 @@ func convDDToDMS(decDegrees float64, precision int) string {
 func convDDToDDM(decDegrees float64, precision int) string {
 	absDegrees := math.Abs(decDegrees)
 	degrees := math.Floor(absDegrees)
-	decMinutes := coordRound((absDegrees-degrees)*60, precision)
+	decMinutes := coordRound((absDegrees-degrees)*minutesPerDegree, precision)
 	out := jsNum(degrees) + "° " + jsNum(decMinutes) + "'"
 	if decDegrees < 0 || isNegativeZero(decDegrees) {
 		out = "-" + out
@@ -125,7 +133,15 @@ func findDirs(input, delim string) (string, string) {
 			return dirs[0], ""
 		}
 	}
-	lat, long, latDir, longDir := upper, "", "", ""
+	lat, long := splitLatLong(upper, delim)
+	return dirFromValue(lat, "S", "N"), dirFromValue(long, "W", "E")
+}
+
+// splitLatLong splits the (uppercased) input into its latitude and longitude
+// substrings, using the delimiter, or the direction markers for a
+// "Direction"-style delimiter.
+func splitLatLong(upper, delim string) (lat, long string) {
+	lat = upper
 	if !strings.Contains(delim, "Direction") {
 		if strings.Contains(upper, delim) {
 			split := strings.Split(upper, delim)
@@ -138,34 +154,32 @@ func findDirs(input, delim string) (string, string) {
 				}
 			}
 		}
-	} else {
-		split := reCoordDirSpl.Split(upper, -1)
-		if len(split) > 1 {
-			if split[0] == "" {
-				lat = split[1]
-			} else {
-				lat = split[0]
-			}
-			if len(split) > 2 && split[2] != "" {
-				long = split[2]
-			}
-		}
+		return lat, long
 	}
-	if lat != "" {
-		if f, err := strconv.ParseFloat(strings.TrimSpace(lat), 64); err == nil && f < 0 {
-			latDir = "S"
+	split := reCoordDirSpl.Split(upper, -1)
+	if len(split) > 1 {
+		if split[0] == "" {
+			lat = split[1]
 		} else {
-			latDir = "N"
+			lat = split[0]
+		}
+		if len(split) > 2 && split[2] != "" {
+			long = split[2]
 		}
 	}
-	if long != "" {
-		if f, err := strconv.ParseFloat(strings.TrimSpace(long), 64); err == nil && f < 0 {
-			longDir = "W"
-		} else {
-			longDir = "E"
-		}
+	return lat, long
+}
+
+// dirFromValue returns neg when s parses to a negative number, pos otherwise;
+// an empty string yields "".
+func dirFromValue(s, neg, pos string) string {
+	if s == "" {
+		return ""
 	}
-	return latDir, longDir
+	if f, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err == nil && f < 0 {
+		return neg
+	}
+	return pos
 }
 
 // findDelim auto-detects the input delimiter. Returns "" if none found.
@@ -194,60 +208,79 @@ func findDelim(input string) string {
 
 // findFormat auto-detects the input format. Returns "" if none found.
 func findFormat(input, delim string) string {
-	var testData string
-	hasTest := false
 	input = strings.TrimSpace(input)
+	testData, hasTest := findTestData(input, delim)
 
-	if delim != "" && strings.Contains(delim, "Direction") {
-		split := reCoordDirSpl.Split(input, -1)
-		if len(split) > 1 {
-			if split[0] == "" {
-				testData = split[1]
-			} else {
-				testData = split[0]
-			}
-			hasTest = true
-		}
-	} else if delim != "" {
-		if strings.Contains(input, delim) {
-			split := strings.Split(input, delim)
-			if len(split) > 1 {
-				if split[0] == "" {
-					testData = split[1]
-				} else {
-					testData = split[0]
-				}
-				hasTest = true
-			}
-		} else {
-			testData = input
-			hasTest = true
-		}
+	if grid := detectGridFormat(input, delim); grid != "" {
+		return grid
 	}
-
-	if !reCoordDeg.MatchString(input) {
-		filtered := strings.Replace(strings.ToUpper(input), delim, "", 1)
-		switch {
-		case reCoordUTM.MatchString(filtered):
-			return "Universal Transverse Mercator"
-		case reCoordMGRS.MatchString(filtered):
-			return "Military Grid Reference System"
-		case reCoordOSNG.MatchString(filtered):
-			return "Ordnance Survey National Grid"
-		case reCoordGeohash.MatchString(filtered):
-			return "Geohash"
-		}
-	}
-
 	if hasTest {
-		switch len(splitInput(testData)) {
-		case 3:
-			return "Degrees Minutes Seconds"
-		case 2:
-			return "Degrees Decimal Minutes"
-		case 1:
-			return "Decimal Degrees"
+		return detectDegreeFormat(testData)
+	}
+	return ""
+}
+
+// firstNonEmpty returns the first of split[0]/split[1] that is non-empty (used
+// to pick the latitude token when a leading direction marker leaves split[0]
+// empty).
+func firstNonEmpty(split []string) string {
+	if split[0] == "" {
+		return split[1]
+	}
+	return split[0]
+}
+
+// findTestData extracts the first coordinate token used to classify the degree
+// format, and whether a token was found.
+func findTestData(input, delim string) (string, bool) {
+	if delim == "" {
+		return "", false
+	}
+	if strings.Contains(delim, "Direction") {
+		if split := reCoordDirSpl.Split(input, -1); len(split) > 1 {
+			return firstNonEmpty(split), true
 		}
+		return "", false
+	}
+	if !strings.Contains(input, delim) {
+		return input, true
+	}
+	if split := strings.Split(input, delim); len(split) > 1 {
+		return firstNonEmpty(split), true
+	}
+	return "", false
+}
+
+// detectGridFormat classifies grid-style coordinates (UTM/MGRS/OSNG/Geohash) by
+// regex, returning "" for degree-style input (which contains °/'/") or no match.
+func detectGridFormat(input, delim string) string {
+	if reCoordDeg.MatchString(input) {
+		return ""
+	}
+	filtered := strings.Replace(strings.ToUpper(input), delim, "", 1)
+	switch {
+	case reCoordUTM.MatchString(filtered):
+		return "Universal Transverse Mercator"
+	case reCoordMGRS.MatchString(filtered):
+		return "Military Grid Reference System"
+	case reCoordOSNG.MatchString(filtered):
+		return "Ordnance Survey National Grid"
+	case reCoordGeohash.MatchString(filtered):
+		return "Geohash"
+	}
+	return ""
+}
+
+// detectDegreeFormat classifies a degree coordinate by how many numeric
+// components its test token has (3=DMS, 2=DDM, 1=DD).
+func detectDegreeFormat(testData string) string {
+	switch len(splitInput(testData)) {
+	case 3:
+		return "Degrees Minutes Seconds"
+	case 2:
+		return "Degrees Decimal Minutes"
+	case 1:
+		return "Decimal Degrees"
 	}
 	return ""
 }
@@ -262,8 +295,8 @@ func realDelim(delim string) string {
 
 // osgbToGrid formats OSGB easting/northing as a grid reference (e.g. "TQ 30028 80380").
 func osgbToGrid(e, n float64, digits int) string {
-	e100k := math.Floor(e / 100000)
-	n100k := math.Floor(n / 100000)
+	e100k := math.Floor(e / osgbGridSquareSize)
+	n100k := math.Floor(n / osgbGridSquareSize)
 	if e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12 {
 		return ""
 	}
@@ -278,8 +311,8 @@ func osgbToGrid(e, n float64, digits int) string {
 	letters := string(rune('A'+l1)) + string(rune('A'+l2)) // #nosec G115 -- grid letter index is small and bounded
 	d := digits / 2
 	scale := math.Pow(10, float64(5-d))
-	em := int(math.Floor(math.Mod(e, 100000) / scale))
-	nm := int(math.Floor(math.Mod(n, 100000) / scale))
+	em := int(math.Floor(math.Mod(e, osgbGridSquareSize) / scale))
+	nm := int(math.Floor(math.Mod(n, osgbGridSquareSize) / scale))
 	return fmt.Sprintf("%s %0*d %0*d", letters, d, em, d, nm)
 }
 
@@ -308,7 +341,7 @@ func osgbParse(ref string) (float64, float64, bool) {
 	nStr := (en[half:] + "00000")[:5]
 	ev, _ := strconv.Atoi(eStr)
 	nv, _ := strconv.Atoi(nStr)
-	return float64(e100k*100000 + ev), float64(n100k*100000 + nv), true
+	return float64(e100k*osgbGridSquareSize + ev), float64(n100k*osgbGridSquareSize + nv), true
 }
 
 // fmtMGRS reformats a coco MGRS string (e.g. "30UXC9931610163" -> "30U XC 99316 10163").
@@ -350,171 +383,19 @@ func convertCoordinates(input, inFormat, inDelim, outFormat, outDelim string, in
 
 	outDelim = realDelim(outDelim)
 
-	var split []string
-	isPair := false
-	if !coordNoChange[inFormat] {
-		if strings.Contains(inDelim, "Direction") {
-			split = reCoordDirSpl.Split(input, -1)
-			if len(split) > 0 && split[0] == "" {
-				split = split[1:]
-			}
-		} else {
-			split = strings.Split(input, inDelim)
-		}
-		for i := range split {
-			split[i] = reCoordSym.ReplaceAllString(split[i], " ")
-		}
-		if len(split) > 1 {
-			isPair = true
-		}
-	} else {
-		input = strings.Replace(input, inDelim, "", 1)
-		isPair = true
+	input, split, isPair := tokeniseCoordInput(input, inFormat, inDelim)
+
+	lat, lon, err := parseCoordinateInput(inFormat, input, split, isPair)
+	if err != nil {
+		return "", err
 	}
 
-	var lat, lon float64
-	switch inFormat {
-	case "Geohash":
-		lat, lon = geohash.DecodeCenter(reCoordNonAN.ReplaceAllString(input, ""))
-	case "Military Grid Reference System":
-		ll, _, err := coco.MGRS(reCoordNonAN.ReplaceAllString(input, "")).ToLL()
-		if err != nil {
-			return "", fmt.Errorf("invalid MGRS reference: %w", err)
-		}
-		lat, lon = ll.Lat, ll.Lon
-	case "Ordnance Survey National Grid":
-		e, n, ok := osgbParse(input)
-		if !ok {
-			return "", fmt.Errorf("invalid Ordnance Survey National Grid reference")
-		}
-		l, la, _ := wgs84.From(wgs84.OSGB36NationalGrid())(e, n, 0)
-		lat, lon = la, l
-	case "Universal Transverse Mercator":
-		var err error
-		lat, lon, err = utmParse(input)
-		if err != nil {
-			return "", err
-		}
-	case "Degrees Minutes Seconds":
-		if isPair {
-			sl, so := splitInput(split[0]), splitInput(split[1])
-			if len(sl) < 3 || len(so) < 3 {
-				return "", fmt.Errorf("invalid co-ordinate format for Degrees Minutes Seconds")
-			}
-			lat = convDMSToDD(sl[0], sl[1], sl[2])
-			lon = convDMSToDD(so[0], so[1], so[2])
-		} else {
-			sl := splitInput(split[0])
-			if len(sl) < 3 {
-				return "", fmt.Errorf("invalid co-ordinate format for Degrees Minutes Seconds")
-			}
-			lat = convDMSToDD(sl[0], sl[1], sl[2])
-			lon = lat
-		}
-	case "Degrees Decimal Minutes":
-		if isPair {
-			sl, so := splitInput(split[0]), splitInput(split[1])
-			if len(sl) != 2 || len(so) != 2 {
-				return "", fmt.Errorf("invalid co-ordinate format for Degrees Decimal Minutes")
-			}
-			lat = convDDMToDD(sl[0], sl[1])
-			lon = convDDMToDD(so[0], so[1])
-		} else {
-			sl := splitInput(input)
-			if len(sl) != 2 {
-				return "", fmt.Errorf("invalid co-ordinate format for Degrees Decimal Minutes")
-			}
-			lat = convDDMToDD(sl[0], sl[1])
-			lon = lat
-		}
-	case "Decimal Degrees":
-		if isPair {
-			sl, so := splitInput(split[0]), splitInput(split[1])
-			if len(sl) != 1 || len(so) != 1 {
-				return "", fmt.Errorf("invalid co-ordinate format for Decimal Degrees")
-			}
-			lat, lon = sl[0], so[0]
-		} else {
-			sl := splitInput(split[0])
-			if len(sl) != 1 {
-				return "", fmt.Errorf("invalid co-ordinate format for Decimal Degrees")
-			}
-			lat, lon = sl[0], sl[0]
-		}
-	default:
-		return "", fmt.Errorf("unknown input format '%s'", inFormat)
-	}
-
-	// Negate lat/lon for S/W directions (CyberChef's faithful, quirky precedence).
-	if strings.Contains(inFormat, "Degrees") {
-		dirs := reCoordDirs.FindAllString(strings.ToUpper(input), -1)
-		if len(dirs) >= 1 {
-			if dirs[0] == "S" || (dirs[0] == "W" && lat > 0) {
-				lat = -lat
-			}
-			if len(dirs) >= 2 {
-				if dirs[1] == "S" || (dirs[1] == "W" && lon > 0) {
-					lon = -lon
-				}
-			}
-		}
-	}
-
+	lat, lon = applyInputDirections(inFormat, input, lat, lon)
 	latDir, longDir := findDirs(jsNum(lat)+","+jsNum(lon), ",")
 
-	var convLat, convLon string
-	switch outFormat {
-	case "Decimal Degrees":
-		convLat, convLon = convDDToDD(lat, precision), convDDToDD(lon, precision)
-	case "Degrees Decimal Minutes":
-		convLat, convLon = convDDToDDM(lat, precision), convDDToDDM(lon, precision)
-	case "Degrees Minutes Seconds":
-		convLat, convLon = convDDToDMS(lat, precision), convDDToDMS(lon, precision)
-	case "Geohash":
-		convLat = geohash.EncodeWithPrecision(lat, lon, uint(precision))
-	case "Military Grid Reference System":
-		p := precision
-		if p%2 != 0 {
-			p++
-		}
-		if p > 10 {
-			p = 10
-		}
-		acc := int(math.Pow(10, float64(5-p/2)))
-		m, err := coco.LL{Lat: lat, Lon: lon}.ToMGRS(acc)
-		if err != nil {
-			return "", fmt.Errorf("could not convert co-ordinates to MGRS: %w", err)
-		}
-		convLat = fmtMGRS(string(m))
-	case "Ordnance Survey National Grid":
-		e, n, _ := wgs84.To(wgs84.OSGB36NationalGrid())(lon, lat, 0)
-		p := precision
-		if p%2 != 0 {
-			p++
-		}
-		if p > 10 {
-			p = 10
-		}
-		convLat = osgbToGrid(e, n, p)
-		if convLat == "" {
-			return "", fmt.Errorf("could not convert co-ordinates to OS National Grid. Are the co-ordinates in range?")
-		}
-	case "Universal Transverse Mercator":
-		e, n, zone, _, err := UTM.FromLatLon(lat, lon, lat >= 0)
-		if err != nil {
-			return "", fmt.Errorf("could not convert co-ordinates to UTM: %w", err)
-		}
-		hemi := "N"
-		if lat < 0 {
-			hemi = "S"
-		}
-		convLat = fmt.Sprintf("%d %s %s %s", zone, hemi,
-			strconv.FormatFloat(e, 'f', precision, 64), strconv.FormatFloat(n, 'f', precision, 64))
-	default:
-		// outFormat is validated against coordFormats by the arg layer, so every
-		// format has a case above; reaching here means an unvalidated value slipped
-		// through, which is a programming error.
-		panic(fmt.Sprintf("convertCoordinates: unhandled output format %q", outFormat))
+	convLat, convLon, err := formatCoordinateOutput(outFormat, lat, lon, precision)
+	if err != nil {
+		return "", err
 	}
 	// convLat is empty only for a zero-precision Geohash.
 	if convLat == "" {
@@ -522,34 +403,217 @@ func convertCoordinates(input, inFormat, inDelim, outFormat, outDelim string, in
 	}
 
 	if strings.Contains(outFormat, "Degrees") {
-		if latDir == "S" && includeDir != "None" {
-			convLat = strings.Replace(convLat, "-", "", 1)
-		}
-		if longDir == "W" && includeDir != "None" {
-			convLon = strings.Replace(convLon, "-", "", 1)
-		}
-		var out strings.Builder
-		if includeDir == "Before" {
-			out.WriteString(latDir + " ")
-		}
-		out.WriteString(convLat)
-		if includeDir == "After" {
-			out.WriteString(" " + latDir)
-		}
-		out.WriteString(outDelim)
-		if isPair {
-			if includeDir == "Before" {
-				out.WriteString(longDir + " ")
-			}
-			out.WriteString(convLon)
-			if includeDir == "After" {
-				out.WriteString(" " + longDir)
-			}
-			out.WriteString(outDelim)
-		}
-		return out.String(), nil
+		return assembleDirectionalOutput(convLat, convLon, latDir, longDir, includeDir, outDelim, isPair), nil
 	}
 	return convLat + outDelim, nil
+}
+
+// applyInputDirections negates lat/lon for S/W direction markers found in a
+// degree-based input, preserving CyberChef's faithful, quirky precedence.
+func applyInputDirections(inFormat, input string, lat, lon float64) (float64, float64) {
+	if !strings.Contains(inFormat, "Degrees") {
+		return lat, lon
+	}
+	dirs := reCoordDirs.FindAllString(strings.ToUpper(input), -1)
+	if len(dirs) == 0 {
+		return lat, lon
+	}
+	if dirs[0] == "S" || (dirs[0] == "W" && lat > 0) {
+		lat = -lat
+	}
+	if len(dirs) >= 2 && (dirs[1] == "S" || (dirs[1] == "W" && lon > 0)) {
+		lon = -lon
+	}
+	return lat, lon
+}
+
+// assembleDirectionalOutput builds the final string for a degree-based output
+// format: it strips the sign when a direction marker is shown and places the
+// marker before/after each coordinate per includeDir.
+func assembleDirectionalOutput(convLat, convLon, latDir, longDir, includeDir, outDelim string, isPair bool) string {
+	if latDir == "S" && includeDir != "None" {
+		convLat = strings.Replace(convLat, "-", "", 1)
+	}
+	if longDir == "W" && includeDir != "None" {
+		convLon = strings.Replace(convLon, "-", "", 1)
+	}
+
+	writeCoord := func(out *strings.Builder, value, dir string) {
+		if includeDir == "Before" {
+			out.WriteString(dir + " ")
+		}
+		out.WriteString(value)
+		if includeDir == "After" {
+			out.WriteString(" " + dir)
+		}
+		out.WriteString(outDelim)
+	}
+
+	var out strings.Builder
+	writeCoord(&out, convLat, latDir)
+	if isPair {
+		writeCoord(&out, convLon, longDir)
+	}
+	return out.String()
+}
+
+// tokeniseCoordInput splits the input into per-coordinate tokens for the
+// degree-based formats (normalising symbols to spaces) and reports whether the
+// input holds a lat/lon pair. Grid-style formats (coordNoChange) are not split;
+// their delimiter is stripped and the whole string is treated as one pair value.
+// The (possibly delimiter-stripped) input is returned for the caller to reuse.
+func tokeniseCoordInput(input, inFormat, inDelim string) (string, []string, bool) {
+	if coordNoChange[inFormat] {
+		return strings.Replace(input, inDelim, "", 1), nil, true
+	}
+
+	var split []string
+	if strings.Contains(inDelim, "Direction") {
+		split = reCoordDirSpl.Split(input, -1)
+		if len(split) > 0 && split[0] == "" {
+			split = split[1:]
+		}
+	} else {
+		split = strings.Split(input, inDelim)
+	}
+	for i := range split {
+		split[i] = reCoordSym.ReplaceAllString(split[i], " ")
+	}
+	return input, split, len(split) > 1
+}
+
+// parseCoordinateInput converts a coordinate string in the given format to
+// decimal-degree latitude and longitude. split/isPair carry the pre-tokenised
+// input for the degree-based formats.
+func parseCoordinateInput(inFormat, input string, split []string, isPair bool) (lat, lon float64, err error) {
+	switch inFormat {
+	case "Geohash":
+		lat, lon = geohash.DecodeCenter(reCoordNonAN.ReplaceAllString(input, ""))
+	case "Military Grid Reference System":
+		ll, _, err := coco.MGRS(reCoordNonAN.ReplaceAllString(input, "")).ToLL()
+		if err != nil {
+			return 0, 0, fmt.Errorf("invalid MGRS reference: %w", err)
+		}
+		lat, lon = ll.Lat, ll.Lon
+	case "Ordnance Survey National Grid":
+		e, n, ok := osgbParse(input)
+		if !ok {
+			return 0, 0, fmt.Errorf("invalid Ordnance Survey National Grid reference")
+		}
+		l, la, _ := wgs84.From(wgs84.OSGB36NationalGrid())(e, n, 0)
+		lat, lon = la, l
+	case "Universal Transverse Mercator":
+		return utmParse(input)
+	case "Degrees Minutes Seconds":
+		return parseDegreeInput(inFormat, split, input, isPair, 3, func(f []float64) float64 {
+			return convDMSToDD(f[0], f[1], f[2])
+		})
+	case "Degrees Decimal Minutes":
+		return parseDegreeInput(inFormat, split, input, isPair, 2, func(f []float64) float64 {
+			return convDDMToDD(f[0], f[1])
+		})
+	case "Decimal Degrees":
+		return parseDegreeInput(inFormat, split, input, isPair, 1, func(f []float64) float64 {
+			return f[0]
+		})
+	default:
+		return 0, 0, fmt.Errorf("unknown input format '%s'", inFormat)
+	}
+	return lat, lon, nil
+}
+
+// parseDegreeInput handles the three degree-based input formats, which share the
+// same pair/single structure: each coordinate is want fields long and folded to
+// decimal degrees by conv. Degrees Minutes Seconds accepts extra fields (its
+// original check is >=3, not ==3), so it passes want=3 with a >= comparison.
+func parseDegreeInput(inFormat string, split []string, input string, isPair bool, want int, conv func([]float64) float64) (lat, lon float64, err error) {
+	// Degrees Minutes Seconds keeps its historical ">= 3 fields" leniency; the
+	// other two require an exact field count.
+	enough := func(n int) bool {
+		if want == 3 {
+			return n >= want
+		}
+		return n == want
+	}
+	badFormat := fmt.Errorf("invalid co-ordinate format for %s", inFormat)
+
+	if isPair {
+		sl, so := splitInput(split[0]), splitInput(split[1])
+		if !enough(len(sl)) || !enough(len(so)) {
+			return 0, 0, badFormat
+		}
+		return conv(sl), conv(so), nil
+	}
+	// Single value: Degrees Decimal Minutes historically re-split the raw input
+	// rather than split[0]; the others use split[0].
+	src := split[0]
+	if want == 2 {
+		src = input
+	}
+	sl := splitInput(src)
+	if !enough(len(sl)) {
+		return 0, 0, badFormat
+	}
+	return conv(sl), conv(sl), nil
+}
+
+// formatCoordinateOutput renders decimal-degree lat/lon into the requested
+// output format at the given precision. convLon is empty for single-value
+// formats (Geohash, MGRS, OSGB, UTM).
+func formatCoordinateOutput(outFormat string, lat, lon float64, precision int) (convLat, convLon string, err error) {
+	switch outFormat {
+	case "Decimal Degrees":
+		return convDDToDD(lat, precision), convDDToDD(lon, precision), nil
+	case "Degrees Decimal Minutes":
+		return convDDToDDM(lat, precision), convDDToDDM(lon, precision), nil
+	case "Degrees Minutes Seconds":
+		return convDDToDMS(lat, precision), convDDToDMS(lon, precision), nil
+	case "Geohash":
+		return geohash.EncodeWithPrecision(lat, lon, uint(precision)), "", nil
+	case "Military Grid Reference System":
+		p := clampGridPrecision(precision)
+		acc := int(math.Pow(10, float64(5-p/2)))
+		m, err := coco.LL{Lat: lat, Lon: lon}.ToMGRS(acc)
+		if err != nil {
+			return "", "", fmt.Errorf("could not convert co-ordinates to MGRS: %w", err)
+		}
+		return fmtMGRS(string(m)), "", nil
+	case "Ordnance Survey National Grid":
+		e, n, _ := wgs84.To(wgs84.OSGB36NationalGrid())(lon, lat, 0)
+		grid := osgbToGrid(e, n, clampGridPrecision(precision))
+		if grid == "" {
+			return "", "", fmt.Errorf("could not convert co-ordinates to OS National Grid. Are the co-ordinates in range?")
+		}
+		return grid, "", nil
+	case "Universal Transverse Mercator":
+		e, n, zone, _, err := UTM.FromLatLon(lat, lon, lat >= 0)
+		if err != nil {
+			return "", "", fmt.Errorf("could not convert co-ordinates to UTM: %w", err)
+		}
+		hemi := "N"
+		if lat < 0 {
+			hemi = "S"
+		}
+		return fmt.Sprintf("%d %s %s %s", zone, hemi,
+			strconv.FormatFloat(e, 'f', precision, 64), strconv.FormatFloat(n, 'f', precision, 64)), "", nil
+	default:
+		// outFormat is validated against coordFormats by the arg layer, so every
+		// format has a case above; reaching here means an unvalidated value slipped
+		// through, which is a programming error.
+		panic(fmt.Sprintf("formatCoordinateOutput: unhandled output format %q", outFormat))
+	}
+}
+
+// clampGridPrecision rounds a precision up to the next even number and caps it at
+// 10, as the MGRS and OS National Grid encoders require.
+func clampGridPrecision(precision int) int {
+	if precision%2 != 0 {
+		precision++
+	}
+	if precision > maxGridPrecision {
+		precision = maxGridPrecision
+	}
+	return precision
 }
 
 // utmParse parses a UTM string ("30 U 699316.234 5710163.758") to lat/lon.

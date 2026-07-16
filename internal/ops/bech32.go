@@ -24,6 +24,23 @@ const (
 	bech32mConst = 0x2bc830a3 // BIP-0350 checksum constant
 )
 
+// Bech32 structural limits (BIP-0173 / BIP-0350).
+const (
+	bech32MaxLength   = 90  // maximum length of an encoded string
+	bech32ChecksumLen = 6   // number of checksum words appended to the data
+	bech32HRPCharMin  = 33  // HRP characters must be printable ASCII (33-126)
+	bech32HRPCharMax  = 126 //
+)
+
+// SegWit witness version and program-length limits (BIP-0141).
+const (
+	segwitMaxVersion    = 16 // witness versions are 0-16
+	segwitProgramMinLen = 2  // witness program length bounds, in bytes
+	segwitProgramMaxLen = 40 //
+	segwitV0P2WPKHLen   = 20 // valid v0 program lengths (P2WPKH / P2WSH)
+	segwitV0P2WSHLen    = 32 //
+)
+
 // bech32Generator holds the generator polynomial coefficients for the checksum.
 var bech32Generator = [5]uint32{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
 
@@ -143,8 +160,8 @@ func bech32Encode(hrp string, data []byte, encoding string, segwit bool) (string
 		return "", bech32Err("Human-Readable Part (HRP) cannot be empty.")
 	}
 	for i := 0; i < len(hrp); i++ {
-		if hrp[i] < 33 || hrp[i] > 126 {
-			return "", bech32Err("HRP contains invalid character at position %d. Only printable ASCII characters (33-126) are allowed.", i)
+		if hrp[i] < bech32HRPCharMin || hrp[i] > bech32HRPCharMax {
+			return "", bech32Err("HRP contains invalid character at position %d. Only printable ASCII characters (%d-%d) are allowed.", i, bech32HRPCharMin, bech32HRPCharMax)
 		}
 	}
 
@@ -153,15 +170,15 @@ func bech32Encode(hrp string, data []byte, encoding string, segwit bool) (string
 	var words []int
 	if segwit && len(data) >= 2 {
 		witnessVersion := data[0]
-		if witnessVersion > 16 {
-			return "", bech32Err("Invalid witness version: %d. Must be 0-16.", witnessVersion)
+		if witnessVersion > segwitMaxVersion {
+			return "", bech32Err("Invalid witness version: %d. Must be 0-%d.", witnessVersion, segwitMaxVersion)
 		}
 		witnessProgram := data[1:]
-		if len(witnessProgram) < 2 || len(witnessProgram) > 40 {
-			return "", bech32Err("Invalid witness program length: %d. Must be 2-40 bytes.", len(witnessProgram))
+		if len(witnessProgram) < segwitProgramMinLen || len(witnessProgram) > segwitProgramMaxLen {
+			return "", bech32Err("Invalid witness program length: %d. Must be %d-%d bytes.", len(witnessProgram), segwitProgramMinLen, segwitProgramMaxLen)
 		}
-		if witnessVersion == 0 && len(witnessProgram) != 20 && len(witnessProgram) != 32 {
-			return "", bech32Err("Invalid witness program length for v0: %d. Must be 20 or 32 bytes.", len(witnessProgram))
+		if witnessVersion == 0 && len(witnessProgram) != segwitV0P2WPKHLen && len(witnessProgram) != segwitV0P2WSHLen {
+			return "", bech32Err("Invalid witness program length for v0: %d. Must be %d or %d bytes.", len(witnessProgram), segwitV0P2WPKHLen, segwitV0P2WSHLen)
 		}
 		words = append([]int{int(witnessVersion)}, bech32ToWords(witnessProgram)...)
 	} else {
@@ -178,8 +195,8 @@ func bech32Encode(hrp string, data []byte, encoding string, segwit bool) (string
 	}
 	result := sb.String()
 
-	if len(result) > 90 {
-		return "", bech32Err("Encoded string exceeds maximum length of 90 characters (got %d). Consider using smaller input data.", len(result))
+	if len(result) > bech32MaxLength {
+		return "", bech32Err("Encoded string exceeds maximum length of %d characters (got %d). Consider using smaller input data.", bech32MaxLength, len(result))
 	}
 	return result, nil
 }
@@ -197,41 +214,78 @@ var bech32SegwitHrps = map[string]bool{"bc": true, "tb": true, "ltc": true, "tlt
 
 // bech32Decode decodes a Bech32/Bech32m string.
 func bech32Decode(str, encoding string) (*bech32Decoded, error) {
-	if len(str) == 0 {
-		return nil, bech32Err("Input cannot be empty.")
+	hrp, dataPart, sepIndex, err := bech32ParseParts(str)
+	if err != nil {
+		return nil, err
 	}
-	if len(str) > 90 {
-		return nil, bech32Err("Invalid Bech32 string: exceeds maximum length of 90 characters (got %d).", len(str))
+
+	data, err := bech32DecodeDataChars(dataPart, sepIndex)
+	if err != nil {
+		return nil, err
+	}
+
+	usedEncoding, err := bech32DetectEncoding(hrp, data, encoding)
+	if err != nil {
+		return nil, err
+	}
+
+	words := data[:len(data)-bech32ChecksumLen]
+	couldBeSegWit := bech32SegwitHrps[hrp] && len(words) > 0 && words[0] <= segwitMaxVersion
+	bytes, witnessVersion, err := bech32DecodeWords(words, couldBeSegWit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bech32Decoded{hrp: hrp, data: bytes, encoding: usedEncoding, witnessVersion: witnessVersion}, nil
+}
+
+// bech32ParseParts validates the overall string (non-empty, <=90 characters,
+// consistent case) and splits it at the last '1' separator into the HRP and data
+// part, lower-casing first and validating that the HRP characters are in range.
+// The separator index is returned for downstream error positioning.
+func bech32ParseParts(str string) (hrp, dataPart string, sepIndex int, err error) {
+	if len(str) == 0 {
+		return "", "", 0, bech32Err("Input cannot be empty.")
+	}
+	if len(str) > bech32MaxLength {
+		return "", "", 0, bech32Err("Invalid Bech32 string: exceeds maximum length of %d characters (got %d).", bech32MaxLength, len(str))
 	}
 
 	hasUpper := strings.ContainsFunc(str, func(r rune) bool { return r >= 'A' && r <= 'Z' })
 	hasLower := strings.ContainsFunc(str, func(r rune) bool { return r >= 'a' && r <= 'z' })
 	if hasUpper && hasLower {
-		return nil, bech32Err("Invalid Bech32 string: mixed case is not allowed. Use all uppercase or all lowercase.")
+		return "", "", 0, bech32Err("Invalid Bech32 string: mixed case is not allowed. Use all uppercase or all lowercase.")
 	}
 
 	str = strings.ToLower(str)
 
-	sepIndex := strings.LastIndex(str, "1")
+	sepIndex = strings.LastIndex(str, "1")
 	if sepIndex == -1 {
-		return nil, bech32Err("Invalid Bech32 string: no separator '1' found.")
+		return "", "", 0, bech32Err("Invalid Bech32 string: no separator '1' found.")
 	}
 	if sepIndex == 0 {
-		return nil, bech32Err("Invalid Bech32 string: Human-Readable Part (HRP) cannot be empty.")
+		return "", "", 0, bech32Err("Invalid Bech32 string: Human-Readable Part (HRP) cannot be empty.")
 	}
-	if sepIndex+7 > len(str) {
-		return nil, bech32Err("Invalid Bech32 string: data part is too short (minimum 6 characters for checksum).")
+	// The data part needs at least the checksum; +1 accounts for the separator.
+	if sepIndex+1+bech32ChecksumLen > len(str) {
+		return "", "", 0, bech32Err("Invalid Bech32 string: data part is too short (minimum %d characters for checksum).", bech32ChecksumLen)
 	}
 
-	hrp := str[:sepIndex]
-	dataPart := str[sepIndex+1:]
+	hrp = str[:sepIndex]
+	dataPart = str[sepIndex+1:]
 
 	for i := 0; i < len(hrp); i++ {
-		if hrp[i] < 33 || hrp[i] > 126 {
-			return nil, bech32Err("HRP contains invalid character at position %d.", i)
+		if hrp[i] < bech32HRPCharMin || hrp[i] > bech32HRPCharMax {
+			return "", "", 0, bech32Err("HRP contains invalid character at position %d.", i)
 		}
 	}
+	return hrp, dataPart, sepIndex, nil
+}
 
+// bech32DecodeDataChars maps each character of the data part to its 5-bit value,
+// erroring on any character outside the Bech32 charset. sepIndex is used only to
+// report the absolute position of a bad character.
+func bech32DecodeDataChars(dataPart string, sepIndex int) ([]int, error) {
 	data := make([]int, 0, len(dataPart))
 	for i := 0; i < len(dataPart); i++ {
 		v := bech32CharsetRev[dataPart[i]]
@@ -240,68 +294,57 @@ func bech32Decode(str, encoding string) (*bech32Decoded, error) {
 		}
 		data = append(data, v)
 	}
+	return data, nil
+}
 
-	var usedEncoding string
+// bech32DetectEncoding verifies the checksum and returns the encoding used. When
+// encoding is neither "Bech32" nor "Bech32m", both are tried in turn.
+func bech32DetectEncoding(hrp string, data []int, encoding string) (string, error) {
 	switch encoding {
 	case "Bech32":
 		if !bech32VerifyChecksum(hrp, data, "Bech32") {
-			return nil, bech32Err("Invalid Bech32 checksum.")
+			return "", bech32Err("Invalid Bech32 checksum.")
 		}
-		usedEncoding = "Bech32"
+		return "Bech32", nil
 	case "Bech32m":
 		if !bech32VerifyChecksum(hrp, data, "Bech32m") {
-			return nil, bech32Err("Invalid Bech32m checksum.")
+			return "", bech32Err("Invalid Bech32m checksum.")
 		}
-		usedEncoding = "Bech32m"
+		return "Bech32m", nil
 	default:
 		switch {
 		case bech32VerifyChecksum(hrp, data, "Bech32"):
-			usedEncoding = "Bech32"
+			return "Bech32", nil
 		case bech32VerifyChecksum(hrp, data, "Bech32m"):
-			usedEncoding = "Bech32m"
+			return "Bech32m", nil
 		default:
-			return nil, bech32Err("Invalid Bech32/Bech32m string: checksum verification failed.")
+			return "", bech32Err("Invalid Bech32/Bech32m string: checksum verification failed.")
 		}
 	}
+}
 
-	words := data[:len(data)-6]
-
-	couldBeSegWit := bech32SegwitHrps[hrp] && len(words) > 0 && words[0] <= 16
-
-	var bytes []byte
-	witnessVersion := -1
-
+// bech32DecodeWords converts the 5-bit data words (checksum already stripped)
+// into bytes. For a possible SegWit address it splits off the witness version
+// and validates the program length, falling back to a plain word decode (with
+// witness version -1) when the SegWit interpretation does not hold.
+func bech32DecodeWords(words []int, couldBeSegWit bool) ([]byte, int, error) {
 	if couldBeSegWit {
-		witnessVersion = words[0]
-		programBytes, err := bech32FromWords(words[1:])
-		if err != nil {
-			witnessVersion = -1
-			bytes, err = bech32FromWords(words)
-			if err != nil {
-				return nil, bech32Err("Failed to decode data: %w", err)
-			}
-		} else {
-			validV0 := witnessVersion == 0 && (len(programBytes) == 20 || len(programBytes) == 32)
-			validOther := witnessVersion != 0 && len(programBytes) >= 2 && len(programBytes) <= 40
+		witnessVersion := words[0]
+		if programBytes, err := bech32FromWords(words[1:]); err == nil {
+			validV0 := witnessVersion == 0 && (len(programBytes) == segwitV0P2WPKHLen || len(programBytes) == segwitV0P2WSHLen)
+			validOther := witnessVersion != 0 && len(programBytes) >= segwitProgramMinLen && len(programBytes) <= segwitProgramMaxLen
 			if validV0 || validOther {
-				bytes = append([]byte{byte(witnessVersion)}, programBytes...) // #nosec G115 -- witnessVersion is a decoded 5-bit word, guarded to 0-16
-			} else {
-				witnessVersion = -1
-				bytes, err = bech32FromWords(words)
-				if err != nil {
-					return nil, bech32Err("Failed to decode data: %w", err)
-				}
+				// #nosec G115 -- witnessVersion is a decoded 5-bit word, guarded to 0-16
+				return append([]byte{byte(witnessVersion)}, programBytes...), witnessVersion, nil
 			}
-		}
-	} else {
-		var err error
-		bytes, err = bech32FromWords(words)
-		if err != nil {
-			return nil, bech32Err("Failed to decode data: %w", err)
 		}
 	}
-
-	return &bech32Decoded{hrp: hrp, data: bytes, encoding: usedEncoding, witnessVersion: witnessVersion}, nil
+	// Plain decode: not SegWit, or the SegWit interpretation was rejected.
+	bytes, err := bech32FromWords(words)
+	if err != nil {
+		return nil, -1, bech32Err("Failed to decode data: %w", err)
+	}
+	return bytes, -1, nil
 }
 
 // ToBech32 encodes data as a Bech32/Bech32m string.
@@ -429,7 +472,7 @@ func (FromBech32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // bech32ScriptPubKey renders a decoded SegWit address as a Bitcoin scriptPubKey
 // hex string, falling back to plain hex when the input is not SegWit.
 func bech32ScriptPubKey(decoded *bech32Decoded) string {
-	if decoded.witnessVersion == -1 || len(decoded.data) < 2 {
+	if decoded.witnessVersion == -1 || len(decoded.data) < segwitProgramMinLen {
 		return toHex(decoded.data, "", "")
 	}
 	witnessVersion := decoded.data[0]
@@ -439,7 +482,7 @@ func bech32ScriptPubKey(decoded *bech32Decoded) string {
 	switch {
 	case witnessVersion == 0:
 		opCode = 0x00
-	case witnessVersion >= 1 && witnessVersion <= 16:
+	case witnessVersion >= 1 && witnessVersion <= segwitMaxVersion:
 		opCode = 0x50 + witnessVersion
 	default:
 		return toHex(decoded.data, "", "")

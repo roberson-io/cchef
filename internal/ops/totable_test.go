@@ -97,3 +97,32 @@ func TestParseCSVQuotedFields(t *testing.T) {
 	// A quoted field protects an embedded newline (stays one cell, one row).
 	eq(t, parseCSV("\"line1\nline2\",x", comma, nl), [][]string{{"line1\nline2", "x"}})
 }
+
+// TestCSVParser documents the CSV state machine extracted from parseCSV: a
+// quoted field may contain the cell delimiter literally, and "" is an escaped
+// quote.
+func TestCSVParser(t *testing.T) {
+	feedAll := func(s string) [][]string {
+		p := &csvParser{cellDelims: []rune{','}, lineDelims: []rune{'\n'}}
+		r := []rune(s)
+		for i := 0; i < len(r); i++ {
+			var next rune
+			if i+1 < len(r) {
+				next = r[i+1]
+			}
+			if p.feed(r[i], next) {
+				i++
+			}
+		}
+		return p.finish()
+	}
+
+	got := feedAll(`"a,b",c`)
+	if len(got) != 1 || len(got[0]) != 2 || got[0][0] != "a,b" || got[0][1] != "c" {
+		t.Fatalf("quoted delimiter: %v", got)
+	}
+	got = feedAll(`"x""y",z`)
+	if len(got) != 1 || got[0][0] != `x"y` || got[0][1] != "z" {
+		t.Fatalf("escaped quote: %v", got)
+	}
+}

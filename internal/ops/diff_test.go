@@ -113,3 +113,27 @@ func TestTokenDiffSurrogateSkip(t *testing.T) {
 		t.Fatal("tokenDiff did not reconstruct the input across the surrogate boundary")
 	}
 }
+
+// TestComputeAndRenderDiffs exercises the two helpers extracted from Diff.Run:
+// computeDiffs (the "Diff by" dispatch) and renderDiffs (the show-flag render).
+func TestComputeAndRenderDiffs(t *testing.T) {
+	diffs, err := computeDiffs("Character", "ab", "ac", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := renderDiffs(diffs, true, true, false); got != "a<del>b</del><ins>c</ins>" {
+		t.Fatalf("all shown: %q", got)
+	}
+	if got := renderDiffs(diffs, false, true, false); got != "a<del>b</del>" {
+		t.Fatalf("hide added: %q", got)
+	}
+	if got := renderDiffs(diffs, true, false, false); got != "a<ins>c</ins>" {
+		t.Fatalf("hide removed: %q", got)
+	}
+	if got := renderDiffs(diffs, true, true, true); got != "<del>b</del><ins>c</ins>" {
+		t.Fatalf("hide subtraction: %q", got)
+	}
+	if _, err := computeDiffs("Bogus", "a", "b", false); err == nil {
+		t.Fatal("expected error for invalid Diff by")
+	}
+}

@@ -640,3 +640,65 @@ func TestPKCS7Unpad(t *testing.T) {
 		})
 	}
 }
+
+// --- direct tests for the helpers extracted from AESEncrypt.Run ---
+
+// TestValidateAESKeyLen documents accepting 16/24/32-byte keys and rejecting others.
+func TestValidateAESKeyLen(t *testing.T) {
+	for _, n := range []int{16, 24, 32} {
+		if err := validateAESKeyLen(make([]byte, n)); err != nil {
+			t.Fatalf("len %d should be valid: %v", n, err)
+		}
+	}
+	if err := validateAESKeyLen(make([]byte, 20)); err == nil {
+		t.Fatal("len 20 should be invalid")
+	}
+}
+
+// TestAESMaybePad documents PKCS#7 padding unless NoPadding is set.
+func TestAESMaybePad(t *testing.T) {
+	if got := aesMaybePad([]byte("abc"), true); string(got) != "abc" {
+		t.Fatalf("noPadding changed input: %q", got)
+	}
+	if got := aesMaybePad([]byte("abc"), false); len(got) != aes.BlockSize {
+		t.Fatalf("padded length = %d, want %d", len(got), aes.BlockSize)
+	}
+}
+
+// TestApplyIncludeIV documents prepend/append/none of the IV.
+func TestApplyIncludeIV(t *testing.T) {
+	iv := []byte{1, 2}
+	out := []byte{9}
+	if got := applyIncludeIV(out, iv, "Prepend"); string(got) != "\x01\x02\x09" {
+		t.Fatalf("prepend: %v", got)
+	}
+	if got := applyIncludeIV([]byte{9}, iv, "Append"); string(got) != "\x09\x01\x02" {
+		t.Fatalf("append: %v", got)
+	}
+	if got := applyIncludeIV([]byte{9}, iv, "None"); string(got) != "\x09" {
+		t.Fatalf("none: %v", got)
+	}
+}
+
+// TestFormatAESOutput documents hex vs raw output and the GCM tag suffix.
+func TestFormatAESOutput(t *testing.T) {
+	if got := formatAESOutput([]byte{0xAB}, nil, "CBC", "Hex").String(); got != "ab" {
+		t.Fatalf("hex: %q", got)
+	}
+	if got := formatAESOutput([]byte("x"), nil, "CBC", "Raw").String(); got != "x" {
+		t.Fatalf("raw: %q", got)
+	}
+	if got := formatAESOutput([]byte{0xAB}, []byte{0xCD}, "GCM", "Hex").String(); got != "ab\n\nTag: cd" {
+		t.Fatalf("gcm hex: %q", got)
+	}
+}
+
+// TestAESEncryptMode documents the mode dispatch via the AES-128 ECB test vector:
+// encrypting 16 zero bytes with a zero key.
+func TestAESEncryptMode(t *testing.T) {
+	block, _ := aes.NewCipher(make([]byte, 16))
+	out, tag := aesEncryptMode("ECB", block, nil, make([]byte, 16), nil, true)
+	if tag != nil || hex.EncodeToString(out) != "66e94bd4ef8a2c3b884cfa59ca342b2e" {
+		t.Fatalf("ECB vector: %x (tag %v)", out, tag)
+	}
+}

@@ -33,6 +33,14 @@ var bcdEncodingLookup = map[string][]int{
 // bcdFormats lists the BCD input/output formats.
 var bcdFormats = []string{"Nibbles", "Bytes", "Raw"}
 
+// BCD sign nibble codes: the hex digits C/D (and B, an alternate negative) that
+// mark the sign of a signed BCD value.
+const (
+	bcdSignPlus     = 12 // "C" — credit / positive
+	bcdSignMinus    = 13 // "D" — debit / negative
+	bcdSignMinusAlt = 11 // "B" — alternate negative
+)
+
 // ToBCD encodes a decimal number as Binary-Coded Decimal.
 type ToBCD struct{}
 
@@ -74,9 +82,19 @@ func (ToBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	signed := args[2].(bool)
 	outputFormat := args[3].(string)
 
+	nibbles, bytes := bcdEncodeNibbles(n, encoding, packed, signed)
+	return bcdFormatOutput(nibbles, bytes, outputFormat), nil
+}
+
+// bcdEncodeNibbles converts n to BCD nibble codes using the given scheme,
+// optionally appending a sign nibble and packing two nibbles per byte. It
+// returns the nibble stream (used for "Nibbles" output) and the byte stream
+// (used for "Bytes"/"Raw" output). When unpacked, the byte stream is the raw
+// digit nibbles and the nibble stream is interleaved with null high nibbles.
+func bcdEncodeNibbles(n *big.Int, encoding []int, packed, signed bool) (nibbles, bytes []int) {
 	// Split the absolute value into its decimal digits.
 	absStr := new(big.Int).Abs(n).String()
-	nibbles := make([]int, 0, len(absStr)+2)
+	nibbles = make([]int, 0, len(absStr)+2)
 	for _, d := range absStr {
 		nibbles = append(nibbles, encoding[int(d-'0')])
 	}
@@ -88,59 +106,69 @@ func (ToBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			nibbles = append([]int{encoding[0]}, nibbles...)
 		}
 		if n.Sign() > 0 {
-			nibbles = append(nibbles, 12) // "C" for + (credit)
+			nibbles = append(nibbles, bcdSignPlus)
 		} else {
-			nibbles = append(nibbles, 13) // "D" for - (debit)
+			nibbles = append(nibbles, bcdSignMinus)
 		}
 	}
 
-	var bytes []int
 	if packed {
-		encoded, little := 0, false
-		for _, nb := range nibbles {
-			if little {
-				encoded ^= nb
-			} else {
-				encoded ^= nb << 4
-			}
-			if little {
-				bytes = append(bytes, encoded)
-				encoded = 0
-			}
-			little = !little
+		return nibbles, bcdPackNibbles(nibbles)
+	}
+	bytes = nibbles
+	// Add null high nibbles: [n] -> [0, n].
+	interleaved := make([]int, 0, len(nibbles)*2)
+	for _, nb := range nibbles {
+		interleaved = append(interleaved, 0, nb)
+	}
+	return interleaved, bytes
+}
+
+// bcdPackNibbles packs the nibble stream two nibbles per byte, high nibble
+// first. An odd final nibble occupies the high half of a trailing byte.
+func bcdPackNibbles(nibbles []int) []int {
+	var bytes []int
+	encoded, little := 0, false
+	for _, nb := range nibbles {
+		if little {
+			encoded ^= nb
+		} else {
+			encoded ^= nb << 4
 		}
 		if little {
 			bytes = append(bytes, encoded)
+			encoded = 0
 		}
-	} else {
-		bytes = nibbles
-		// Add null high nibbles: [n] -> [0, n].
-		interleaved := make([]int, 0, len(nibbles)*2)
-		for _, nb := range nibbles {
-			interleaved = append(interleaved, 0, nb)
-		}
-		nibbles = interleaved
+		little = !little
 	}
+	if little {
+		bytes = append(bytes, encoded)
+	}
+	return bytes
+}
 
+// bcdFormatOutput renders the nibble/byte streams in the requested output
+// format ("Nibbles" as 4-bit groups, "Bytes" as 8-bit groups, "Raw" as bytes).
+func bcdFormatOutput(nibbles, bytes []int, outputFormat string) *core.Dish {
 	switch outputFormat {
 	case "Nibbles":
 		parts := make([]string, len(nibbles))
 		for i, nb := range nibbles {
 			parts[i] = fmt.Sprintf("%04b", nb)
 		}
-		return core.NewDish([]byte(strings.Join(parts, " ")), core.TypeString), nil
+		return core.NewDish([]byte(strings.Join(parts, " ")), core.TypeString)
 	case "Bytes":
 		parts := make([]string, len(bytes))
 		for i, b := range bytes {
 			parts[i] = fmt.Sprintf("%08b", b)
 		}
-		return core.NewDish([]byte(strings.Join(parts, " ")), core.TypeString), nil
+		return core.NewDish([]byte(strings.Join(parts, " ")), core.TypeString)
 	default: // "Raw"
 		raw := make([]byte, len(bytes))
 		for i, b := range bytes {
 			raw[i] = byte(b) // #nosec G115 -- nibble/digit value bounded to a byte
 		}
-		return core.NewDish(raw, core.TypeString), nil
+		return core.NewDish(raw, core.TypeString)
 	}
 }
 
@@ -176,10 +204,49 @@ func (FromBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	signed := args[2].(bool)
 	inputFormat := args[3].(string)
 
+	nibbles, err := bcdParseNibbles(in.Bytes(), inputFormat)
+	if err != nil {
+		return nil, err
+	}
+
+	if !packed {
+		// Discard each high nibble. Faithfully reproduces CyberChef's
+		// splice-in-loop (which shifts indices as it goes).
+		for i := 0; i < len(nibbles); i++ {
+			nibbles = append(nibbles[:i], nibbles[i+1:]...)
+		}
+	}
+
+	sign := ""
+	if signed && len(nibbles) > 0 {
+		last := nibbles[len(nibbles)-1]
+		nibbles = nibbles[:len(nibbles)-1]
+		if last == bcdSignMinus || last == bcdSignMinusAlt {
+			sign = "-"
+		}
+	}
+
+	digits, err := bcdDecodeDigits(nibbles, encoding)
+	if err != nil {
+		return nil, err
+	}
+
+	n, ok := new(big.Int).SetString(sign+digits, 10)
+	if !ok {
+		return nil, fmt.Errorf("invalid input")
+	}
+	return core.NewDish([]byte(n.String()), core.TypeBigNumber), nil
+}
+
+// bcdParseNibbles reads the raw BCD bytes into a nibble stream. For the
+// "Nibbles"/"Bytes" formats the input is a whitespace-separated binary string
+// read four bits at a time; for "Raw" each input byte contributes its two
+// nibbles (high then low).
+func bcdParseNibbles(input []byte, inputFormat string) ([]int, error) {
 	var nibbles []int
 	switch inputFormat {
 	case "Nibbles", "Bytes":
-		s := whitespaceRE.ReplaceAllString(in.String(), "")
+		s := whitespaceRE.ReplaceAllString(string(input), "")
 		for i := 0; i < len(s); i += 4 {
 			end := min(i+4, len(s))
 			var v int
@@ -192,40 +259,24 @@ func (FromBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			nibbles = append(nibbles, v)
 		}
 	default: // "Raw"
-		for _, b := range in.Bytes() {
+		for _, b := range input {
 			nibbles = append(nibbles, int(b>>4), int(b&15))
 		}
 	}
+	return nibbles, nil
+}
 
-	if !packed {
-		// Discard each high nibble. Faithfully reproduces CyberChef's
-		// splice-in-loop (which shifts indices as it goes).
-		for i := 0; i < len(nibbles); i++ {
-			nibbles = append(nibbles[:i], nibbles[i+1:]...)
-		}
-	}
-
-	var output strings.Builder
-	if signed && len(nibbles) > 0 {
-		sign := nibbles[len(nibbles)-1]
-		nibbles = nibbles[:len(nibbles)-1]
-		if sign == 13 || sign == 11 {
-			output.WriteByte('-')
-		}
-	}
-
+// bcdDecodeDigits maps each nibble code back to its decimal digit via the
+// scheme's lookup table, erroring on any code not in the scheme.
+func bcdDecodeDigits(nibbles, encoding []int) (string, error) {
+	var out strings.Builder
 	for _, nb := range nibbles {
 		val := slices.Index(encoding, nb)
 		if val < 0 {
-			return nil, fmt.Errorf("value %04b is not in the encoding scheme", nb)
+			return "", fmt.Errorf("value %04b is not in the encoding scheme", nb)
 		}
 		// val is a decimal digit 0-9 (index into the 10-entry encoding table).
-		output.WriteByte(byte('0' + val)) // #nosec G115 -- nibble/digit value bounded to a byte
+		out.WriteByte(byte('0' + val)) // #nosec G115 -- nibble/digit value bounded to a byte
 	}
-
-	n, ok := new(big.Int).SetString(output.String(), 10)
-	if !ok {
-		return nil, fmt.Errorf("invalid input")
-	}
-	return core.NewDish([]byte(n.String()), core.TypeBigNumber), nil
+	return out.String(), nil
 }

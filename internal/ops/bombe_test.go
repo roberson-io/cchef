@@ -160,3 +160,41 @@ func TestMultipleBombeErrors(t *testing.T) {
 	bombeMatch(t, "Multiple Bombe", "BBYFLTHHYIJQAYBBYS", `Offset cannot be negative`,
 		"User defined", valid3, "", bombeReflB, "THISISATESTMESSAGE", -1, false)
 }
+
+// --- direct tests for the helpers extracted from MultipleBombe.Run ---
+
+// TestDistinctRotorTriples documents generating all ordered triples of distinct
+// rotors (n*(n-1)*(n-2) of them, none with a repeat).
+func TestDistinctRotorTriples(t *testing.T) {
+	got := distinctRotorTriples([]string{"A", "B", "C"})
+	if len(got) != 6 {
+		t.Fatalf("3 rotors -> %d triples, want 6", len(got))
+	}
+	for _, tr := range got {
+		if tr[0] == tr[1] || tr[1] == tr[2] || tr[0] == tr[2] {
+			t.Fatalf("triple has a repeat: %v", tr)
+		}
+	}
+	if n := len(distinctRotorTriples([]string{"A", "B"})); n != 0 {
+		t.Fatalf("2 rotors -> %d triples, want 0", n)
+	}
+}
+
+// TestMultiBombeParseRotors documents parsing a newline-separated rotor list and
+// the invalid-wiring error.
+func TestMultiBombeParseRotors(t *testing.T) {
+	got, err := multiBombeParseRotors("EKMFLGDQVZNTOWYHXUSPAIBRCJ")
+	if err != nil || len(got) != 1 || got[0] != "EKMFLGDQVZNTOWYHXUSPAIBRCJ" {
+		t.Fatalf("valid: %v, %v", got, err)
+	}
+	if _, err := multiBombeParseRotors("not a rotor"); err == nil {
+		t.Fatal("expected error for invalid rotor")
+	}
+}
+
+// TestMultiBombeParseReflectors documents the invalid-reflector error path.
+func TestMultiBombeParseReflectors(t *testing.T) {
+	if _, err := multiBombeParseReflectors("garbage"); err == nil {
+		t.Fatal("expected error for invalid reflector")
+	}
+}

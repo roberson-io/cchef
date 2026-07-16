@@ -208,3 +208,70 @@ func TestDateTimeInvalidInput(t *testing.T) {
 		t.Fatalf("DateTime Delta: got %q, want prefix %q", deltaOut, "Invalid format.")
 	}
 }
+
+// --- direct tests for the moment-token builder helpers ---
+
+// TestMomentBuilders documents the builder combinators that turn an int/string
+// field extractor into a token handler.
+func TestMomentBuilders(t *testing.T) {
+	five := func(time.Time) int { return 5 }
+	c := momentCtx{}
+
+	if got := momentPad(2, five)(c); got != "05" {
+		t.Fatalf("momentPad(2) = %q", got)
+	}
+	if got := momentPad(4, five)(c); got != "0005" {
+		t.Fatalf("momentPad(4) = %q", got)
+	}
+	if got := momentNum(five)(c); got != "5" {
+		t.Fatalf("momentNum = %q", got)
+	}
+	if got := momentOrd(func(time.Time) int { return 1 })(c); got != "1st" {
+		t.Fatalf("momentOrd = %q", got)
+	}
+	if got := momentText(func(time.Time) string { return "foo" })(c); got != "foo" {
+		t.Fatalf("momentText = %q", got)
+	}
+}
+
+// TestMISOWeekday documents the ISO weekday extractor: Sunday is 7, Monday is 1.
+func TestMISOWeekday(t *testing.T) {
+	sunday := time.Date(2024, 1, 7, 0, 0, 0, 0, time.UTC)
+	monday := time.Date(2024, 1, 8, 0, 0, 0, 0, time.UTC)
+	if got := mISOWeekday(sunday); got != 7 {
+		t.Fatalf("Sunday = %d, want 7", got)
+	}
+	if got := mISOWeekday(monday); got != 1 {
+		t.Fatalf("Monday = %d, want 1", got)
+	}
+}
+
+// TestMomentContextBuilders documents the builders/handlers for tokens that read
+// momentCtx fields or take a parameter (so they can't use the plain t-extractor
+// builders).
+func TestMomentContextBuilders(t *testing.T) {
+	morning := momentCtx{t: time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC)}
+
+	if got := momentInt64(func(tm time.Time) int64 { return 1700000000 })(morning); got != "1700000000" {
+		t.Fatalf("momentInt64 = %q", got)
+	}
+	if got := momentMeridiem(true)(morning); got != "AM" {
+		t.Fatalf("momentMeridiem(true) = %q", got)
+	}
+	if got := momentMeridiem(false)(morning); got != "am" {
+		t.Fatalf("momentMeridiem(false) = %q", got)
+	}
+	off := momentCtx{offsetSec: 3600}
+	if got := momentOffset(true)(off); got != "+01:00" {
+		t.Fatalf("momentOffset(true) = %q", got)
+	}
+	if got := momentOffset(false)(off); got != "+0100" {
+		t.Fatalf("momentOffset(false) = %q", got)
+	}
+	if got := momentZone(momentCtx{zoneName: "PST"}); got != "PST" {
+		t.Fatalf("momentZone = %q", got)
+	}
+	if got := mDayTwoLetter(time.Date(2024, 1, 7, 0, 0, 0, 0, time.UTC)); got != "Su" {
+		t.Fatalf("mDayTwoLetter(Sunday) = %q", got)
+	}
+}

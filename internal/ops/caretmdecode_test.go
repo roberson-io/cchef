@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -38,4 +39,28 @@ func TestCaretMdecodeBranches(t *testing.T) {
 		{"caret below range passes through", "^ ", "5e20", toHex},
 		{"trailing incomplete prefix is dropped", "M-^", "", toHex},
 	})
+}
+
+// TestCMDecoder documents the caret/M-notation state machine via known escapes:
+// ^A=Ctrl-A(1), ^?=DEL(127), M-A='A'+128(193), M-^A='A'+64(129), plain 'a'.
+func TestCMDecoder(t *testing.T) {
+	decode := func(s string) []byte {
+		d := &cmDecoder{}
+		for i := 0; i < len(s); i++ {
+			d.feed(s[i])
+		}
+		return d.out
+	}
+	cases := map[string][]byte{
+		"^A":   {1},
+		"^?":   {127},
+		"M-A":  {193},
+		"M-^A": {129},
+		"a":    {97},
+	}
+	for in, want := range cases {
+		if got := decode(in); !bytes.Equal(got, want) {
+			t.Fatalf("decode(%q) = %v, want %v", in, got, want)
+		}
+	}
 }

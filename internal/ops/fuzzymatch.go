@@ -123,9 +123,7 @@ func fuzzyMatchRecursive(pattern, str []rune, patternCurIndex, strCurrIndex int,
 		return false, outScore, []int{}
 	}
 
-	recursiveMatch := false
-	var bestRecursiveMatches []int
-	bestRecursiveScore := 0.0
+	var best fuzzyBest
 	firstMatch := true
 
 	for patternCurIndex < len(pattern) && strCurrIndex < len(str) {
@@ -140,13 +138,7 @@ func fuzzyMatchRecursive(pattern, str []rune, patternCurIndex, strCurrIndex int,
 			matched, recursiveScore, recMatches := fuzzyMatchRecursive(pattern, str,
 				patternCurIndex, strCurrIndex+1, matches, nil,
 				maxMatches, nextMatch, recursionCount, recursionLimit, w)
-			if matched {
-				if !recursiveMatch || recursiveScore > bestRecursiveScore {
-					bestRecursiveMatches = append([]int(nil), recMatches...)
-					bestRecursiveScore = recursiveScore
-				}
-				recursiveMatch = true
-			}
+			best.consider(matched, recursiveScore, recMatches)
 			matches = fuzzySetIdx(matches, nextMatch, strCurrIndex)
 			nextMatch++
 			patternCurIndex++
@@ -158,7 +150,42 @@ func fuzzyMatchRecursive(pattern, str []rune, patternCurIndex, strCurrIndex int,
 		return false, outScore, matches
 	}
 
-	outScore = 100
+	outScore = fuzzyScore(matches, nextMatch, str, w)
+	if best.matched && best.score > outScore {
+		return true, best.score, best.matches
+	}
+	return true, outScore, matches
+}
+
+// fuzzyBest tracks the highest-scoring matched result among the recursive
+// alternatives tried at a position.
+type fuzzyBest struct {
+	matched bool
+	score   float64
+	matches []int
+}
+
+// consider updates the tracker with a recursive result, keeping it only if it
+// matched and outscores the current best.
+func (b *fuzzyBest) consider(matched bool, score float64, matches []int) {
+	if !matched {
+		return
+	}
+	if !b.matched || score > b.score {
+		b.matches = append([]int(nil), matches...)
+		b.score = score
+	}
+	b.matched = true
+}
+
+// fuzzyBaseScore is the score a full match starts from before bonuses/penalties.
+const fuzzyBaseScore = 100
+
+// fuzzyScore computes the score for a completed match: the base score, the
+// leading- and unmatched-letter penalties, and per-match sequential / camelCase
+// / separator / first-letter bonuses. Ported from FuzzyMatch.mjs.
+func fuzzyScore(matches []int, nextMatch int, str []rune, w fuzzyWeights) float64 {
+	outScore := float64(fuzzyBaseScore)
 	penalty := w.leadingLetterPenalty * float64(matches[0])
 	if penalty < w.maxLeadingLetterPenalty {
 		penalty = w.maxLeadingLetterPenalty
@@ -166,7 +193,7 @@ func fuzzyMatchRecursive(pattern, str []rune, patternCurIndex, strCurrIndex int,
 	outScore += penalty
 	outScore += w.unmatchedLetterPenalty * float64(len(str)-nextMatch)
 
-	for i := 0; i < nextMatch; i++ {
+	for i := range nextMatch {
 		currIdx := matches[i]
 		if i > 0 && currIdx == matches[i-1]+1 {
 			outScore += w.sequentialBonus
@@ -184,11 +211,7 @@ func fuzzyMatchRecursive(pattern, str []rune, patternCurIndex, strCurrIndex int,
 			outScore += w.firstLetterBonus
 		}
 	}
-
-	if recursiveMatch && bestRecursiveScore > outScore {
-		return true, bestRecursiveScore, bestRecursiveMatches
-	}
-	return true, outScore, matches
+	return outScore
 }
 
 func fuzzySetIdx(s []int, i, v int) []int {

@@ -148,31 +148,42 @@ func (FromBase32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 
 	var out []byte
-	for i := 0; i < len(data); i += 8 {
-		e := [8]int{}
+	for i := 0; i < len(data); i += base32GroupSize {
+		e := [base32GroupSize]int{}
 		for j := range e {
 			e[j] = at(i + j)
 		}
-
-		chr1 := (e[0] << 3) | (e[1] >> 2)
-		chr2 := ((e[1] & 3) << 6) | (e[2] << 1) | (e[3] >> 4)
-		chr3 := ((e[3] & 15) << 4) | (e[4] >> 1)
-		chr4 := ((e[4] & 1) << 7) | (e[5] << 2) | (e[6] >> 3)
-		chr5 := ((e[6] & 7) << 5) | e[7]
-
-		out = append(out, byte(chr1)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
-		if (e[1]&3) != 0 || e[2] != 32 {
-			out = append(out, byte(chr2)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
-		}
-		if (e[3]&15) != 0 || e[4] != 32 {
-			out = append(out, byte(chr3)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
-		}
-		if (e[4]&1) != 0 || e[5] != 32 {
-			out = append(out, byte(chr4)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
-		}
-		if (e[6]&7) != 0 || e[7] != 32 {
-			out = append(out, byte(chr5)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
-		}
+		out = base32EmitGroup(out, e)
 	}
 	return core.NewDish(out, core.TypeByteArray), nil
+}
+
+const (
+	base32GroupSize = 8  // Base32 symbols per group (decoding to 5 bytes)
+	base32PadIndex  = 32 // index of the "=" pad character in the standard alphabet
+)
+
+// base32EmitGroup recombines one group of eight 5-bit symbol values (32 for the
+// "=" pad) into up to five bytes, appending only the bytes not covered by padding.
+func base32EmitGroup(out []byte, e [base32GroupSize]int) []byte {
+	chr1 := (e[0] << 3) | (e[1] >> 2)
+	chr2 := ((e[1] & 3) << 6) | (e[2] << 1) | (e[3] >> 4)
+	chr3 := ((e[3] & 15) << 4) | (e[4] >> 1)
+	chr4 := ((e[4] & 1) << 7) | (e[5] << 2) | (e[6] >> 3)
+	chr5 := ((e[6] & 7) << 5) | e[7]
+
+	out = append(out, byte(chr1)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
+	if (e[1]&3) != 0 || e[2] != base32PadIndex {
+		out = append(out, byte(chr2)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
+	}
+	if (e[3]&15) != 0 || e[4] != base32PadIndex {
+		out = append(out, byte(chr3)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
+	}
+	if (e[4]&1) != 0 || e[5] != base32PadIndex {
+		out = append(out, byte(chr4)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
+	}
+	if (e[6]&7) != 0 || e[7] != base32PadIndex {
+		out = append(out, byte(chr5)) // #nosec G115 -- 5-bit groups recombined into a byte by the Base32 decode
+	}
+	return out
 }

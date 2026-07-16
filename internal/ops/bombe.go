@@ -733,37 +733,25 @@ func (MultipleBombe) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	offset := int(args[5].(float64))
 	check := args[6].(bool)
 
-	var rotors []string
-	for rstr := range strings.SplitSeq(args[1].(string), "\n") {
-		v, err := multiBombeValidateRotor(rstr)
-		if err != nil {
-			return nil, err
-		}
-		rotors = append(rotors, v)
+	rotors, err := multiBombeParseRotors(args[1].(string))
+	if err != nil {
+		return nil, err
 	}
 	if len(rotors) < 3 {
 		return nil, errors.New("A minimum of three rotors must be supplied") //nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 	}
 	var fourthRotors []string
 	if fourthStr := args[2].(string); fourthStr != "" {
-		for rstr := range strings.SplitSeq(fourthStr, "\n") {
-			v, err := multiBombeValidateRotor(rstr)
-			if err != nil {
-				return nil, err
-			}
-			fourthRotors = append(fourthRotors, v)
+		if fourthRotors, err = multiBombeParseRotors(fourthStr); err != nil {
+			return nil, err
 		}
 	}
 	if len(fourthRotors) == 0 {
 		fourthRotors = append(fourthRotors, "")
 	}
-	var reflectors []*enigmaReflector
-	for rstr := range strings.SplitSeq(args[3].(string), "\n") {
-		refl, err := newEnigmaReflector(rstr)
-		if err != nil {
-			return nil, err
-		}
-		reflectors = append(reflectors, refl)
+	reflectors, err := multiBombeParseReflectors(args[3].(string))
+	if err != nil {
+		return nil, err
 	}
 	if len(crib) == 0 {
 		return nil, errors.New("Crib cannot be empty") //nolint:staticcheck,revive // CyberChef's verbatim OperationError text
@@ -775,53 +763,103 @@ func (MultipleBombe) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	crib = strings.ToUpper(enigmaNonAlpha.ReplaceAllString(crib, ""))
 	ciphertext := sliceFrom(input, offset)
 
+	runs, nLoops, err := runMultiBombe(rotors, fourthRotors, reflectors, ciphertext, crib, check)
+	if err != nil {
+		return nil, err
+	}
+
+	var b strings.Builder
+	writeMultiBombeOutput(&b, runs, nLoops)
+	return core.NewDish([]byte(b.String()), core.TypeString), nil
+}
+
+// multiBombeParseRotors validates each newline-separated rotor wiring in s.
+func multiBombeParseRotors(s string) ([]string, error) {
+	var rotors []string
+	for rstr := range strings.SplitSeq(s, "\n") {
+		v, err := multiBombeValidateRotor(rstr)
+		if err != nil {
+			return nil, err
+		}
+		rotors = append(rotors, v)
+	}
+	return rotors, nil
+}
+
+// multiBombeParseReflectors parses each newline-separated reflector spec in s.
+func multiBombeParseReflectors(s string) ([]*enigmaReflector, error) {
+	var reflectors []*enigmaReflector
+	for rstr := range strings.SplitSeq(s, "\n") {
+		refl, err := newEnigmaReflector(rstr)
+		if err != nil {
+			return nil, err
+		}
+		reflectors = append(reflectors, refl)
+	}
+	return reflectors, nil
+}
+
+// distinctRotorTriples returns every ordered triple of three distinct rotors
+// (the left/middle/right positions the Bombe tries).
+func distinctRotorTriples(rotors []string) [][3]string {
+	var triples [][3]string
+	for _, r1 := range rotors {
+		for _, r2 := range rotors {
+			if r2 == r1 {
+				continue
+			}
+			for _, r3 := range rotors {
+				if r3 == r2 || r3 == r1 {
+					continue
+				}
+				triples = append(triples, [3]string{r1, r2, r3})
+			}
+		}
+	}
+	return triples
+}
+
+// runMultiBombe runs the Bombe over every rotor-triple × fourth-rotor × reflector
+// combination, reusing one machine (re-keyed via changeRotors) for speed. It
+// returns the stops found and the menu's loop count.
+func runMultiBombe(rotors, fourthRotors []string, reflectors []*enigmaReflector, ciphertext, crib string, check bool) ([]multiBombeRun, int, error) {
 	var bombe *bombeMachine
 	nLoops := 0
 	var runs []multiBombeRun
-	for _, rotor1 := range rotors {
-		for _, rotor2 := range rotors {
-			if rotor2 == rotor1 {
-				continue
-			}
-			for _, rotor3 := range rotors {
-				if rotor3 == rotor2 || rotor3 == rotor1 {
-					continue
+	for _, triple := range distinctRotorTriples(rotors) {
+		for _, rotor4 := range fourthRotors {
+			for _, reflector := range reflectors {
+				runRotors := []string{triple[0], triple[1], triple[2]}
+				if rotor4 != "" {
+					runRotors = append(runRotors, rotor4)
 				}
-				for _, rotor4 := range fourthRotors {
-					for _, reflector := range reflectors {
-						runRotors := []string{rotor1, rotor2, rotor3}
-						if rotor4 != "" {
-							runRotors = append(runRotors, rotor4)
-						}
-						if bombe == nil {
-							var err error
-							bombe, err = newBombeMachine(runRotors, reflector, ciphertext, crib, check)
-							if err != nil {
-								return nil, err
-							}
-							nLoops = bombe.nLoops
-						} else if err := bombe.changeRotors(runRotors, reflector); err != nil {
-							return nil, err
-						}
-						result := bombe.run()
-						if len(result) > 0 {
-							runs = append(runs, multiBombeRun{rotors: runRotors, reflector: reflector.pairs, result: result})
-						}
+				if bombe == nil {
+					var err error
+					if bombe, err = newBombeMachine(runRotors, reflector, ciphertext, crib, check); err != nil {
+						return nil, 0, err
 					}
+					nLoops = bombe.nLoops
+				} else if err := bombe.changeRotors(runRotors, reflector); err != nil {
+					return nil, 0, err
+				}
+				if result := bombe.run(); len(result) > 0 {
+					runs = append(runs, multiBombeRun{rotors: runRotors, reflector: reflector.pairs, result: result})
 				}
 			}
 		}
 	}
+	return runs, nLoops, nil
+}
 
-	var b strings.Builder
-	fmt.Fprintf(&b, "Bombe run on menu with %d %s (2+ desirable). Note: Rotors and rotor positions are listed left to right, ignore stepping and the ring setting, and positions start at the beginning of the crib. Some plugboard settings are determined. A decryption preview starting at the beginning of the crib and ignoring stepping is also provided.\n", nLoops, bombeLoopWord(nLoops))
+// writeMultiBombeOutput renders the run summary and a table per stop.
+func writeMultiBombeOutput(b *strings.Builder, runs []multiBombeRun, nLoops int) {
+	fmt.Fprintf(b, "Bombe run on menu with %d %s (2+ desirable). Note: Rotors and rotor positions are listed left to right, ignore stepping and the ring setting, and positions start at the beginning of the crib. Some plugboard settings are determined. A decryption preview starting at the beginning of the crib and ignoring stepping is also provided.\n", nLoops, bombeLoopWord(nLoops))
 	for _, run := range runs {
 		rev := append([]string{}, run.rotors...)
 		reverseStrings(rev)
-		fmt.Fprintf(&b, "\nRotors: %s\nReflector: %s\n", strings.Join(rev, ", "), run.reflector)
+		fmt.Fprintf(b, "\nRotors: %s\nReflector: %s\n", strings.Join(rev, ", "), run.reflector)
 		b.WriteString(bombeTableHeader)
-		bombeRows(&b, run.result)
+		bombeRows(b, run.result)
 		b.WriteString("</table>\n")
 	}
-	return core.NewDish([]byte(b.String()), core.TypeString), nil
 }

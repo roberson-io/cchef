@@ -145,99 +145,148 @@ func matchMomentToken(format string, i int) string {
 	return ""
 }
 
-// momentTokenValue renders a single matched token from t.
+// momentCtx carries the values a moment.js format token may reference.
+type momentCtx struct {
+	t         time.Time
+	zoneName  string
+	offsetSec int
+}
+
+// The moment-token handlers mostly share three shapes: take an int (or string)
+// extracted from the time, then zero-pad it, base-10 it, or ordinal it. These
+// builders turn a field extractor into a token handler so the table below reads
+// declaratively, e.g. `momentPad(2, time.Time.Hour)` = "hour, zero-padded to 2".
+
+// momentPad renders an int field zero-padded to width.
+func momentPad(width int, get func(time.Time) int) func(momentCtx) string {
+	return func(c momentCtx) string { return fmt.Sprintf("%0*d", width, get(c.t)) }
+}
+
+// momentNum renders an int field in base 10.
+func momentNum(get func(time.Time) int) func(momentCtx) string {
+	return func(c momentCtx) string { return strconv.Itoa(get(c.t)) }
+}
+
+// momentOrd renders an int field as an English ordinal (1st, 2nd, ...).
+func momentOrd(get func(time.Time) int) func(momentCtx) string {
+	return func(c momentCtx) string { return momentOrdinal(get(c.t)) }
+}
+
+// momentText renders a string field.
+func momentText(get func(time.Time) string) func(momentCtx) string {
+	return func(c momentCtx) string { return get(c.t) }
+}
+
+// momentInt64 renders an int64 field (epoch tokens) in base 10.
+func momentInt64(get func(time.Time) int64) func(momentCtx) string {
+	return func(c momentCtx) string { return strconv.FormatInt(get(c.t), 10) }
+}
+
+// momentMeridiem renders AM/PM (upper) or am/pm (lower).
+func momentMeridiem(upper bool) func(momentCtx) string {
+	return func(c momentCtx) string { return meridiem(c.t, upper) }
+}
+
+// momentOffset renders the UTC offset with (colon) or without a colon. It reads
+// momentCtx.offsetSec rather than the time, so it can't use momentText.
+func momentOffset(colon bool) func(momentCtx) string {
+	return func(c momentCtx) string { return formatOffset(c.offsetSec, colon) }
+}
+
+// momentZone renders the zone abbreviation from momentCtx.
+func momentZone(c momentCtx) string { return c.zoneName }
+
+// Field extractors for values a method expression can't express directly.
+func mMonth(t time.Time) int           { return int(t.Month()) }
+func mWeekday(t time.Time) int         { return int(t.Weekday()) }
+func mYear2(t time.Time) int           { return t.Year() % 100 }
+func mQuarter(t time.Time) int         { return (int(t.Month())-1)/3 + 1 }
+func mMonthName(t time.Time) string    { return t.Month().String() }
+func mMonthAbbr(t time.Time) string    { return t.Month().String()[:3] }
+func mDayName(t time.Time) string      { return t.Weekday().String() }
+func mDayAbbr(t time.Time) string      { return t.Weekday().String()[:3] }
+func mDayTwoLetter(t time.Time) string { return momentTwoLetterDays[int(t.Weekday())] }
+func mISOWeek(t time.Time) int         { _, w := t.ISOWeek(); return w }
+
+// mISOWeekday is the day of week numbered Monday=1..Sunday=7 (moment's "E").
+func mISOWeekday(t time.Time) int {
+	if wd := int(t.Weekday()); wd != 0 {
+		return wd
+	}
+	return 7
+}
+
+// momentTokenFns maps each supported moment.js format token to the function that
+// renders it. Each entry declares its field and formatting; tokens that share a
+// rendering appear once per key.
+var momentTokenFns = map[string]func(momentCtx) string{
+	// Year.
+	"YYYY": momentPad(4, time.Time.Year),
+	"Y":    momentPad(4, time.Time.Year),
+	"YY":   momentPad(2, mYear2),
+	"gggg": momentPad(4, time.Time.Year),
+	"GGGG": momentPad(4, time.Time.Year),
+	"gg":   momentPad(2, mYear2),
+	"GG":   momentPad(2, mYear2),
+
+	// Month.
+	"MMMM": momentText(mMonthName),
+	"MMM":  momentText(mMonthAbbr),
+	"MM":   momentPad(2, mMonth),
+	"Mo":   momentOrd(mMonth),
+	"M":    momentNum(mMonth),
+	"Q":    momentNum(mQuarter),
+
+	// Day of year / month.
+	"DDDD": momentPad(3, time.Time.YearDay),
+	"DDDo": momentOrd(time.Time.YearDay),
+	"DDD":  momentNum(time.Time.YearDay),
+	"DD":   momentPad(2, time.Time.Day),
+	"Do":   momentOrd(time.Time.Day),
+	"D":    momentNum(time.Time.Day),
+
+	// Day of week.
+	"dddd": momentText(mDayName),
+	"ddd":  momentText(mDayAbbr),
+	"dd":   momentText(mDayTwoLetter),
+	"do":   momentOrd(mWeekday),
+	"d":    momentNum(mWeekday),
+	"e":    momentNum(mWeekday),
+	"E":    momentNum(mISOWeekday),
+
+	// Time.
+	"HH": momentPad(2, time.Time.Hour),
+	"H":  momentNum(time.Time.Hour),
+	"hh": momentPad(2, hour12),
+	"h":  momentNum(hour12),
+	"mm": momentPad(2, time.Time.Minute),
+	"m":  momentNum(time.Time.Minute),
+	"ss": momentPad(2, time.Time.Second),
+	"s":  momentNum(time.Time.Second),
+	"A":  momentMeridiem(true),
+	"a":  momentMeridiem(false),
+
+	// Zone / epoch.
+	"Z":  momentOffset(true),
+	"ZZ": momentOffset(false),
+	"z":  momentZone,
+	"zz": momentZone,
+	"X":  momentInt64(time.Time.Unix),
+	"x":  momentInt64(time.Time.UnixMilli),
+
+	// Week of year.
+	"w":  momentNum(usWeekNumber),
+	"ww": momentPad(2, usWeekNumber),
+	"wo": momentOrd(usWeekNumber),
+	"WW": momentPad(2, mISOWeek),
+	"Wo": momentOrd(mISOWeek),
+}
+
+// momentTokenValue renders one moment.js format token, or returns the token
+// unchanged when it is not a recognised token (literal text).
 func momentTokenValue(tok string, t time.Time, zoneName string, offsetSec int) string {
-	switch tok {
-	case "YYYY", "Y":
-		return fmt.Sprintf("%04d", t.Year())
-	case "YY":
-		return fmt.Sprintf("%02d", t.Year()%100)
-	case "MMMM":
-		return t.Month().String()
-	case "MMM":
-		return t.Month().String()[:3]
-	case "MM":
-		return fmt.Sprintf("%02d", int(t.Month()))
-	case "Mo":
-		return momentOrdinal(int(t.Month()))
-	case "M":
-		return strconv.Itoa(int(t.Month()))
-	case "DDDD":
-		return fmt.Sprintf("%03d", t.YearDay())
-	case "DDDo":
-		return momentOrdinal(t.YearDay())
-	case "DDD":
-		return strconv.Itoa(t.YearDay())
-	case "DD":
-		return fmt.Sprintf("%02d", t.Day())
-	case "Do":
-		return momentOrdinal(t.Day())
-	case "D":
-		return strconv.Itoa(t.Day())
-	case "dddd":
-		return t.Weekday().String()
-	case "ddd":
-		return t.Weekday().String()[:3]
-	case "dd":
-		return momentTwoLetterDays[int(t.Weekday())]
-	case "do":
-		return momentOrdinal(int(t.Weekday()))
-	case "d", "e":
-		return strconv.Itoa(int(t.Weekday()))
-	case "E":
-		wd := int(t.Weekday())
-		if wd == 0 {
-			wd = 7
-		}
-		return strconv.Itoa(wd)
-	case "HH":
-		return fmt.Sprintf("%02d", t.Hour())
-	case "H":
-		return strconv.Itoa(t.Hour())
-	case "hh":
-		return fmt.Sprintf("%02d", hour12(t))
-	case "h":
-		return strconv.Itoa(hour12(t))
-	case "mm":
-		return fmt.Sprintf("%02d", t.Minute())
-	case "m":
-		return strconv.Itoa(t.Minute())
-	case "ss":
-		return fmt.Sprintf("%02d", t.Second())
-	case "s":
-		return strconv.Itoa(t.Second())
-	case "A":
-		return meridiem(t, true)
-	case "a":
-		return meridiem(t, false)
-	case "Z":
-		return formatOffset(offsetSec, true)
-	case "ZZ":
-		return formatOffset(offsetSec, false)
-	case "z", "zz":
-		return zoneName
-	case "X":
-		return strconv.FormatInt(t.Unix(), 10)
-	case "x":
-		return strconv.FormatInt(t.UnixMilli(), 10)
-	case "Q":
-		return strconv.Itoa((int(t.Month())-1)/3 + 1)
-	case "w":
-		return strconv.Itoa(usWeekNumber(t))
-	case "ww":
-		return fmt.Sprintf("%02d", usWeekNumber(t))
-	case "wo":
-		return momentOrdinal(usWeekNumber(t))
-	case "WW":
-		_, wk := t.ISOWeek()
-		return fmt.Sprintf("%02d", wk)
-	case "Wo":
-		_, wk := t.ISOWeek()
-		return momentOrdinal(wk)
-	case "gggg", "GGGG":
-		return fmt.Sprintf("%04d", t.Year())
-	case "gg", "GG":
-		return fmt.Sprintf("%02d", t.Year()%100)
+	if fn, ok := momentTokenFns[tok]; ok {
+		return fn(momentCtx{t: t, zoneName: zoneName, offsetSec: offsetSec})
 	}
 	return tok
 }

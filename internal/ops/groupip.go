@@ -180,57 +180,84 @@ func (GroupIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cidr := int(args[1].(float64))
 	onlySubnets := args[2].(bool)
 
-	if cidr < 0 || cidr > 127 {
-		return nil, fmt.Errorf("cidr must be less than 32 for IPv4 or 128 for IPv6")
+	if cidr < 0 || cidr >= ipv6Bits {
+		return nil, fmt.Errorf("cidr must be less than %d for IPv4 or %d for IPv6", ipv4Bits, ipv6Bits)
 	}
 
 	var ipv4Mask uint32 = 0xFFFFFFFF
-	if cidr < 32 {
+	if cidr < ipv4Bits {
 		ipv4Mask = ^(uint32(0xFFFFFFFF) >> uint(cidr))
 	}
 	ipv6Mask := genIpv6Mask(cidr)
 
-	ipv4Networks := map[uint32][]uint32{}
-	ipv6Networks := map[string][][8]int{}
-	var ipv6Order []string // first-seen order of IPv6 network keys
+	groups, err := groupIPTokens(in.String(), delim, ipv4Mask, ipv6Mask)
+	if err != nil {
+		return nil, err
+	}
 
-	for token := range strings.SplitSeq(in.String(), delim) {
+	var out strings.Builder
+	writeIPv4Networks(&out, groups.ipv4, cidr, onlySubnets)
+	writeIPv6Networks(&out, groups.ipv6, groups.ipv6Order, cidr, onlySubnets)
+	return core.NewDish([]byte(out.String()), core.TypeString), nil
+}
+
+// ipv4Bits and ipv6Bits are the address widths, used to validate the CIDR and
+// decide the IPv4 mask.
+const (
+	ipv4Bits = 32
+	ipv6Bits = 128
+)
+
+// ipGroups holds addresses grouped by network: IPv4 keyed by network integer,
+// IPv6 keyed by network string (with first-seen order preserved).
+type ipGroups struct {
+	ipv4      map[uint32][]uint32
+	ipv6      map[string][][8]int
+	ipv6Order []string
+}
+
+// groupIPTokens splits the input and buckets each IPv4/IPv6 address under its
+// masked network.
+func groupIPTokens(input, delim string, ipv4Mask uint32, ipv6Mask [8]uint32) (ipGroups, error) {
+	g := ipGroups{ipv4: map[uint32][]uint32{}, ipv6: map[string][][8]int{}}
+	for token := range strings.SplitSeq(input, delim) {
 		if m := groupIPv4Re.FindStringSubmatch(token); m != nil {
 			ip, err := strToIpv4(m[1])
 			if err != nil {
-				return nil, err
+				return ipGroups{}, err
 			}
 			network := ip & ipv4Mask
-			ipv4Networks[network] = append(ipv4Networks[network], ip)
+			g.ipv4[network] = append(g.ipv4[network], ip)
 		} else if m6, _ := groupIPv6Re.FindStringMatch(token); m6 != nil {
 			ip, err := strToIpv6(m6.GroupByNumber(1).String())
 			if err != nil {
-				return nil, err
+				return ipGroups{}, err
 			}
 			var network [8]int
 			for j := range 8 {
 				network[j] = ip[j] & int(ipv6Mask[j])
 			}
 			networkStr := ipv6ToStr(network, true)
-			if _, ok := ipv6Networks[networkStr]; !ok {
-				ipv6Order = append(ipv6Order, networkStr)
+			if _, ok := g.ipv6[networkStr]; !ok {
+				g.ipv6Order = append(g.ipv6Order, networkStr)
 			}
-			ipv6Networks[networkStr] = append(ipv6Networks[networkStr], ip)
+			g.ipv6[networkStr] = append(g.ipv6[networkStr], ip)
 		}
 	}
+	return g, nil
+}
 
-	var out strings.Builder
-
-	// IPv4 networks print in ascending network order (JS integer-key iteration);
-	// each network's members sort lexicographically by decimal string (JS default
-	// Array.prototype.sort).
-	v4keys := make([]uint32, 0, len(ipv4Networks))
-	for k := range ipv4Networks {
+// writeIPv4Networks renders the IPv4 networks in ascending network order (JS
+// integer-key iteration); each network's members sort lexicographically by
+// decimal string (JS default Array.prototype.sort).
+func writeIPv4Networks(out *strings.Builder, networks map[uint32][]uint32, cidr int, onlySubnets bool) {
+	v4keys := make([]uint32, 0, len(networks))
+	for k := range networks {
 		v4keys = append(v4keys, k)
 	}
 	slices.Sort(v4keys)
 	for _, network := range v4keys {
-		ips := ipv4Networks[network]
+		ips := networks[network]
 		sort.SliceStable(ips, func(i, j int) bool {
 			return strconv.FormatUint(uint64(ips[i]), 10) < strconv.FormatUint(uint64(ips[j]), 10)
 		})
@@ -242,18 +269,18 @@ func (GroupIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			out.WriteString("\n")
 		}
 	}
+}
 
-	// IPv6 networks print in first-seen order; members stay unsorted (CyberChef
-	// leaves this as a TODO).
-	for _, networkStr := range ipv6Order {
+// writeIPv6Networks renders the IPv6 networks in first-seen order; members stay
+// unsorted (CyberChef leaves this as a TODO).
+func writeIPv6Networks(out *strings.Builder, networks map[string][][8]int, order []string, cidr int, onlySubnets bool) {
+	for _, networkStr := range order {
 		out.WriteString(networkStr + "/" + strconv.Itoa(cidr) + "\n")
 		if !onlySubnets {
-			for _, ip := range ipv6Networks[networkStr] {
+			for _, ip := range networks[networkStr] {
 				out.WriteString("  " + ipv6ToStr(ip, true) + "\n")
 			}
 			out.WriteString("\n")
 		}
 	}
-
-	return core.NewDish([]byte(out.String()), core.TypeString), nil
 }

@@ -124,3 +124,27 @@ func TestEscapeStringNullAndControl(t *testing.T) {
 		t.Fatalf("escape control (json) = %q, %v; want \\u0001", out, err)
 	}
 }
+
+// --- direct tests for the helpers extracted from escapeRune ---
+
+// TestEscapeNull documents the NUL byte handling: "\0" unless the next char is a
+// digit (or JSON-compatible), in which case it is hex-escaped.
+func TestEscapeNull(t *testing.T) {
+	if got := escapeNull(0, []rune{'a'}, false, false, false); got != `\0` {
+		t.Fatalf("plain NUL: %q", got)
+	}
+	if got := escapeNull(0, []rune{'0', '5'}, false, false, false); got == `\0` {
+		t.Fatalf("NUL before a digit should be hex-escaped, got %q", got)
+	}
+}
+
+// TestEscapePrintable documents the printable-ASCII handling: literal normally,
+// backslash-escaped quotes in Everything mode.
+func TestEscapePrintable(t *testing.T) {
+	if got := escapePrintable('a', "Standard", false, false, false); got != "a" {
+		t.Fatalf("standard: %q", got)
+	}
+	if got := escapePrintable('\'', "Everything", false, false, false); got != `\'` {
+		t.Fatalf("everything quote: %q", got)
+	}
+}

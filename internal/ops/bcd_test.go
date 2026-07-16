@@ -1,10 +1,111 @@
 package ops
 
 import (
+	"math/big"
+	"slices"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
+
+// bcd8421 is the plain "8 4 2 1" scheme (digit d encodes to nibble d), which
+// keeps the helper tests below easy to read.
+var bcd8421 = bcdEncodingLookup["8 4 2 1"]
+
+// TestBcdPackNibbles documents the packing helper: two nibbles per byte, high
+// nibble first, with an odd final nibble occupying the high half of a trailing
+// byte.
+func TestBcdPackNibbles(t *testing.T) {
+	cases := []struct {
+		name    string
+		nibbles []int
+		want    []int
+	}{
+		{"empty", nil, nil},
+		{"one pair", []int{0x1, 0x2}, []int{0x12}},
+		{"odd count keeps high nibble", []int{0x1, 0x2, 0x3}, []int{0x12, 0x30}},
+		{"sign nibble C", []int{0x1, 0xC}, []int{0x1C}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := bcdPackNibbles(c.nibbles); !slices.Equal(got, c.want) {
+				t.Fatalf("bcdPackNibbles(%v) = %v, want %v", c.nibbles, got, c.want)
+			}
+		})
+	}
+}
+
+// TestBcdEncodeNibbles documents the core encoder: digit nibbles, the optional
+// sign nibble (with the even-length leading-zero rule), and packed vs unpacked
+// output streams.
+func TestBcdEncodeNibbles(t *testing.T) {
+	cases := []struct {
+		name         string
+		n            int64
+		packed       bool
+		signed       bool
+		wantNibbles  []int
+		wantByteVals []int
+	}{
+		{"packed unsigned odd", 123, true, false, []int{1, 2, 3}, []int{0x12, 0x30}},
+		{"unpacked interleaves null high nibbles", 12, false, false, []int{0, 1, 0, 2}, []int{1, 2}},
+		{"signed positive appends C", 1, true, true, []int{1, 0xC}, []int{0x1C}},
+		{"signed negative appends D", -1, true, true, []int{1, 0xD}, []int{0x1D}},
+		{"signed even prepends leading zero", 12, true, true, []int{0, 1, 2, 0xC}, []int{0x01, 0x2C}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			nibbles, bytes := bcdEncodeNibbles(big.NewInt(c.n), bcd8421, c.packed, c.signed)
+			if !slices.Equal(nibbles, c.wantNibbles) {
+				t.Fatalf("nibbles = %v, want %v", nibbles, c.wantNibbles)
+			}
+			if !slices.Equal(bytes, c.wantByteVals) {
+				t.Fatalf("bytes = %v, want %v", bytes, c.wantByteVals)
+			}
+		})
+	}
+}
+
+// TestBcdParseNibbles documents parsing raw input into a nibble stream for each
+// input format.
+func TestBcdParseNibbles(t *testing.T) {
+	nib, err := bcdParseNibbles([]byte("0001 0010"), "Nibbles")
+	if err != nil || !slices.Equal(nib, []int{1, 2}) {
+		t.Fatalf("Nibbles: got %v, err %v", nib, err)
+	}
+	raw, err := bcdParseNibbles([]byte{0x12, 0x30}, "Raw")
+	if err != nil || !slices.Equal(raw, []int{1, 2, 3, 0}) {
+		t.Fatalf("Raw: got %v, err %v", raw, err)
+	}
+	if _, err := bcdParseNibbles([]byte("0002"), "Bytes"); err == nil {
+		t.Fatal("expected error on non-binary character")
+	}
+}
+
+// TestBcdDecodeDigits documents mapping nibble codes back to decimal digits and
+// the error for a code absent from the scheme.
+func TestBcdDecodeDigits(t *testing.T) {
+	got, err := bcdDecodeDigits([]int{1, 2, 3}, bcd8421)
+	if err != nil || got != "123" {
+		t.Fatalf("got %q, err %v", got, err)
+	}
+	if _, err := bcdDecodeDigits([]int{10}, bcd8421); err == nil {
+		t.Fatal("expected error for nibble not in scheme")
+	}
+}
+
+// TestBcdFormatOutput documents the three output renderings.
+func TestBcdFormatOutput(t *testing.T) {
+	if got := bcdFormatOutput([]int{1, 2}, nil, "Nibbles").String(); got != "0001 0010" {
+		t.Fatalf("Nibbles: %q", got)
+	}
+	if got := bcdFormatOutput(nil, []int{0x12}, "Bytes").String(); got != "00010010" {
+		t.Fatalf("Bytes: %q", got)
+	}
+	if got := bcdFormatOutput(nil, []int{0x12, 0x30}, "Raw").Bytes(); !slices.Equal(got, []byte{0x12, 0x30}) {
+		t.Fatalf("Raw: %v", got)
+	}
+}
 
 // Transcribed from ../CyberChef/tests/operations/tests/BCD.mjs.
 func TestBCDFixtures(t *testing.T) {
