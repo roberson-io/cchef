@@ -28,6 +28,9 @@ Classic ciphers and bitwise operations.
 | Bit shift right | `bit-shift-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Blowfish Decrypt | `blowfish-decrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
 | Blowfish Encrypt | `blowfish-encrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
+| Bombe | `bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
+| Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
+| Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
 | OR | `or` | [Bitwise OR](https://wikipedia.org/wiki/Bitwise_operation#OR) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
@@ -718,6 +721,139 @@ CTR leaves the length unchanged (no padding):
 ```bash
 $ cchef blowfish-encrypt -i "secret" --key 0011223344556677 --iv 0000000000000000 --mode CTR
 c5a8e6a22ed5
+```
+
+---
+
+## Bombe
+
+Reference: [Bombe](https://wikipedia.org/wiki/Bombe)
+
+Emulation of the Bombe machine used at Bletchley Park to attack Enigma. Given the
+ciphertext, a **crib** (known plaintext for part of it) and the rotors used, it
+suggests Enigma configurations — each a set of rotor start positions (left to
+right), the plugboard pairs it could determine, and a decryption preview. Choose
+a crib whose menu has loops (2+ is desirable); the checking machine discards
+stops that fail verification. Output is an HTML table.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--model` | option | `3-rotor` | `3-rotor` or `4-rotor`. |
+| `--left-most-4th-rotor` | string | Beta wiring | 4th-slot rotor wiring (4-rotor only). |
+| `--left-hand-rotor` / `--middle-rotor` / `--right-hand-rotor` | string | I / II / III | Rotor wirings (stepping is ignored). |
+| `--reflector` | string | reflector B | Reflector pairs. |
+| `--crib` | string | (empty) | Known plaintext to match against the ciphertext. |
+| `--crib-offset` | number | `0` | Offset into the ciphertext where the crib begins. |
+| `--use-checking-machine` | boolean | `true` | Verify each stop and discard failures. |
+
+**Simple example**
+
+```bash
+$ cchef bombe -i "BBYFLTHHYIJQAYBBYS" --crib "THISISATESTMESSAGE"
+Bombe run on menu with 6 loops (2+ desirable). Note: Rotor positions are listed left to right and start at the beginning of the crib, and ignore stepping and the ring setting. Some plugboard settings are determined. A decryption preview starting at the beginning of the crib and ignoring stepping is also provided.
+
+<table class='table table-hover table-sm table-bordered table-nonfluid'><tr><th>Rotor stops</th>  <th>Partial plugboard</th>  <th>Decryption preview</th></tr>
+<tr><td>LGA</td>  <td>SS AG BO CL EK FF HH II JJ TT YY</td>  <td>THISISATESTMESSAGE</td></tr>
+</table>
+```
+
+(The default rotors are I/II/III with reflector B, so they can be omitted here.)
+
+---
+
+## Enigma
+
+Reference: [Enigma machine](https://wikipedia.org/wiki/Enigma_machine)
+
+Enciphers/deciphers with the WW2 Enigma machine. The standard German military
+rotors (I–VIII, Beta, Gamma) and reflectors (B, C, and the thin variants) are
+built in. Enigma is its own inverse: decrypt by running the ciphertext through a
+machine set up the same way. Because this is a substitution machine, encryption
+and decryption are the same operation.
+
+Rotors are given as the 26-letter wiring the rotor maps A→Z onto, optionally
+followed by `<` and the stepping points (e.g. `EKMFLGDQVZNTOWYHXUSPAIBRCJ<R`);
+reflectors and the plugboard are whitespace-separated letter pairs
+(e.g. `AB CD EF`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--model` | option | `3-rotor` | `3-rotor` or `4-rotor` (the 4th slot uses a thin rotor/reflector). |
+| `--left-most-4th-rotor` | string | Beta wiring | 4th-slot rotor wiring (4-rotor only). |
+| `--left-most-rotor-ring-setting` / `--left-most-rotor-initial-value` | option | `A` | Ring setting and start position of the 4th rotor. |
+| `--left-hand-rotor` | string | rotor I | Left rotor wiring (`wiring<steps`). |
+| `--left-hand-rotor-ring-setting` / `--left-hand-rotor-initial-value` | option | `A` | Ring setting and start position of the left rotor. |
+| `--middle-rotor` | string | rotor II | Middle rotor wiring. |
+| `--middle-rotor-ring-setting` / `--middle-rotor-initial-value` | option | `A` | Ring setting and start position of the middle rotor. |
+| `--right-hand-rotor` | string | rotor III | Right rotor wiring. |
+| `--right-hand-rotor-ring-setting` / `--right-hand-rotor-initial-value` | option | `A` | Ring setting and start position of the right rotor. |
+| `--reflector` | string | reflector B | Reflector pairs (13 pairs covering every letter). |
+| `--plugboard` | string | (empty) | Plugboard pairs, e.g. `AB CD`. |
+| `--strict-output` | boolean | `true` | Drop non-letters and group the output into blocks of five. |
+
+**Simple example**
+
+With the default rotors (I, II, III at position A) `--strict-output` groups the
+output into fives:
+
+```bash
+$ cchef enigma -i "HELLOWORLD"
+ILBDA AMTAZ
+```
+
+**Round trip**
+
+The same settings decrypt it (Enigma is self-inverse):
+
+```bash
+$ cchef enigma -i "ILBDAAMTAZ"
+HELLO WORLD
+```
+
+**With a plugboard and rotor start positions**
+
+```bash
+$ cchef enigma -i "ATTACKATDAWN" --left-hand-rotor-initial-value Q --middle-rotor-initial-value E --right-hand-rotor-initial-value V --plugboard "AB CD"
+UQKUK TOKGQ CB
+```
+
+---
+
+## Multiple Bombe
+
+Reference: [Bombe](https://wikipedia.org/wiki/Bombe)
+
+Like [Bombe](#bombe), but runs the attack over many rotor configurations when the
+rotors are unknown. Supply candidate rotors (one wiring per line) and reflectors;
+it tries every ordering and reports the configurations that produce stops. Test
+your crib with the single Bombe first — a 4-rotor search is very slow.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--main-rotors` | string | (empty) | Candidate rotor wirings, one per line (3+ required). |
+| `--4th-rotor` | string | (empty) | Candidate 4th-slot rotors, one per line (optional). |
+| `--reflectors` | string | (empty) | Candidate reflectors, one per line. |
+| `--crib` | string | (empty) | Known plaintext to match against the ciphertext. |
+| `--crib-offset` | number | `0` | Offset into the ciphertext where the crib begins. |
+| `--use-checking-machine` | boolean | `true` | Verify each stop and discard failures. |
+
+**Simple example**
+
+```bash
+$ cchef multiple-bombe -i "BBYFLTHHYIJQAYBBYS" --main-rotors "$(printf 'EKMFLGDQVZNTOWYHXUSPAIBRCJ\nAJDKSIRUXBLHWTMCQGZNPYFVOE\nBDFHJLCPRTXVZNYEIWGAKMUSQO')" --reflectors "AY BR CU DH EQ FS GL IP JX KN MO TZ VW" --crib "THISISATESTMESSAGE"
+Bombe run on menu with 6 loops (2+ desirable). Note: Rotors and rotor positions are listed left to right, ignore stepping and the ring setting, and positions start at the beginning of the crib. Some plugboard settings are determined. A decryption preview starting at the beginning of the crib and ignoring stepping is also provided.
+
+Rotors: EKMFLGDQVZNTOWYHXUSPAIBRCJ, AJDKSIRUXBLHWTMCQGZNPYFVOE, BDFHJLCPRTXVZNYEIWGAKMUSQO
+Reflector: AY BR CU DH EQ FS GL IP JX KN MO TZ VW
+<table class='table table-hover table-sm table-bordered table-nonfluid'><tr><th>Rotor stops</th>  <th>Partial plugboard</th>  <th>Decryption preview</th></tr>
+<tr><td>LGA</td>  <td>SS AG BO CL EK FF HH II JJ TT YY</td>  <td>THISISATESTMESSAGE</td></tr>
+</table>
 ```
 
 ---
