@@ -11,9 +11,12 @@ import (
 
 // Global input/output flags shared by operation subcommands and bake/url.
 var (
-	flagInput  string // -i/--input: literal input string
-	flagInFile string // --in-file: read input from a file
-	flagOutput string // -o/--output: write output to a file
+	flagInput     string // -i/--input: literal input string
+	flagInFile    string // --in-file: read input from a file
+	flagOutput    string // -o/--output: write output to a file
+	flagInDir     string // --in-dir: run the recipe over every file in a directory
+	flagOutDir    string // --out-dir: mirror per-file output into a directory
+	flagRecursive bool   // --recursive: with --in-dir, walk subdirectories
 )
 
 func addIOFlags(cmd *cobra.Command) {
@@ -21,6 +24,9 @@ func addIOFlags(cmd *cobra.Command) {
 	f.StringVarP(&flagInput, "input", "i", "", "input data as a literal string")
 	f.StringVar(&flagInFile, "in-file", "", "read input from a file")
 	f.StringVarP(&flagOutput, "output", "o", "", "write output to a file (default stdout)")
+	f.StringVar(&flagInDir, "in-dir", "", "run the recipe over every file in a directory")
+	f.StringVar(&flagOutDir, "out-dir", "", "mirror per-file output into a directory (with --in-dir)")
+	f.BoolVar(&flagRecursive, "recursive", false, "with --in-dir, recurse into subdirectories")
 }
 
 // resolveInput returns the input bytes, in priority order: --in-file, then

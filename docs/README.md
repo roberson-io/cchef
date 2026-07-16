@@ -40,6 +40,27 @@ echo -n hello | cchef to-base64
 cchef to-base64 --in-file ./greeting.txt
 ```
 
+### Running over a directory
+
+`--in-dir <path>` runs the operation (or `bake` recipe) once per file in a
+directory. By default only the top-level files are processed; add `--recursive`
+to walk subdirectories. Without `--out-dir`, results go to stdout with a
+`==> name <==` header per file; with `--out-dir <path>`, one output file per
+input is written there, mirroring the input tree. A file whose recipe fails is
+reported to stderr and skipped, and the command exits non-zero.
+
+This is the CLI counterpart to CyberChef's folder input. The same effect can be
+had with a shell loop (`for f in dir/*; do cchef <op> --in-file "$f"; done`);
+`--in-dir` is the built-in convenience.
+
+```bash
+# Base64-encode every file, results to stdout with per-file headers
+cchef to-base64 --in-dir ./messages
+
+# Recurse, writing one output file per input into ./encoded/
+cchef to-base64 --in-dir ./messages --out-dir ./encoded --recursive
+```
+
 ## Chaining operations
 
 Two ways to combine operations:

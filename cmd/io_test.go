@@ -14,6 +14,8 @@ import (
 // resetIOFlags clears the shared input/output flag globals between cases.
 func resetIOFlags() {
 	flagInput, flagInFile, flagOutput = "", "", ""
+	flagInDir, flagOutDir = "", ""
+	flagRecursive = false
 }
 
 func newIOCmd() *cobra.Command {

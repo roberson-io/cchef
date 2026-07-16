@@ -70,13 +70,5 @@ func runBake(cmd *cobra.Command, posArgs []string) error {
 	if err != nil {
 		return err
 	}
-	in, err := resolveInput(cmd, posArgs)
-	if err != nil {
-		return err
-	}
-	out, err := recipe.Execute(core.NewDish(in, core.TypeString))
-	if err != nil {
-		return err
-	}
-	return writeOutput(cmd, out.Bytes())
+	return runRecipeIO(cmd, posArgs, recipe)
 }

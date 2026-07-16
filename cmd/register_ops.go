@@ -67,17 +67,8 @@ func buildOpCommand(op core.Operation) *cobra.Command {
 			args[i] = v
 		}
 
-		in, err := resolveInput(c, posArgs)
-		if err != nil {
-			return err
-		}
-
 		recipe := core.Recipe{{Op: meta.Name, Args: args}}
-		out, err := recipe.Execute(core.NewDish(in, core.TypeString))
-		if err != nil {
-			return err
-		}
-		return writeOutput(c, out.Bytes())
+		return runRecipeIO(c, posArgs, recipe)
 	}
 
 	return cmd

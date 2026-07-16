@@ -52,11 +52,20 @@ cchef --version
 
 # Common operations have short aliases:
 cchef b64e hello                      # alias for to-base64  -> aGVsbG8=
+
+# Process a whole directory of files (CyberChef's folder input):
+cchef to-base64 --in-dir ./messages                    # results to stdout, per-file headers
+cchef to-base64 --in-dir ./messages --out-dir ./out --recursive
 ```
 
 Output is byte-exact when piped or redirected (so chaining is lossless); a
 trailing newline is added only when writing to a terminal. Operations accept
 `--in-file -` / `--output -` to force stdin/stdout in a pipeline.
+
+Point an operation (or `bake`) at a directory with `--in-dir` to run it once per
+file — top-level by default, `--recursive` to walk subdirectories. Results go to
+stdout with `==> name <==` headers, or to `--out-dir` as one output file per
+input; a file whose recipe fails is reported and skipped (non-zero exit).
 
 ## Operations
 
