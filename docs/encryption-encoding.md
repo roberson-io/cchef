@@ -37,7 +37,9 @@ Classic ciphers and bitwise operations.
 | CipherSaber2 Encrypt | `ciphersaber2-encrypt` | [CipherSaber](https://wikipedia.org/wiki/CipherSaber) |
 | Citrix CTX1 Decode | `citrix-ctx1-decode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
 | Citrix CTX1 Encode | `citrix-ctx1-encode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
+| Colossus | `colossus` | [Colossus computer](https://wikipedia.org/wiki/Colossus_computer) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
+| Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
 | OR | `or` | [Bitwise OR](https://wikipedia.org/wiki/Bitwise_operation#OR) |
@@ -969,6 +971,59 @@ NFHALEBBMHGCLEBBMDGGKMAJNOHLLKBP
 
 ---
 
+## Colossus
+
+Reference: [Colossus computer](https://wikipedia.org/wiki/Colossus_computer)
+
+Emulates Colossus, the WW2 codebreaking computer built to attack the Lorenz
+cipher. It runs the ciphertext tape repeatedly against the Chi/Psi/Motor wheel
+patterns, programmed via the "K rack" of Q-bus switches, and counts how often a
+condition holds — the statistical test cryptanalysts used to recover wheel
+settings. Input is ITA2 text (`A`–`Z`, `3`–`9`, `+ - . /`); output is a JSON
+object with the printer output, the five counters and the run count.
+
+This operation has ~57 arguments mirroring the physical machine's controls;
+`cchef colossus --help` lists them all. The most useful are below. The simplest
+way to drive it is `--k-rack-option "Select Program"` with a preset
+`--program-to-run`.
+
+**Key options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--pattern` | option | `KH Pattern` | Wheel pattern: `KH Pattern`, `ZMUG Pattern` or `BREAM Pattern`. |
+| `--qbusz` / `--qbus-2` / `--qbus-3` | option | (empty) | Q-bus inputs: Z (cipher), Χ (chi) and Ψ (psi), each blank, direct or delta (`Δ`). |
+| `--limitation` | option | `None` | Motor limitation (`Χ2`, `Χ2 + P5`, `X2 + Ψ1`, …). |
+| `--k-rack-option` | option | `Select Program` | `Select Program` runs a preset; the others expose the raw switches. |
+| `--program-to-run` | option | (empty) | Preset: `Letter Count`, `1+2=.`, `4=5=/1=2`, `/,5,U`. |
+| `--set-total` | number | `0` | Only print counter lines above this threshold. |
+| `--fast-step` / `--slow-step` | option | (empty) | Wheels stepped between runs (`X1`–`X5`, `M37`, `M61`, `S1`–`S5`). |
+| `--start-1` … | number | `1` | Per-wheel start positions (Χ, Ψ and motor wheels). |
+
+**Simple example**
+
+The "Letter Count" program counts every character on the tape (here 30):
+
+```bash
+$ cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
+    --k-rack-option "Select Program" --program-to-run "Letter Count" --qbusz Z
+{"printout":" \n00 00 : a30 \n","counters":[30,0,0,0,0],"runcount":2}
+```
+
+**Stepping a wheel**
+
+Setting a fast step runs the tape once per position of that wheel, printing a
+line per run:
+
+```bash
+$ cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
+    --k-rack-option "Select Program" --program-to-run "Letter Count" \
+    --qbusz Z --fast-step X1
+{"printout":"X1 \n01 00 : a30 \n02 00 : a30 \n03 00 : a30 \n...41 00 : a30 \n","counters":[30,0,0,0,0],"runcount":42}
+```
+
+---
+
 ## Enigma
 
 Reference: [Enigma machine](https://wikipedia.org/wiki/Enigma_machine)
@@ -1025,6 +1080,54 @@ HELLO WORLD
 ```bash
 $ cchef enigma -i "ATTACKATDAWN" --left-hand-rotor-initial-value Q --middle-rotor-initial-value E --right-hand-rotor-initial-value V --plugboard "AB CD"
 UQKUK TOKGQ CB
+```
+
+---
+
+## Lorenz
+
+Reference: [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher)
+
+Enciphers/deciphers with the Lorenz SZ40/42 cipher attachment — a twelve-wheel
+Vernam machine that XORs the plaintext (in ITA2) with a key stream from five chi
+wheels, five psi wheels and two motor wheels. Three models (`SZ40`, `SZ42a`,
+`SZ42b`) and three historical wheel patterns (KH, ZMUG, BREAM) are built in, plus
+a `Custom` pattern that reads twelve lug strings (`.`/`x`).
+
+Set `--mode Send` to encipher and `--mode Receive` to decipher. Plaintext is
+converted to/from ITA2 with figure/letter shifts; `--input-type ITA2` /
+`--output-type ITA2` skip that conversion. The full per-wheel start and lug flags
+are listed by `cchef lorenz --help`.
+
+**Key options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--model` | option | `SZ40` | `SZ40`, `SZ42a` or `SZ42b` (the SZ42 models add limitations). |
+| `--wheel-pattern` | option | `KH Pattern` | `KH Pattern`, `ZMUG Pattern`, `BREAM Pattern`, `No Pattern` or `Custom`. |
+| `--kt-schalter` | boolean | `false` | KT-Schalter limitation (SZ42a/b). |
+| `--mode` | option | `Send` | `Send` to encipher, `Receive` to decipher. |
+| `--input-type` / `--output-type` | option | `Plaintext` | `Plaintext` or `ITA2`. |
+| `--ita2-format` | option | `5/8/9` | Represent figure-shift/letter-shift/space as `5/8/9` or `+/-/.`. |
+| `--<wheel>-start-…` | number | `1` | Start position of each Ψ/Μ/Χ wheel. |
+| `--<wheel>-lugs-…` | string | pattern | Custom lug strings (used when `--wheel-pattern Custom`). |
+
+**Simple example**
+
+Encipher plaintext with the KH pattern (ITA2 output, `9` = space):
+
+```bash
+$ cchef lorenz -i "HELLO WORLD, THIS IS A TEST MESSAGE." --model SZ40 --wheel-pattern "KH Pattern" --mode Send
+VIC3TS/CUJA/3II9W9JWDI5DAFXT4SOIF3999IZD9T
+```
+
+**Round trip**
+
+The same settings in `Receive` mode recover the plaintext:
+
+```bash
+$ cchef lorenz -i "VIC3TS/CUJA/3II9W9JWDI5DAFXT4SOIF3999IZD9T" --model SZ40 --wheel-pattern "KH Pattern" --mode Receive --output-type Plaintext
+HELLO WORLD, THIS IS A TEST MESSAGE.
 ```
 
 ---

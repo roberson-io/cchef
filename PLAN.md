@@ -102,7 +102,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 242
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 244
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -115,7 +115,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **242 operations** (`internal/ops/`), each a faithful port with tests
+- **244 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -259,7 +259,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **239 unique** CyberChef operations are covered (238 directly plus
+Currently **241 unique** CyberChef operations are covered (240 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -351,7 +351,7 @@ Currently **239 unique** CyberChef operations are covered (238 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (36/94)
+### Encryption / Encoding (38/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -380,7 +380,7 @@ Currently **239 unique** CyberChef operations are covered (238 directly plus
 - [x] CipherSaber2 Encrypt
 - [x] Citrix CTX1 Decode
 - [x] Citrix CTX1 Encode
-- [ ] Colossus
+- [x] Colossus
 - [ ] Derive EVP key
 - [ ] Derive HKDF key
 - [ ] Derive PBKDF2 key
@@ -402,7 +402,7 @@ Currently **239 unique** CyberChef operations are covered (238 directly plus
 - [ ] JWT Decode
 - [ ] JWT Sign
 - [ ] JWT Verify
-- [ ] Lorenz
+- [x] Lorenz
 - [ ] LS47 Decrypt
 - [ ] LS47 Encrypt
 - [x] Multiple Bombe
