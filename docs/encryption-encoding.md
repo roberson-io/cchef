@@ -38,6 +38,7 @@ Classic ciphers and bitwise operations.
 | Citrix CTX1 Decode | `citrix-ctx1-decode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
 | Citrix CTX1 Encode | `citrix-ctx1-encode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
 | Colossus | `colossus` | [Colossus computer](https://wikipedia.org/wiki/Colossus_computer) |
+| Derive EVP key | `derive-evp-key` | [Key derivation function](https://wikipedia.org/wiki/Key_derivation_function) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
@@ -1020,6 +1021,50 @@ $ cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
     --k-rack-option "Select Program" --program-to-run "Letter Count" \
     --qbusz Z --fast-step X1
 {"printout":"X1 \n01 00 : a30 \n02 00 : a30 \n03 00 : a30 \n...41 00 : a30 \n","counters":[30,0,0,0,0],"runcount":42}
+```
+
+---
+
+## Derive EVP key
+
+Reference: [Key derivation function](https://wikipedia.org/wiki/Key_derivation_function)
+
+Runs the OpenSSL `EVP_BytesToKey` password-based key derivation function (as used
+by crypto-js). It repeatedly hashes the passphrase and salt to produce key
+material of the requested size, returned as a lowercase hex string. The operation
+**input is ignored** — the passphrase and salt come from the arguments.
+
+Despite the description text (inherited from CyberChef), this operation does
+**not** generate a random salt: the salt is exactly the decoded salt argument, so
+an empty salt means no salt. That makes the output fully deterministic.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--passphrase` / `--passphrase-type` | toggleString | (empty) / `UTF8` | The passphrase and how to decode it (`UTF8`, `Latin1`, `Hex`, `Base64`). |
+| `--key-size` | number | `128` | Derived key size in **bits**. |
+| `--iterations` | number | `1` | Hash iterations per block. |
+| `--hashing-function` | option | `SHA1` | `SHA1`, `SHA256`, `SHA384`, `SHA512` or `MD5`. |
+| `--salt` / `--salt-type` | toggleString | (empty) / `Hex` | The salt and how to decode it (`Hex`, `UTF8`, `Latin1`, `Base64`). |
+
+**Simple example**
+
+Derive a 128-bit key from a passphrase and a hex salt with SHA1:
+
+```bash
+$ cchef derive-evp-key --passphrase password --salt 73616c74 --salt-type Hex
+c88e9c67041a74e0357befdff93f87dd
+```
+
+**Complex example**
+
+A 256-bit key with SHA256, 3 iterations and a UTF8 salt:
+
+```bash
+$ cchef derive-evp-key --passphrase password --key-size 256 --iterations 3 \
+    --hashing-function SHA256 --salt salt --salt-type UTF8
+cc19a87959d70ba1d9d2979b5fc2323e0d62a40fb2545492e9ec4d57ce79956d
 ```
 
 ---
