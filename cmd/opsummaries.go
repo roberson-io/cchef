@@ -34,6 +34,7 @@ var opSummaries = map[string]string{
 	"Blowfish Decrypt":               "Decrypts with the Blowfish block cipher",
 	"Blowfish Encrypt":               "Encrypts with the Blowfish block cipher",
 	"Bombe":                          "Attacks Enigma with the Bombe (needs a crib)",
+	"Caesar Box Cipher":              "Transposition cipher: write in rows, read by column",
 	"Caret/M-decode":                 "Decodes caret/M-notation escapes (cat -v)",
 	"Cartesian Product":              "Cartesian product of multiple sets",
 	"CBOR Decode":                    "Decodes CBOR (RFC 8949) binary data into JSON",

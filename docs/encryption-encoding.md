@@ -29,6 +29,7 @@ Classic ciphers and bitwise operations.
 | Blowfish Decrypt | `blowfish-decrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
 | Blowfish Encrypt | `blowfish-encrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
 | Bombe | `bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
+| Caesar Box Cipher | `caesar-box-cipher` | [Caesar Box](https://www.dcode.fr/caesar-box-cipher) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -760,6 +761,36 @@ Bombe run on menu with 6 loops (2+ desirable). Note: Rotor positions are listed 
 ```
 
 (The default rotors are I/II/III with reflector B, so they can be omitted here.)
+
+---
+
+## Caesar Box Cipher
+
+Reference: [Caesar Box](https://www.dcode.fr/caesar-box-cipher)
+
+A transposition cipher: the message (with spaces removed) is written row by row
+into a box `Box Height` rows tall, then read back column by column. Encryption and
+decryption are the same operation with complementary heights — a message encoded
+with height *h* into a box of width *w* is decoded by re-running it with height *w*.
+
+| Option | Description |
+| --- | --- |
+| Box Height | The number of rows in the box. |
+
+Example — encode with a box three rows tall:
+
+```
+$ cchef caesar-box-cipher --box-height 3 -i "Hello World!"
+Hlodeor!lWl
+```
+
+Decoding reverses it. `Hello World!` (11 letters after stripping the space) fills a
+3×4 box, so the inverse height is 4:
+
+```
+$ cchef caesar-box-cipher --box-height 4 -i "Hlodeor!lWl"
+HelloWorld!
+```
 
 ---
 
