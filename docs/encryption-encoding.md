@@ -35,6 +35,8 @@ Classic ciphers and bitwise operations.
 | ChaCha | `chacha` | [ChaCha variant](https://wikipedia.org/wiki/Salsa20#ChaCha_variant) |
 | CipherSaber2 Decrypt | `ciphersaber2-decrypt` | [CipherSaber](https://wikipedia.org/wiki/CipherSaber) |
 | CipherSaber2 Encrypt | `ciphersaber2-encrypt` | [CipherSaber](https://wikipedia.org/wiki/CipherSaber) |
+| Citrix CTX1 Decode | `citrix-ctx1-decode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
+| Citrix CTX1 Encode | `citrix-ctx1-encode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -929,6 +931,40 @@ $ printf 'Meet at dawn.' \
     | cchef ciphersaber2-encrypt --key hunter2 --key-type Latin1 --rounds 20 \
     | cchef ciphersaber2-decrypt --key hunter2 --key-type Latin1 --rounds 20
 Meet at dawn.
+```
+
+---
+
+## Citrix CTX1 Decode
+
+Reference: [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/)
+
+Decodes a Citrix CTX1 password hash back to plaintext. The input length must be a
+multiple of four (each source character encodes to four `A`–`P` characters);
+otherwise the operation errors with `Incorrect hash length`.
+
+This operation takes no arguments.
+
+```
+$ cchef citrix-ctx1-decode -i "NFHALEBBMHGCLEBBMDGGKMAJNOHLLKBP"
+password
+```
+
+---
+
+## Citrix CTX1 Encode
+
+Reference: [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/)
+
+Encodes a string to the Citrix CTX1 password format. The text is UTF-16LE
+encoded, folded through a running XOR chain, and emitted as pairs of `A`–`P`
+characters (one per nibble).
+
+This operation takes no arguments.
+
+```
+$ cchef citrix-ctx1-encode -i "password"
+NFHALEBBMHGCLEBBMDGGKMAJNOHLLKBP
 ```
 
 ---

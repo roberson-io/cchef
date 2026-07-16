@@ -42,6 +42,7 @@ var opSummaries = map[string]string{
 	"ChaCha":                         "ChaCha stream cipher (8/12/20 rounds)",
 	"CipherSaber2 Decrypt":           "Decrypts CipherSaber-2 (RC4-based) ciphertext",
 	"CipherSaber2 Encrypt":           "Encrypts with CipherSaber-2 (RC4-based)",
+	"Citrix CTX1 Decode":             "Decodes a Citrix CTX1 password hash to plaintext",
 	"Count occurrences":              "Counts occurrences of a string in the input",
 	"DateTime Delta":                 "Adds or subtracts a delta to a DateTime",
 	"Dechunk HTTP response":          "Decodes a chunked HTTP response body",

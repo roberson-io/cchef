@@ -143,6 +143,8 @@ var opCategories = map[string][]string{
 	"Change IP format":                   {catNetworking},
 	"CipherSaber2 Decrypt":               {catEncryptionEncoding},
 	"CipherSaber2 Encrypt":               {catEncryptionEncoding},
+	"Citrix CTX1 Decode":                 {catEncryptionEncoding},
+	"Citrix CTX1 Encode":                 {catEncryptionEncoding},
 	"Convert area":                       {catUtils},
 	"Convert co-ordinate format":         {catUtils},
 	"Convert data units":                 {catUtils},
