@@ -30,6 +30,8 @@ Classic ciphers and bitwise operations.
 | Blowfish Encrypt | `blowfish-encrypt` | [Blowfish](https://wikipedia.org/wiki/Blowfish_(cipher)) |
 | Bombe | `bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | Caesar Box Cipher | `caesar-box-cipher` | [Caesar Box](https://www.dcode.fr/caesar-box-cipher) |
+| Cetacean Cipher Decode | `cetacean-cipher-decode` | [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins) |
+| Cetacean Cipher Encode | `cetacean-cipher-encode` | [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -790,6 +792,40 @@ Decoding reverses it. `Hello World!` (11 letters after stripping the space) fill
 ```
 $ cchef caesar-box-cipher --box-height 4 -i "Hlodeor!lWl"
 HelloWorld!
+```
+
+---
+
+## Cetacean Cipher Decode
+
+Reference: [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins)
+
+Decodes Cetacean Cipher text back to the original message. Each run of `e`/`E`
+characters is read in groups of sixteen as a 16-bit character code (`e` is a 1
+bit, `E` a 0 bit); a literal space stands for a space character.
+
+This operation takes no arguments.
+
+```
+$ cchef cetacean-cipher-decode -i "EEEEEEEEEeeEeEEEEEEEEEEEEeeEeEEe"
+hi
+```
+
+---
+
+## Cetacean Cipher Encode
+
+Reference: [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins)
+
+Converts any input into Cetacean Cipher: each character is written as its 16-bit
+code, with `e` for a 1 bit and `E` for a 0 bit. Spaces are passed through
+unchanged, so words stay separated.
+
+This operation takes no arguments.
+
+```
+$ cchef cetacean-cipher-encode -i "hi"
+EEEEEEEEEeeEeEEEEEEEEEEEEeeEeEEe
 ```
 
 ---

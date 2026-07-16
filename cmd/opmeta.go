@@ -137,6 +137,8 @@ var opCategories = map[string][]string{
 	"Cartesian Product":                  {catArithmeticLogic},
 	"CBOR Decode":                        {catDataFormat},
 	"CBOR Encode":                        {catDataFormat},
+	"Cetacean Cipher Decode":             {catEncryptionEncoding},
+	"Cetacean Cipher Encode":             {catEncryptionEncoding},
 	"Change IP format":                   {catNetworking},
 	"Convert area":                       {catUtils},
 	"Convert co-ordinate format":         {catUtils},
