@@ -40,6 +40,8 @@ var opSummaries = map[string]string{
 	"CBOR Decode":                    "Decodes CBOR (RFC 8949) binary data into JSON",
 	"CBOR Encode":                    "Encodes JSON into canonical CBOR (RFC 8949)",
 	"ChaCha":                         "ChaCha stream cipher (8/12/20 rounds)",
+	"CipherSaber2 Decrypt":           "Decrypts CipherSaber-2 (RC4-based) ciphertext",
+	"CipherSaber2 Encrypt":           "Encrypts with CipherSaber-2 (RC4-based)",
 	"Count occurrences":              "Counts occurrences of a string in the input",
 	"DateTime Delta":                 "Adds or subtracts a delta to a DateTime",
 	"Dechunk HTTP response":          "Decodes a chunked HTTP response body",

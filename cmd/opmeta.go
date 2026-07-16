@@ -141,6 +141,8 @@ var opCategories = map[string][]string{
 	"Cetacean Cipher Encode":             {catEncryptionEncoding},
 	"ChaCha":                             {catEncryptionEncoding},
 	"Change IP format":                   {catNetworking},
+	"CipherSaber2 Decrypt":               {catEncryptionEncoding},
+	"CipherSaber2 Encrypt":               {catEncryptionEncoding},
 	"Convert area":                       {catUtils},
 	"Convert co-ordinate format":         {catUtils},
 	"Convert data units":                 {catUtils},

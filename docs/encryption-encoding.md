@@ -33,6 +33,8 @@ Classic ciphers and bitwise operations.
 | Cetacean Cipher Decode | `cetacean-cipher-decode` | [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins) |
 | Cetacean Cipher Encode | `cetacean-cipher-encode` | [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins) |
 | ChaCha | `chacha` | [ChaCha variant](https://wikipedia.org/wiki/Salsa20#ChaCha_variant) |
+| CipherSaber2 Decrypt | `ciphersaber2-decrypt` | [CipherSaber](https://wikipedia.org/wiki/CipherSaber) |
+| CipherSaber2 Encrypt | `ciphersaber2-encrypt` | [CipherSaber](https://wikipedia.org/wiki/CipherSaber) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -876,6 +878,57 @@ $ cchef chacha --key 00112233445566778899aabbccddeeff --nonce 0f1e2d3c4b5a6978 \
     --counter 0 --rounds 8 --input-format Hex --output-format Hex \
     -i "00 00 00 00 00 00 00 00"
 29 56 0d 28 0b 45 28 40
+```
+
+---
+
+## CipherSaber2 Decrypt
+
+Reference: [CipherSaber](https://wikipedia.org/wiki/CipherSaber)
+
+Decrypts CipherSaber-2 ciphertext. The first 10 bytes of the input are the
+initialisation vector and the rest is the message, keyed with the RC4 stream
+cipher mixed over the given number of rounds. Use the same key and round count
+that were used to encrypt.
+
+| Option | Description |
+| --- | --- |
+| Key | The shared key, as Hex, UTF8, Latin1 or Base64. |
+| Rounds | Number of key-scheduling rounds (20 for CipherSaber-2; 1 is classic CipherSaber/RC4). |
+
+The classic worked example (key `asdfg`, 1 round), reading the raw ciphertext
+bytes on stdin:
+
+```
+$ printf '\x6f\x6d\x0b\xab\xf3\xaa\x67\x19\x03\x15\x30\xed\xb6\x77\xca\x74\xe0\x08\x9d\xd0\xe7\xb8\x85\x43\x56\xbb\x14\x48\xe3\x7c\xdb\xef\xe7\xf3\xa8\x4f\x4f\x5f\xb3\xfd' \
+    | cchef ciphersaber2-decrypt --key asdfg --key-type Latin1 --rounds 1
+This is a test of CipherSaber.
+```
+
+---
+
+## CipherSaber2 Encrypt
+
+Reference: [CipherSaber](https://wikipedia.org/wiki/CipherSaber)
+
+Encrypts with CipherSaber-2. A fresh random 10-byte initialisation vector is
+generated and prepended to the output, so the ciphertext is always 10 bytes
+longer than the input and differs on each run. Decrypt with the same key and
+round count.
+
+| Option | Description |
+| --- | --- |
+| Key | The shared key, as Hex, UTF8, Latin1 or Base64. |
+| Rounds | Number of key-scheduling rounds (20 for CipherSaber-2; 1 is classic CipherSaber/RC4). |
+
+Because the IV is random, encryption is shown here round-tripped back through
+decryption with the same key and rounds:
+
+```
+$ printf 'Meet at dawn.' \
+    | cchef ciphersaber2-encrypt --key hunter2 --key-type Latin1 --rounds 20 \
+    | cchef ciphersaber2-decrypt --key hunter2 --key-type Latin1 --rounds 20
+Meet at dawn.
 ```
 
 ---
