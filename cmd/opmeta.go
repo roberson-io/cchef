@@ -139,6 +139,7 @@ var opCategories = map[string][]string{
 	"CBOR Encode":                        {catDataFormat},
 	"Cetacean Cipher Decode":             {catEncryptionEncoding},
 	"Cetacean Cipher Encode":             {catEncryptionEncoding},
+	"ChaCha":                             {catEncryptionEncoding},
 	"Change IP format":                   {catNetworking},
 	"Convert area":                       {catUtils},
 	"Convert co-ordinate format":         {catUtils},

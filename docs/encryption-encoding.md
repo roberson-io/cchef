@@ -32,6 +32,7 @@ Classic ciphers and bitwise operations.
 | Caesar Box Cipher | `caesar-box-cipher` | [Caesar Box](https://www.dcode.fr/caesar-box-cipher) |
 | Cetacean Cipher Decode | `cetacean-cipher-decode` | [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins) |
 | Cetacean Cipher Encode | `cetacean-cipher-encode` | [Dolphins](https://hitchhikers.fandom.com/wiki/Dolphins) |
+| ChaCha | `chacha` | [ChaCha variant](https://wikipedia.org/wiki/Salsa20#ChaCha_variant) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -826,6 +827,55 @@ This operation takes no arguments.
 ```
 $ cchef cetacean-cipher-encode -i "hi"
 EEEEEEEEEeeEeEEEEEEEEEEEEeeEeEEe
+```
+
+---
+
+## ChaCha
+
+Reference: [ChaCha variant](https://wikipedia.org/wiki/Salsa20#ChaCha_variant)
+
+ChaCha is Daniel J. Bernstein's stream cipher (a Salsa20 variant). This is a
+parameterised implementation covering both the original construction and the
+RFC-8439 variant. As a stream cipher, encryption and decryption are the same
+operation: re-running the ciphertext with the same key, nonce and counter
+returns the plaintext.
+
+| Option | Description |
+| --- | --- |
+| Key | 16- or 32-byte key (128 or 256 bits), given as Hex, UTF8, Latin1 or Base64. |
+| Nonce | 8- or 12-byte nonce, as Hex/UTF8/Latin1/Base64, or an integer (which becomes a 12-byte nonce). The nonce and counter together must total 16 bytes. |
+| Counter | Starting block counter (default 0); incremented every 64 bytes of keystream. |
+| Rounds | Number of rounds: 20, 12 or 8. |
+| Input | How to read the input: `Hex` or `Raw`. |
+| Output | How to write the output: `Raw` or `Hex`. |
+
+Encrypt a message (256-bit key, 12-byte nonce, 20 rounds, raw text in, hex out):
+
+```
+$ cchef chacha --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f \
+    --nonce 000000000000004a00000000 --counter 1 --rounds 20 \
+    --input-format Raw --output-format Hex -i "Hello, ChaCha!"
+6a 2a 3d 9f 2f 37 f9 a2 47 bf 64 07 d9 42
+```
+
+Decrypt by feeding that ciphertext back in with the same parameters:
+
+```
+$ cchef chacha --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f \
+    --nonce 000000000000004a00000000 --counter 1 --rounds 20 \
+    --input-format Hex --output-format Raw -i "6a 2a 3d 9f 2f 37 f9 a2 47 bf 64 07 d9 42"
+Hello, ChaCha!
+```
+
+An 8-round keystream with a 128-bit key and an 8-byte nonce (so the counter is 8
+bytes) — the draft-strombergson TC7.1 test vector:
+
+```
+$ cchef chacha --key 00112233445566778899aabbccddeeff --nonce 0f1e2d3c4b5a6978 \
+    --counter 0 --rounds 8 --input-format Hex --output-format Hex \
+    -i "00 00 00 00 00 00 00 00"
+29 56 0d 28 0b 45 28 40
 ```
 
 ---
