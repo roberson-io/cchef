@@ -41,6 +41,8 @@ Classic ciphers and bitwise operations.
 | Derive EVP key | `derive-evp-key` | [Key derivation function](https://wikipedia.org/wiki/Key_derivation_function) |
 | Derive HKDF key | `derive-hkdf-key` | [HKDF](https://wikipedia.org/wiki/HKDF) |
 | Derive PBKDF2 key | `derive-pbkdf2-key` | [PBKDF2](https://wikipedia.org/wiki/PBKDF2) |
+| DES Decrypt | `des-decrypt` | [Data Encryption Standard](https://wikipedia.org/wiki/Data_Encryption_Standard) |
+| DES Encrypt | `des-encrypt` | [Data Encryption Standard](https://wikipedia.org/wiki/Data_Encryption_Standard) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
@@ -53,6 +55,8 @@ Classic ciphers and bitwise operations.
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
+| Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
+| Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
 | XOR Brute Force | `xor-brute-force` | [Exclusive or](https://wikipedia.org/wiki/Exclusive_or) |
 
@@ -1166,6 +1170,77 @@ cd7b203e3aef28a773613de46901d9a5d621228b3b3de8de24cea5b788459c8a
 
 ---
 
+## DES Decrypt
+
+Reference: [Data Encryption Standard](https://wikipedia.org/wiki/Data_Encryption_Standard)
+
+Decrypts DES ciphertext. The key must be exactly 8 bytes (64 bits) and, for every
+mode except ECB, the IV must be exactly 8 bytes. CBC and ECB expect PKCS#7-padded,
+block-aligned input; decryption fails if the length or padding is invalid. The
+`CBC/NoPadding` and `ECB/NoPadding` modes skip the unpadding step and return the
+raw padded blocks.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 8-byte key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | 8-byte IV (ignored for ECB), interpreted per `--iv-type`. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `ECB`, `CBC/NoPadding`, `ECB/NoPadding`. |
+| `--input-format` | option | `Hex` | How to read the ciphertext: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Raw` | How to render the plaintext: `Raw` bytes or `Hex`. |
+
+**Simple example**
+
+```bash
+$ cchef des-decrypt -i 340b6473dbd121662ce8e0c7a690b77bca334636056d85f9 --key 0123456789abcdef --iv 0011223344556677 --mode CBC
+The quick brown fox
+```
+
+---
+
+## DES Encrypt
+
+Reference: [Data Encryption Standard](https://wikipedia.org/wiki/Data_Encryption_Standard)
+
+Encrypts input with the DES block cipher (64-bit block). The key must be exactly
+8 bytes (64 bits) and, for every mode except ECB, the IV must be exactly 8 bytes.
+CBC and ECB apply PKCS#7 padding; CFB, OFB and CTR are streaming and leave the
+length unchanged. (DES is insecure and is provided for interoperability, not
+protection.)
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 8-byte key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | 8-byte IV (ignored for ECB), interpreted per `--iv-type`. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `ECB`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw` bytes or `Hex`. |
+| `--output-format` | option | `Hex` | How to render the output: `Hex` or `Raw` bytes. |
+
+**Simple example**
+
+```bash
+$ cchef des-encrypt -i "The quick brown fox" --key 0123456789abcdef --iv 0011223344556677 --mode CBC
+340b6473dbd121662ce8e0c7a690b77bca334636056d85f9
+```
+
+**Streaming mode (CTR)**
+
+CTR leaves the length unchanged (no padding):
+
+```bash
+$ cchef des-encrypt -i "secret" --key 0123456789abcdef --iv 0000000000000000 --mode CTR
+a6b12c85451c
+```
+
+---
+
 ## Enigma
 
 Reference: [Enigma machine](https://wikipedia.org/wiki/Enigma_machine)
@@ -1506,6 +1581,68 @@ Subtracts the key from each byte of the input, modulo 256.
 ```bash
 $ printf 'hello' | cchef sub --key 01 --key-type Hex | cchef to-hex --delimiter None
 67646b6b6e
+```
+
+---
+
+## Triple DES Decrypt
+
+Reference: [Triple DES](https://wikipedia.org/wiki/Triple_DES)
+
+Decrypts Triple DES (3DES) ciphertext. The key must be 24 bytes (192 bits), or
+16 bytes — in which case it is expanded to K1‖K2‖K1. For every mode except ECB
+the IV must be exactly 8 bytes. CBC and ECB expect PKCS#7-padded, block-aligned
+input; the `CBC/NoPadding` and `ECB/NoPadding` modes skip unpadding.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 16- or 24-byte key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | 8-byte IV (ignored for ECB), interpreted per `--iv-type`. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `ECB`, `CBC/NoPadding`, `ECB/NoPadding`. |
+| `--input-format` | option | `Hex` | How to read the ciphertext: `Hex` or `Raw` bytes. |
+| `--output-format` | option | `Raw` | How to render the plaintext: `Raw` bytes or `Hex`. |
+
+**Simple example**
+
+```bash
+$ cchef triple-des-decrypt -i 6e4f4b9ecdeea4f3757574f02960c9a840a57a0332192c83 \
+    --key 0123456789abcdeffedcba9876543210a1b2c3d4e5f60718 --iv 0011223344556677 --mode CBC
+The quick brown fox
+```
+
+---
+
+## Triple DES Encrypt
+
+Reference: [Triple DES](https://wikipedia.org/wiki/Triple_DES)
+
+Encrypts input with the Triple DES (3DES) block cipher, which applies DES three
+times per 64-bit block. The key must be 24 bytes (192 bits), or 16 bytes — in
+which case it is expanded to K1‖K2‖K1. For every mode except ECB the IV must be
+exactly 8 bytes. CBC and ECB apply PKCS#7 padding; CFB, OFB and CTR are streaming.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 16- or 24-byte key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | 8-byte IV (ignored for ECB), interpreted per `--iv-type`. |
+| `--iv-type` | option | `Hex` | IV encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `ECB`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw` bytes or `Hex`. |
+| `--output-format` | option | `Hex` | How to render the output: `Hex` or `Raw` bytes. |
+
+**Simple example**
+
+```bash
+$ cchef triple-des-encrypt -i "The quick brown fox" \
+    --key 0123456789abcdeffedcba9876543210a1b2c3d4e5f60718 --iv 0011223344556677 --mode CBC
+6e4f4b9ecdeea4f3757574f02960c9a840a57a0332192c83
 ```
 
 ---
