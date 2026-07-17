@@ -162,6 +162,7 @@ var opCategories = map[string][]string{
 	"Defang IP Addresses":                {catNetworking},
 	"Defang URL":                         {catNetworking},
 	"Derive EVP key":                     {catEncryptionEncoding},
+	"Derive HKDF key":                    {catEncryptionEncoding},
 	"Diff":                               {catUtils, catCodeTidy},
 	"Divide":                             {catArithmeticLogic},
 	"Drop bytes":                         {catUtils},

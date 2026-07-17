@@ -39,6 +39,7 @@ Classic ciphers and bitwise operations.
 | Citrix CTX1 Encode | `citrix-ctx1-encode` | [Citrix CTX1](https://www.reddit.com/r/AskNetsec/comments/1s3r6y/citrix_ctx1_hash_decoding/) |
 | Colossus | `colossus` | [Colossus computer](https://wikipedia.org/wiki/Colossus_computer) |
 | Derive EVP key | `derive-evp-key` | [Key derivation function](https://wikipedia.org/wiki/Key_derivation_function) |
+| Derive HKDF key | `derive-hkdf-key` | [HKDF](https://wikipedia.org/wiki/HKDF) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
@@ -1065,6 +1066,52 @@ A 256-bit key with SHA256, 3 iterations and a UTF8 salt:
 $ cchef derive-evp-key --passphrase password --key-size 256 --iterations 3 \
     --hashing-function SHA256 --salt salt --salt-type UTF8
 cc19a87959d70ba1d9d2979b5fc2323e0d62a40fb2545492e9ec4d57ce79956d
+```
+
+---
+
+## Derive HKDF key
+
+Reference: [HKDF](https://wikipedia.org/wiki/HKDF)
+
+Runs the HMAC-based key derivation function of RFC 5869 (extract-then-expand)
+over the input keying material (IKM, taken from the operation input). The result
+is a lowercase hex string of `L` octets.
+
+All twenty hash functions CyberChef offers are supported, including ones outside
+Go's standard library that are reimplemented in-repo (MD2, SHA0, RIPEMD-128/256/320,
+HAS-160, Whirlpool/-0/-T, Snefru) — each verified byte-for-byte against CyberChef.
+
+`Extract mode` selects how the pseudorandom key (PRK) is derived: `with salt`
+uses the salt argument, `no salt` uses a string of `HashLen` zero bytes, and
+`skip` treats the IKM directly as the PRK (skipping extraction).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--salt` / `--salt-type` | toggleString | (empty) / `Hex` | Optional salt (`Hex`, `Decimal`, `Base64`, `UTF8`, `Latin1`). |
+| `--info` / `--info-type` | toggleString | (empty) / `Hex` | Optional context/application info. |
+| `--hashing-function` | option | `SHA256` | Any of the 20 supported hashes (MD2 … Snefru). |
+| `--extract-mode` | option | `with salt` | `with salt`, `no salt` or `skip`. |
+| `--l-number-of-output-octets` | number | `16` | Output length `L` in bytes (max `255 × HashLen`). |
+
+**Simple example**
+
+RFC 5869 test case 1 (SHA-256):
+
+```bash
+$ echo -n 0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b | cchef from-hex --delimiter None \
+    | cchef derive-hkdf-key --salt 000102030405060708090a0b0c \
+        --info f0f1f2f3f4f5f6f7f8f9 --hashing-function SHA256 --l-number-of-output-octets 42
+3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865
+```
+
+**With a reimplemented hash (Whirlpool)**
+
+```bash
+$ echo -n message | cchef derive-hkdf-key --hashing-function Whirlpool --l-number-of-output-octets 32
+db80ec2d94398636778bfa845d251a32a643c53d17b1c6b159c15190badaf90c
 ```
 
 ---
