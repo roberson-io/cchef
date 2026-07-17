@@ -52,6 +52,7 @@ var opSummaries = map[string]string{
 	"Defang URL":                     "Defangs a URL to make it safe to share",
 	"Derive EVP key":                 "OpenSSL EVP_BytesToKey password-based KDF",
 	"Derive HKDF key":                "HMAC-based key derivation (HKDF, RFC 5869)",
+	"Derive PBKDF2 key":              "Password-based key derivation (PBKDF2, RFC 2898)",
 	"Diff":                           "Highlights differences between two inputs",
 	"Drop nth bytes":                 "Drops every nth byte from a given offset",
 	"Encode NetBIOS Name":            "Encodes a name with NetBIOS name encoding",

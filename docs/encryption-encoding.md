@@ -40,6 +40,7 @@ Classic ciphers and bitwise operations.
 | Colossus | `colossus` | [Colossus computer](https://wikipedia.org/wiki/Colossus_computer) |
 | Derive EVP key | `derive-evp-key` | [Key derivation function](https://wikipedia.org/wiki/Key_derivation_function) |
 | Derive HKDF key | `derive-hkdf-key` | [HKDF](https://wikipedia.org/wiki/HKDF) |
+| Derive PBKDF2 key | `derive-pbkdf2-key` | [PBKDF2](https://wikipedia.org/wiki/PBKDF2) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
@@ -1112,6 +1113,55 @@ $ echo -n 0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b | cchef from-hex --delimi
 ```bash
 $ echo -n message | cchef derive-hkdf-key --hashing-function Whirlpool --l-number-of-output-octets 32
 db80ec2d94398636778bfa845d251a32a643c53d17b1c6b159c15190badaf90c
+```
+
+---
+
+## Derive PBKDF2 key
+
+Reference: [PBKDF2](https://wikipedia.org/wiki/PBKDF2)
+
+Runs the PBKDF2 password-based key derivation function (PKCS #5 v2.0 / RFC 2898)
+over a passphrase and salt, returning the derived key as a lowercase hex string.
+The operation **input is ignored** — the passphrase and salt come from the
+arguments.
+
+The key size is given in **bits** and the output is `key-size / 8` bytes. Matching
+CyberChef's browser behaviour (pure-JS forge), a key size that is not a multiple
+of 8 is floored to the whole byte, and a key size of zero or below yields an empty
+key.
+
+If the salt argument is left empty, a **random** salt (of `key-size` bytes) is
+generated, making the output non-deterministic; supply a salt for reproducible
+results.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--passphrase` / `--passphrase-type` | toggleString | (empty) / `UTF8` | The passphrase and how to decode it (`UTF8`, `Latin1`, `Hex`, `Base64`). |
+| `--key-size` | number | `128` | Derived key size in **bits**. |
+| `--iterations` | number | `1` | PBKDF2 iteration count. |
+| `--hashing-function` | option | `SHA1` | PRF hash: `SHA1`, `SHA256`, `SHA384`, `SHA512` or `MD5`. |
+| `--salt` / `--salt-type` | toggleString | (empty) / `Hex` | The salt and how to decode it (`Hex`, `UTF8`, `Latin1`, `Base64`); empty means a random salt. |
+
+**Simple example**
+
+Derive a 128-bit key from a passphrase and a hex salt with SHA1:
+
+```bash
+$ cchef derive-pbkdf2-key --passphrase password --salt 73616c74 --salt-type Hex
+0c60c80f961f0e71f3a9b524af601206
+```
+
+**Complex example**
+
+A 256-bit key with SHA256, 4 iterations and a UTF8 salt:
+
+```bash
+$ cchef derive-pbkdf2-key --passphrase password --key-size 256 --iterations 4 \
+    --hashing-function SHA256 --salt salt --salt-type UTF8
+cd7b203e3aef28a773613de46901d9a5d621228b3b3de8de24cea5b788459c8a
 ```
 
 ---
