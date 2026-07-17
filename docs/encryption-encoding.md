@@ -46,6 +46,9 @@ Classic ciphers and bitwise operations.
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
 | Fernet Decrypt | `fernet-decrypt` | [Fernet](https://asecuritysite.com/encryption/fer) |
 | Fernet Encrypt | `fernet-encrypt` | [Fernet](https://asecuritysite.com/encryption/fer) |
+| Flask Session Decode | `flask-session-decode` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
+| Flask Session Sign | `flask-session-sign` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
+| Flask Session Verify | `flask-session-verify` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -1669,6 +1672,116 @@ Output:
 
 ```
 Secret
+```
+
+---
+
+## Flask Session Decode
+
+Reference: [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions)
+
+Decodes the JSON payload of a Flask session cookie (`payload.timestamp.signature`,
+as produced by itsdangerous) **without** verifying its signature. With
+`--view-timestamp` the output also includes the cookie's Unix timestamp. Note the
+compression Flask applies to large cookies (a leading `.`) is not handled.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--view-timestamp` | boolean | `false` | Wrap the output as `{payload, timestamp}`. |
+
+**Simple example**
+
+```bash
+cchef flask-session-decode -i 'eyJyb2xlIjoic3VwZXJ1c2VyIiwidXNlciI6ImFkbWluIn0.aZ-KEw.E_x6bOhA4GU9t72pMinJUjN-O3I'
+```
+
+Output:
+
+```
+{
+    "role": "superuser",
+    "user": "admin"
+}
+```
+
+---
+
+## Flask Session Sign
+
+Reference: [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions)
+
+Signs a JSON payload (the input) into a Flask session cookie using the
+itsdangerous HMAC scheme: a per-salt key is derived as `HMAC(secret, salt)` and
+the message `payload.timestamp` is signed with `HMAC(derivedKey, …)`. The
+timestamp is the current time, so the output changes on each run.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | (empty) / `Hex` | The secret key and how to decode it (`Hex`, `Decimal`, `Binary`, `Base64`, `UTF8`, `Latin1`). A key is required. |
+| `--salt` / `--salt-type` | toggleString | `cookie-session` / `UTF8` | The signing salt and how to decode it. |
+| `--algorithm` | option | `sha1` | HMAC hash: `sha1` or `sha256`. |
+
+**Simple example**
+
+Because the timestamp is fresh each run, sign and verify in one pipeline:
+
+```bash
+printf '{"user":"admin","role":"editor"}' \
+    | cchef flask-session-sign --key s3cr3t --key-type UTF8 \
+    | cchef flask-session-verify --key s3cr3t --key-type UTF8 --view-timestamp=false
+```
+
+Output:
+
+```
+{
+    "valid": true,
+    "payload": {
+        "user": "admin",
+        "role": "editor"
+    }
+}
+```
+
+---
+
+## Flask Session Verify
+
+Reference: [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions)
+
+Verifies the HMAC signature of a Flask session cookie and returns its payload.
+An incorrect key or salt (or a tampered token) fails with `Invalid signature!`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | (empty) / `Hex` | The secret key and how to decode it. Required. |
+| `--salt` / `--salt-type` | toggleString | `cookie-session` / `UTF8` | The signing salt and how to decode it. |
+| `--algorithm` | option | `sha1` | HMAC hash: `sha1` or `sha256`. |
+| `--view-timestamp` | boolean | `true` | Include the cookie's Unix timestamp in the output. |
+
+**Simple example**
+
+```bash
+cchef flask-session-verify --key mysecretkey --key-type UTF8 --view-timestamp=false \
+    -i 'eyJyb2xlIjoic3VwZXJ1c2VyIiwidXNlciI6ImFkbWluIn0.aZ-KEw.E_x6bOhA4GU9t72pMinJUjN-O3I'
+```
+
+Output:
+
+```
+{
+    "valid": true,
+    "payload": {
+        "role": "superuser",
+        "user": "admin"
+    }
+}
 ```
 
 ---
