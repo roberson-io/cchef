@@ -73,7 +73,12 @@ Adds a right-aligned line number to the start of each line.
 **Simple example**
 
 ```bash
-$ printf 'a\nb\nc' | cchef add-line-numbers
+printf 'a\nb\nc' | cchef add-line-numbers
+```
+
+Output:
+
+```
 1 a
 2 b
 3 c
@@ -87,7 +92,12 @@ left unchanged). Takes no options.
 **Simple example**
 
 ```bash
-$ cchef alternating-caps -i 'hello world'
+cchef alternating-caps -i 'hello world'
+```
+
+Output:
+
+```
 hElLo WoRlD
 ```
 
@@ -107,7 +117,12 @@ Run `cchef convert-area --help` for the full list of units.
 **Simple example**
 
 ```bash
-$ cchef convert-area --input-units 'Square foot (sq ft)' --output-units 'Square metre (sq m)' -i 100
+cchef convert-area --input-units 'Square foot (sq ft)' --output-units 'Square metre (sq m)' -i 100
+```
+
+Output:
+
+```
 9.290304
 ```
 
@@ -134,7 +149,12 @@ Degrees Minutes Seconds, Geohash, MGRS, Ordnance Survey National Grid and UTM.
 **Simple example**
 
 ```bash
-$ printf '51.5074, -0.1278' | cchef convert-co-ordinate-format --output-format 'Degrees Minutes Seconds'
+printf '51.5074, -0.1278' | cchef convert-co-ordinate-format --output-format 'Degrees Minutes Seconds'
+```
+
+Output:
+
+```
 51° 30' 26.64" -0° 7' 40.08" 
 ```
 
@@ -155,7 +175,12 @@ Run `cchef convert-data-units --help` for the full list of units.
 **Simple example**
 
 ```bash
-$ cchef convert-data-units --input-units 'Gibibytes (GiB)' --output-units 'Mebibytes (MiB)' -i 1
+cchef convert-data-units --input-units 'Gibibytes (GiB)' --output-units 'Mebibytes (MiB)' -i 1
+```
+
+Output:
+
+```
 1024
 ```
 
@@ -175,7 +200,12 @@ Run `cchef convert-distance --help` for the full list of units.
 **Simple example**
 
 ```bash
-$ cchef convert-distance --input-units 'Miles (mi)' --output-units 'Kilometers (km)' -i 1
+cchef convert-distance --input-units 'Miles (mi)' --output-units 'Kilometers (km)' -i 1
+```
+
+Output:
+
+```
 1.609344
 ```
 
@@ -195,7 +225,12 @@ Run `cchef convert-mass --help` for the full list of units.
 **Simple example**
 
 ```bash
-$ cchef convert-mass --input-units 'Pound (lb)' --output-units 'Gram (g)' -i 1
+cchef convert-mass --input-units 'Pound (lb)' --output-units 'Gram (g)' -i 1
+```
+
+Output:
+
+```
 453.59237
 ```
 
@@ -215,7 +250,12 @@ Run `cchef convert-speed --help` for the full list of units.
 **Simple example**
 
 ```bash
-$ cchef convert-speed --input-units 'Kilometres per hour (km/h)' --output-units 'Metres per second (m/s)' -i 100
+cchef convert-speed --input-units 'Kilometres per hour (km/h)' --output-units 'Metres per second (m/s)' -i 100
+```
+
+Output:
+
+```
 27.78
 ```
 
@@ -233,7 +273,12 @@ Counts how many times a search term appears. Output is the count.
 **Simple example**
 
 ```bash
-$ cchef count-occurrences --search-string foo --search-string-type 'Simple string' -i 'foofoofoo'
+cchef count-occurrences --search-string foo --search-string-type 'Simple string' -i 'foofoofoo'
+```
+
+Output:
+
+```
 3
 ```
 
@@ -260,7 +305,12 @@ with `<ins>` and `<del>` tags.
 **Simple example**
 
 ```bash
-$ printf 'the quick brown fox|the quick red fox' | cchef diff --sample-delimiter '|' --diff-by Word
+printf 'the quick brown fox|the quick red fox' | cchef diff --sample-delimiter '|' --diff-by Word
+```
+
+Output:
+
+```
 the quick <del>brown</del><ins>red</ins> fox
 ```
 
@@ -279,7 +329,12 @@ Deletes a range of bytes from the input.
 **Simple example**
 
 ```bash
-$ cchef drop-bytes --start 0 --length 6 -i 'Hello World'
+cchef drop-bytes --start 0 --length 6 -i 'Hello World'
+```
+
+Output:
+
+```
 World
 ```
 
@@ -298,7 +353,12 @@ Drops every nth byte, starting at a given offset.
 **Simple example**
 
 ```bash
-$ cchef drop-nth-bytes --drop-every 2 -i '0123456789'
+cchef drop-nth-bytes --drop-every 2 -i '0123456789'
+```
+
+Output:
+
+```
 13579
 ```
 
@@ -323,7 +383,12 @@ non-ASCII characters).
 **Simple example**
 
 ```bash
-$ cchef escape-string -i "it's a café"
+cchef escape-string -i "it's a café"
+```
+
+Output:
+
+```
 it\'s a caf\xe9
 ```
 
@@ -340,7 +405,12 @@ Expands an alphabet range specification into its characters.
 **Simple example**
 
 ```bash
-$ cchef expand-alphabet-range -i 'a-j'
+cchef expand-alphabet-range -i 'a-j'
+```
+
+Output:
+
+```
 abcdefghij
 ```
 
@@ -358,7 +428,12 @@ Renders a list of file paths as a directory tree.
 **Simple example**
 
 ```bash
-$ printf 'home/a.txt\nhome/b/c.txt\nhome/b/d.txt' | cchef file-tree
+printf 'home/a.txt\nhome/b/c.txt\nhome/b/d.txt' | cchef file-tree
+```
+
+Output:
+
+```
 home
 |---a.txt
 |---b
@@ -382,7 +457,12 @@ expression (grep-like).
 **Simple example**
 
 ```bash
-$ printf 'apple\nbanana\ncherry' | cchef filter --regex a
+printf 'apple\nbanana\ncherry' | cchef filter --regex a
+```
+
+Output:
+
+```
 apple
 banana
 ```
@@ -407,14 +487,24 @@ simple string, an extended string (with `\n`, `\t`, `\xNN` escapes), or a regex.
 **Simple string**
 
 ```bash
-$ cchef find-replace --find 'foo' --find-type 'Simple string' --replace 'bar' -i 'foofoo'
+cchef find-replace --find 'foo' --find-type 'Simple string' --replace 'bar' -i 'foofoo'
+```
+
+Output:
+
+```
 barbar
 ```
 
 **Regex with capture groups**
 
 ```bash
-$ cchef find-replace --find '(\w+) (\w+)' --find-type Regex --replace '$2 $1' -i 'John Smith'
+cchef find-replace --find '(\w+) (\w+)' --find-type Regex --replace '$2 $1' -i 'John Smith'
+```
+
+Output:
+
+```
 Smith John
 ```
 
@@ -427,7 +517,12 @@ options.
 **Simple example**
 
 ```bash
-$ cchef from-case-insensitive-regex -i '[tT][eE][sS][tT]'
+cchef from-case-insensitive-regex -i '[tT][eE][sS][tT]'
+```
+
+Output:
+
+```
 test
 ```
 
@@ -452,7 +547,12 @@ Conducts a fuzzy search to find a pattern within the input, wrapping each match 
 **Simple example**
 
 ```bash
-$ printf 'test input' | cchef fuzzy-match --search tein
+printf 'test input' | cchef fuzzy-match --search tein
+```
+
+Output:
+
+```
 <span class="hl1"><b>te</b>st <b>in</b></span>put
 ```
 
@@ -466,7 +566,12 @@ Takes no options.
 **Simple example**
 
 ```bash
-$ cchef get-all-casings -i ab
+cchef get-all-casings -i ab
+```
+
+Output:
+
+```
 ab
 Ab
 aB
@@ -489,7 +594,12 @@ positions at which they differ), by byte or by bit.
 **Simple example**
 
 ```bash
-$ printf 'karolin\n\nkathrin' | cchef hamming-distance --unit Bit
+printf 'karolin\n\nkathrin' | cchef hamming-distance --unit Bit
+```
+
+Output:
+
+```
 9
 ```
 
@@ -508,7 +618,12 @@ last |N| sections.
 **Simple example**
 
 ```bash
-$ printf 'a\nb\nc\nd\ne' | cchef head --number 2
+printf 'a\nb\nc\nd\ne' | cchef head --number 2
+```
+
+Output:
+
+```
 a
 b
 ```
@@ -530,7 +645,12 @@ of single-character edits to turn one into the other. Output is the distance.
 **Simple example**
 
 ```bash
-$ printf 'kitten\nsitting' | cchef levenshtein-distance
+printf 'kitten\nsitting' | cchef levenshtein-distance
+```
+
+Output:
+
+```
 3
 ```
 
@@ -548,7 +668,12 @@ are identical across all of them.
 **Simple example**
 
 ```bash
-$ printf 'hello world\nhello there' | cchef offset-checker --sample-delimiter '\n'
+printf 'hello world\nhello there' | cchef offset-checker --sample-delimiter '\n'
+```
+
+Output:
+
+```
 <span class='hl5'>hello </span>world
 <span class='hl5'>hello </span>there
 ```
@@ -568,7 +693,12 @@ Adds padding characters to the start or end of each line.
 **Simple example**
 
 ```bash
-$ printf 'ab\ncd' | cchef pad-lines --position Start --length 2 --character '*'
+printf 'ab\ncd' | cchef pad-lines --position Start --length 2 --character '*'
+```
+
+Output:
+
+```
 **ab
 **cd
 ```
@@ -582,7 +712,12 @@ Takes no options.
 **Simple example**
 
 ```bash
-$ printf '#ff0000' | cchef parse-colour-code
+printf '#ff0000' | cchef parse-colour-code
+```
+
+Output:
+
+```
 <div id="colorpicker" style="white-space: normal;"></div>
 Hex:  #ff0000
 RGB:  rgb(255, 0, 0)
@@ -601,7 +736,12 @@ bytes), as an ISO 8601 string. Takes no options.
 **Simple example**
 
 ```bash
-$ printf '507f1f77bcf86cd799439011' | cchef parse-objectid-timestamp
+printf '507f1f77bcf86cd799439011' | cchef parse-objectid-timestamp
+```
+
+Output:
+
+```
 2012-10-17T21:13:27.000Z
 ```
 
@@ -614,7 +754,12 @@ and a read/write/execute matrix. Takes no options.
 **Simple example**
 
 ```bash
-$ cchef parse-unix-file-permissions -i 755
+cchef parse-unix-file-permissions -i 755
+```
+
+Output:
+
+```
 Textual representation: -rwxr-xr-x
 Octal representation:   0755
 
@@ -646,7 +791,12 @@ Generates a number of cryptographically-secure random bytes (using Go's
 **Simple example**
 
 ```bash
-$ cchef pseudo-random-number-generator --number-of-bytes 4 --output-as Hex
+cchef pseudo-random-number-generator --number-of-bytes 4 --output-as Hex
+```
+
+Output:
+
+```
 1ed9ec81
 ```
 
@@ -675,7 +825,12 @@ highlighting or listing the matches.
 **Simple example**
 
 ```bash
-$ printf 'a1b22c333' | cchef regular-expression --regex '\d+' --output-format 'List matches'
+printf 'a1b22c333' | cchef regular-expression --regex '\d+' --output-format 'List matches'
+```
+
+Output:
+
+```
 1
 22
 333
@@ -689,7 +844,12 @@ options.
 **Simple example**
 
 ```bash
-$ printf '\x1b[31mred\x1b[0m text' | cchef remove-ansi-escape-codes
+printf '\x1b[31mred\x1b[0m text' | cchef remove-ansi-escape-codes
+```
+
+Output:
+
+```
 red text
 ```
 
@@ -701,7 +861,12 @@ Takes no options.
 **Simple example**
 
 ```bash
-$ printf '1 a\n2 b\n3 c' | cchef remove-line-numbers
+printf '1 a\n2 b\n3 c' | cchef remove-line-numbers
+```
+
+Output:
+
+```
 a
 b
 c
@@ -714,7 +879,12 @@ Removes all null bytes (`0x00`) from the input. Takes no options.
 **Simple example**
 
 ```bash
-$ printf 'a\x00b\x00c' | cchef remove-null-bytes
+printf 'a\x00b\x00c' | cchef remove-null-bytes
+```
+
+Output:
+
+```
 abc
 ```
 
@@ -737,7 +907,12 @@ full stops.
 **Simple example**
 
 ```bash
-$ printf 'a b\tc' | cchef remove-whitespace
+printf 'a b\tc' | cchef remove-whitespace
+```
+
+Output:
+
+```
 abc
 ```
 
@@ -754,14 +929,24 @@ Reverses the input by byte, character (UTF-8 rune), or line.
 **Simple example**
 
 ```bash
-$ cchef reverse -i 'Hello, World!'
+cchef reverse -i 'Hello, World!'
+```
+
+Output:
+
+```
 !dlroW ,olleH
 ```
 
 **Reverse line order**
 
 ```bash
-$ printf 'one\ntwo\nthree' | cchef reverse --by Line
+printf 'one\ntwo\nthree' | cchef reverse --by Line
+```
+
+Output:
+
+```
 three
 two
 one
@@ -784,7 +969,12 @@ the parsed pair that the map would use.
 **Simple example**
 
 ```bash
-$ printf '51.5074, -0.1278' | cchef show-on-map
+printf '51.5074, -0.1278' | cchef show-on-map
+```
+
+Output:
+
+```
 51.5074,-0.1278
 ```
 
@@ -804,7 +994,12 @@ cryptographically-secure randomness).
 **Simple example**
 
 ```bash
-$ printf 'a\nb\nc\nd' | cchef shuffle
+printf 'a\nb\nc\nd' | cchef shuffle
+```
+
+Output:
+
+```
 c
 a
 d
@@ -825,7 +1020,12 @@ unchanged.
 **Simple example**
 
 ```bash
-$ printf 'hello' | cchef sleep --time-ms 0
+printf 'hello' | cchef sleep --time-ms 0
+```
+
+Output:
+
+```
 hello
 ```
 
@@ -844,7 +1044,12 @@ Sorts the sections of the input, split on a delimiter, using the chosen ordering
 **Numeric sort**
 
 ```bash
-$ printf '10\n2\n1\n20' | cchef sort --order Numeric
+printf '10\n2\n1\n20' | cchef sort --order Numeric
+```
+
+Output:
+
+```
 1
 2
 10
@@ -867,7 +1072,12 @@ so `\n` joins with a literal backslash-n, not a newline.
 **Simple example**
 
 ```bash
-$ cchef split --split-delimiter ',' --join-delimiter ';' -i 'a,b,c'
+cchef split --split-delimiter ',' --join-delimiter ';' -i 'a,b,c'
+```
+
+Output:
+
+```
 a;b;c
 ```
 
@@ -878,7 +1088,12 @@ Converts uppercase characters to lowercase and vice versa. Takes no options.
 **Simple example**
 
 ```bash
-$ cchef swap-case -i 'Hello, World!'
+cchef swap-case -i 'Hello, World!'
+```
+
+Output:
+
+```
 hELLO, wORLD!
 ```
 
@@ -897,7 +1112,12 @@ first |N| sections.
 **Simple example**
 
 ```bash
-$ printf 'a\nb\nc\nd\ne' | cchef tail --number 2
+printf 'a\nb\nc\nd\ne' | cchef tail --number 2
+```
+
+Output:
+
+```
 d
 e
 ```
@@ -917,7 +1137,12 @@ Keeps only a range of bytes from the input.
 **Simple example**
 
 ```bash
-$ cchef take-bytes --start 0 --length 5 -i 'Hello World'
+cchef take-bytes --start 0 --length 5 -i 'Hello World'
+```
+
+Output:
+
+```
 Hello
 ```
 
@@ -936,7 +1161,12 @@ Keeps every nth byte, starting at a given offset.
 **Simple example**
 
 ```bash
-$ cchef take-nth-bytes --take-every 2 -i '0123456789'
+cchef take-nth-bytes --take-every 2 -i '0123456789'
+```
+
+Output:
+
+```
 02468
 ```
 
@@ -949,14 +1179,24 @@ needed. Takes no options.
 **Simple example**
 
 ```bash
-$ cchef to-case-insensitive-regex -i 'Mozilla'
+cchef to-case-insensitive-regex -i 'Mozilla'
+```
+
+Output:
+
+```
 [mM][oO][zZ][iI][lL][lL][aA]
 ```
 
 **Character range**
 
 ```bash
-$ cchef to-case-insensitive-regex -i '[A-Z]'
+cchef to-case-insensitive-regex -i '[A-Z]'
+```
+
+Output:
+
+```
 [A-Za-z]
 ```
 
@@ -968,7 +1208,12 @@ options.
 **Simple example**
 
 ```bash
-$ cchef to-lower-case -i 'Hello, World!'
+cchef to-lower-case -i 'Hello, World!'
+```
+
+Output:
+
+```
 hello, world!
 ```
 
@@ -988,7 +1233,12 @@ Renders delimited data (e.g. CSV) as an ASCII, HTML, or Markdown table.
 **Simple example**
 
 ```bash
-$ printf 'a,b\n1,2' | cchef to-table --format Markdown --make-first-row-header
+printf 'a,b\n1,2' | cchef to-table --format Markdown --make-first-row-header
+```
+
+Output:
+
+```
 | a | b |
 | - | - |
 | 1 | 2 |
@@ -1008,14 +1258,24 @@ character of each word, sentence, or paragraph.
 **Simple example**
 
 ```bash
-$ cchef to-upper-case -i 'Hello, World!'
+cchef to-upper-case -i 'Hello, World!'
+```
+
+Output:
+
+```
 HELLO, WORLD!
 ```
 
 **Title-case each word**
 
 ```bash
-$ cchef to-upper-case --scope Word -i 'hello there world'
+cchef to-upper-case --scope Word -i 'hello there world'
+```
+
+Output:
+
+```
 Hello There World
 ```
 
@@ -1027,7 +1287,12 @@ octal, etc.) into their raw characters. Takes no options.
 **Simple example**
 
 ```bash
-$ printf 'a\\x41b\\n' | cchef unescape-string
+printf 'a\\x41b\\n' | cchef unescape-string
+```
+
+Output:
+
+```
 aAb
 ```
 
@@ -1046,7 +1311,12 @@ each section's occurrence count.
 **Simple example**
 
 ```bash
-$ printf 'a\nb\na\nc' | cchef unique
+printf 'a\nb\na\nc' | cchef unique
+```
+
+Output:
+
+```
 a
 b
 c
@@ -1066,7 +1336,12 @@ characters.
 **Simple example**
 
 ```bash
-$ printf 'The quick brown fox' | cchef wrap --line-width 10
+printf 'The quick brown fox' | cchef wrap --line-width 10
+```
+
+Output:
+
+```
 The quick 
 brown fox
 ```

@@ -105,7 +105,12 @@ decoded values follows that library.
 **Simple example**
 
 ```bash
-$ cchef from-hex --delimiter None -i 0200026869 | cchef amf-decode --format AMF0
+cchef from-hex --delimiter None -i 0200026869 | cchef amf-decode --format AMF0
+```
+
+Output:
+
+```
 "hi"
 ```
 
@@ -123,14 +128,24 @@ bytes, so pipe through `to-hex` to view it.
 **Simple example**
 
 ```bash
-$ cchef amf-encode -i '{"a":1,"b":true}' | cchef to-hex --delimiter None
+cchef amf-encode -i '{"a":1,"b":true}' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 0a230103610362053ff000000000000003
 ```
 
 **Round trip (encode then decode)**
 
 ```bash
-$ printf '[1,2,3]' | cchef amf-encode | cchef amf-decode
+printf '[1,2,3]' | cchef amf-encode | cchef amf-decode
+```
+
+Output:
+
+```
 [1,2,3]
 ```
 
@@ -157,11 +172,16 @@ bytes, so pipe binary in via `from-hex` or `--in-file`.
 A tiny container file (schema `{"name": string}`, one record) supplied as hex:
 
 ```bash
-$ echo 4f626a0104166176726f2e736368656d6196017b2274797065223a227265636f7264\
+echo 4f626a0104166176726f2e736368656d6196017b2274797065223a227265636f7264\
 222c226e616d65223a22736d616c6c222c226669656c6473223a5b7b226e616d65223a226e61\
 6d65222c2274797065223a22737472696e67227d5d7d146176726f2e636f646563086e756c6c\
 004e0247632e3702e5b75cdab9a62f1541020e0c6d796e616d654e0247632e3702e5b75cdab9\
 a62f1541 | cchef from-hex | cchef avro-to-json
+```
+
+Output:
+
+```
 {
     "name": "myname"
 }
@@ -170,7 +190,12 @@ a62f1541 | cchef from-hex | cchef avro-to-json
 **Newline-delimited output**
 
 ```bash
-$ ... | cchef from-hex | cchef avro-to-json --force-valid-json=false
+... | cchef from-hex | cchef avro-to-json --force-valid-json=false
+```
+
+Output:
+
+```
 {"name":"myname"}
 ```
 
@@ -190,7 +215,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef caret-m-decode -i '^M^JHello M-^A' | cchef to-hex
+cchef caret-m-decode -i '^M^JHello M-^A' | cchef to-hex
+```
+
+Output:
+
+```
 0d 0a 48 65 6c 6c 6f 20 81
 ```
 
@@ -209,7 +239,12 @@ or `--in-file`.
 **Simple example**
 
 ```bash
-$ echo 'a3 61 61 01 61 62 02 61 63 03' | cchef from-hex | cchef cbor-decode
+echo 'a3 61 61 01 61 62 02 61 63 03' | cchef from-hex | cchef cbor-decode
+```
+
+Output:
+
+```
 {
     "a": 1,
     "b": 2,
@@ -220,7 +255,12 @@ $ echo 'a3 61 61 01 61 62 02 61 63 03' | cchef from-hex | cchef cbor-decode
 **Mixed array** (a boolean and a double):
 
 ```bash
-$ echo '82 f5 fb 40 09 21 fb 54 44 2d 18' | cchef from-hex | cchef cbor-decode
+echo '82 f5 fb 40 09 21 fb 54 44 2d 18' | cchef from-hex | cchef cbor-decode
+```
+
+Output:
+
+```
 [
     true,
     3.141592653589793
@@ -242,14 +282,24 @@ first), so the output is deterministic. Output is raw bytes; pipe through
 Map keys are emitted in canonical order regardless of input order:
 
 ```bash
-$ echo -n '{"c":3,"a":1,"b":2}' | cchef cbor-encode | cchef to-hex
+echo -n '{"c":3,"a":1,"b":2}' | cchef cbor-encode | cchef to-hex
+```
+
+Output:
+
+```
 a3 61 61 01 61 62 02 61 63 03
 ```
 
 **Shortest float** (1.5 encodes as a two-byte half-precision float):
 
 ```bash
-$ echo -n '1.5' | cchef cbor-encode | cchef to-hex
+echo -n '1.5' | cchef cbor-encode | cchef to-hex
+```
+
+Output:
+
+```
 f9 3e 00
 ```
 
@@ -273,7 +323,12 @@ delimiter, so the default row delimiter `\r\n` splits on either CR or LF.
 **Array of dictionaries** (the default — first row is the header):
 
 ```bash
-$ printf 'name,age\r\nAda,36\r\nBob,40\r\n' | cchef csv-to-json
+printf 'name,age\r\nAda,36\r\nBob,40\r\n' | cchef csv-to-json
+```
+
+Output:
+
+```
 [
     {
         "name": "Ada",
@@ -289,7 +344,12 @@ $ printf 'name,age\r\nAda,36\r\nBob,40\r\n' | cchef csv-to-json
 **Array of arrays**:
 
 ```bash
-$ printf 'name,age\r\nAda,36\r\n' | cchef csv-to-json --format 'Array of arrays'
+printf 'name,age\r\nAda,36\r\n' | cchef csv-to-json --format 'Array of arrays'
+```
+
+Output:
+
+```
 [
     [
         "name",
@@ -326,7 +386,12 @@ Also listed under [Language](language.md).
 **Example** (Windows-1251 Cyrillic bytes → text):
 
 ```bash
-$ echo 'cf f0 e8 e2 e5 f2' | cchef from-hex | cchef decode-text --encoding 'Windows-1251 Cyrillic (1251)'
+echo 'cf f0 e8 e2 e5 f2' | cchef from-hex | cchef decode-text --encoding 'Windows-1251 Cyrillic (1251)'
+```
+
+Output:
+
+```
 Привет
 ```
 
@@ -349,7 +414,12 @@ coverage note.
 **Example** (text → Shift-JIS bytes):
 
 ```bash
-$ printf '日本語' | cchef encode-text --encoding 'Japanese Shift-JIS (932)' | cchef to-hex
+printf '日本語' | cchef encode-text --encoding 'Japanese Shift-JIS (932)' | cchef to-hex
+```
+
+Output:
+
+```
 93 fa 96 7b 8c ea
 ```
 
@@ -369,14 +439,24 @@ option.
 **Simple example**
 
 ```bash
-$ cchef escape-smart-characters -i '“Hello” — world…'
+cchef escape-smart-characters -i '“Hello” — world…'
+```
+
+Output:
+
+```
 "Hello" -- world...
 ```
 
 **Removing unmappable characters**
 
 ```bash
-$ cchef escape-smart-characters --unmappable-characters Remove -i 'warning: ☣ hazard'
+cchef escape-smart-characters --unmappable-characters Remove -i 'warning: ☣ hazard'
+```
+
+Output:
+
+```
 warning:  hazard
 ```
 
@@ -399,14 +479,24 @@ escaped as UTF-16 surrogate pairs.
 **Simple example**
 
 ```bash
-$ cchef escape-unicode-characters -i 'Héllo'
+cchef escape-unicode-characters -i 'Héllo'
+```
+
+Output:
+
+```
 H\u00E9llo
 ```
 
 **Encode everything with the U+ prefix**
 
 ```bash
-$ cchef escape-unicode-characters --prefix 'U+' --encode-all-chars -i 'Hi'
+cchef escape-unicode-characters --prefix 'U+' --encode-all-chars -i 'Hi'
+```
+
+Output:
+
+```
 U+0048U+0069
 ```
 
@@ -424,7 +514,12 @@ integer values are supported.
 **Simple example**
 
 ```bash
-$ cchef from-base --radix 16 -i ff
+cchef from-base --radix 16 -i ff
+```
+
+Output:
+
+```
 255
 ```
 
@@ -442,7 +537,12 @@ Decodes a Base32 string back into its raw byte value.
 **Simple example**
 
 ```bash
-$ cchef from-base32 -i 'JBSWY3DP'
+cchef from-base32 -i 'JBSWY3DP'
+```
+
+Output:
+
+```
 Hello
 ```
 
@@ -460,7 +560,12 @@ Decodes a Base45 string back into its raw byte value (RFC 9285).
 **Simple example**
 
 ```bash
-$ cchef from-base45 -i 'QED8WEX0'
+cchef from-base45 -i 'QED8WEX0'
+```
+
+Output:
+
+```
 ietf!
 ```
 
@@ -478,7 +583,12 @@ Decodes a Base58 string back into its raw byte value.
 **Simple example**
 
 ```bash
-$ cchef from-base58 -i 'StV1DL6CwTryKyV'
+cchef from-base58 -i 'StV1DL6CwTryKyV'
+```
+
+Output:
+
+```
 hello world
 ```
 
@@ -495,7 +605,12 @@ Decodes a Base62 string back into its raw byte value.
 **Simple example**
 
 ```bash
-$ cchef from-base62 -i '1wJfrzvdbtXUOlUjUf'
+cchef from-base62 -i '1wJfrzvdbtXUOlUjUf'
+```
+
+Output:
+
+```
 Hello, World!
 ```
 
@@ -514,7 +629,12 @@ Decodes data from an ASCII Base64 string back into its raw form.
 **Simple example**
 
 ```bash
-$ cchef from-base64 -i 'SGVsbG8sIFdvcmxkIQ=='
+cchef from-base64 -i 'SGVsbG8sIFdvcmxkIQ=='
+```
+
+Output:
+
+```
 Hello, World!
 ```
 
@@ -533,7 +653,12 @@ Decodes a Base85 (Ascii85) string back into its raw byte value.
 **Simple example**
 
 ```bash
-$ cchef from-base85 -i '9jqo^'
+cchef from-base85 -i '9jqo^'
+```
+
+Output:
+
+```
 Man
 ```
 
@@ -546,7 +671,12 @@ Decodes a Base92 string back into its raw byte value. Takes no options.
 **Simple example**
 
 ```bash
-$ cchef from-base92 -i "G'_DW[B"
+cchef from-base92 -i "G'_DW[B"
+```
+
+Output:
+
+```
 ietf!
 ```
 
@@ -568,15 +698,25 @@ of bits under the chosen encoding scheme; a trailing nibble may carry the sign.
 **Simple example**
 
 ```bash
-$ cchef from-bcd -i '0001 0010 0011 0100'
+cchef from-bcd -i '0001 0010 0011 0100'
+```
+
+Output:
+
+```
 1234
 ```
 
 **Packed, signed bytes (negative value)**
 
 ```bash
-$ cchef from-bcd --packed --signed --input-format Bytes \
+cchef from-bcd --packed --signed --input-format Bytes \
     -i '00000001 00100011 01000101 01100111 10001001 00001101'
+```
+
+Output:
+
+```
 -1234567890
 ```
 
@@ -598,18 +738,35 @@ generically. The output format selects how the decoded bytes are rendered.
 **Simple example**
 
 ```bash
-$ cchef from-bech32 --encoding Bech32 --output-format Raw -i 'bc1fpjkcmr0gzsgcg'
+cchef from-bech32 --encoding Bech32 --output-format Raw -i 'bc1fpjkcmr0gzsgcg'
+```
+
+Output:
+
+```
 Hello
 ```
 
 **Bitcoin scriptPubKey and JSON output**
 
 ```bash
-$ cchef from-bech32 --output-format 'Bitcoin scriptPubKey' \
+cchef from-bech32 --output-format 'Bitcoin scriptPubKey' \
     -i 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4'
-0014751e76e8199196d454941c45d1b3a323f1433bd6
+```
 
-$ cchef from-bech32 --output-format JSON -i 'bc1fpjkcmr0gzsgcg'
+Output:
+
+```
+0014751e76e8199196d454941c45d1b3a323f1433bd6
+```
+
+```bash
+cchef from-bech32 --output-format JSON -i 'bc1fpjkcmr0gzsgcg'
+```
+
+Output:
+
+```
 {
   "hrp": "bc",
   "encoding": "Bech32",
@@ -631,7 +788,12 @@ Converts a binary string back into its raw form.
 **Simple example**
 
 ```bash
-$ cchef from-binary -i '01001000 01101001'
+cchef from-binary -i '01001000 01101001'
+```
+
+Output:
+
+```
 Hi
 ```
 
@@ -647,7 +809,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef from-braille -i '⠓⠑⠇⠇⠕'
+cchef from-braille -i '⠓⠑⠇⠇⠕'
+```
+
+Output:
+
+```
 HELLO
 ```
 
@@ -665,7 +832,12 @@ Converts unicode character codes (in the given base) back into text.
 **Simple example**
 
 ```bash
-$ cchef from-charcode -i '41 42'
+cchef from-charcode -i '41 42'
+```
+
+Output:
+
+```
 AB
 ```
 
@@ -683,7 +855,12 @@ Converts a delimited list of decimal byte values back into raw bytes.
 **Simple example**
 
 ```bash
-$ cchef from-decimal -i '72 73'
+cchef from-decimal -i '72 73'
+```
+
+Output:
+
+```
 HI
 ```
 
@@ -703,15 +880,25 @@ floating-point byte representation.
 **Simple example**
 
 ```bash
-$ cchef from-float -i '0.5 0.5' | cchef to-hex --delimiter None
+cchef from-float -i '0.5 0.5' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 3f0000003f000000
 ```
 
 **Little-endian double precision**
 
 ```bash
-$ cchef from-float --endianness 'Little Endian' --size 'Double (8 bytes)' -i '0.5' \
+cchef from-float --endianness 'Little Endian' --size 'Double (8 bytes)' -i '0.5' \
     | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 000000000000e03f
 ```
 
@@ -728,14 +915,24 @@ Converts a hexadecimal byte string back into its raw value.
 **Simple example**
 
 ```bash
-$ cchef from-hex -i '48 65 6c 6c 6f'
+cchef from-hex -i '48 65 6c 6c 6f'
+```
+
+Output:
+
+```
 Hello
 ```
 
 **Auto delimiter (mixed separators)**
 
 ```bash
-$ cchef from-hex --delimiter 'Auto' -i '48:65,6c-6c6f'
+cchef from-hex --delimiter 'Auto' -i '48:65,6c-6c6f'
+```
+
+Output:
+
+```
 Hello
 ```
 
@@ -753,14 +950,24 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef from-hex-content -i 'foo|3d|bar'
+cchef from-hex-content -i 'foo|3d|bar'
+```
+
+Output:
+
+```
 foo=bar
 ```
 
 **Embedded bytes (a CRLF inside a request line)**
 
 ```bash
-$ cchef from-hex-content -i 'GET /|0d 0a|Host'
+cchef from-hex-content -i 'GET /|0d 0a|Host'
+```
+
+Output:
+
+```
 GET /
 Host
 ```
@@ -779,7 +986,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef from-hexdump -i '00000000  48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21           |Hello, World!|'
+cchef from-hexdump -i '00000000  48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21           |Hello, World!|'
+```
+
+Output:
+
+```
 Hello, World!
 ```
 
@@ -797,7 +1009,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef from-html-entity -i '&amp; &lt; &#233; &#x20ac;'
+cchef from-html-entity -i '&amp; &lt; &#233; &#x20ac;'
+```
+
+Output:
+
+```
 & < é €
 ```
 
@@ -814,7 +1031,12 @@ bytes, so pipe binary in via `from-hex` or `--in-file`.
 **Simple example**
 
 ```bash
-$ echo '83 a1 61 01 a1 62 02 a1 63 03' | cchef from-hex | cchef from-messagepack
+echo '83 a1 61 01 a1 62 02 a1 63 03' | cchef from-hex | cchef from-messagepack
+```
+
+Output:
+
+```
 {
     "a": 1,
     "b": 2,
@@ -825,7 +1047,12 @@ $ echo '83 a1 61 01 a1 62 02 a1 63 03' | cchef from-hex | cchef from-messagepack
 **Mixed array** (a boolean and a float):
 
 ```bash
-$ echo '92 c3 cb 40 09 21 f9 f0 1b 86 6e' | cchef from-hex | cchef from-messagepack
+echo '92 c3 cb 40 09 21 f9 f0 1b 86 6e' | cchef from-hex | cchef from-messagepack
+```
+
+Output:
+
+```
 [
     true,
     3.14159
@@ -849,14 +1076,24 @@ alphabet `cbdefghijklnrtuv` (used by YubiKey to be keyboard-layout independent).
 **Simple example**
 
 ```bash
-$ cchef from-modhex -i 'hb hd hg id ik ie if ii ik if hj'
+cchef from-modhex -i 'hb hd hg id ik ie if ii ik if hj'
+```
+
+Output:
+
+```
 aberystwyth
 ```
 
 **Auto delimiter (mixed case, mixed separators)**
 
 ```bash
-$ cchef from-modhex --delimiter Auto -i 'uhKGkb,UHkgkB,UGltlk,ugltkc'
+cchef from-modhex --delimiter Auto -i 'uhKGkb,UHkgkB,UGltlk,ugltkc'
+```
+
+Output:
+
+```
 救救孩子
 ```
 
@@ -873,7 +1110,12 @@ Converts an octal byte string back into its raw value.
 **Simple example**
 
 ```bash
-$ cchef from-octal -i '110 145 154 154 157'
+cchef from-octal -i '110 145 154 154 157'
+```
+
+Output:
+
+```
 Hello
 ```
 
@@ -896,14 +1138,24 @@ unchanged.
 **Simple example**
 
 ```bash
-$ cchef from-punycode -i 'mnchen-3ya'
+cchef from-punycode -i 'mnchen-3ya'
+```
+
+Output:
+
+```
 münchen
 ```
 
 **Complex example** (decode an internationalised domain name):
 
 ```bash
-$ cchef from-punycode --internationalised-domain-name -i 'xn--mnchen-3ya.de'
+cchef from-punycode --internationalised-domain-name -i 'xn--mnchen-3ya.de'
+```
+
+Output:
+
+```
 münchen.de
 ```
 
@@ -922,7 +1174,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef from-quoted-printable -i 'a=3Db =26 caf=C3=A9'
+cchef from-quoted-printable -i 'a=3Db =26 caf=C3=A9'
+```
+
+Output:
+
+```
 a=b & café
 ```
 
@@ -942,7 +1199,12 @@ output uses CRLF line endings, matching CyberChef.
 **Simple example**
 
 ```bash
-$ cchef hex-to-pem -i '3003010100'
+cchef hex-to-pem -i '3003010100'
+```
+
+Output:
+
+```
 -----BEGIN CERTIFICATE-----
 MAMBAQA=
 -----END CERTIFICATE-----
@@ -951,7 +1213,12 @@ MAMBAQA=
 **Custom header**
 
 ```bash
-$ cchef hex-to-pem --header-string 'PUBLIC KEY' -i '3059301306072a8648ce3d020106082a8648ce3d0301070342000414b41c05bcc3c1ea3a69fe24de4d2029630d58e6559fcfbd847dabbf80ca29867b135cfae0b06d3e707580ccfef870cac92af6a330f7ff8e9d21b40c5d464aa7'
+cchef hex-to-pem --header-string 'PUBLIC KEY' -i '3059301306072a8648ce3d020106082a8648ce3d0301070342000414b41c05bcc3c1ea3a69fe24de4d2029630d58e6559fcfbd847dabbf80ca29867b135cfae0b06d3e707580ccfef870cac92af6a330f7ff8e9d21b40c5d464aa7'
+```
+
+Output:
+
+```
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFLQcBbzDweo6af4k3k0gKWMNWOZV
 n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
@@ -978,7 +1245,12 @@ or newline are quoted.
 **Array of objects**:
 
 ```bash
-$ echo -n '{"a":1,"b":"2","c":3}' | cchef json-to-csv
+echo -n '{"a":1,"b":"2","c":3}' | cchef json-to-csv
+```
+
+Output:
+
+```
 a,b,c
 1,2,3
 ```
@@ -986,7 +1258,12 @@ a,b,c
 **Nested JSON** (flattened to dotted columns):
 
 ```bash
-$ echo -n '{"a":1,"b":{"c":2,"d":3}}' | cchef json-to-csv
+echo -n '{"a":1,"b":{"c":2,"d":3}}' | cchef json-to-csv
+```
+
+Output:
+
+```
 a,b.c,b.d
 1,2,3
 ```
@@ -1007,7 +1284,12 @@ plain integers), and nested collections use a 2-space block style.
 **Simple example**
 
 ```bash
-$ cchef json-to-yaml -i '{"name":"cchef","tags":["cli","yaml"],"active":true}'
+cchef json-to-yaml -i '{"name":"cchef","tags":["cli","yaml"],"active":true}'
+```
+
+Output:
+
+```
 name: cchef
 tags:
   - cli
@@ -1033,14 +1315,24 @@ the RFC, and the UTF-8, US-ASCII and ISO-8859-* charsets are handled.
 **Simple example**
 
 ```bash
-$ cchef mime-decoding -i 'Subject: =?UTF-8?B?Y2Fmw6k=?='
+cchef mime-decoding -i 'Subject: =?UTF-8?B?Y2Fmw6k=?='
+```
+
+Output:
+
+```
 Subject: café
 ```
 
 **Multiple encoded words** (adjacent-word whitespace is dropped):
 
 ```bash
-$ cchef mime-decoding -i '=?utf-8?q?=C3=89ric?= <eric@example.org>'
+cchef mime-decoding -i '=?utf-8?q?=C3=89ric?= <eric@example.org>'
+```
+
+Output:
+
+```
 Éric <eric@example.org>
 ```
 
@@ -1063,14 +1355,24 @@ plain equivalents.
 **Simple example** (a ligature compatibility-decomposes under NFKD):
 
 ```bash
-$ cchef normalise-unicode --normal-form NFKD -i 'ﬁ'
+cchef normalise-unicode --normal-form NFKD -i 'ﬁ'
+```
+
+Output:
+
+```
 fi
 ```
 
 **Compatibility composition** (Roman numerals fold to ASCII letters under NFKC):
 
 ```bash
-$ cchef normalise-unicode --normal-form NFKC -i 'ⅠⅡ'
+cchef normalise-unicode --normal-form NFKC -i 'ⅠⅡ'
+```
+
+Output:
+
+```
 III
 ```
 
@@ -1100,7 +1402,12 @@ This operation is also listed under [Public Key](public-key.md).
 Decoding an `AlgorithmIdentifier` (SHA-256):
 
 ```bash
-$ cchef parse-asn1-hex-string -i '300d06096086480165030402010500'
+cchef parse-asn1-hex-string -i '300d06096086480165030402010500'
+```
+
+Output:
+
+```
 SEQUENCE
   ObjectIdentifier sha256 (2 16 840 1 101 3 4 2 1)
   NULL
@@ -1112,8 +1419,13 @@ An X.509 `subjectAltName` extension, whose `[2]` (dNSName) entries are decoded a
 text, with octet strings truncated to their first and last 8 hex characters:
 
 ```bash
-$ cchef parse-asn1-hex-string -i '30100603551d11040930078205612e636f6d' \
+cchef parse-asn1-hex-string -i '30100603551d11040930078205612e636f6d' \
     --truncate-octet-strings-longer-than 8
+```
+
+Output:
+
+```
 SEQUENCE
   ObjectIdentifier subjectAltName (2 5 29 17)
   OCTETSTRING, encapsulates
@@ -1157,7 +1469,12 @@ The type/key and length sizes may not both be `0`.
 Key-Length-Value data with one-byte keys and lengths:
 
 ```bash
-$ printf '\x04\x05House\x05\x04room\x42\x04door' | cchef parse-tlv --typekey-size 1 --length-size 1
+printf '\x04\x05House\x05\x04room\x42\x04door' | cchef parse-tlv --typekey-size 1 --length-size 1
+```
+
+Output:
+
+```
 [{"key":[4],"length":5,"value":[72,111,117,115,101]},{"key":[5],"length":4,"value":[114,111,111,109]},{"key":[66],"length":4,"value":[100,111,111,114]}]
 ```
 
@@ -1167,7 +1484,12 @@ The second record encodes its length `5` in BER long form (`0x81 0x05`); the
 fixed length size is ignored:
 
 ```bash
-$ printf '\x01\x05Hello\x02\x81\x05World' | cchef parse-tlv --typekey-size 1 --length-size 1 --use-ber
+printf '\x01\x05Hello\x02\x81\x05World' | cchef parse-tlv --typekey-size 1 --length-size 1 --use-ber
+```
+
+Output:
+
+```
 [{"key":[1],"length":5,"value":[72,101,108,108,111]},{"key":[2],"length":5,"value":[87,111,114,108,100]}]
 ```
 
@@ -1186,7 +1508,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef pem-to-hex -i '-----BEGIN PUBLIC KEY-----
+cchef pem-to-hex -i '-----BEGIN PUBLIC KEY-----
+```
+
+Output:
+
+```
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFLQcBbzDweo6af4k3k0gKWMNWOZV
 n8+9hH2rv4DKKYZ7E1z64LBtPnB1gMz++HDKySr2ozD3/46dIbQMXUZKpw==
 -----END PUBLIC KEY-----'
@@ -1207,7 +1534,12 @@ compact, URI-friendly variant of JSON. The output is pretty-printed JSON.
 **Simple example**
 
 ```bash
-$ cchef rison-decode -i '(name:cchef,n:42,tags:!(a,b))'
+cchef rison-decode -i '(name:cchef,n:42,tags:!(a,b))'
+```
+
+Output:
+
+```
 {
     "name": "cchef",
     "n": 42,
@@ -1223,7 +1555,12 @@ $ cchef rison-decode -i '(name:cchef,n:42,tags:!(a,b))'
 Object Rison omits the outer parentheses, so use `Decode Object`:
 
 ```bash
-$ cchef rison-decode --decode-option 'Decode Object' -i 'a:1,b:2'
+cchef rison-decode --decode-option 'Decode Object' -i 'a:1,b:2'
+```
+
+Output:
+
+```
 {
     "a": 1,
     "b": 2
@@ -1244,7 +1581,12 @@ sorted, matching the reference implementation.
 **Simple example**
 
 ```bash
-$ cchef rison-encode -i '{"name":"cchef","tags":["a","b"],"n":42}'
+cchef rison-encode -i '{"name":"cchef","tags":["a","b"],"n":42}'
+```
+
+Output:
+
+```
 (n:42,name:cchef,tags:!(a,b))
 ```
 
@@ -1254,7 +1596,12 @@ $ cchef rison-encode -i '{"name":"cchef","tags":["a","b"],"n":42}'
 `/` readable where it can, and encodes spaces as `+`):
 
 ```bash
-$ cchef rison-encode --encode-option 'Encode URI' -i '{"q":"a b,c"}'
+cchef rison-encode --encode-option 'Encode URI' -i '{"q":"a b,c"}'
+```
+
+Output:
+
+```
 (q:'a+b,c')
 ```
 
@@ -1283,7 +1630,12 @@ block. This shows all three so each candidate encoding can be searched for.
 **Simple example (plain offsets)**
 
 ```bash
-$ cchef show-base64-offsets --show-variable-chars-and-padding=false -i 'SecretData'
+cchef show-base64-offsets --show-variable-chars-and-padding=false -i 'SecretData'
+```
+
+Output:
+
+```
 U2VjcmV0RGF0Y
 NlY3JldERhdG
 TZWNyZXREYXRh
@@ -1310,14 +1662,24 @@ Reverses the byte order within fixed-length words.
 **Simple example**
 
 ```bash
-$ cchef swap-endianness --data-format Hex --word-length-bytes 4 -i 0a0b0c0d
+cchef swap-endianness --data-format Hex --word-length-bytes 4 -i 0a0b0c0d
+```
+
+Output:
+
+```
 0d 0c 0b 0a
 ```
 
 **Raw data**
 
 ```bash
-$ cchef swap-endianness --data-format Raw --word-length-bytes 2 -i ABCD
+cchef swap-endianness --data-format Raw --word-length-bytes 2 -i ABCD
+```
+
+Output:
+
+```
 BADC
 ```
 
@@ -1338,7 +1700,12 @@ for the five ISO-2022 charsets cptable does not support).
 correctly):
 
 ```bash
-$ printf '\xcf\xf0\xe8\xe2\xe5\xf2' | cchef text-encoding-brute-force --mode Decode
+printf '\xcf\xf0\xe8\xe2\xe5\xf2' | cchef text-encoding-brute-force --mode Decode
+```
+
+Output:
+
+```
 {
     ...
     "Windows-1251 Cyrillic (1251)": "Привет",
@@ -1370,14 +1737,24 @@ characters produce an error.
 **Simple example**
 
 ```bash
-$ cchef text-integer-conversion --output-format Hexadecimal -i '"CyberChef"'
+cchef text-integer-conversion --output-format Hexadecimal -i '"CyberChef"'
+```
+
+Output:
+
+```
 0x437962657243686566
 ```
 
 **Integer back to text**
 
 ```bash
-$ cchef text-integer-conversion --output-format String -i '0x48656C6C6F'
+cchef text-integer-conversion --output-format String -i '0x48656C6C6F'
+```
+
+Output:
+
+```
 Hello
 ```
 
@@ -1394,14 +1771,24 @@ Converts a decimal number to a different numerical base (radix 2–36).
 **Simple example**
 
 ```bash
-$ cchef to-base --radix 16 -i 255
+cchef to-base --radix 16 -i 255
+```
+
+Output:
+
+```
 ff
 ```
 
 **Binary**
 
 ```bash
-$ cchef to-base --radix 2 -i 255
+cchef to-base --radix 2 -i 255
+```
+
+Output:
+
+```
 11111111
 ```
 
@@ -1419,7 +1806,12 @@ and `2-7`).
 **Simple example**
 
 ```bash
-$ cchef to-base32 -i 'Hello'
+cchef to-base32 -i 'Hello'
+```
+
+Output:
+
+```
 JBSWY3DP
 ```
 
@@ -1436,7 +1828,12 @@ Base45 encodes arbitrary byte data, used notably in QR codes (RFC 9285).
 **Simple example**
 
 ```bash
-$ cchef to-base45 -i 'Hello!!'
+cchef to-base45 -i 'Hello!!'
+```
+
+Output:
+
+```
 %69 VD92EX0
 ```
 
@@ -1454,14 +1851,24 @@ characters. Commonly used for cryptocurrency addresses.
 **Simple example**
 
 ```bash
-$ cchef to-base58 -i 'hello world'
+cchef to-base58 -i 'hello world'
+```
+
+Output:
+
+```
 StV1DL6CwTryKyV
 ```
 
 **Ripple alphabet**
 
 ```bash
-$ cchef to-base58 --alphabet 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz' -i 'hello world'
+cchef to-base58 --alphabet 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz' -i 'hello world'
+```
+
+Output:
+
+```
 StVrDLaUATiyKyV
 ```
 
@@ -1479,7 +1886,12 @@ data as a large integer.
 **Simple example**
 
 ```bash
-$ cchef to-base62 -i 'Hello, World!'
+cchef to-base62 -i 'Hello, World!'
+```
+
+Output:
+
+```
 1wJfrzvdbtXUOlUjUf
 ```
 
@@ -1496,14 +1908,24 @@ Encodes raw data into an ASCII Base64 string.
 **Simple example**
 
 ```bash
-$ cchef to-base64 -i 'Hello, World!'
+cchef to-base64 -i 'Hello, World!'
+```
+
+Output:
+
+```
 SGVsbG8sIFdvcmxkIQ==
 ```
 
 **Custom alphabet (URL-safe, no padding)**
 
 ```bash
-$ printf '\xfb\xff' | cchef to-base64 --alphabet 'A-Za-z0-9-_'
+printf '\xfb\xff' | cchef to-base64 --alphabet 'A-Za-z0-9-_'
+```
+
+Output:
+
+```
 -_8
 ```
 
@@ -1522,14 +1944,24 @@ characters, more space-efficient than Base64.
 **Simple example**
 
 ```bash
-$ cchef to-base85 -i 'Man '
+cchef to-base85 -i 'Man '
+```
+
+Output:
+
+```
 9jqo^
 ```
 
 **With delimiters**
 
 ```bash
-$ cchef to-base85 --include-delimiter -i 'Man '
+cchef to-base85 --include-delimiter -i 'Man '
+```
+
+Output:
+
+```
 <~9jqo^~>
 ```
 
@@ -1541,7 +1973,12 @@ options.
 **Simple example**
 
 ```bash
-$ cchef to-base92 -i 'Hello!!'
+cchef to-base92 -i 'Hello!!'
+```
+
+Output:
+
+```
 ;K_$aOTo&
 ```
 
@@ -1562,14 +1999,24 @@ representing each digit with a fixed group of bits under the chosen scheme.
 **Simple example**
 
 ```bash
-$ cchef to-bcd -i '1234'
+cchef to-bcd -i '1234'
+```
+
+Output:
+
+```
 0001 0010 0011 0100
 ```
 
 **Packed, signed bytes**
 
 ```bash
-$ cchef to-bcd --packed --signed --output-format Bytes -i '1234567890'
+cchef to-bcd --packed --signed --output-format Bytes -i '1234567890'
+```
+
+Output:
+
+```
 00000001 00100011 01000101 01100111 10001001 00001100
 ```
 
@@ -1594,15 +2041,25 @@ in **Generic** mode any data is encoded. The output is capped at 90 characters.
 **Simple example**
 
 ```bash
-$ cchef to-bech32 -i 'Hello'
+cchef to-bech32 -i 'Hello'
+```
+
+Output:
+
+```
 bc1fpjkcmr0gzsgcg
 ```
 
 **Bitcoin SegWit address**
 
 ```bash
-$ echo -n '751e76e8199196d454941c45d1b3a323f1433bd6' \
+echo -n '751e76e8199196d454941c45d1b3a323f1433bd6' \
     | cchef to-bech32 --input-format Hex --mode 'Bitcoin SegWit' --witness-version 0
+```
+
+Output:
+
+```
 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
 ```
 
@@ -1620,7 +2077,12 @@ Displays the input as a binary string, each byte zero-padded to the given length
 **Simple example**
 
 ```bash
-$ cchef to-binary -i 'Hi'
+cchef to-binary -i 'Hi'
+```
+
+Output:
+
+```
 01001000 01101001
 ```
 
@@ -1635,7 +2097,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef to-braille -i 'Hello'
+cchef to-braille -i 'Hello'
+```
+
+Output:
+
+```
 ⠓⠑⠇⠇⠕
 ```
 
@@ -1653,14 +2120,24 @@ Converts text to its unicode character codes, in the given base.
 **Simple example**
 
 ```bash
-$ cchef to-charcode -i 'AB'
+cchef to-charcode -i 'AB'
+```
+
+Output:
+
+```
 41 42
 ```
 
 **Base 10**
 
 ```bash
-$ cchef to-charcode --base 10 -i 'AB'
+cchef to-charcode --base 10 -i 'AB'
+```
+
+Output:
+
+```
 65 66
 ```
 
@@ -1678,7 +2155,12 @@ Converts the input to a delimited list of decimal byte values.
 **Simple example**
 
 ```bash
-$ cchef to-decimal -i 'ABC'
+cchef to-decimal -i 'ABC'
+```
+
+Output:
+
+```
 65 66 67
 ```
 
@@ -1700,14 +2182,24 @@ The input length must be a multiple of the chosen size (4 or 8 bytes).
 **Simple example**
 
 ```bash
-$ cchef from-hex -i '3f0000003f000000' | cchef to-float
+cchef from-hex -i '3f0000003f000000' | cchef to-float
+```
+
+Output:
+
+```
 0.5 0.5
 ```
 
 **Big-endian double precision**
 
 ```bash
-$ cchef from-hex -i '3fe0000000000000' | cchef to-float --size 'Double (8 bytes)'
+cchef from-hex -i '3fe0000000000000' | cchef to-float --size 'Double (8 bytes)'
+```
+
+Output:
+
+```
 0.5
 ```
 
@@ -1724,17 +2216,34 @@ Converts the input to hexadecimal bytes separated by the chosen delimiter.
 **Simple example**
 
 ```bash
-$ cchef to-hex -i 'Hello'
+cchef to-hex -i 'Hello'
+```
+
+Output:
+
+```
 48 65 6c 6c 6f
 ```
 
 **Alternative delimiters**
 
 ```bash
-$ cchef to-hex --delimiter 'Colon' -i 'Hello'
-48:65:6c:6c:6f
+cchef to-hex --delimiter 'Colon' -i 'Hello'
+```
 
-$ cchef to-hex --delimiter '0x with comma' -i 'abc'
+Output:
+
+```
+48:65:6c:6c:6f
+```
+
+```bash
+cchef to-hex --delimiter '0x with comma' -i 'abc'
+```
+
+Output:
+
+```
 0x61,0x62,0x63
 ```
 
@@ -1755,21 +2264,36 @@ becomes `foo|3d|bar`).
 **Simple example**
 
 ```bash
-$ cchef to-hex-content -i 'foo=bar'
+cchef to-hex-content -i 'foo=bar'
+```
+
+Output:
+
+```
 foo|3d|bar
 ```
 
 **Including spaces, with a multi-byte block**
 
 ```bash
-$ cchef to-hex-content --convert 'Only special chars including spaces' -i 'Hello, World!'
+cchef to-hex-content --convert 'Only special chars including spaces' -i 'Hello, World!'
+```
+
+Output:
+
+```
 Hello|2c20|World|21|
 ```
 
 **All chars, spaced**
 
 ```bash
-$ cchef to-hex-content --convert 'All chars' --print-spaces-between-bytes -i 'foo=bar'
+cchef to-hex-content --convert 'All chars' --print-spaces-between-bytes -i 'foo=bar'
+```
+
+Output:
+
+```
 |66 6f 6f 3d 62 61 72|
 ```
 
@@ -1790,14 +2314,24 @@ byte, and an ASCII preview alongside (non-printable bytes shown as `.`).
 **Simple example**
 
 ```bash
-$ cchef to-hexdump -i 'Hello, World!'
+cchef to-hexdump -i 'Hello, World!'
+```
+
+Output:
+
+```
 00000000  48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21           |Hello, World!|
 ```
 
 **Narrow width, upper-case, with final length**
 
 ```bash
-$ cchef to-hexdump --width 8 --upper-case-hex --include-final-length -i 'Hello, World!'
+cchef to-hexdump --width 8 --upper-case-hex --include-final-length -i 'Hello, World!'
+```
+
+Output:
+
+```
 00000000  48 65 6C 6C 6F 2C 20 57  |Hello, W|
 00000008  6F 72 6C 64 21           |orld!|
 0000000d
@@ -1820,14 +2354,24 @@ converted; the rest pass through. Use `--convert-all-characters` and
 **Simple example**
 
 ```bash
-$ cchef to-html-entity -i 'a & b < "c"'
+cchef to-html-entity -i 'a & b < "c"'
+```
+
+Output:
+
+```
 a &amp; b &lt; &quot;c&quot;
 ```
 
 **Numeric entities, converting everything**
 
 ```bash
-$ cchef to-html-entity --convert-all-characters --convert-to 'Numeric entities' -i 'Hé'
+cchef to-html-entity --convert-all-characters --convert-to 'Numeric entities' -i 'Hé'
+```
+
+Output:
+
+```
 &#72;&#233;
 ```
 
@@ -1844,21 +2388,36 @@ CyberChef's `notepack.io` backing library. Output is raw bytes; pipe through
 **Simple example**
 
 ```bash
-$ echo -n '{"a":1,"b":2,"c":3}' | cchef to-messagepack | cchef to-hex
+echo -n '{"a":1,"b":2,"c":3}' | cchef to-messagepack | cchef to-hex
+```
+
+Output:
+
+```
 83 a1 61 01 a1 62 02 a1 63 03
 ```
 
 **Key ordering** (integer-index keys are emitted first, in ascending order):
 
 ```bash
-$ echo -n '{"b":1,"2":2,"1":3}' | cchef to-messagepack | cchef to-hex
+echo -n '{"b":1,"2":2,"1":3}' | cchef to-messagepack | cchef to-hex
+```
+
+Output:
+
+```
 83 a1 31 03 a1 32 02 a1 62 01
 ```
 
 **Float** (non-integers encode as a 64-bit float):
 
 ```bash
-$ echo -n '1.5' | cchef to-messagepack | cchef to-hex
+echo -n '1.5' | cchef to-messagepack | cchef to-hex
+```
+
+Output:
+
+```
 cb 3f f8 00 00 00 00 00 00
 ```
 
@@ -1880,14 +2439,24 @@ with the consonant alphabet `cbdefghijklnrtuv`.
 **Simple example**
 
 ```bash
-$ cchef to-modhex -i 'aberystwyth'
+cchef to-modhex -i 'aberystwyth'
+```
+
+Output:
+
+```
 hb hd hg id ik ie if ii ik if hj
 ```
 
 **Alternative delimiter with line wrapping**
 
 ```bash
-$ cchef to-modhex --delimiter Comma --bytes-per-line 4 -i 'aberystwyth'
+cchef to-modhex --delimiter Comma --bytes-per-line 4 -i 'aberystwyth'
+```
+
+Output:
+
+```
 hb,hd,hg,id,
 ik,ie,if,ii,
 ik,if,hj
@@ -1906,14 +2475,24 @@ Converts the input to octal bytes separated by the chosen delimiter.
 **Simple example**
 
 ```bash
-$ cchef to-octal -i 'Hello'
+cchef to-octal -i 'Hello'
+```
+
+Output:
+
+```
 110 145 154 154 157
 ```
 
 **Alternative delimiter**
 
 ```bash
-$ cchef to-octal --delimiter 'Comma' -i 'Hello'
+cchef to-octal --delimiter 'Comma' -i 'Hello'
+```
+
+Output:
+
+```
 110,145,154,154,157
 ```
 
@@ -1937,14 +2516,24 @@ unchanged.
 **Simple example**
 
 ```bash
-$ cchef to-punycode -i 'münchen'
+cchef to-punycode -i 'münchen'
+```
+
+Output:
+
+```
 mnchen-3ya
 ```
 
 **Complex example** (encode an internationalised domain name):
 
 ```bash
-$ cchef to-punycode --internationalised-domain-name -i 'münchen.de'
+cchef to-punycode --internationalised-domain-name -i 'münchen.de'
+```
+
+Output:
+
+```
 xn--mnchen-3ya.de
 ```
 
@@ -1963,7 +2552,12 @@ This operation takes no options.
 **Simple example**
 
 ```bash
-$ cchef to-quoted-printable -i 'a=b & café'
+cchef to-quoted-printable -i 'a=b & café'
+```
+
+Output:
+
+```
 a=3Db & caf=C3=A9
 ```
 
@@ -1983,14 +2577,24 @@ prefix, 4- to 6-digit escapes are accepted (so astral code points work); the
 **Simple example**
 
 ```bash
-$ cchef unescape-unicode-characters -i 'H\u00E9llo'
+cchef unescape-unicode-characters -i 'H\u00E9llo'
+```
+
+Output:
+
+```
 Héllo
 ```
 
 **Astral code point with the U+ prefix**
 
 ```bash
-$ cchef unescape-unicode-characters --prefix 'U+' -i 'U+1F600'
+cchef unescape-unicode-characters --prefix 'U+' -i 'U+1F600'
+```
+
+Output:
+
+```
 😀
 ```
 
@@ -2007,7 +2611,12 @@ Converts percent-encoded characters back to their raw values.
 **Simple example**
 
 ```bash
-$ cchef url-decode -i 'Hello%20World%21'
+cchef url-decode -i 'Hello%20World%21'
+```
+
+Output:
+
+```
 Hello World!
 ```
 
@@ -2024,14 +2633,24 @@ Encodes problematic characters into percent-encoding.
 **Simple example**
 
 ```bash
-$ cchef url-encode -i 'Hello World!'
+cchef url-encode -i 'Hello World!'
+```
+
+Output:
+
+```
 Hello%20World!
 ```
 
 **Encode all special characters**
 
 ```bash
-$ cchef url-encode --encode-all-special-chars -i 'Hello World!'
+cchef url-encode --encode-all-special-chars -i 'Hello World!'
+```
+
+Output:
+
+```
 Hello%20World%21
 ```
 
@@ -2051,7 +2670,12 @@ matching CyberChef). Duplicate mapping keys are rejected.
 **Simple example**
 
 ```bash
-$ cchef yaml-to-json -i 'name: cchef
+cchef yaml-to-json -i 'name: cchef
+```
+
+Output:
+
+```
 tags:
   - cli
   - yaml

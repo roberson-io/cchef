@@ -72,7 +72,12 @@ delimiter.
 **Simple example**
 
 ```bash
-$ printf '1,2\n\na,b' | cchef cartesian-product
+printf '1,2\n\na,b' | cchef cartesian-product
+```
+
+Output:
+
+```
 (1,a),(1,b),(2,a),(2,b)
 ```
 
@@ -91,14 +96,24 @@ Divides the list left-to-right (`a / b / c / …`). Non-numeric items are exclud
 **Simple example**
 
 ```bash
-$ cchef divide --delimiter Space -i '0x0a 8 .5'
+cchef divide --delimiter Space -i '0x0a 8 .5'
+```
+
+Output:
+
+```
 2.5
 ```
 
 **Non-terminating result (20 decimal places)**
 
 ```bash
-$ cchef divide --delimiter Space -i '1 3'
+cchef divide --delimiter Space -i '1 3'
+```
+
+Output:
+
+```
 0.33333333333333333333
 ```
 
@@ -117,7 +132,12 @@ Computes the mean (average) of the list. Non-numeric items are excluded.
 **Simple example**
 
 ```bash
-$ cchef mean --delimiter Space -i '0x0a 8 .5 .5'
+cchef mean --delimiter Space -i '0x0a 8 .5 .5'
+```
+
+Output:
+
+```
 4.75
 ```
 
@@ -142,14 +162,24 @@ values for an even-length list. Non-numeric items are excluded.
 **Simple example (odd length)**
 
 ```bash
-$ cchef median --delimiter Space -i '10 1 2'
+cchef median --delimiter Space -i '10 1 2'
+```
+
+Output:
+
+```
 2
 ```
 
 **Even length (mean of the two middle values)**
 
 ```bash
-$ cchef median --delimiter Space -i '10 1 2 5'
+cchef median --delimiter Space -i '10 1 2 5'
+```
+
+Output:
+
+```
 3.5
 ```
 
@@ -168,7 +198,12 @@ Multiplies the list together (`a * b * c * …`). Non-numeric items are excluded
 **Simple example**
 
 ```bash
-$ cchef multiply --delimiter Space -i '0x0a 8 .5'
+cchef multiply --delimiter Space -i '0x0a 8 .5'
+```
+
+Output:
+
+```
 40
 ```
 
@@ -190,8 +225,12 @@ ignored.
 **Simple example**
 
 ```bash
-$ printf 'a,b,c' | cchef power-set
+printf 'a,b,c' | cchef power-set
+```
 
+Output:
+
+```
 c
 b
 a
@@ -218,7 +257,12 @@ complement). Duplicates in the first set are removed; order is preserved.
 **Simple example**
 
 ```bash
-$ printf '1,2,3,4\n\n3,4' | cchef set-difference
+printf '1,2,3,4\n\n3,4' | cchef set-difference
+```
+
+Output:
+
+```
 1,2
 ```
 
@@ -239,7 +283,12 @@ Duplicates in the first set are removed.
 **Simple example**
 
 ```bash
-$ printf '1,2,3\n\n2,3,4' | cchef set-intersection
+printf '1,2,3\n\n2,3,4' | cchef set-intersection
+```
+
+Output:
+
+```
 2,3
 ```
 
@@ -262,14 +311,24 @@ first seen.
 **Simple example**
 
 ```bash
-$ printf '1,2,3\n\n3,4,5' | cchef set-union
+printf '1,2,3\n\n3,4,5' | cchef set-union
+```
+
+Output:
+
+```
 1,2,3,4,5
 ```
 
 **Integer ordering quirk**
 
 ```bash
-$ printf '3,1,2\n\n5,4' | cchef set-union
+printf '3,1,2\n\n5,4' | cchef set-union
+```
+
+Output:
+
+```
 1,2,3,4,5
 ```
 
@@ -289,7 +348,12 @@ excluded. The result is computed to 20 decimal places.
 **Simple example**
 
 ```bash
-$ cchef standard-deviation --delimiter Space -i '0x0a 8 .5'
+cchef standard-deviation --delimiter Space -i '0x0a 8 .5'
+```
+
+Output:
+
+```
 4.08928138212843238213
 ```
 
@@ -309,7 +373,12 @@ excluded.
 **Simple example**
 
 ```bash
-$ cchef subtract --delimiter Comma -i '321,123,test'
+cchef subtract --delimiter Comma -i '321,123,test'
+```
+
+Output:
+
+```
 198
 ```
 
@@ -331,14 +400,24 @@ The default delimiter is a line feed, so a newline-separated list works with no
 flags:
 
 ```bash
-$ printf '10\n8\n0.5' | cchef sum
+printf '10\n8\n0.5' | cchef sum
+```
+
+Output:
+
+```
 18.5
 ```
 
 **Mixed radices on one line**
 
 ```bash
-$ cchef sum --delimiter Space -i '0x0a 8 .5'
+cchef sum --delimiter Space -i '0x0a 8 .5'
+```
+
+Output:
+
+```
 18.5
 ```
 
@@ -360,6 +439,11 @@ preserves duplicates within each side.
 **Simple example**
 
 ```bash
-$ printf 'a,b,c\n\nb,c,d' | cchef symmetric-difference
+printf 'a,b,c\n\nb,c,d' | cchef symmetric-difference
+```
+
+Output:
+
+```
 a,d
 ```

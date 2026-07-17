@@ -44,17 +44,34 @@ or `--in-file`).
 **Inline Chef format**
 
 ```bash
-$ printf 'hello' | cchef bake -e "To_Base64()To_Hex()"
+printf 'hello' | cchef bake -e "To_Base64()To_Hex()"
+```
+
+Output:
+
+```
 61 47 56 73 62 47 38 3d
 ```
 
 **Recipe from a JSON file**
 
 ```bash
-$ cat recipe.json
-[{"op":"To Base64","args":["A-Za-z0-9+/="]}]
+cat recipe.json
+```
 
-$ printf 'hello' | cchef bake -r recipe.json
+Output:
+
+```
+[{"op":"To Base64","args":["A-Za-z0-9+/="]}]
+```
+
+```bash
+printf 'hello' | cchef bake -r recipe.json
+```
+
+Output:
+
+```
 aGVsbG8=
 ```
 
@@ -70,7 +87,12 @@ CyberChef web app, with the input pre-loaded if one is supplied. Takes the same
 `-e`/`-r` recipe flags as `bake`.
 
 ```bash
-$ cchef url -e "ROT13()To_Hex()" -i 'Hello'
+cchef url -e "ROT13()To_Hex()" -i 'Hello'
+```
+
+Output:
+
+```
 https://gchq.github.io/CyberChef/#recipe=ROT13()To_Hex()&input=SGVsbG8
 ```
 
@@ -86,7 +108,12 @@ to force a target of `json` or `chef`.
 **Chef → JSON**
 
 ```bash
-$ cchef recipe convert -e "To_Base64('A-Za-z0-9+/=')To_Hex('Space')" --to json
+cchef recipe convert -e "To_Base64('A-Za-z0-9+/=')To_Hex('Space')" --to json
+```
+
+Output:
+
+```
 [
   {
     "op": "To Base64",
@@ -106,7 +133,12 @@ $ cchef recipe convert -e "To_Base64('A-Za-z0-9+/=')To_Hex('Space')" --to json
 **JSON → Chef**
 
 ```bash
-$ cchef recipe convert -r recipe.json --to chef
+cchef recipe convert -r recipe.json --to chef
+```
+
+Output:
+
+```
 To_Base64('A-Za-z0-9+/=')
 ```
 
@@ -117,5 +149,5 @@ To_Base64('A-Za-z0-9+/=')
 Lists every available operation and its subcommand name, grouped by module.
 
 ```bash
-$ cchef list
+cchef list
 ```

@@ -86,14 +86,24 @@ Converts alphabet order numbers back into their corresponding letters (`1` → `
 **Simple example**
 
 ```bash
-$ printf '8 5 12 12 15' | cchef a1z26-cipher-decode
+printf '8 5 12 12 15' | cchef a1z26-cipher-decode
+```
+
+Output:
+
+```
 hello
 ```
 
 **Comma delimiter**
 
 ```bash
-$ printf '8,5,12,12,15' | cchef a1z26-cipher-decode --delimiter Comma
+printf '8,5,12,12,15' | cchef a1z26-cipher-decode --delimiter Comma
+```
+
+Output:
+
+```
 hello
 ```
 
@@ -112,14 +122,24 @@ are dropped.
 **Simple example**
 
 ```bash
-$ printf 'Hello, World!' | cchef a1z26-cipher-encode
+printf 'Hello, World!' | cchef a1z26-cipher-encode
+```
+
+Output:
+
+```
 8 5 12 12 15 23 15 18 12 4
 ```
 
 **Comma delimiter**
 
 ```bash
-$ printf 'Hello, World!' | cchef a1z26-cipher-encode --delimiter Comma
+printf 'Hello, World!' | cchef a1z26-cipher-encode --delimiter Comma
+```
+
+Output:
+
+```
 8,5,12,12,15,23,15,18,12,4
 ```
 
@@ -139,14 +159,24 @@ Adds the key to each byte of the input, modulo 256.
 **Simple example**
 
 ```bash
-$ printf 'hello' | cchef add --key 01 --key-type Hex | cchef to-hex --delimiter None
+printf 'hello' | cchef add --key 01 --key-type Hex | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 69666d6d70
 ```
 
 **Repeating multi-byte key**
 
 ```bash
-$ printf 'hello' | cchef add --key '01 02' --key-type Hex | cchef to-hex --delimiter None
+printf 'hello' | cchef add --key '01 02' --key-type Hex | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 69676d6e70
 ```
 
@@ -182,7 +212,12 @@ verified and decryption fails if it does not authenticate.
 **Simple example**
 
 ```bash
-$ printf '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' | cchef aes-decrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
+printf '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' | cchef aes-decrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
 The quick brown fox jumps over the lazy dog.
 ```
 
@@ -215,7 +250,12 @@ bytes.
 **Simple example**
 
 ```bash
-$ printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC
+printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC
+```
+
+Output:
+
+```
 2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498
 ```
 
@@ -224,7 +264,12 @@ $ printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --ke
 In GCM mode the authentication tag is appended after the ciphertext.
 
 ```bash
-$ printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --additional-authenticated-data 'additional data' --additional-authenticated-data-type UTF8
+printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --additional-authenticated-data 'additional data' --additional-authenticated-data-type UTF8
+```
+
+Output:
+
+```
 daa58faa056c52756aa488aeafbd265b6effcf4eca58220a97b0005b1a9b1e1c9e7a6725d35f5f79b9493de7
 
 Tag: 3b5378917f67b0aade9891fc6c291646
@@ -254,7 +299,12 @@ key-encryption key (KEK) and verifies the 64-bit integrity IV, failing with
 **Simple example**
 
 ```bash
-$ printf '1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5' | cchef aes-key-unwrap --key-kek 000102030405060708090a0b0c0d0e0f
+printf '1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5' | cchef aes-key-unwrap --key-kek 000102030405060708090a0b0c0d0e0f
+```
+
+Output:
+
+```
 00112233445566778899aabbccddeeff
 ```
 
@@ -282,7 +332,12 @@ multiple of 8 bytes and at least 16 bytes.
 **Simple example**
 
 ```bash
-$ printf '00112233445566778899aabbccddeeff' | cchef aes-key-wrap --key-kek 000102030405060708090a0b0c0d0e0f
+printf '00112233445566778899aabbccddeeff' | cchef aes-key-wrap --key-kek 000102030405060708090a0b0c0d0e0f
+```
+
+Output:
+
+```
 1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5
 ```
 
@@ -308,7 +363,12 @@ characters pass through unchanged. `a` and `b` must be non-negative integers and
 **Simple example**
 
 ```bash
-$ cchef affine-cipher-decode -i "Rclla, Oaplx!" --a 5 --b 8
+cchef affine-cipher-decode -i "Rclla, Oaplx!" --a 5 --b 8
+```
+
+Output:
+
+```
 Hello, World!
 ```
 
@@ -334,14 +394,24 @@ unchanged. `a` and `b` must be non-negative integers and `a` must be coprime to
 **Simple example**
 
 ```bash
-$ cchef affine-cipher-encode -i "Hello, World!" --a 5 --b 8
+cchef affine-cipher-encode -i "Hello, World!" --a 5 --b 8
+```
+
+Output:
+
+```
 Rclla, Oaplx!
 ```
 
 **Complex example**
 
 ```bash
-$ cchef affine-cipher-encode -i "some keys are shaped as locks. index[me]" --a 23 --b 23
+cchef affine-cipher-encode -i "some keys are shaped as locks. index[me]" --a 23 --b 23
+```
+
+Output:
+
+```
 vhnl tldv xyl vcxelo xv qhrtv. zkolg[nl]
 ```
 
@@ -361,7 +431,12 @@ ANDs each byte of the input with the repeating key.
 **Simple example**
 
 ```bash
-$ printf 'hello' | cchef and --key 0f --key-type Hex | cchef to-hex --delimiter None
+printf 'hello' | cchef and --key 0f --key-type Hex | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 08050c0c0f
 ```
 
@@ -392,7 +467,12 @@ The key and nonce must each be exactly 16 bytes.
 **Simple example**
 
 ```bash
-$ cchef ascon-decrypt -i af14bce6b9b6588c3aa63f9ddc5a0cf5f565f358b0 --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+cchef ascon-decrypt -i af14bce6b9b6588c3aa63f9ddc5a0cf5f565f358b0 --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+```
+
+Output:
+
+```
 Hello
 ```
 
@@ -402,7 +482,12 @@ The associated data must match what was used at encryption time, or
 authentication fails.
 
 ```bash
-$ cchef ascon-decrypt -i c5f46fb2c8f14b1d1006a0230236f4163573a24c5f30 --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+cchef ascon-decrypt -i c5f46fb2c8f14b1d1006a0230236f4163573a24c5f30 --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+```
+
+Output:
+
+```
 Secret
 ```
 
@@ -434,7 +519,12 @@ but not encrypted.
 **Simple example**
 
 ```bash
-$ printf 'Hello' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+printf 'Hello' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+```
+
+Output:
+
+```
 af14bce6b9b6588c3aa63f9ddc5a0cf5f565f358b0
 ```
 
@@ -444,7 +534,12 @@ Associated data (e.g. a header) is authenticated alongside the ciphertext; the
 same value is required to decrypt.
 
 ```bash
-$ printf 'Secret' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+printf 'Secret' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+```
+
+Output:
+
+```
 c5f46fb2c8f14b1d1006a0230236f4163573a24c5f30
 ```
 
@@ -462,7 +557,12 @@ inverse, so running it a second time restores the original text.
 **Simple example**
 
 ```bash
-$ cchef atbash-cipher -i "The quick brown fox."
+cchef atbash-cipher -i "The quick brown fox."
+```
+
+Output:
+
+```
 Gsv jfrxp yildm ulc.
 ```
 
@@ -488,7 +588,12 @@ groups with no letter become `?`.
 **Simple example**
 
 ```bash
-$ cchef bacon-cipher-decode -i "00111 00100 01010 01010 01101"
+cchef bacon-cipher-decode -i "00111 00100 01010 01010 01101"
+```
+
+Output:
+
+```
 HELLO
 ```
 
@@ -498,7 +603,12 @@ Upper-case letters are ones and lower-case letters are zeroes; everything else i
 ignored.
 
 ```bash
-$ cchef bacon-cipher-decode -i "hELLo wORLd" --translation Case
+cchef bacon-cipher-decode -i "hELLo wORLd" --translation Case
+```
+
+Output:
+
+```
 PP
 ```
 
@@ -524,14 +634,24 @@ into fives; "keep extra characters" instead preserves them inline.
 **Simple example**
 
 ```bash
-$ cchef bacon-cipher-encode -i "HELLO"
+cchef bacon-cipher-encode -i "HELLO"
+```
+
+Output:
+
+```
 00111 00100 01010 01010 01101
 ```
 
 **A/B, keeping extra characters**
 
 ```bash
-$ cchef bacon-cipher-encode -i "Hi!" --translation A/B --keep-extra-characters
+cchef bacon-cipher-encode -i "Hi!" --translation A/B --keep-extra-characters
+```
+
+Output:
+
+```
 AABBBABAAA!
 ```
 
@@ -559,7 +679,12 @@ This operation is also listed under [Hashing](hashing.md).
 Because the salt is random, each invocation yields a different hash:
 
 ```bash
-$ cchef bcrypt -i "hunter2" --rounds 8
+cchef bcrypt -i "hunter2" --rounds 8
+```
+
+Output:
+
+```
 $2b$08$S6G81rTdmnLNORA5WFAWIOqCFDmyB0Jpq3KI7m1eSFwV5hKocZmB6
 ```
 
@@ -583,7 +708,12 @@ uses the plain alphabet.
 **Simple example**
 
 ```bash
-$ cchef bifid-cipher-decode -i "Kqhknw rm grsn" --keyword "Schrodinger"
+cchef bifid-cipher-decode -i "Kqhknw rm grsn" --keyword "Schrodinger"
+```
+
+Output:
+
+```
 Attack at dawn
 ```
 
@@ -607,14 +737,24 @@ through unchanged.
 **Simple example**
 
 ```bash
-$ cchef bifid-cipher-encode -i "Attack at dawn" --keyword "Schrodinger"
+cchef bifid-cipher-encode -i "Attack at dawn" --keyword "Schrodinger"
+```
+
+Output:
+
+```
 Kqhknw rm grsn
 ```
 
 **Without a keyword**
 
 ```bash
-$ cchef bifid-cipher-encode -i "Hello, World!"
+cchef bifid-cipher-encode -i "Hello, World!"
+```
+
+Output:
+
+```
 Fnpol, Parrd!
 ```
 
@@ -634,7 +774,12 @@ the byte are dropped).
 **Simple example**
 
 ```bash
-$ printf 'Hi' | cchef bit-shift-left --amount 1 | cchef to-hex --delimiter None
+printf 'Hi' | cchef bit-shift-left --amount 1 | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 90d2
 ```
 
@@ -656,7 +801,12 @@ vacated top bits with zeros; an *arithmetic* shift preserves the most significan
 **Simple example**
 
 ```bash
-$ printf 'Hi' | cchef bit-shift-right --amount 1 --type 'Logical shift' | cchef to-hex --delimiter None
+printf 'Hi' | cchef bit-shift-right --amount 1 --type 'Logical shift' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 2434
 ```
 
@@ -666,9 +816,22 @@ With the high bit set (`0x80`, `0xff`), the arithmetic shift keeps the sign bit
 while the logical shift clears it:
 
 ```bash
-$ printf '80ff' | cchef from-hex | cchef bit-shift-right --amount 1 --type 'Logical shift' | cchef to-hex --delimiter None
+printf '80ff' | cchef from-hex | cchef bit-shift-right --amount 1 --type 'Logical shift' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 407f
-$ printf '80ff' | cchef from-hex | cchef bit-shift-right --amount 1 --type 'Arithmetic shift' | cchef to-hex --delimiter None
+```
+
+```bash
+printf '80ff' | cchef from-hex | cchef bit-shift-right --amount 1 --type 'Arithmetic shift' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 c0ff
 ```
 
@@ -697,7 +860,12 @@ block-aligned input; decryption fails if the padding or length is invalid.
 **Simple example**
 
 ```bash
-$ cchef blowfish-decrypt -i 398433f39e938286a35fc240521435b6972f3fe96846b54ab9351aa5fa9e10a6a94074e883d1cb36cb9657c817274b60 --key 0011223344556677 --iv ffeeddccbbaa9988 --mode CBC
+cchef blowfish-decrypt -i 398433f39e938286a35fc240521435b6972f3fe96846b54ab9351aa5fa9e10a6a94074e883d1cb36cb9657c817274b60 --key 0011223344556677 --iv ffeeddccbbaa9988 --mode CBC
+```
+
+Output:
+
+```
 The quick brown fox jumps over the lazy dog.
 ```
 
@@ -727,7 +895,12 @@ unchanged.
 **Simple example**
 
 ```bash
-$ cchef blowfish-encrypt -i "The quick brown fox jumps over the lazy dog." --key 0011223344556677 --iv ffeeddccbbaa9988 --mode CBC
+cchef blowfish-encrypt -i "The quick brown fox jumps over the lazy dog." --key 0011223344556677 --iv ffeeddccbbaa9988 --mode CBC
+```
+
+Output:
+
+```
 398433f39e938286a35fc240521435b6972f3fe96846b54ab9351aa5fa9e10a6a94074e883d1cb36cb9657c817274b60
 ```
 
@@ -736,7 +909,12 @@ $ cchef blowfish-encrypt -i "The quick brown fox jumps over the lazy dog." --key
 CTR leaves the length unchanged (no padding):
 
 ```bash
-$ cchef blowfish-encrypt -i "secret" --key 0011223344556677 --iv 0000000000000000 --mode CTR
+cchef blowfish-encrypt -i "secret" --key 0011223344556677 --iv 0000000000000000 --mode CTR
+```
+
+Output:
+
+```
 c5a8e6a22ed5
 ```
 
@@ -768,7 +946,12 @@ stops that fail verification. Output is an HTML table.
 **Simple example**
 
 ```bash
-$ cchef bombe -i "BBYFLTHHYIJQAYBBYS" --crib "THISISATESTMESSAGE"
+cchef bombe -i "BBYFLTHHYIJQAYBBYS" --crib "THISISATESTMESSAGE"
+```
+
+Output:
+
+```
 Bombe run on menu with 6 loops (2+ desirable). Note: Rotor positions are listed left to right and start at the beginning of the crib, and ignore stepping and the ring setting. Some plugboard settings are determined. A decryption preview starting at the beginning of the crib and ignoring stepping is also provided.
 
 <table class='table table-hover table-sm table-bordered table-nonfluid'><tr><th>Rotor stops</th>  <th>Partial plugboard</th>  <th>Decryption preview</th></tr>
@@ -795,16 +978,26 @@ with height *h* into a box of width *w* is decoded by re-running it with height 
 
 Example — encode with a box three rows tall:
 
+```bash
+cchef caesar-box-cipher --box-height 3 -i "Hello World!"
 ```
-$ cchef caesar-box-cipher --box-height 3 -i "Hello World!"
+
+Output:
+
+```
 Hlodeor!lWl
 ```
 
 Decoding reverses it. `Hello World!` (11 letters after stripping the space) fills a
 3×4 box, so the inverse height is 4:
 
+```bash
+cchef caesar-box-cipher --box-height 4 -i "Hlodeor!lWl"
 ```
-$ cchef caesar-box-cipher --box-height 4 -i "Hlodeor!lWl"
+
+Output:
+
+```
 HelloWorld!
 ```
 
@@ -820,8 +1013,13 @@ bit, `E` a 0 bit); a literal space stands for a space character.
 
 This operation takes no arguments.
 
+```bash
+cchef cetacean-cipher-decode -i "EEEEEEEEEeeEeEEEEEEEEEEEEeeEeEEe"
 ```
-$ cchef cetacean-cipher-decode -i "EEEEEEEEEeeEeEEEEEEEEEEEEeeEeEEe"
+
+Output:
+
+```
 hi
 ```
 
@@ -837,8 +1035,13 @@ unchanged, so words stay separated.
 
 This operation takes no arguments.
 
+```bash
+cchef cetacean-cipher-encode -i "hi"
 ```
-$ cchef cetacean-cipher-encode -i "hi"
+
+Output:
+
+```
 EEEEEEEEEeeEeEEEEEEEEEEEEeeEeEEe
 ```
 
@@ -865,29 +1068,44 @@ returns the plaintext.
 
 Encrypt a message (256-bit key, 12-byte nonce, 20 rounds, raw text in, hex out):
 
-```
-$ cchef chacha --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f \
+```bash
+cchef chacha --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f \
     --nonce 000000000000004a00000000 --counter 1 --rounds 20 \
     --input-format Raw --output-format Hex -i "Hello, ChaCha!"
+```
+
+Output:
+
+```
 6a 2a 3d 9f 2f 37 f9 a2 47 bf 64 07 d9 42
 ```
 
 Decrypt by feeding that ciphertext back in with the same parameters:
 
-```
-$ cchef chacha --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f \
+```bash
+cchef chacha --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f \
     --nonce 000000000000004a00000000 --counter 1 --rounds 20 \
     --input-format Hex --output-format Raw -i "6a 2a 3d 9f 2f 37 f9 a2 47 bf 64 07 d9 42"
+```
+
+Output:
+
+```
 Hello, ChaCha!
 ```
 
 An 8-round keystream with a 128-bit key and an 8-byte nonce (so the counter is 8
 bytes) — the draft-strombergson TC7.1 test vector:
 
-```
-$ cchef chacha --key 00112233445566778899aabbccddeeff --nonce 0f1e2d3c4b5a6978 \
+```bash
+cchef chacha --key 00112233445566778899aabbccddeeff --nonce 0f1e2d3c4b5a6978 \
     --counter 0 --rounds 8 --input-format Hex --output-format Hex \
     -i "00 00 00 00 00 00 00 00"
+```
+
+Output:
+
+```
 29 56 0d 28 0b 45 28 40
 ```
 
@@ -910,9 +1128,14 @@ that were used to encrypt.
 The classic worked example (key `asdfg`, 1 round), reading the raw ciphertext
 bytes on stdin:
 
-```
-$ printf '\x6f\x6d\x0b\xab\xf3\xaa\x67\x19\x03\x15\x30\xed\xb6\x77\xca\x74\xe0\x08\x9d\xd0\xe7\xb8\x85\x43\x56\xbb\x14\x48\xe3\x7c\xdb\xef\xe7\xf3\xa8\x4f\x4f\x5f\xb3\xfd' \
+```bash
+printf '\x6f\x6d\x0b\xab\xf3\xaa\x67\x19\x03\x15\x30\xed\xb6\x77\xca\x74\xe0\x08\x9d\xd0\xe7\xb8\x85\x43\x56\xbb\x14\x48\xe3\x7c\xdb\xef\xe7\xf3\xa8\x4f\x4f\x5f\xb3\xfd' \
     | cchef ciphersaber2-decrypt --key asdfg --key-type Latin1 --rounds 1
+```
+
+Output:
+
+```
 This is a test of CipherSaber.
 ```
 
@@ -935,10 +1158,15 @@ round count.
 Because the IV is random, encryption is shown here round-tripped back through
 decryption with the same key and rounds:
 
-```
-$ printf 'Meet at dawn.' \
+```bash
+printf 'Meet at dawn.' \
     | cchef ciphersaber2-encrypt --key hunter2 --key-type Latin1 --rounds 20 \
     | cchef ciphersaber2-decrypt --key hunter2 --key-type Latin1 --rounds 20
+```
+
+Output:
+
+```
 Meet at dawn.
 ```
 
@@ -954,8 +1182,13 @@ otherwise the operation errors with `Incorrect hash length`.
 
 This operation takes no arguments.
 
+```bash
+cchef citrix-ctx1-decode -i "NFHALEBBMHGCLEBBMDGGKMAJNOHLLKBP"
 ```
-$ cchef citrix-ctx1-decode -i "NFHALEBBMHGCLEBBMDGGKMAJNOHLLKBP"
+
+Output:
+
+```
 password
 ```
 
@@ -971,8 +1204,13 @@ characters (one per nibble).
 
 This operation takes no arguments.
 
+```bash
+cchef citrix-ctx1-encode -i "password"
 ```
-$ cchef citrix-ctx1-encode -i "password"
+
+Output:
+
+```
 NFHALEBBMHGCLEBBMDGGKMAJNOHLLKBP
 ```
 
@@ -1012,8 +1250,13 @@ way to drive it is `--k-rack-option "Select Program"` with a preset
 The "Letter Count" program counts every character on the tape (here 30):
 
 ```bash
-$ cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
+cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
     --k-rack-option "Select Program" --program-to-run "Letter Count" --qbusz Z
+```
+
+Output:
+
+```
 {"printout":" \n00 00 : a30 \n","counters":[30,0,0,0,0],"runcount":2}
 ```
 
@@ -1023,9 +1266,14 @@ Setting a fast step runs the tape once per position of that wheel, printing a
 line per run:
 
 ```bash
-$ cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
+cchef colossus -i "CTBKJUVXHZ-H3L4QV+YEZUK+SXOZ/N" \
     --k-rack-option "Select Program" --program-to-run "Letter Count" \
     --qbusz Z --fast-step X1
+```
+
+Output:
+
+```
 {"printout":"X1 \n01 00 : a30 \n02 00 : a30 \n03 00 : a30 \n...41 00 : a30 \n","counters":[30,0,0,0,0],"runcount":42}
 ```
 
@@ -1059,7 +1307,12 @@ an empty salt means no salt. That makes the output fully deterministic.
 Derive a 128-bit key from a passphrase and a hex salt with SHA1:
 
 ```bash
-$ cchef derive-evp-key --passphrase password --salt 73616c74 --salt-type Hex
+cchef derive-evp-key --passphrase password --salt 73616c74 --salt-type Hex
+```
+
+Output:
+
+```
 c88e9c67041a74e0357befdff93f87dd
 ```
 
@@ -1068,8 +1321,13 @@ c88e9c67041a74e0357befdff93f87dd
 A 256-bit key with SHA256, 3 iterations and a UTF8 salt:
 
 ```bash
-$ cchef derive-evp-key --passphrase password --key-size 256 --iterations 3 \
+cchef derive-evp-key --passphrase password --key-size 256 --iterations 3 \
     --hashing-function SHA256 --salt salt --salt-type UTF8
+```
+
+Output:
+
+```
 cc19a87959d70ba1d9d2979b5fc2323e0d62a40fb2545492e9ec4d57ce79956d
 ```
 
@@ -1106,16 +1364,26 @@ uses the salt argument, `no salt` uses a string of `HashLen` zero bytes, and
 RFC 5869 test case 1 (SHA-256):
 
 ```bash
-$ echo -n 0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b | cchef from-hex --delimiter None \
+echo -n 0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b | cchef from-hex --delimiter None \
     | cchef derive-hkdf-key --salt 000102030405060708090a0b0c \
         --info f0f1f2f3f4f5f6f7f8f9 --hashing-function SHA256 --l-number-of-output-octets 42
+```
+
+Output:
+
+```
 3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865
 ```
 
 **With a reimplemented hash (Whirlpool)**
 
 ```bash
-$ echo -n message | cchef derive-hkdf-key --hashing-function Whirlpool --l-number-of-output-octets 32
+echo -n message | cchef derive-hkdf-key --hashing-function Whirlpool --l-number-of-output-octets 32
+```
+
+Output:
+
+```
 db80ec2d94398636778bfa845d251a32a643c53d17b1c6b159c15190badaf90c
 ```
 
@@ -1154,7 +1422,12 @@ results.
 Derive a 128-bit key from a passphrase and a hex salt with SHA1:
 
 ```bash
-$ cchef derive-pbkdf2-key --passphrase password --salt 73616c74 --salt-type Hex
+cchef derive-pbkdf2-key --passphrase password --salt 73616c74 --salt-type Hex
+```
+
+Output:
+
+```
 0c60c80f961f0e71f3a9b524af601206
 ```
 
@@ -1163,8 +1436,13 @@ $ cchef derive-pbkdf2-key --passphrase password --salt 73616c74 --salt-type Hex
 A 256-bit key with SHA256, 4 iterations and a UTF8 salt:
 
 ```bash
-$ cchef derive-pbkdf2-key --passphrase password --key-size 256 --iterations 4 \
+cchef derive-pbkdf2-key --passphrase password --key-size 256 --iterations 4 \
     --hashing-function SHA256 --salt salt --salt-type UTF8
+```
+
+Output:
+
+```
 cd7b203e3aef28a773613de46901d9a5d621228b3b3de8de24cea5b788459c8a
 ```
 
@@ -1195,7 +1473,12 @@ raw padded blocks.
 **Simple example**
 
 ```bash
-$ cchef des-decrypt -i 340b6473dbd121662ce8e0c7a690b77bca334636056d85f9 --key 0123456789abcdef --iv 0011223344556677 --mode CBC
+cchef des-decrypt -i 340b6473dbd121662ce8e0c7a690b77bca334636056d85f9 --key 0123456789abcdef --iv 0011223344556677 --mode CBC
+```
+
+Output:
+
+```
 The quick brown fox
 ```
 
@@ -1226,7 +1509,12 @@ protection.)
 **Simple example**
 
 ```bash
-$ cchef des-encrypt -i "The quick brown fox" --key 0123456789abcdef --iv 0011223344556677 --mode CBC
+cchef des-encrypt -i "The quick brown fox" --key 0123456789abcdef --iv 0011223344556677 --mode CBC
+```
+
+Output:
+
+```
 340b6473dbd121662ce8e0c7a690b77bca334636056d85f9
 ```
 
@@ -1235,7 +1523,12 @@ $ cchef des-encrypt -i "The quick brown fox" --key 0123456789abcdef --iv 0011223
 CTR leaves the length unchanged (no padding):
 
 ```bash
-$ cchef des-encrypt -i "secret" --key 0123456789abcdef --iv 0000000000000000 --mode CTR
+cchef des-encrypt -i "secret" --key 0123456789abcdef --iv 0000000000000000 --mode CTR
+```
+
+Output:
+
+```
 a6b12c85451c
 ```
 
@@ -1279,7 +1572,12 @@ With the default rotors (I, II, III at position A) `--strict-output` groups the
 output into fives:
 
 ```bash
-$ cchef enigma -i "HELLOWORLD"
+cchef enigma -i "HELLOWORLD"
+```
+
+Output:
+
+```
 ILBDA AMTAZ
 ```
 
@@ -1288,14 +1586,24 @@ ILBDA AMTAZ
 The same settings decrypt it (Enigma is self-inverse):
 
 ```bash
-$ cchef enigma -i "ILBDAAMTAZ"
+cchef enigma -i "ILBDAAMTAZ"
+```
+
+Output:
+
+```
 HELLO WORLD
 ```
 
 **With a plugboard and rotor start positions**
 
 ```bash
-$ cchef enigma -i "ATTACKATDAWN" --left-hand-rotor-initial-value Q --middle-rotor-initial-value E --right-hand-rotor-initial-value V --plugboard "AB CD"
+cchef enigma -i "ATTACKATDAWN" --left-hand-rotor-initial-value Q --middle-rotor-initial-value E --right-hand-rotor-initial-value V --plugboard "AB CD"
+```
+
+Output:
+
+```
 UQKUK TOKGQ CB
 ```
 
@@ -1334,7 +1642,12 @@ are listed by `cchef lorenz --help`.
 Encipher plaintext with the KH pattern (ITA2 output, `9` = space):
 
 ```bash
-$ cchef lorenz -i "HELLO WORLD, THIS IS A TEST MESSAGE." --model SZ40 --wheel-pattern "KH Pattern" --mode Send
+cchef lorenz -i "HELLO WORLD, THIS IS A TEST MESSAGE." --model SZ40 --wheel-pattern "KH Pattern" --mode Send
+```
+
+Output:
+
+```
 VIC3TS/CUJA/3II9W9JWDI5DAFXT4SOIF3999IZD9T
 ```
 
@@ -1343,7 +1656,12 @@ VIC3TS/CUJA/3II9W9JWDI5DAFXT4SOIF3999IZD9T
 The same settings in `Receive` mode recover the plaintext:
 
 ```bash
-$ cchef lorenz -i "VIC3TS/CUJA/3II9W9JWDI5DAFXT4SOIF3999IZD9T" --model SZ40 --wheel-pattern "KH Pattern" --mode Receive --output-type Plaintext
+cchef lorenz -i "VIC3TS/CUJA/3II9W9JWDI5DAFXT4SOIF3999IZD9T" --model SZ40 --wheel-pattern "KH Pattern" --mode Receive --output-type Plaintext
+```
+
+Output:
+
+```
 HELLO WORLD, THIS IS A TEST MESSAGE.
 ```
 
@@ -1372,7 +1690,12 @@ your crib with the single Bombe first — a 4-rotor search is very slow.
 **Simple example**
 
 ```bash
-$ cchef multiple-bombe -i "BBYFLTHHYIJQAYBBYS" --main-rotors "$(printf 'EKMFLGDQVZNTOWYHXUSPAIBRCJ\nAJDKSIRUXBLHWTMCQGZNPYFVOE\nBDFHJLCPRTXVZNYEIWGAKMUSQO')" --reflectors "AY BR CU DH EQ FS GL IP JX KN MO TZ VW" --crib "THISISATESTMESSAGE"
+cchef multiple-bombe -i "BBYFLTHHYIJQAYBBYS" --main-rotors "$(printf 'EKMFLGDQVZNTOWYHXUSPAIBRCJ\nAJDKSIRUXBLHWTMCQGZNPYFVOE\nBDFHJLCPRTXVZNYEIWGAKMUSQO')" --reflectors "AY BR CU DH EQ FS GL IP JX KN MO TZ VW" --crib "THISISATESTMESSAGE"
+```
+
+Output:
+
+```
 Bombe run on menu with 6 loops (2+ desirable). Note: Rotors and rotor positions are listed left to right, ignore stepping and the ring setting, and positions start at the beginning of the crib. Some plugboard settings are determined. A decryption preview starting at the beginning of the crib and ignoring stepping is also provided.
 
 Rotors: EKMFLGDQVZNTOWYHXUSPAIBRCJ, AJDKSIRUXBLHWTMCQGZNPYFVOE, BDFHJLCPRTXVZNYEIWGAKMUSQO
@@ -1391,7 +1714,12 @@ Returns the inverse (bitwise complement) of each byte.
 **Simple example**
 
 ```bash
-$ printf 'hello' | cchef not | cchef to-hex --delimiter None
+printf 'hello' | cchef not | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 979a939390
 ```
 
@@ -1411,7 +1739,12 @@ ORs each byte of the input with the repeating key.
 **Simple example**
 
 ```bash
-$ printf 'hello' | cchef or --key 80 --key-type Hex | cchef to-hex --delimiter None
+printf 'hello' | cchef or --key 80 --key-type Hex | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 e8e5ececef
 ```
 
@@ -1427,7 +1760,12 @@ Windows shellcode to resolve exports without embedding their names.
 **Simple example**
 
 ```bash
-$ printf 'LoadLibraryA' | cchef ror13
+printf 'LoadLibraryA' | cchef ror13
+```
+
+Output:
+
+```
 0xEC0E4E8E
 ```
 
@@ -1450,14 +1788,24 @@ digits) by a configurable amount.
 **Simple example**
 
 ```bash
-$ cchef rot13 -i 'Hello, World!'
+cchef rot13 -i 'Hello, World!'
+```
+
+Output:
+
+```
 Uryyb, Jbeyq!
 ```
 
 **Also rotate digits**
 
 ```bash
-$ cchef rot13 --rotate-numbers -i 'abc 123'
+cchef rot13 --rotate-numbers -i 'abc 123'
+```
+
+Output:
+
+```
 nop 456
 ```
 
@@ -1477,7 +1825,12 @@ to `~` (126). The default rotation is 47.
 **Simple example**
 
 ```bash
-$ cchef rot47 -i 'Hello, World!'
+cchef rot47 -i 'Hello, World!'
+```
+
+Output:
+
+```
 w6==@[ (@C=5P
 ```
 
@@ -1493,14 +1846,24 @@ its own inverse — running it twice returns the original text.
 **Simple example**
 
 ```bash
-$ cchef rot8000 -i 'Hi'
+cchef rot8000 -i 'Hi'
+```
+
+Output:
+
+```
 籑籲
 ```
 
 **Round-trip (decrypt)**
 
 ```bash
-$ cchef rot8000 -i 'Hi' | cchef rot8000
+cchef rot8000 -i 'Hi' | cchef rot8000
+```
+
+Output:
+
+```
 Hi
 ```
 
@@ -1522,14 +1885,24 @@ array is rotated as a whole (wrapping around from the end back to the start).
 **Simple example**
 
 ```bash
-$ printf 'abc' | cchef rotate-left | cchef to-hex --delimiter Space
+printf 'abc' | cchef rotate-left | cchef to-hex --delimiter Space
+```
+
+Output:
+
+```
 c2 c4 c6
 ```
 
 **Carry through**
 
 ```bash
-$ printf 'abc123' | cchef rotate-left --amount 2 --carry-through | cchef to-hex --delimiter Space
+printf 'abc123' | cchef rotate-left --amount 2 --carry-through | cchef to-hex --delimiter Space
+```
+
+Output:
+
+```
 85 89 8c c4 c8 cd
 ```
 
@@ -1552,14 +1925,24 @@ to the end).
 **Simple example**
 
 ```bash
-$ printf 'abc123' | cchef rotate-right | cchef to-hex --delimiter Space
+printf 'abc123' | cchef rotate-right | cchef to-hex --delimiter Space
+```
+
+Output:
+
+```
 b0 31 b1 98 19 99
 ```
 
 **Carry through**
 
 ```bash
-$ printf 'abc123' | cchef rotate-right --amount 2 --carry-through | cchef to-hex --delimiter Space
+printf 'abc123' | cchef rotate-right --amount 2 --carry-through | cchef to-hex --delimiter Space
+```
+
+Output:
+
+```
 d8 58 98 cc 4c 8c
 ```
 
@@ -1579,7 +1962,12 @@ Subtracts the key from each byte of the input, modulo 256.
 **Simple example**
 
 ```bash
-$ printf 'hello' | cchef sub --key 01 --key-type Hex | cchef to-hex --delimiter None
+printf 'hello' | cchef sub --key 01 --key-type Hex | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 67646b6b6e
 ```
 
@@ -1609,8 +1997,13 @@ input; the `CBC/NoPadding` and `ECB/NoPadding` modes skip unpadding.
 **Simple example**
 
 ```bash
-$ cchef triple-des-decrypt -i 6e4f4b9ecdeea4f3757574f02960c9a840a57a0332192c83 \
+cchef triple-des-decrypt -i 6e4f4b9ecdeea4f3757574f02960c9a840a57a0332192c83 \
     --key 0123456789abcdeffedcba9876543210a1b2c3d4e5f60718 --iv 0011223344556677 --mode CBC
+```
+
+Output:
+
+```
 The quick brown fox
 ```
 
@@ -1640,8 +2033,13 @@ exactly 8 bytes. CBC and ECB apply PKCS#7 padding; CFB, OFB and CTR are streamin
 **Simple example**
 
 ```bash
-$ cchef triple-des-encrypt -i "The quick brown fox" \
+cchef triple-des-encrypt -i "The quick brown fox" \
     --key 0123456789abcdeffedcba9876543210a1b2c3d4e5f60718 --iv 0011223344556677 --mode CBC
+```
+
+Output:
+
+```
 6e4f4b9ecdeea4f3757574f02960c9a840a57a0332192c83
 ```
 
@@ -1666,7 +2064,12 @@ encodings, and several key-update schemes are available.
 XOR produces raw bytes, so pipe through `to-hex` to view the result:
 
 ```bash
-$ cchef xor --key 42 --key-type Hex -i 'Hello' | cchef to-hex --delimiter None
+cchef xor --key 42 --key-type Hex -i 'Hello' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 0a272e2e2d
 ```
 
@@ -1675,9 +2078,14 @@ $ cchef xor --key 42 --key-type Hex -i 'Hello' | cchef to-hex --delimiter None
 XOR is symmetric — applying the same key twice restores the input:
 
 ```bash
-$ echo -n 'Secret message' \
+echo -n 'Secret message' \
     | cchef xor --key 'k3y' --key-type UTF8 \
     | cchef xor --key 'k3y' --key-type UTF8
+```
+
+Output:
+
+```
 Secret message
 ```
 
@@ -1709,8 +2117,13 @@ Recover the key for `Hello` XORed with `0x42`, filtering on the crib `hello`
 (which also matches the case-swapped `0x62` result):
 
 ```bash
-$ printf '0a272e2e2d' | cchef from-hex --delimiter None \
+printf '0a272e2e2d' | cchef from-hex --delimiter None \
     | cchef xor-brute-force --crib-known-plaintext-string hello
+```
+
+Output:
+
+```
 Key = 42: Hello
 Key = 62: hELLO
 ```
@@ -1718,8 +2131,13 @@ Key = 62: hELLO
 **Hex output**
 
 ```bash
-$ printf '0a272e2e2d' | cchef from-hex --delimiter None \
+printf '0a272e2e2d' | cchef from-hex --delimiter None \
     | cchef xor-brute-force --crib-known-plaintext-string hello --output-as-hex
+```
+
+Output:
+
+```
 Key = 42: 48 65 6c 6c 6f
 Key = 62: 68 45 4c 4c 4f
 ```

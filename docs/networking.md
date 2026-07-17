@@ -63,7 +63,12 @@ addresses (one per line) are converted independently.
 **Simple example**
 
 ```bash
-$ printf '192.168.1.1' | cchef change-ip-format --input-format 'Dotted Decimal' --output-format Hex
+printf '192.168.1.1' | cchef change-ip-format --input-format 'Dotted Decimal' --output-format Hex
+```
+
+Output:
+
+```
 c0a80101
 ```
 
@@ -78,7 +83,12 @@ are handled.
 **Simple example**
 
 ```bash
-$ printf '7\r\nMozilla\r\n0\r\n\r\n' | cchef dechunk-http-response
+printf '7\r\nMozilla\r\n0\r\n\r\n' | cchef dechunk-http-response
+```
+
+Output:
+
+```
 Mozilla
 ```
 
@@ -98,7 +108,12 @@ of characters back to a byte using the offset.
 **Simple example**
 
 ```bash
-$ printf 'FEGIGFCAEOGFHEECEJEPFDCAGOGBGNGF' | cchef decode-netbios-name
+printf 'FEGIGFCAEOGFHEECEJEPFDCAGOGBGNGF' | cchef decode-netbios-name
+```
+
+Output:
+
+```
 The NetBIOS name
 ```
 
@@ -112,7 +127,12 @@ are no longer clickable / auto-linked.
 **Simple example**
 
 ```bash
-$ printf '192.168.1.1' | cchef defang-ip-addresses
+printf '192.168.1.1' | cchef defang-ip-addresses
+```
+
+Output:
+
+```
 192[.]168[.]1[.]1
 ```
 
@@ -135,7 +155,12 @@ clicked. Escaping of dots, the scheme and `://` are individually toggleable.
 **Simple example**
 
 ```bash
-$ printf 'Visit http://evil.example.com/x' | cchef defang-url
+printf 'Visit http://evil.example.com/x' | cchef defang-url
+```
+
+Output:
+
+```
 Visit hxxp[://]evil[.]example[.]com/x
 ```
 
@@ -159,7 +184,12 @@ network request**, so the output varies with current DNS records.
 **Simple example**
 
 ```bash
-$ printf 'example.com' | cchef dns-over-https --answer-data-only
+printf 'example.com' | cchef dns-over-https --answer-data-only
+```
+
+Output:
+
+```
 ["104.20.23.154","172.66.147.243"]
 ```
 
@@ -181,7 +211,12 @@ Applies the first-level NetBIOS name encoding (RFC 1001): the name is padded to
 **Simple example**
 
 ```bash
-$ printf 'The NetBIOS name' | cchef encode-netbios-name
+printf 'The NetBIOS name' | cchef encode-netbios-name
+```
+
+Output:
+
+```
 FEGIGFCAEOGFHEECEJEPFDCAGOGBGNGF
 ```
 
@@ -203,7 +238,12 @@ Each restoration is individually toggleable.
 **Simple example**
 
 ```bash
-$ printf 'hxxp[://]evil[.]example[.]com/x' | cchef fang-url
+printf 'hxxp[://]evil[.]example[.]com/x' | cchef fang-url
+```
+
+Output:
+
+```
 http://evil.example.com/x
 ```
 
@@ -228,7 +268,12 @@ addresses separated by newlines, spaces or commas. There are no validity checks.
 **Simple example**
 
 ```bash
-$ printf '00:11:22:33:44:55' | cchef format-mac-addresses --output-case 'Lower only'
+printf '00:11:22:33:44:55' | cchef format-mac-addresses --output-case 'Lower only'
+```
+
+Output:
+
+```
 001122334455
 00-11-22-33-44-55
 00:11:22:33:44:55
@@ -252,7 +297,12 @@ in ascending order; IPv6 subnets in first-seen order (matching CyberChef).
 **Simple example**
 
 ```bash
-$ printf '192.168.1.5\n192.168.1.200\n10.0.0.1' | cchef group-ip-addresses
+printf '192.168.1.5\n192.168.1.200\n10.0.0.1' | cchef group-ip-addresses
+```
+
+Output:
+
+```
 10.0.0.0/24
   10.0.0.1
 
@@ -280,7 +330,12 @@ joined with `;`.
 **Simple example**
 
 ```bash
-$ printf '0000018404140000000000000000000000000000000000000042637572766532353531392d7368613235362c656364682d736861322d6e697374703235362c6469666669652d68656c6c6d616e2d67726f757031342d736861323536000000257373682d656432353531392c7273612d736861322d3531322c7273612d736861322d3235360000003363686163686132302d706f6c7931333035406f70656e7373682e636f6d2c6165733132382d6374722c6165733235362d6374720000003363686163686132302d706f6c7931333035406f70656e7373682e636f6d2c6165733132382d6374722c6165733235362d63747200000025756d61632d36342d65746d406f70656e7373682e636f6d2c686d61632d736861322d32353600000025756d61632d36342d65746d406f70656e7373682e636f6d2c686d61632d736861322d323536000000156e6f6e652c7a6c6962406f70656e7373682e636f6d000000156e6f6e652c7a6c6962406f70656e7373682e636f6d0000000000000000000000000000000000' | cchef hassh-client-fingerprint
+printf '0000018404140000000000000000000000000000000000000042637572766532353531392d7368613235362c656364682d736861322d6e697374703235362c6469666669652d68656c6c6d616e2d67726f757031342d736861323536000000257373682d656432353531392c7273612d736861322d3531322c7273612d736861322d3235360000003363686163686132302d706f6c7931333035406f70656e7373682e636f6d2c6165733132382d6374722c6165733235362d6374720000003363686163686132302d706f6c7931333035406f70656e7373682e636f6d2c6165733132382d6374722c6165733235362d63747200000025756d61632d36342d65746d406f70656e7373682e636f6d2c686d61632d736861322d32353600000025756d61632d36342d65746d406f70656e7373682e636f6d2c686d61632d736861322d323536000000156e6f6e652c7a6c6962406f70656e7373682e636f6d000000156e6f6e652c7a6c6962406f70656e7373682e636f6d0000000000000000000000000000000000' | cchef hassh-client-fingerprint
+```
+
+Output:
+
+```
 6559ab006495e3044da5a8821704047e
 ```
 
@@ -310,7 +365,12 @@ fingerprint from an SSH server's `SSH_MSG_KEXINIT` packet — the server-to-serv
 **Simple example**
 
 ```bash
-$ printf '0000012206141111111111111111111111111111111100000024637572766532353531392d7368613235362c656364682d736861322d6e69737470323536000000187373682d656432353531392c7273612d736861322d353132000000156165733132382d6374722c6165733235362d6374720000003463686163686132302d706f6c7931333035406f70656e7373682e636f6d2c6165733132382d67636d406f70656e7373682e636f6d0000000d686d61632d736861322d32353600000032686d61632d736861322d3531322d65746d406f70656e7373682e636f6d2c756d61632d313238406f70656e7373682e636f6d000000046e6f6e65000000156e6f6e652c7a6c6962406f70656e7373682e636f6d00000000000000000000000000000000000000' | cchef hassh-server-fingerprint
+printf '0000012206141111111111111111111111111111111100000024637572766532353531392d7368613235362c656364682d736861322d6e69737470323536000000187373682d656432353531392c7273612d736861322d353132000000156165733132382d6374722c6165733235362d6374720000003463686163686132302d706f6c7931333035406f70656e7373682e636f6d2c6165733132382d67636d406f70656e7373682e636f6d0000000d686d61632d736861322d32353600000032686d61632d736861322d3531322d65746d406f70656e7373682e636f6d2c756d61632d313238406f70656e7373682e636f6d000000046e6f6e65000000156e6f6e652c7a6c6962406f70656e7373682e636f6d00000000000000000000000000000000000000' | cchef hassh-server-fingerprint
+```
+
+Output:
+
+```
 95dc0a7fbfb0eb627394c0e4240dc213
 ```
 
@@ -336,7 +396,12 @@ The request body is read from stdin (ignored for `GET`/`HEAD`).
 **Simple example**
 
 ```bash
-$ printf '' | cchef http-request --url 'https://example.com'
+printf '' | cchef http-request --url 'https://example.com'
+```
+
+Output:
+
+```
 <!doctype html><html lang="en"><head><title>Example Domain</title>...
 ```
 
@@ -360,7 +425,12 @@ address into an EUI-64 interface ID.
 **Simple example**
 
 ```bash
-$ printf '198.51.100.7' | cchef ipv6-transition-addresses
+printf '198.51.100.7' | cchef ipv6-transition-addresses
+```
+
+Output:
+
+```
 6to4: 2002:c633:6407::/48
 IPv4 Mapped: ::ffff:c633:6407
 IPv4 Translated: ::ffff:0:c633:6407
@@ -385,7 +455,12 @@ extensions, elliptic curves and curve point formats (with GREASE values removed)
 **Simple example**
 
 ```bash
-$ printf '16030100a4010000a00301543dd2dd48f517ca9a93b1e599f019fdece704a23e86c1dcac588427abbaddf200005cc014c00a0039003800880087c00fc00500350084c012c00800160013c00dc003000ac013c00900330032009a009900450044c00ec004002f009600410007c011c007c00cc002000500040015001200090014001100080006000300ff0100001b000b000403000102000a000600040018001700230000000f000101' | cchef ja3-fingerprint
+printf '16030100a4010000a00301543dd2dd48f517ca9a93b1e599f019fdece704a23e86c1dcac588427abbaddf200005cc014c00a0039003800880087c00fc00500350084c012c00800160013c00dc003000ac013c00900330032009a009900450044c00ec004002f009600410007c011c007c00cc002000500040015001200090014001100080006000300ff0100001b000b000403000102000a000600040018001700230000000f000101' | cchef ja3-fingerprint
+```
+
+Output:
+
+```
 503053a0c5b2bd9b9334bf7f3d3b8852
 ```
 
@@ -415,7 +490,12 @@ selected cipher suite, and the extensions (server extensions are *not* GREASE-fi
 **Simple example**
 
 ```bash
-$ printf '160301003d020000390301543dd2ddedbfe33895bd6bc676a3fa6b9fe5773a6e04d5476d1af3bcbc1dcbbb00c011000011ff01000100000b00040300010200230000' | cchef ja3s-fingerprint
+printf '160301003d020000390301543dd2ddedbfe33895bd6bc676a3fa6b9fe5773a6e04d5476d1af3bcbc1dcbbb00c011000011ff01000100000b00040300010200230000' | cchef ja3s-fingerprint
+```
+
+Output:
+
+```
 bed95e1b525d2f41db3a6d68fac5b566
 ```
 
@@ -439,7 +519,12 @@ extension lists.
 **Simple example**
 
 ```bash
-$ printf '1603010200010001fc0303b2c03e7ba990ef540c316a665d4d925f8e9079ac4b15687e587dc99016e75a6c20d0b0099243c9296a0c84153ea4ada7d87ad017f4211c2ea1350b0b3cc5514d5f00205a5a130113021303c02bc02fc02cc030cca9cca8c013c014009c009d002f003501000193fafa000000000024002200001f636f6e74656e742d6175746f66696c6c2e676f6f676c65617069732e636f6d0033002b00293a3a000100001d0020fb2cd8ef3d605b96ab03119ec4f30a6e2088cb1af86c41a81feace8706068c50000d001200100403080404010503080505010806060100230000000b00020100ff01000100000a000a00083a3a001d00170018001b000302000244690005000302683200120000002d000201010010000e000c02683208687474702f312e31000500050100000000002b0007060a0a03040303001700001a1a000100001500b800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' | cchef ja4-fingerprint
+printf '1603010200010001fc0303b2c03e7ba990ef540c316a665d4d925f8e9079ac4b15687e587dc99016e75a6c20d0b0099243c9296a0c84153ea4ada7d87ad017f4211c2ea1350b0b3cc5514d5f00205a5a130113021303c02bc02fc02cc030cca9cca8c013c014009c009d002f003501000193fafa000000000024002200001f636f6e74656e742d6175746f66696c6c2e676f6f676c65617069732e636f6d0033002b00293a3a000100001d0020fb2cd8ef3d605b96ab03119ec4f30a6e2088cb1af86c41a81feace8706068c50000d001200100403080404010503080505010806060100230000000b00020100ff01000100000a000a00083a3a001d00170018001b000302000244690005000302683200120000002d000201010010000e000c02683208687474702f312e31000500050100000000002b0007060a0a03040303001700001a1a000100001500b800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' | cchef ja4-fingerprint
+```
+
+Output:
+
+```
 t13d1516h2_8daaf6152771_e5627efa2ab1
 ```
 
@@ -472,7 +557,12 @@ and a truncated SHA-256 hash of the server extensions.
 **Simple example**
 
 ```bash
-$ printf '16030300640200006003035f0236c07f47bfb12dc2da706ecb3fe7f9eeac9968cc2ddf444f574e4752440120b89ff1ab695278c69b8a73f76242ef755e0b13dc6d459aaaa784fec9c2dfce34cca900001800000000ff01000100000b00020100001000050003026832' | cchef ja4server-fingerprint
+printf '16030300640200006003035f0236c07f47bfb12dc2da706ecb3fe7f9eeac9968cc2ddf444f574e4752440120b89ff1ab695278c69b8a73f76242ef755e0b13dc6d459aaaa784fec9c2dfce34cca900001800000000ff01000100000b00020100001000050003026832' | cchef ja4server-fingerprint
+```
+
+Output:
+
+```
 t1204h2_cca9_1428ce7b4018
 ```
 
@@ -493,7 +583,12 @@ payload.
 **Simple example**
 
 ```bash
-$ printf '000000000000ffffffffffff08004500' | cchef parse-ethernet-frame --input-type Hex
+printf '000000000000ffffffffffff08004500' | cchef parse-ethernet-frame --input-type Hex
+```
+
+Output:
+
+```
 Source MAC: ff:ff:ff:ff:ff:ff
 Destination MAC: 00:00:00:00:00:00
 Data:
@@ -518,7 +613,12 @@ prints network information and enumerates the addresses (IPv4 only).
 **Simple example**
 
 ```bash
-$ printf '10.0.0.0/30' | cchef parse-ip-range
+printf '10.0.0.0/30' | cchef parse-ip-range
+```
+
+Output:
+
+```
 Network: 10.0.0.0
 CIDR: 30
 Mask: 255.255.255.252
@@ -547,7 +647,12 @@ Parses an IPv4 header, either as a field table or by extracting the payload.
 **Simple example**
 
 ```bash
-$ printf '450000140005400080060000c0a80001c0a80002cafe' | cchef parse-ipv4-header --output-format 'Data (hex)'
+printf '450000140005400080060000c0a80001c0a80002cafe' | cchef parse-ipv4-header --output-format 'Data (hex)'
+```
+
+Output:
+
+```
 ca fe
 ```
 
@@ -561,7 +666,12 @@ multicast, 6to4, Teredo, unique-local, …), and any embedded IPv4 or MAC addres
 **Simple example**
 
 ```bash
-$ printf '::1' | cchef parse-ipv6-address
+printf '::1' | cchef parse-ipv6-address
+```
+
+Output:
+
+```
 Longhand:  0000:0000:0000:0000:0000:0000:0000:0001
 Shorthand: ::1
 
@@ -585,7 +695,12 @@ Ed25519).
 **Simple example**
 
 ```bash
-$ printf 'AAAAC3NzaC1lZDI1NTE5AAAAIBOF6r99IkvqGu1kwZrHHIqjpTB5w79bpv67B/Aw3+WJ' | cchef parse-ssh-host-key
+printf 'AAAAC3NzaC1lZDI1NTE5AAAAIBOF6r99IkvqGu1kwZrHHIqjpTB5w79bpv67B/Aw3+WJ' | cchef parse-ssh-host-key
+```
+
+Output:
+
+```
 Key type: ssh-ed25519
 x: 0x1385eabf7d224bea1aed64c19ac71c8aa3a53079c3bf5ba6febb07f030dfe589
 ```
@@ -605,7 +720,12 @@ Parses a TCP header (and options) into JSON.
 **Simple example**
 
 ```bash
-$ printf 'c2eb0050a138132e70dc9fb9501804025ea70000' | cchef parse-tcp
+printf 'c2eb0050a138132e70dc9fb9501804025ea70000' | cchef parse-tcp
+```
+
+Output:
+
+```
 {"Source port":49899,"Destination port":80,"Sequence number":"2704806702","Acknowledgement number":1893507001,"Data offset":"5 (20 bytes)","Flags":{"Reserved":"000","NS":0,"CWR":0,"ECE":0,"URG":0,"ACK":1,"PSH":1,"RST":0,"SYN":0,"FIN":0},"Window size":"1026 (Scaled: 1026)","Checksum":"0x5ea7","Urgent pointer":"0x0000"}
 ```
 
@@ -620,7 +740,12 @@ Certificate, …) are parsed in detail.
 **Simple example**
 
 ```bash
-$ printf '140303000101' | cchef from-hex --delimiter None | cchef parse-tls-record
+printf '140303000101' | cchef from-hex --delimiter None | cchef parse-tls-record
+```
+
+Output:
+
+```
 [{"type":"change_cipher_spec","version":"0x0303","length":1,"value":"0x01"}]
 ```
 
@@ -639,7 +764,12 @@ Parses a UDP header (and payload, if present) into JSON.
 **Simple example**
 
 ```bash
-$ printf '04 89 00 35 00 2c 01 01' | cchef parse-udp
+printf '04 89 00 35 00 2c 01 01' | cchef parse-udp
+```
+
+Output:
+
+```
 {"Source port":1161,"Destination port":53,"Length":44,"Checksum":"0x0101"}
 ```
 
@@ -653,7 +783,12 @@ arguments, fragment).
 **Simple example**
 
 ```bash
-$ printf 'https://user:pass@example.com:8080/p?q=1&r=2#frag' | cchef parse-uri
+printf 'https://user:pass@example.com:8080/p?q=1&r=2#frag' | cchef parse-uri
+```
+
+Output:
+
+```
 Protocol:	https:
 Auth:		user:pass
 Hostname:	example.com
@@ -680,7 +815,12 @@ from that library.
 **Simple example**
 
 ```bash
-$ printf 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' | cchef parse-user-agent
+printf 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' | cchef parse-user-agent
+```
+
+Output:
+
+```
 Browser
     Name: Chrome
     Version: 120.0.0.0
@@ -719,14 +859,24 @@ base64, enums as names).
 **Simple example** — raw decode (no schema):
 
 ```bash
-$ printf '089601120774657374696e671a02082a1205616761696e' | cchef from-hex --delimiter None | cchef protobuf-decode
+printf '089601120774657374696e671a02082a1205616761696e' | cchef from-hex --delimiter None | cchef protobuf-decode
+```
+
+Output:
+
+```
 {"1":150,"2":["testing","again"],"3":{"1":42}}
 ```
 
 **Complex example** — with a schema the fields are named:
 
 ```bash
-$ printf '0896011202686918011802' | cchef from-hex --delimiter None | cchef protobuf-decode --schema-proto-text 'syntax="proto3"; message Test { int32 a=1; string b=2; repeated int32 c=3; }'
+printf '0896011202686918011802' | cchef from-hex --delimiter None | cchef protobuf-decode --schema-proto-text 'syntax="proto3"; message Test { int32 a=1; string b=2; repeated int32 c=3; }'
+```
+
+Output:
+
+```
 {"c":[1,2],"a":150,"b":"hi"}
 ```
 
@@ -748,7 +898,12 @@ unknown keys are ignored and values are coerced protobufjs-style (numeric string
 **Simple example**
 
 ```bash
-$ printf '{"a":150,"b":"hi","c":[1,2]}' | cchef protobuf-encode --schema-proto-text 'syntax="proto3"; message Test { int32 a=1; string b=2; repeated int32 c=3; }' | cchef to-hex --delimiter None
+printf '{"a":150,"b":"hi","c":[1,2]}' | cchef protobuf-encode --schema-proto-text 'syntax="proto3"; message Test { int32 a=1; string b=2; repeated int32 c=3; }' | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 0896011202686918011802
 ```
 
@@ -762,7 +917,12 @@ to and including the first blank line (`\r\n\r\n` or `\n\n`).
 **Simple example**
 
 ```bash
-$ printf 'HTTP/1.1 200 OK\r\nServer: x\r\n\r\n<html>' | cchef strip-http-headers
+printf 'HTTP/1.1 200 OK\r\nServer: x\r\n\r\n<html>' | cchef strip-http-headers
+```
+
+Output:
+
+```
 <html>
 ```
 
@@ -776,8 +936,13 @@ Input is raw bytes, so pipe packet data in via `from-hex`.
 **Simple example**
 
 ```bash
-$ printf '450000140005400080060000c0a80001c0a80002cafe' \
+printf '450000140005400080060000c0a80001c0a80002cafe' \
     | cchef from-hex --delimiter None | cchef strip-ipv4-header | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 cafe
 ```
 
@@ -791,8 +956,13 @@ payload.
 **Simple example**
 
 ```bash
-$ printf '7f900050000fa4b2000cb2a45010bff100000000cafe' \
+printf '7f900050000fa4b2000cb2a45010bff100000000cafe' \
     | cchef from-hex --delimiter None | cchef strip-tcp-header | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 cafe
 ```
 
@@ -805,8 +975,13 @@ Removes the fixed 8-byte UDP header from a datagram, leaving the payload.
 **Simple example**
 
 ```bash
-$ printf '8111003500080000cafe' \
+printf '8111003500080000cafe' \
     | cchef from-hex --delimiter None | cchef strip-udp-header | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 cafe
 ```
 
@@ -820,7 +995,12 @@ decimal value. Arbitrary precision is supported.
 **Simple example**
 
 ```bash
-$ printf 'ac02' | cchef from-hex --delimiter None | cchef varint-decode
+printf 'ac02' | cchef from-hex --delimiter None | cchef varint-decode
+```
+
+Output:
+
+```
 300
 ```
 
@@ -833,6 +1013,11 @@ Encodes a non-negative decimal integer as an LEB128 variable-length integer.
 **Simple example**
 
 ```bash
-$ printf '300' | cchef varint-encode | cchef to-hex --delimiter None
+printf '300' | cchef varint-encode | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
 ac02
 ```

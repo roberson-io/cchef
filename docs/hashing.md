@@ -40,7 +40,12 @@ are the exceptions).
 Computes the Adler-32 checksum, output as an 8-digit hex string. Takes no options.
 
 ```bash
-$ cchef adler-32-checksum -i 'Wikipedia'
+cchef adler-32-checksum -i 'Wikipedia'
+```
+
+Output:
+
+```
 11e60398
 ```
 
@@ -64,14 +69,24 @@ problem (e.g. an invalid salt version).
 **Simple example**
 
 ```bash
-$ cchef bcrypt-compare -i "dolphin" --hash '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+cchef bcrypt-compare -i "dolphin" --hash '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+```
+
+Output:
+
+```
 Match: dolphin
 ```
 
 A non-matching password returns `No match`:
 
 ```bash
-$ cchef bcrypt-compare -i "wrong" --hash '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+cchef bcrypt-compare -i "wrong" --hash '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+```
+
+Output:
+
+```
 No match
 ```
 
@@ -81,7 +96,12 @@ Parses a bcrypt hash into its components: the cost (rounds), the salt, the
 password-hash portion, and the full hash. Takes no options.
 
 ```bash
-$ cchef bcrypt-parse -i '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+cchef bcrypt-parse -i '$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK'
+```
+
+Output:
+
+```
 Rounds: 10
 Salt: $2a$10$qyon0LQCmMxpFFjwWH6Qh.
 Password hash: dDdhqntQh./IN0RXCc3XIMILuOYZKgK
@@ -102,7 +122,12 @@ SHA-1-like function.
 **Simple example**
 
 ```bash
-$ cchef has-160 -i Hello
+cchef has-160 -i Hello
+```
+
+Output:
+
+```
 3bca9a7d61c6107e88f9c4fcb2728cc7e4fc13ac
 ```
 
@@ -121,7 +146,12 @@ Computes a keyed-hash message authentication code (HMAC).
 **Simple example**
 
 ```bash
-$ cchef hmac --key test --key-type Latin1 --hashing-function SHA256 -i 'Hello, World!'
+cchef hmac --key test --key-type Latin1 --hashing-function SHA256 -i 'Hello, World!'
+```
+
+Output:
+
+```
 52589bd80ccfa4acbb3f9512dfaf4f700fa5195008aae0b77a9e47dcca75beac
 ```
 
@@ -141,7 +171,12 @@ the digests differ. Keccak-256 is the hash used by Ethereum (e.g.
 **Simple example**
 
 ```bash
-$ cchef keccak --size 256 -i 'Hello, World!'
+cchef keccak --size 256 -i 'Hello, World!'
+```
+
+Output:
+
+```
 acaf3289d7b601cbd114fb36c4d29c85bbfd5e133f14cb355c3fd8d99367964f
 ```
 
@@ -159,7 +194,12 @@ crypto-api, including its quirk that a value of `0` is treated as the default 18
 **Simple example**
 
 ```bash
-$ cchef md2 -i Hello
+cchef md2 -i Hello
+```
+
+Output:
+
+```
 b27af65e6a4096536dd1252e308c2427
 ```
 
@@ -168,14 +208,24 @@ b27af65e6a4096536dd1252e308c2427
 The 128-bit MD4 message digest (RFC 1320).
 
 ```bash
-$ cchef md4 -i Hello
+cchef md4 -i Hello
+```
+
+Output:
+
+```
 a58fc871f5f68e4146474ac1e2f07419
 ```
 
 ## MD5
 
 ```bash
-$ cchef md5 -i 'Hello, World!'
+cchef md5 -i 'Hello, World!'
+```
+
+Output:
+
+```
 65a8e27d8879283831b664bd8b7f0ad4
 ```
 
@@ -192,7 +242,12 @@ The RIPEMD family of hashes, at one of four output sizes.
 **Simple example**
 
 ```bash
-$ cchef ripemd --size 160 -i Hello
+cchef ripemd --size 160 -i Hello
+```
+
+Output:
+
+```
 d44426aca8ae0a69cdbc4021c64fa5ad68ca32fe
 ```
 
@@ -209,28 +264,48 @@ The withdrawn 1993 SHA-0 (the original SHA, before SHA-1's message-schedule fix)
 **Simple example**
 
 ```bash
-$ cchef sha0 -i Hello
+cchef sha0 -i Hello
+```
+
+Output:
+
+```
 d7f56f62cde2a044d0259adf01953bbb8f971a33
 ```
 
 ## SHA1
 
 ```bash
-$ cchef sha1 -i 'Hello, World!'
+cchef sha1 -i 'Hello, World!'
+```
+
+Output:
+
+```
 0a0a9f2a6772942557ab5355d76af442f8f65e01
 ```
 
 ## SHA224
 
 ```bash
-$ cchef sha224 -i 'Hello, World!'
+cchef sha224 -i 'Hello, World!'
+```
+
+Output:
+
+```
 72a23dfa411ba6fde01dbfabf3b00a709c93ebf273dc29e2d8b261ff
 ```
 
 ## SHA256
 
 ```bash
-$ cchef sha256 -i 'Hello, World!'
+cchef sha256 -i 'Hello, World!'
+```
+
+Output:
+
+```
 dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
 ```
 
@@ -248,21 +323,36 @@ not the same as legacy/Ethereum Keccak — they use different padding.
 **Simple example**
 
 ```bash
-$ cchef sha3 --size 256 -i 'Hello, World!'
+cchef sha3 --size 256 -i 'Hello, World!'
+```
+
+Output:
+
+```
 1af17a664e3fa8e419b8ba05c2a173169df76162a5a286e0c405b460d478f7ef
 ```
 
 ## SHA384
 
 ```bash
-$ cchef sha384 -i 'Hello, World!'
+cchef sha384 -i 'Hello, World!'
+```
+
+Output:
+
+```
 5485cc9b3365b4305dfb4e8337e0a598a574f8242bf17289e0dd6c20a3cd44a089de16ab4ab308f63e44b1170eb5f515
 ```
 
 ## SHA512
 
 ```bash
-$ cchef sha512 -i 'Hello, World!'
+cchef sha512 -i 'Hello, World!'
+```
+
+Output:
+
+```
 374d794a95cdcfd8b35993185fef9ba368f160d8daf432d08ba9f1ed1e5abe6cc69291e0fa2fe0006a52570ef18c19def4e617c33ce52ef0a6e5fbe318cb0387
 ```
 
@@ -273,7 +363,7 @@ $ cchef sha512 -i 'Hello, World!'
 Because input can come from a file, hashing a file's contents is straightforward:
 
 ```bash
-$ cchef sha256 --in-file ./document.pdf
+cchef sha256 --in-file ./document.pdf
 ```
 
 ## Snefru
@@ -292,7 +382,12 @@ original design, so output differs from the reference vectors.
 **Simple example**
 
 ```bash
-$ cchef snefru --size 256 -i Hello
+cchef snefru --size 256 -i Hello
+```
+
+Output:
+
+```
 bd456c6c33df28257b8736f798e40ac57d9b61996d94ada339abaa8d2a97ec86
 ```
 
@@ -312,6 +407,11 @@ one, so output differs from the ISO reference vectors.
 **Simple example**
 
 ```bash
-$ cchef whirlpool -i Hello
+cchef whirlpool -i Hello
+```
+
+Output:
+
+```
 00acca7b4456c52a74c589d668b48e1b3d33c9620a0a9b61635111aa92ed8488f21372e27b2122735e561491f8050ed2775a6fb55f7f8b24075d1166bf326bca
 ```

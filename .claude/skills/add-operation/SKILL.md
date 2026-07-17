@@ -178,8 +178,28 @@ In the matching `docs/<category>.md` (e.g. `data-format.md`):
   first existing row that sorts after the new op.
 - Include: an external reference link (the op's `infoURL`), an options table, a
   **simple example**, and — for ops with several options — a **complex example**.
+- **Example format — command and output in separate code blocks.** Put the
+  runnable command (no `$` prompt) in a ```` ```bash ```` block, then the expected
+  output in a following plain ```` ``` ```` block introduced by a line reading
+  `Output:`. This keeps the command copy-pasteable (a `$` prompt and the output
+  in the same block would both be copied by GitHub's copy button). Omit the
+  `Output:` block for a command with no meaningful output. For example:
+
+  ````
+  ```bash
+  cchef <subcommand> -i "input"
+  ```
+
+  Output:
+
+  ```
+  expected output
+  ```
+  ````
+
 - **Verify every example** by running it: `make build` then
-  `./dist/cchef <subcommand> ...`, and paste the real output.
+  `./dist/cchef <subcommand> ...`, and paste the real output into the `Output:`
+  block.
 - If the op is the first of its category, add a new `docs/<category>.md` and link
   it from `docs/README.md`; otherwise just keep the README index table's op list
   alphabetized.
@@ -285,6 +305,9 @@ invocation). Do not commit unless the user asks.
 - **Strict TDD**: test → red stub → green implementation, every op, no exceptions.
 - **Makefile targets only** for build/test/lint.
 - **Alphabetize** operations in all `docs/` files.
+- **Docs examples**: command (no `$` prompt) in a ```` ```bash ```` block, expected
+  output in a separate plain block under an `Output:` line — keep commands
+  copy-pasteable.
 - **Cover the new code** to ~100% with genuine tests; delete dead branches rather
   than fake-testing them.
 - **Keep it readable**: split multi-phase logic into named helpers (write the
