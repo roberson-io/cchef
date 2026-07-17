@@ -128,11 +128,25 @@ type whirlpool struct {
 	md64
 	h      [16]uint32
 	tables *whirlTables
+	rounds int
 }
 
-func newWhirlpool() hash.Hash  { return &whirlpool{tables: whirlpoolTables} }
-func newWhirlpool0() hash.Hash { return &whirlpool{tables: whirlpool0Tables} }
-func newWhirlpoolT() hash.Hash { return &whirlpool{tables: whirlpoolTTables} }
+func newWhirlpool() hash.Hash  { return &whirlpool{tables: whirlpoolTables, rounds: whirlpoolRounds} }
+func newWhirlpool0() hash.Hash { return &whirlpool{tables: whirlpool0Tables, rounds: whirlpoolRounds} }
+func newWhirlpoolT() hash.Hash { return &whirlpool{tables: whirlpoolTTables, rounds: whirlpoolRounds} }
+
+// newWhirlpoolVariant builds the given variant ("Whirlpool"/"Whirlpool-T"/
+// "Whirlpool-0") with a configurable round count (1..10).
+func newWhirlpoolVariant(variant string, rounds int) hash.Hash {
+	tables := whirlpoolTables
+	switch variant {
+	case "Whirlpool-0":
+		tables = whirlpool0Tables
+	case "Whirlpool-T":
+		tables = whirlpoolTTables
+	}
+	return &whirlpool{tables: tables, rounds: rounds}
+}
 
 func (d *whirlpool) Reset()         { d.md64 = md64{}; d.h = [16]uint32{} }
 func (d *whirlpool) Size() int      { return 64 }
@@ -175,7 +189,7 @@ func (d *whirlpool) block(p []byte) {
 		k[i] = d.h[i]
 		state[i] = blk[i] ^ k[i]
 	}
-	for r := 1; r <= whirlpoolRounds; r++ {
+	for r := 1; r <= d.rounds; r++ {
 		// Compute K^r from K^{r-1}.
 		for i := range 8 {
 			l[i*2], l[i*2+1] = 0, 0

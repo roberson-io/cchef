@@ -11,11 +11,16 @@ import (
 
 type sha0 struct {
 	md64
-	h [5]uint32
+	h      [5]uint32
+	rounds int
 }
 
-func newSHA0() hash.Hash {
-	d := &sha0{}
+func newSHA0() hash.Hash { return newSHA0Rounds(80) }
+
+// newSHA0Rounds builds SHA0 with a configurable round count (the standalone SHA0
+// operation exposes this; HKDF uses the default 80).
+func newSHA0Rounds(rounds int) hash.Hash {
+	d := &sha0{rounds: rounds}
 	d.Reset()
 	return d
 }
@@ -44,17 +49,17 @@ func (d *sha0) Sum(in []byte) []byte {
 }
 
 func (d *sha0) block(p []byte) {
-	var w [80]uint32
-	for i := range 16 {
+	w := make([]uint32, d.rounds)
+	for i := 0; i < 16 && i < d.rounds; i++ {
 		w[i] = binary.BigEndian.Uint32(p[i*4:])
 	}
-	for i := 16; i < 80; i++ {
+	for i := 16; i < d.rounds; i++ {
 		// SHA-0 omits SHA-1's rotateLeft(..., 1) here.
 		w[i] = w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16]
 	}
 
 	a, b, c, dd, e := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4]
-	for i := range 80 {
+	for i := 0; i < d.rounds; i++ {
 		var f, k uint32
 		switch {
 		case i < 20:

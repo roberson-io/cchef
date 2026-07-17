@@ -68,34 +68,50 @@ func generateSnefruSBox() *[16][256]uint32 {
 	return sbox
 }
 
-const (
-	snefruRounds     = 8
-	snefruWords      = 4                      // 128-bit output
-	snefruBlockBytes = (16 - snefruWords) * 4 // 48
-)
+const snefruDefaultRounds = 8
 
 var snefruShift = [4]int{16, 8, 16, 24}
 
+// snefru is parameterised by output length (words = lengthBits/32) and rounds.
 type snefru struct {
-	x   [snefruBlockBytes]byte
-	nx  int
-	len uint64
-	h   [snefruWords]uint32
+	x          []byte
+	nx         int
+	len        uint64
+	h          []uint32
+	words      int
+	rounds     int
+	blockBytes int
 }
 
-func newSnefru() hash.Hash { return &snefru{} }
+func newSnefru() hash.Hash { return newSnefruParams(128, snefruDefaultRounds) }
 
-func (d *snefru) Reset()         { *d = snefru{} }
-func (d *snefru) Size() int      { return snefruWords * 4 }
-func (d *snefru) BlockSize() int { return snefruBlockBytes }
+// newSnefruParams builds Snefru with a given output length in bits (a multiple
+// of 32) and round count. The block size shrinks as the output grows
+// (blockBytes = (16-words)*4), matching crypto-api.
+func newSnefruParams(lengthBits, rounds int) hash.Hash {
+	words := lengthBits / 32
+	blockBytes := (16 - words) * 4
+	return &snefru{
+		words: words, rounds: rounds, blockBytes: blockBytes,
+		h: make([]uint32, words), x: make([]byte, blockBytes),
+	}
+}
+
+func (d *snefru) Reset() {
+	d.nx, d.len = 0, 0
+	d.h = make([]uint32, d.words)
+	d.x = make([]byte, d.blockBytes)
+}
+func (d *snefru) Size() int      { return d.words * 4 }
+func (d *snefru) BlockSize() int { return d.blockBytes }
 
 func (d *snefru) writeRaw(p []byte) {
 	for len(p) > 0 {
 		c := copy(d.x[d.nx:], p)
 		d.nx += c
 		p = p[c:]
-		if d.nx == snefruBlockBytes {
-			d.block(d.x[:])
+		if d.nx == d.blockBytes {
+			d.block(d.x)
 			d.nx = 0
 		}
 	}
@@ -109,33 +125,37 @@ func (d *snefru) Write(p []byte) (int, error) {
 
 func (d *snefru) Sum(in []byte) []byte {
 	e := *d
+	e.h = append([]uint32(nil), d.h...)
+	e.x = append([]byte(nil), d.x...)
 	bitLen := e.len << 3
 	// Zero-pad the partial block (if any) to a full block, then a final block of
 	// zeros plus the 64-bit big-endian bit length.
 	if e.nx > 0 {
-		e.writeRaw(make([]byte, snefruBlockBytes-e.nx))
+		e.writeRaw(make([]byte, e.blockBytes-e.nx))
 	}
-	e.writeRaw(make([]byte, snefruBlockBytes-8))
+	if pad := e.blockBytes - 8; pad > 0 {
+		e.writeRaw(make([]byte, pad))
+	}
 	var lenb [8]byte
 	binary.BigEndian.PutUint64(lenb[:], bitLen)
 	e.writeRaw(lenb[:])
 
-	var out [snefruWords * 4]byte
-	for i := range snefruWords {
+	out := make([]byte, e.words*4)
+	for i := range e.words {
 		binary.BigEndian.PutUint32(out[i*4:], e.h[i])
 	}
-	return append(in, out[:]...)
+	return append(in, out...)
 }
 
 func (d *snefru) block(p []byte) {
 	var w [16]uint32
-	for i := range snefruWords {
+	for i := range d.words {
 		w[i] = d.h[i]
 	}
-	for i := snefruWords; i < 16; i++ {
-		w[i] = binary.BigEndian.Uint32(p[(i-snefruWords)*4:])
+	for i := d.words; i < 16; i++ {
+		w[i] = binary.BigEndian.Uint32(p[(i-d.words)*4:])
 	}
-	for i := 0; i < snefruRounds<<1; i += 2 {
+	for i := 0; i < d.rounds<<1; i += 2 {
 		for byteInWord := range 4 {
 			for n := range 16 {
 				sbe := snefruSBox[i+(n/2)%2][w[n]&0xff]
@@ -147,7 +167,7 @@ func (d *snefru) block(p []byte) {
 			}
 		}
 	}
-	for i := range snefruWords {
+	for i := range d.words {
 		d.h[i] ^= w[15-i]
 	}
 }

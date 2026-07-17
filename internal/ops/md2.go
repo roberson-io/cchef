@@ -37,13 +37,16 @@ type md2 struct {
 	nx       int
 	hash     [48]byte
 	checksum [16]byte
+	rounds   int
 }
 
-func newMD2() hash.Hash {
-	return &md2{}
-}
+func newMD2() hash.Hash { return newMD2Rounds(md2Rounds) }
 
-func (d *md2) Reset()         { *d = md2{} }
+// newMD2Rounds builds MD2 with a configurable round count (the standalone MD2
+// operation exposes this; the default is 18).
+func newMD2Rounds(rounds int) hash.Hash { return &md2{rounds: rounds} }
+
+func (d *md2) Reset()         { *d = md2{rounds: d.rounds} }
 func (d *md2) Size() int      { return 16 }
 func (d *md2) BlockSize() int { return 16 }
 
@@ -82,7 +85,7 @@ func (d *md2) block(block []byte) {
 		d.hash[32+i] = block[i] ^ d.hash[i]
 	}
 	t := byte(0)
-	for i := range md2Rounds {
+	for i := 0; i < d.rounds; i++ {
 		for j := range 48 {
 			d.hash[j] ^= md2SBox[t]
 			t = d.hash[j]

@@ -23,11 +23,15 @@ var (
 
 type has160 struct {
 	md64
-	h [5]uint32
+	h      [5]uint32
+	rounds int
 }
 
-func newHAS160() hash.Hash {
-	d := &has160{}
+func newHAS160() hash.Hash { return newHAS160Rounds(80) }
+
+// newHAS160Rounds builds HAS-160 with a configurable round count (1..80).
+func newHAS160Rounds(rounds int) hash.Hash {
+	d := &has160{rounds: rounds}
 	d.Reset()
 	return d
 }
@@ -78,7 +82,7 @@ func (d *has160) block(p []byte) {
 	w[31] = w[1] ^ w[6] ^ w[11] ^ w[12]
 
 	a, b, c, dd, e := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4]
-	for i := range 80 {
+	for i := 0; i < d.rounds; i++ {
 		var f uint32
 		switch {
 		case i < 20:
