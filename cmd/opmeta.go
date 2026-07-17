@@ -179,6 +179,8 @@ var opCategories = map[string][]string{
 	"Expand alphabet range":              {catUtils},
 	"Extract dates":                      {catDateTime},
 	"Fang URL":                           {catNetworking},
+	"Fernet Decrypt":                     {catEncryptionEncoding},
+	"Fernet Encrypt":                     {catEncryptionEncoding},
 	"File Tree":                          {catUtils},
 	"Filter":                             {catUtils},
 	"Find / Replace":                     {catUtils},

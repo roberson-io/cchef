@@ -44,6 +44,8 @@ Classic ciphers and bitwise operations.
 | DES Decrypt | `des-decrypt` | [Data Encryption Standard](https://wikipedia.org/wiki/Data_Encryption_Standard) |
 | DES Encrypt | `des-encrypt` | [Data Encryption Standard](https://wikipedia.org/wiki/Data_Encryption_Standard) |
 | Enigma | `enigma` | [Enigma machine](https://wikipedia.org/wiki/Enigma_machine) |
+| Fernet Decrypt | `fernet-decrypt` | [Fernet](https://asecuritysite.com/encryption/fer) |
+| Fernet Encrypt | `fernet-encrypt` | [Fernet](https://asecuritysite.com/encryption/fer) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -1605,6 +1607,68 @@ Output:
 
 ```
 UQKUK TOKGQ CB
+```
+
+---
+
+## Fernet Decrypt
+
+Reference: [Fernet](https://asecuritysite.com/encryption/fer)
+
+Decrypts a Fernet token (the input) with a Base64-encoded key, returning the
+original message. Fernet is 128-bit AES-CBC with PKCS#7 padding, authenticated by
+HMAC-SHA256; the HMAC is verified before decryption and a mismatch is rejected.
+As in CyberChef, the token's timestamp is **not** checked (no TTL).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | The 32-byte key, Base64-encoded (standard or URL-safe). |
+
+**Simple example**
+
+```bash
+cchef fernet-decrypt --key VGhpc0lzVGhpcnR5VHdvQ2hhcmFjdGVyc0xvbmdLZXk= \
+    -i 'gAAAAABce-Tycae8klRxhDX2uenJ-uwV8-A1XZ2HRnfOXlNzkKKfRxviNLlgtemhT_fd1Fw5P_zFUAjd69zaJBQyWppAxVV00SExe77ql8c5n62HYJOnoIU='
+```
+
+Output:
+
+```
+This is a secret message.
+```
+
+---
+
+## Fernet Encrypt
+
+Reference: [Fernet](https://asecuritysite.com/encryption/fer)
+
+Encrypts the input into a Fernet token with a Base64-encoded key. Each call uses
+a fresh random IV and the current timestamp, so the output is different every
+time (but always decrypts back with the same key).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | The 32-byte key, Base64-encoded (standard or URL-safe). |
+
+**Simple example**
+
+Because the IV is random, encrypt and decrypt in one pipeline to see a stable
+result:
+
+```bash
+cchef fernet-encrypt --key cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4= -i "Secret" \
+    | cchef fernet-decrypt --key cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=
+```
+
+Output:
+
+```
+Secret
 ```
 
 ---

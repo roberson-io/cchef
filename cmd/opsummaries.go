@@ -65,6 +65,8 @@ var opSummaries = map[string]string{
 	"Expand alphabet range":          "Expands an alphabet range to its characters",
 	"Extract dates":                  "Extracts dates in common formats",
 	"Fang URL":                       "Re-fangs a defanged URL",
+	"Fernet Decrypt":                 "Decrypts a Fernet token (AES-128-CBC + HMAC)",
+	"Fernet Encrypt":                 "Encrypts into a Fernet token (AES-128 + HMAC)",
 	"Filter":                         "Keeps input sections matching a regex",
 	"From Base":                      "Converts a number from base 2-36 to decimal",
 	"From Base45":                    "Decodes a Base45 string (RFC 9285)",
