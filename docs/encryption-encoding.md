@@ -49,6 +49,7 @@ Classic ciphers and bitwise operations.
 | Flask Session Decode | `flask-session-decode` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
 | Flask Session Sign | `flask-session-sign` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
 | Flask Session Verify | `flask-session-verify` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
+| From Morse Code | `from-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -60,6 +61,7 @@ Classic ciphers and bitwise operations.
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
+| To Morse Code | `to-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
@@ -1786,6 +1788,37 @@ Output:
 
 ---
 
+## From Morse Code
+
+Reference: [Morse code](https://wikipedia.org/wiki/Morse_code)
+
+Translates International Morse Code back into upper-case text. Dashes (`-`, and
+the Unicode hyphen/minus/en-dash/em-dash/underscore variants, or the word `dash`)
+and dots (`.`, `·`, or the word `dot`) are all recognised. Signals are separated
+by the letter delimiter and words by the word delimiter; unknown signals are
+dropped.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--letter-delimiter` | option | `Space` | Delimiter between letters: `Space`, `Line feed`, `CRLF`, `Forward slash`, `Backslash`, `Comma`, `Semi-colon`, `Colon`. |
+| `--word-delimiter` | option | `Line feed` | Delimiter between words (same set, minus `Space`). |
+
+**Simple example**
+
+```bash
+echo -n '... --- ...' | cchef from-morse-code
+```
+
+Output:
+
+```
+SOS
+```
+
+---
+
 ## Lorenz
 
 Reference: [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher)
@@ -2146,6 +2179,50 @@ Output:
 
 ```
 67646b6b6e
+```
+
+---
+
+## To Morse Code
+
+Reference: [Morse code](https://wikipedia.org/wiki/Morse_code)
+
+Translates alphanumeric characters (and common punctuation) into International
+Morse Code. Non-Morse characters are ignored. The dash/dot symbols and the
+delimiters between letters and words are all configurable.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--format-options` | option | `-/.` | Dash/dot rendering: `-/.`, `_/.`, `Dash/Dot`, `DASH/DOT`, `dash/dot`. |
+| `--letter-delimiter` | option | `Space` | Delimiter between letters: `Space`, `Line feed`, `CRLF`, `Forward slash`, `Backslash`, `Comma`, `Semi-colon`, `Colon`. |
+| `--word-delimiter` | option | `Line feed` | Delimiter between words (same set, minus `Space`). |
+
+**Simple example**
+
+```bash
+echo -n 'SOS' | cchef to-morse-code
+```
+
+Output:
+
+```
+... --- ...
+```
+
+**Complex example**
+
+Underscores for dashes, `/` between words:
+
+```bash
+echo -n 'Hello World' | cchef to-morse-code --format-options '_/.' --word-delimiter 'Forward slash'
+```
+
+Output:
+
+```
+.... . ._.. ._.. ___/.__ ___ ._. ._.. _..
 ```
 
 ---

@@ -38,6 +38,10 @@ func charRep(token string) string {
 		return "\n"
 	case "CRLF":
 		return "\r\n"
+	case "Forward slash":
+		return "/"
+	case "Backslash":
+		return "\\"
 	case "0x":
 		return "0x"
 	case "\\x":
