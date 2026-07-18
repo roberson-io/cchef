@@ -84,6 +84,7 @@ Classic ciphers and bitwise operations.
 | Rail Fence Cipher Encode | `rail-fence-cipher-encode` | [Rail fence cipher](https://wikipedia.org/wiki/Rail_fence_cipher) |
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
+| SIGABA | `sigaba` | [SIGABA](https://wikipedia.org/wiki/SIGABA) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
 | Salsa20 | `salsa20` | [Salsa20](https://wikipedia.org/wiki/Salsa20) |
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
@@ -3108,6 +3109,61 @@ Output:
 
 ```
 d8 58 98 cc 4c 8c
+```
+
+---
+
+## SIGABA
+
+Reference: [SIGABA](https://wikipedia.org/wiki/SIGABA)
+
+Emulates the WW2 SIGABA (ECM Mark II) rotor machine used by the US military. It
+has 15 rotors: 5 cipher rotors that encipher the text, plus 5 control and 5 index
+rotors that drive the (unusually complex) cipher-rotor stepping. Input is
+upper-cased; spaces are preserved. Because enciphering and deciphering differ,
+pick the mode with `--sigaba-mode`.
+
+Each of the 15 rotors is configured by its own flags. A cipher or control rotor
+takes a 26-letter wiring (`--Nth-…-rotor`, e.g. `--1st-left-hand-cipher-rotor`), a
+`--…-reversed` boolean, and an `--…-initial-value` letter; an index rotor takes a
+10-digit wiring and an initial-value digit. All rotors default to the built-in
+"Example 1" wirings (cipher/control `SRGWANHPJZFXVIDQCEUKBYOLMT`, index
+`6201348957`) at initial value `A`/`0`, so a bare invocation is a valid machine.
+Run `cchef sigaba --help` for the full list of 41 flags.
+
+**Options** (the recurring per-rotor flags)
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--Nth-…-cipher-rotor` / `--Nth-…-control-rotor` | editableOption | `SRGWANHPJZFXVIDQCEUKBYOLMT` | 26-letter rotor wiring. |
+| `--Nth-…-rotor-reversed` | boolean | `false` | Insert the rotor reversed. |
+| `--Nth-…-rotor-initial-value` | option | `A` | Starting letter (`A`–`Z`). |
+| `--Nth-…-index-rotor` | editableOption | `6201348957` | 10-digit index-rotor wiring. |
+| `--Nth-…-index-rotor-initial-value` | option | `0` | Starting digit (`0`–`9`). |
+| `--sigaba-mode` | option | `Encrypt` | `Encrypt` or `Decrypt`. |
+
+**Simple example** (default rotors)
+
+```bash
+cchef sigaba -i "HELLO WORLD"
+```
+
+Output:
+
+```
+HIPGIQVSFLM
+```
+
+**Complex example** — deciphering that ciphertext back reproduces the plaintext:
+
+```bash
+cchef sigaba -i "HIPGIQVSFLM" --sigaba-mode Decrypt
+```
+
+Output:
+
+```
+HELLO WORLD
 ```
 
 ---

@@ -124,6 +124,14 @@ RFC-forbidden degenerate parameters that scryptsy still computes but the standar
 scrypt rejects (e.g. N=1 or p=0); a zero key length short-circuits to empty output
 to match scryptsy while avoiding a panic in the canonical implementation.
 
+Note: **SIGABA** is a from-scratch pure-Go port of CyberChef's self-contained
+SIGABA emulator (`internal/ops/sigabamachine.go` + `sigaba.go`) — **no new
+dependency**. All 41 arguments (5 cipher, 5 control, 5 index rotors plus the mode)
+match CyberChef's ordering, defaulting to the built-in "Example" rotor wirings so a
+bare invocation is a valid machine. Byte-for-byte verified against the three
+upstream fixtures and a broad oracle sweep over varied inputs (letters, spaces,
+mixed case); the space↔`Z`/`Z`→`X` substitution and rotor stepping match exactly.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -164,7 +172,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 293
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 294
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -177,7 +185,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **293 operations** (`internal/ops/`), each a faithful port with tests
+- **294 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -332,7 +340,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **290 unique** CyberChef operations are covered (289 directly plus
+Currently **291 unique** CyberChef operations are covered (290 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -424,7 +432,7 @@ Currently **290 unique** CyberChef operations are covered (289 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (79/94)
+### Encryption / Encoding (80/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -499,7 +507,7 @@ Currently **290 unique** CyberChef operations are covered (289 directly plus
 - [x] ROT8000
 - [x] Salsa20
 - [x] Scrypt
-- [ ] SIGABA
+- [x] SIGABA
 - [ ] SM4 Decrypt
 - [ ] SM4 Encrypt
 - [ ] Substitute

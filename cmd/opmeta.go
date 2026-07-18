@@ -318,6 +318,7 @@ var opCategories = map[string][]string{
 	"SHA3":                               {catHashing},
 	"SHA384":                             {catHashing},
 	"SHA512":                             {catHashing},
+	"SIGABA":                             {catEncryptionEncoding},
 	"SUB":                                {catEncryptionEncoding},
 	"Salsa20":                            {catEncryptionEncoding},
 	"Scrypt":                             {catEncryptionEncoding, catHashing},
