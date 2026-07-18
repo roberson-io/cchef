@@ -181,6 +181,19 @@ the official Twofish-paper ECB vectors plus a broad differential sweep (560 encr
 lengths 0–39, including error-path parity where BIT padding on an already-aligned
 block makes upstream itself error).
 
+Note: **Typex** is a from-scratch pure-Go port of CyberChef's self-contained
+`lib/Typex.mjs` (`internal/ops/typex.go` + `typexmachine.go`) — **no new
+dependency**. It is a British WW2 rotor machine built on Enigma, so it reuses the
+existing Enigma rotor/reflector engine (`enigma.go`): the machine engine adds
+Typex's five rotors (the two right-hand ones static, stepping from index 2), the
+reversible rotor cores, the Rotor-based input plugboard (with Typex's mirrored
+backwards input wiring, distinct forward/reverse transforms), and the keyboard
+emulation that maps shifted symbols/digits to letter sequences (Encrypt/Decrypt
+directions). Verified against the three upstream fixtures plus a broad oracle
+sweep (240 comparisons across all three keyboard modes, strict on/off, reversed
+rotors and random ring/initial settings, including full Encrypt→Decrypt round
+trips).
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -221,7 +234,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 305
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 306
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -234,7 +247,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **305 operations** (`internal/ops/`), each a faithful port with tests
+- **306 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -389,7 +402,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **302 unique** CyberChef operations are covered (301 directly plus
+Currently **303 unique** CyberChef operations are covered (302 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -481,7 +494,7 @@ Currently **302 unique** CyberChef operations are covered (301 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (91/94)
+### Encryption / Encoding (92/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -567,7 +580,7 @@ Currently **302 unique** CyberChef operations are covered (301 directly plus
 - [x] Triple DES Encrypt
 - [x] Twofish Decrypt
 - [x] Twofish Encrypt
-- [ ] Typex
+- [x] Typex
 - [ ] Vigenère Decode
 - [ ] Vigenère Encode
 - [x] XOR

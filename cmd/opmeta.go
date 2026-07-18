@@ -387,6 +387,7 @@ var opCategories = map[string][]string{
 	"Triple DES Encrypt":                 {catEncryptionEncoding},
 	"Twofish Decrypt":                    {catEncryptionEncoding},
 	"Twofish Encrypt":                    {catEncryptionEncoding},
+	"Typex":                              {catEncryptionEncoding},
 	"UNIX Timestamp to Windows Filetime": {catDateTime},
 	"URL Decode":                         {catDataFormat, catNetworking},
 	"Unescape Unicode Characters":        {catDataFormat, catLanguage},

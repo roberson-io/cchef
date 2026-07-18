@@ -98,6 +98,7 @@ Classic ciphers and bitwise operations.
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Twofish Decrypt | `twofish-decrypt` | [Twofish](https://wikipedia.org/wiki/Twofish) |
 | Twofish Encrypt | `twofish-encrypt` | [Twofish](https://wikipedia.org/wiki/Twofish) |
+| Typex | `typex` | [Typex](https://wikipedia.org/wiki/Typex) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
 | XOR Brute Force | `xor-brute-force` | [Exclusive or](https://wikipedia.org/wiki/Exclusive_or) |
 | XSalsa20 | `xsalsa20` | [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce) |
@@ -3628,6 +3629,73 @@ Output:
 ```
 83340180bf5365a5b25bf926d47e85e6b6ed4ed5e8df4839653f0fff236e1ddb
 ```
+
+---
+
+## Typex
+
+Reference: [Typex](https://wikipedia.org/wiki/Typex)
+
+Enciphers/deciphers with the WW2 Typex machine, a British development of Enigma
+using five rotors (the two right-hand ones static) with interchangeable, reversible
+wiring cores. No genuine Typex rotor wirings are public, so a random example set is
+built in as the defaults. Like Enigma it is its own inverse, so the same settings
+decrypt. The reflector is entered as whitespace-separated letter pairs covering
+every letter; the input plugboard is entered like a rotor (a 26-letter map).
+
+Each rotor takes four settings: its wiring (`wiring<steps`), a reversed flag, a
+ring setting and an initial position. The optional keyboard emulation maps the
+Typex keyboard's shifted symbols (digits and punctuation) to letter sequences.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--1st-left-hand-rotor` … `--5th-right-hand-static-rotor` | string | example rotors | Each rotor's wiring (`wiring<steps`). |
+| `--Nth-rotor-reversed` | boolean | `false` | Run that rotor's core backwards. |
+| `--Nth-rotor-ring-setting` / `--Nth-rotor-initial-value` | option | `A` | Ring setting and start position of each rotor. |
+| `--reflector` | string | example | Reflector pairs (13 pairs covering every letter). |
+| `--plugboard` | string | (empty) | Input plugboard as a 26-letter map (empty = identity). |
+| `--typex-keyboard-emulation` | option | `None` | `None`, `Encrypt` or `Decrypt` — handle the keyboard's symbol shifts. |
+| `--strict-output` | boolean | `true` | Drop non-alphabet characters and group the output into blocks of five. |
+
+**Simple example**
+
+With the default rotors at position A, `--strict-output` groups the output into
+fives:
+
+```bash
+cchef typex -i "HELLOWORLD"
+```
+
+Output:
+
+```
+PDEBF ZLGSU
+```
+
+**Complex example** — keyboard emulation with per-rotor settings and an input
+plugboard (two rotors reversed):
+
+```bash
+cchef typex -i "hello world, this is a test message." \
+    --1st-rotor-ring-setting B --1st-rotor-initial-value C \
+    --2nd-rotor-ring-setting D --2nd-rotor-initial-value E \
+    --3rd-rotor-ring-setting F --3rd-rotor-initial-value G \
+    --4th-rotor-reversed --4th-rotor-ring-setting H --4th-rotor-initial-value I \
+    --5th-rotor-reversed --5th-rotor-ring-setting J --5th-rotor-initial-value K \
+    --plugboard EHZTLCVKFRPQSYANBUIWOJXGMD --typex-keyboard-emulation Encrypt
+```
+
+Output:
+
+```
+VIXQQ FDJXT WKLDQ DFQOD CNCSK NULBG JKQDD MVGQ
+```
+
+Decrypt by running the ciphertext back through the same settings with
+`--typex-keyboard-emulation Decrypt`, which recovers the spaces and punctuation:
+`HELLO WORLD, THIS IS A TEST MESSAGE.`
 
 ---
 
