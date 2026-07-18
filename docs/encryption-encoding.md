@@ -59,6 +59,8 @@ Classic ciphers and bitwise operations.
 | JWT Decode | `jwt-decode` | [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token) |
 | JWT Sign | `jwt-sign` | [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token) |
 | JWT Verify | `jwt-verify` | [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token) |
+| LS47 Decrypt | `ls47-decrypt` | [LS47](https://github.com/exaexa/ls47) |
+| LS47 Encrypt | `ls47-encrypt` | [LS47](https://github.com/exaexa/ls47) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -2172,6 +2174,73 @@ Output:
     "Number": 42,
     "iat": 1
 }
+```
+
+---
+
+## LS47 Decrypt
+
+Reference: [LS47](https://github.com/exaexa/ls47)
+
+Decrypts an LS47 ciphertext. LS47 is an improvement of the ElsieFour (LC4) cipher
+that uses a 7x7 grid of the 49-character alphabet
+`_abcdefghijklmnopqrstuvwxyz.0123456789,-+*/:?!'()`. The password is expanded into
+a grid key, and `Padding` leading characters (which [LS47 Encrypt](#ls47-encrypt)
+prepends at random) are stripped from the recovered text. The decrypted output
+still contains the `---` separator and any signature that was appended.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--password` | string | (empty) | Password expanded into the grid key. |
+| `--padding` | number | `10` | Number of leading padding characters to drop. |
+
+**Simple example**
+
+```bash
+cchef ls47-decrypt -i "(,t74ci78cp/8trx*yesu:alp1wqy" --password helloworld --padding 0
+```
+
+Output:
+
+```
+thequickbrownfoxjumped---test
+```
+
+---
+
+## LS47 Encrypt
+
+Reference: [LS47](https://github.com/exaexa/ls47)
+
+Encrypts with the LS47 cipher, an improvement of the ElsieFour (LC4) cipher that
+uses a 7x7 grid of the 49-character alphabet
+`_abcdefghijklmnopqrstuvwxyz.0123456789,-+*/:?!'()`. The password is expanded into
+a grid key. Before encryption, `Padding` random characters are prepended and the
+`Signature` is appended after a `---` separator; only the alphabet characters may
+appear in the input, password, or signature. With a non-zero `Padding` the output
+is randomised each run (decryption removes the padding); use `Padding` 0 for a
+deterministic result.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--password` | string | (empty) | Password expanded into the grid key. |
+| `--padding` | number | `10` | Number of random characters to prepend. |
+| `--signature` | string | (empty) | Text appended after a `---` separator. |
+
+**Simple example**
+
+```bash
+cchef ls47-encrypt -i "thequickbrownfoxjumped" --password helloworld --padding 0 --signature test
+```
+
+Output:
+
+```
+(,t74ci78cp/8trx*yesu:alp1wqy
 ```
 
 ---

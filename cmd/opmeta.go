@@ -245,6 +245,8 @@ var opCategories = map[string][]string{
 	"JWT Sign":                           {catEncryptionEncoding},
 	"JWT Verify":                         {catEncryptionEncoding},
 	"Keccak":                             {catHashing},
+	"LS47 Decrypt":                       {catEncryptionEncoding},
+	"LS47 Encrypt":                       {catEncryptionEncoding},
 	"Levenshtein Distance":               {catUtils},
 	"Lorenz":                             {catEncryptionEncoding},
 	"MD2":                                {catHashing},

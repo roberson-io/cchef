@@ -100,6 +100,8 @@ var opSummaries = map[string]string{
 	"JWT Decode":                     "Decodes a JWT's payload without verifying it",
 	"JWT Sign":                       "Signs a JSON object as a JSON Web Token",
 	"JWT Verify":                     "Verifies a JWT's signature and returns its payload",
+	"LS47 Decrypt":                   "Decrypts with the LS47 (ElsieFour 7x7) cipher",
+	"LS47 Encrypt":                   "Encrypts with the LS47 (ElsieFour 7x7) cipher",
 	"Levenshtein Distance":           "Levenshtein (edit) distance of two samples",
 	"Lorenz":                         "Emulates the Lorenz SZ40/42 cipher machine",
 	"MIME Decoding":                  "Decodes RFC 2047 MIME encoded-word headers",
