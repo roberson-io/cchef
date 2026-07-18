@@ -91,12 +91,16 @@ Classic ciphers and bitwise operations.
 | Salsa20 | `salsa20` | [Salsa20](https://wikipedia.org/wiki/Salsa20) |
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
 | Substitute | `substitute` | [Substitution cipher](https://wikipedia.org/wiki/Substitution_cipher) |
+| TEA Decrypt | `tea-decrypt` | [Tiny Encryption Algorithm](https://wikipedia.org/wiki/Tiny_Encryption_Algorithm) |
+| TEA Encrypt | `tea-encrypt` | [Tiny Encryption Algorithm](https://wikipedia.org/wiki/Tiny_Encryption_Algorithm) |
 | To Morse Code | `to-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
 | XOR Brute Force | `xor-brute-force` | [Exclusive or](https://wikipedia.org/wiki/Exclusive_or) |
 | XSalsa20 | `xsalsa20` | [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce) |
+| XTEA Decrypt | `xtea-decrypt` | [XTEA](https://wikipedia.org/wiki/XTEA) |
+| XTEA Encrypt | `xtea-encrypt` | [XTEA](https://wikipedia.org/wiki/XTEA) |
 
 The bitwise key operations (`add`, `and`, `or`, `sub`, `xor`) all take a `--key`
 whose encoding is chosen with `--key-type` (`Hex`, `Decimal`, `Binary`, `Base64`,
@@ -3381,6 +3385,62 @@ Nggnpx ng qnja
 
 ---
 
+## TEA Decrypt
+
+Reference: [Tiny Encryption Algorithm](https://wikipedia.org/wiki/Tiny_Encryption_Algorithm)
+
+Decrypts with TEA (Tiny Encryption Algorithm), a 64-bit-block, 128-bit-key
+Feistel cipher (Wheeler & Needham, 1994). See [TEA Encrypt](#tea-encrypt) for the
+option details; the flags are identical.
+
+**Simple example** — decipher a CBC ciphertext back to text:
+
+```bash
+cchef tea-decrypt -i "3717df7a5bfb5fb48aeac00daa1304e5" --key 00112233445566778899aabbccddeeff --iv 0001020304050607 --mode CBC --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
+Attack at dawn
+```
+
+---
+
+## TEA Encrypt
+
+Reference: [Tiny Encryption Algorithm](https://wikipedia.org/wiki/Tiny_Encryption_Algorithm)
+
+Encrypts with TEA, a compact 64-bit-block / 128-bit-key Feistel cipher using the
+golden-ratio constant `0x9E3779B9` over 32 cycles. The key must be 16 bytes and
+the IV 8 bytes (defaulting to null bytes if omitted). `CBC`/`ECB` apply the chosen
+padding scheme; `CFB`/`OFB`/`CTR` are stream modes needing no padding.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16-byte key (`Hex`, `UTF8`, `Latin1` or `Base64`). |
+| `--iv` / `--iv-type` | toggleString | `Hex` | 8-byte IV (unused in ECB). |
+| `--mode` | option | `CBC` | `CBC`, `CFB`, `OFB`, `CTR` or `ECB`. |
+| `--input-format` | option | `Raw` | Read the input as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the output as `Hex` (concatenated) or `Raw`. |
+| `--padding` | option | `PKCS5` | ECB/CBC padding: `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+
+**Simple example**
+
+```bash
+cchef tea-encrypt -i "Attack at dawn" --key 00112233445566778899aabbccddeeff --iv 0001020304050607 --mode CBC
+```
+
+Output:
+
+```
+3717df7a5bfb5fb48aeac00daa1304e5
+```
+
+---
+
 ## To Morse Code
 
 Reference: [Morse code](https://wikipedia.org/wiki/Morse_code)
@@ -3626,4 +3686,61 @@ Output:
 
 ```
 34 d3 0c c3 b2 b2 e6 1e dc 36 b1 1e 45 01 c9 15
+```
+
+---
+
+## XTEA Decrypt
+
+Reference: [XTEA](https://wikipedia.org/wiki/XTEA)
+
+Decrypts with XTEA (eXtended TEA), the 1997 successor to TEA with an improved,
+sum-dependent key schedule. See [XTEA Encrypt](#xtea-encrypt) for the option
+details; the flags are identical. The `--rounds` value must match the one used to
+encrypt.
+
+**Simple example** — decipher a CBC ciphertext back to text:
+
+```bash
+cchef xtea-decrypt -i "aac3e90cadce5b0d6b1f46e9955d6a99" --key 00112233445566778899aabbccddeeff --iv 0001020304050607 --mode CBC --rounds 32 --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
+Attack at dawn
+```
+
+---
+
+## XTEA Encrypt
+
+Reference: [XTEA](https://wikipedia.org/wiki/XTEA)
+
+Encrypts with XTEA, a 64-bit-block / 128-bit-key Feistel cipher. It shares TEA's
+structure and modes but uses a stronger key schedule and a configurable round
+count. The key is 16 bytes and the IV 8 bytes (defaulting to null bytes).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16-byte key (`Hex`, `UTF8`, `Latin1` or `Base64`). |
+| `--iv` / `--iv-type` | toggleString | `Hex` | 8-byte IV (unused in ECB). |
+| `--mode` | option | `CBC` | `CBC`, `CFB`, `OFB`, `CTR` or `ECB`. |
+| `--input-format` | option | `Raw` | Read the input as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the output as `Hex` (concatenated) or `Raw`. |
+| `--padding` | option | `PKCS5` | ECB/CBC padding: `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+| `--rounds` | number | `32` | Number of rounds, an integer in `[1, 255]` (standard XTEA uses 32). |
+
+**Simple example**
+
+```bash
+cchef xtea-encrypt -i "Attack at dawn" --key 00112233445566778899aabbccddeeff --iv 0001020304050607 --mode CBC --rounds 32
+```
+
+Output:
+
+```
+aac3e90cadce5b0d6b1f46e9955d6a99
 ```

@@ -345,6 +345,8 @@ var opCategories = map[string][]string{
 	"Swap case":                          {catUtils},
 	"Swap endianness":                    {catDataFormat},
 	"Symmetric Difference":               {catArithmeticLogic},
+	"TEA Decrypt":                        {catEncryptionEncoding},
+	"TEA Encrypt":                        {catEncryptionEncoding},
 	"Tail":                               {catUtils},
 	"Take bytes":                         {catUtils},
 	"Take nth bytes":                     {catUtils},
@@ -397,6 +399,8 @@ var opCategories = map[string][]string{
 	"XOR":                                {catEncryptionEncoding},
 	"XOR Brute Force":                    {catEncryptionEncoding},
 	"XSalsa20":                           {catEncryptionEncoding},
+	"XTEA Decrypt":                       {catEncryptionEncoding},
+	"XTEA Encrypt":                       {catEncryptionEncoding},
 	"YAML to JSON":                       {catDataFormat},
 }
 
