@@ -174,6 +174,8 @@ var opSummaries = map[string]string{
 	"Twofish Decrypt":                "Decrypt with the Twofish block cipher (AES finalist)",
 	"Twofish Encrypt":                "Encrypt with the Twofish block cipher (AES finalist)",
 	"Typex":                          "Encipher/decipher with the WW2 Typex machine",
+	"Vigenère Decode":                "Decrypt with the Vigenère polyalphabetic cipher",
+	"Vigenère Encode":                "Encrypt with the Vigenère polyalphabetic cipher",
 	"Swap endianness":                "Reverses byte order within each word",
 	"XSalsa20":                       "XSalsa20 stream cipher (24-byte nonce)",
 	"Take bytes":                     "Keeps a range of bytes from the input",

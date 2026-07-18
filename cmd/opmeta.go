@@ -396,6 +396,8 @@ var opCategories = map[string][]string{
 	"Unique":                             {catUtils},
 	"VarInt Decode":                      {catNetworking},
 	"VarInt Encode":                      {catNetworking},
+	"Vigenère Decode":                    {catEncryptionEncoding},
+	"Vigenère Encode":                    {catEncryptionEncoding},
 	"Whirlpool":                          {catHashing},
 	"Windows Filetime to UNIX Timestamp": {catDateTime},
 	"Wrap":                               {catUtils},

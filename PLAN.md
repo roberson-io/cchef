@@ -194,6 +194,17 @@ sweep (240 comparisons across all three keyboard modes, strict on/off, reversed
 rotors and random ring/initial settings, including full Encrypt→Decrypt round
 trips).
 
+Note: **Vigenère Encode/Decode** are a from-scratch pure-Go port of CyberChef's
+self-contained Vigenère operations (`internal/ops/vigenere.go`) — **no new
+dependency**. The classic polyalphabetic cipher: each letter is shifted by the
+repeating key letter, case is preserved, and non-letters pass through without
+advancing the key. The op display names keep the accented "Vigenère"; the CLI
+subcommands are the ASCII `vigenere-encode` / `vigenere-decode` (the shared
+`core.Kebab` slug helper now folds accented Latin letters to ASCII). Verified
+against the upstream Ciphers.mjs fixtures plus a broad oracle sweep (320
+comparisons + 160 Encrypt→Decrypt round trips over random keys and mixed
+case/punctuation/digit inputs). This completes the Encryption / Encoding category.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -234,7 +245,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 306
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 308
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -247,7 +258,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **306 operations** (`internal/ops/`), each a faithful port with tests
+- **308 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -402,7 +413,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **303 unique** CyberChef operations are covered (302 directly plus
+Currently **305 unique** CyberChef operations are covered (304 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -494,7 +505,7 @@ Currently **303 unique** CyberChef operations are covered (302 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (92/94)
+### Encryption / Encoding (94/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -581,8 +592,8 @@ Currently **303 unique** CyberChef operations are covered (302 directly plus
 - [x] Twofish Decrypt
 - [x] Twofish Encrypt
 - [x] Typex
-- [ ] Vigenère Decode
-- [ ] Vigenère Encode
+- [x] Vigenère Decode
+- [x] Vigenère Encode
 - [x] XOR
 - [x] XOR Brute Force
 - [x] XSalsa20

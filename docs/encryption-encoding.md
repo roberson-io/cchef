@@ -99,6 +99,8 @@ Classic ciphers and bitwise operations.
 | Twofish Decrypt | `twofish-decrypt` | [Twofish](https://wikipedia.org/wiki/Twofish) |
 | Twofish Encrypt | `twofish-encrypt` | [Twofish](https://wikipedia.org/wiki/Twofish) |
 | Typex | `typex` | [Typex](https://wikipedia.org/wiki/Typex) |
+| Vigenère Decode | `vigenere-decode` | [Vigenère cipher](https://wikipedia.org/wiki/Vigenère_cipher) |
+| Vigenère Encode | `vigenere-encode` | [Vigenère cipher](https://wikipedia.org/wiki/Vigenère_cipher) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
 | XOR Brute Force | `xor-brute-force` | [Exclusive or](https://wikipedia.org/wiki/Exclusive_or) |
 | XSalsa20 | `xsalsa20` | [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce) |
@@ -3696,6 +3698,76 @@ VIXQQ FDJXT WKLDQ DFQOD CNCSK NULBG JKQDD MVGQ
 Decrypt by running the ciphertext back through the same settings with
 `--typex-keyboard-emulation Decrypt`, which recovers the spaces and punctuation:
 `HELLO WORLD, THIS IS A TEST MESSAGE.`
+
+---
+
+## Vigenère Decode
+
+Reference: [Vigenère cipher](https://wikipedia.org/wiki/Vigenère_cipher)
+
+Decrypts a Vigenère cipher: each letter is shifted back by the position of the
+corresponding key letter (the key repeats over the text). Case is preserved and
+non-letters pass through unchanged without advancing the key. The key must be
+non-empty and consist only of letters.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | The keyword (letters only; case-insensitive). |
+
+**Simple example**
+
+```bash
+cchef vigenere-decode -i "Rijvs, Uyvjn!" --key key
+```
+
+Output:
+
+```
+Hello, World!
+```
+
+---
+
+## Vigenère Encode
+
+Reference: [Vigenère cipher](https://wikipedia.org/wiki/Vigenère_cipher)
+
+Encrypts with the Vigenère cipher, a polyalphabetic substitution that shifts each
+letter forward by the position of the corresponding key letter (the key repeats
+over the text). Case is preserved and non-letters pass through unchanged without
+advancing the key. The key must be non-empty and consist only of letters.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | The keyword (letters only; case-insensitive). |
+
+**Simple example**
+
+```bash
+cchef vigenere-encode -i "Hello, World!" --key key
+```
+
+Output:
+
+```
+Rijvs, Uyvjn!
+```
+
+**Complex example** — the classic Wikipedia vector:
+
+```bash
+cchef vigenere-encode -i "ATTACKATDAWN" --key LEMON
+```
+
+Output:
+
+```
+LXFOPVEFRNHR
+```
 
 ---
 

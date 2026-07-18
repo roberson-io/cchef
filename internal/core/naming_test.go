@@ -12,6 +12,8 @@ func TestKebab(t *testing.T) {
 		"Find / Replace":    "find-replace",
 		"Adler-32 Checksum": "adler-32-checksum",
 		"Swap endianness":   "swap-endianness",
+		"Vigenère Encode":   "vigenere-encode",
+		"Vigenère Decode":   "vigenere-decode",
 	}
 	for in, want := range cases {
 		if got := Kebab(in); got != want {
