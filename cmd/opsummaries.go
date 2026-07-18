@@ -149,6 +149,7 @@ var opSummaries = map[string]string{
 	"SHA0":                           "The withdrawn 1993 SHA-0 (160-bit)",
 	"SHA3":                           "Computes the SHA-3 (Keccak) digest",
 	"Salsa20":                        "Salsa20 stream cipher (8-byte nonce)",
+	"Scrypt":                         "scrypt password-based key derivation (RFC 7914)",
 	"Set Difference":                 "Relative complement of two sets",
 	"Show Base64 offsets":            "Shows a string's three Base64 offset encodings",
 	"Shuffle":                        "Randomly reorders input sections",

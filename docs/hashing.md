@@ -20,6 +20,7 @@ are the exceptions).
 | MD4 | `md4` | [MD4](https://wikipedia.org/wiki/MD4) |
 | MD5 | `md5` | [MD5](https://wikipedia.org/wiki/MD5) |
 | RIPEMD | `ripemd` | [RIPEMD](https://wikipedia.org/wiki/RIPEMD) |
+| Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
 | SHA0 | `sha0` | [SHA-0](https://wikipedia.org/wiki/SHA-1#SHA-0) |
 | SHA1 | `sha1` | [SHA-1](https://wikipedia.org/wiki/SHA-1) |
 | SHA224 | `sha224` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
@@ -292,6 +293,11 @@ Output:
 ```
 d44426aca8ae0a69cdbc4021c64fa5ad68ca32fe
 ```
+
+## Scrypt
+
+Derives a key from a password using the scrypt PBKDF. See the detailed entry
+under [Encryption / Encoding](encryption-encoding.md#scrypt).
 
 ## SHA0
 

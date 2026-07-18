@@ -86,6 +86,7 @@ Classic ciphers and bitwise operations.
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
 | Salsa20 | `salsa20` | [Salsa20](https://wikipedia.org/wiki/Salsa20) |
+| Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
 | To Morse Code | `to-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
@@ -3166,6 +3167,55 @@ Output:
 
 ```
 99 87 7f 17 e2 4b fd 5c d7 fb a3 1c e2 77 09
+```
+
+---
+
+## Scrypt
+
+Reference: [Scrypt](https://wikipedia.org/wiki/Scrypt)
+
+Derives a key from a password using scrypt (RFC 7914), a memory-hard
+password-based key derivation function by Colin Percival. Enter the password as
+the input; the derived key is returned as lowercase hex. `Iterations (N)` is the
+CPU/memory cost and must be a power of two; `r` and `p` tune the block size and
+parallelization. This is also listed under [Hashing](hashing.md).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--salt` / `--salt-type` | toggleString | `Hex` | Salt, as `Hex`, `Base64`, `UTF8` or `Latin1`. |
+| `--iterations-n` | number | `16384` | CPU/memory cost `N` (must be a power of two). |
+| `--memory-factor-r` | number | `8` | Block size factor `r`. |
+| `--parallelization-factor-p` | number | `1` | Parallelization factor `p`. |
+| `--key-length` | number | `64` | Length of the derived key in bytes. |
+
+**Simple example**
+
+```bash
+cchef scrypt -i "password" --salt "salt123" --salt-type UTF8
+```
+
+Output:
+
+```
+a69d52172b880bdaf7f6b988e9db14563d564b52ac8cb9e989df772b6ea7bc772a60fcc29fcdbe9d1917f01f709853e068556402ebcc0c8e44e0b557e69801df
+```
+
+**Complex example**
+
+The scrypt RFC 7914 test vector (`P="password"`, `S="NaCl"`, N=1024, r=8, p=16,
+dkLen=64):
+
+```bash
+cchef scrypt -i "password" --salt "NaCl" --salt-type UTF8 --iterations-n 1024 --memory-factor-r 8 --parallelization-factor-p 16 --key-length 64
+```
+
+Output:
+
+```
+fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640
 ```
 
 ---

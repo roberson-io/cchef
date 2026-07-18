@@ -113,6 +113,17 @@ divergence for a degenerate input: an *Integer* nonce yields only 8 bytes, so fo
 XSalsa20 (which needs 24) cchef zero-pads the sub-nonces rather than reproducing
 CyberChef's out-of-bounds/NaN output.
 
+Note: **Scrypt** is listed under both Encryption / Encoding and Hashing. CyberChef
+wraps the `scryptsy` npm package; cchef backs it with the canonical
+`golang.org/x/crypto/scrypt` (RFC 7914; **already a dependency**, so no new one).
+The parameter validation reproduces scryptsy's error strings (N power-of-two, N/r
+size bounds — matched using JS float division). Output is byte-for-byte identical
+to CyberChef on all standard parameters (RFC 7914 vectors plus a broad oracle sweep
+over salt encodings, N/r/p and key length). Divergences occur only at
+RFC-forbidden degenerate parameters that scryptsy still computes but the standard
+scrypt rejects (e.g. N=1 or p=0); a zero key length short-circuits to empty output
+to match scryptsy while avoiding a panic in the canonical implementation.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -153,7 +164,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 292
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 293
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -166,7 +177,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **292 operations** (`internal/ops/`), each a faithful port with tests
+- **293 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -302,6 +313,17 @@ cchef list                                   # discover operations
   3000:3000 cyberchef-server`, then POST `{input, recipe}` to
   `localhost:3000/bake`. Used to derive/differential-test e.g. Escape string and
   To/From Case Insensitive Regex.
+- **Future work — standardised test vectors:** for the standardised cryptographic
+  algorithms in this repo (AES, DES/Triple DES, SHA family, HMAC, RSA/ECDSA, etc.),
+  consider cross-checking against the NIST **Cryptographic Algorithm Validation
+  Program** (CAVP) test vectors at
+  <https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program> for
+  more robust, spec-authoritative coverage than the CyberChef fixtures/oracle
+  alone. These are known-answer tests independent of CyberChef, so they would catch
+  any place where CyberChef itself diverges from the standard (and confirm the ones
+  where we deliberately match CyberChef's behaviour). Note they validate the *core
+  algorithm*, not CyberChef's specific option/format plumbing, so keep the oracle
+  checks too.
 
 ## Operation implementation status
 
@@ -310,7 +332,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **289 unique** CyberChef operations are covered (288 directly plus
+Currently **290 unique** CyberChef operations are covered (289 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -402,7 +424,7 @@ Currently **289 unique** CyberChef operations are covered (288 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (78/94)
+### Encryption / Encoding (79/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -476,7 +498,7 @@ Currently **289 unique** CyberChef operations are covered (288 directly plus
 - [x] ROT47 Brute Force
 - [x] ROT8000
 - [x] Salsa20
-- [ ] Scrypt
+- [x] Scrypt
 - [ ] SIGABA
 - [ ] SM4 Decrypt
 - [ ] SM4 Encrypt
@@ -735,7 +757,7 @@ Currently **289 unique** CyberChef operations are covered (288 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (18/50)
+### Hashing (19/50)
 
 - [x] Adler-32 Checksum
 - [ ] Analyse hash
@@ -774,7 +796,7 @@ Currently **289 unique** CyberChef operations are covered (288 directly plus
 - [ ] NT Hash
 - [ ] Parity Bit
 - [x] RIPEMD
-- [ ] Scrypt
+- [x] Scrypt
 - [x] SHA0
 - [x] SHA1
 - [x] SHA2 — sha224 / sha256 / sha384 / sha512 subcommands
