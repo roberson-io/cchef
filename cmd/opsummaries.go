@@ -108,6 +108,8 @@ var opSummaries = map[string]string{
 	"Normalise Unicode":              "Normalises text (NFC/NFD/NFKC/NFKD)",
 	"Offset checker":                 "Highlights byte offsets shared by samples",
 	"PEM to Hex":                     "Extracts hex DER from PEM blocks",
+	"PRESENT Decrypt":                "Decrypts with the PRESENT lightweight cipher",
+	"PRESENT Encrypt":                "Encrypts with the PRESENT lightweight cipher",
 	"Pad lines":                      "Pads the start or end of each line",
 	"Parse ASN.1 hex string":         "Parses ASN.1 hex into a readable structure tree",
 	"Parse DateTime":                 "Parses a DateTime and shows its components",

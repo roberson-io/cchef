@@ -65,6 +65,8 @@ Classic ciphers and bitwise operations.
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
 | OR | `or` | [Bitwise OR](https://wikipedia.org/wiki/Bitwise_operation#OR) |
+| PRESENT Decrypt | `present-decrypt` | [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher)) |
+| PRESENT Encrypt | `present-encrypt` | [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher)) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
 | ROT13 | `rot13` | [ROT13](https://wikipedia.org/wiki/ROT13) |
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
@@ -2382,6 +2384,90 @@ Output:
 
 ```
 e8e5ececef
+```
+
+---
+
+## PRESENT Decrypt
+
+Reference: [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher))
+
+Decrypts [PRESENT Encrypt](#present-encrypt) ciphertext. PRESENT is an
+ultra-lightweight 64-bit block cipher (ISO/IEC 29192-2:2019) with 80-bit or
+128-bit keys. The key and IV are entered in the encoding selected by their type
+toggle; the IV is required (8 bytes) for CBC mode. The padding must match what was
+used to encrypt — note that `NO`, `ZERO` and `RANDOM` padding cannot be stripped,
+so their bytes remain in the output.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Key: 10 bytes (80-bit) or 16 bytes (128-bit). |
+| `--iv` / `--iv-type` | toggleString | `Hex` | 8-byte IV (CBC only). |
+| `--mode` | option | `CBC` | Block mode: `CBC` or `ECB`. |
+| `--input-format` | option | `Hex` | Read the ciphertext as `Hex` or `Raw`. |
+| `--output-format` | option | `Raw` | Emit the plaintext as `Raw` or `Hex`. |
+| `--padding` | option | `PKCS5` | `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+
+**Simple example** — decrypt the official 80-bit zero-key test vector:
+
+```bash
+cchef present-decrypt -i "5579c1387b228445" --key 00000000000000000000 --mode ECB --input-format Hex --output-format Hex --padding NO
+```
+
+Output:
+
+```
+0000000000000000
+```
+
+---
+
+## PRESENT Encrypt
+
+Reference: [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher))
+
+Encrypts with the PRESENT cipher, an ultra-lightweight 64-bit block cipher
+(ISO/IEC 29192-2:2019) designed for constrained environments such as RFID tags.
+It supports 80-bit (10-byte) or 128-bit (16-byte) keys with 31 rounds. The key
+and IV are entered in the encoding selected by their type toggle; the IV is
+required (8 bytes) for CBC mode. `PKCS5` padding adds a full extra block when the
+input is already block-aligned.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Key: 10 bytes (80-bit) or 16 bytes (128-bit). |
+| `--iv` / `--iv-type` | toggleString | `Hex` | 8-byte IV (CBC only). |
+| `--mode` | option | `CBC` | Block mode: `CBC` or `ECB`. |
+| `--input-format` | option | `Raw` | Read the plaintext as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the ciphertext as `Hex` or `Raw`. |
+| `--padding` | option | `PKCS5` | `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+
+**Simple example** — the official 80-bit zero-key test vector:
+
+```bash
+cchef present-encrypt -i "0000000000000000" --key 00000000000000000000 --mode ECB --input-format Hex --output-format Hex --padding NO
+```
+
+Output:
+
+```
+5579c1387b228445
+```
+
+**Complex example** — CBC mode with a 128-bit key, IV and PKCS5 padding:
+
+```bash
+cchef present-encrypt -i "Hello, PRESENT!" --key 00112233445566778899aabbccddeeff --iv 0011223344556677 --mode CBC --input-format Raw --output-format Hex --padding PKCS5
+```
+
+Output:
+
+```
+24923642d2ce04d577ae12bb2a619dad
 ```
 
 ---

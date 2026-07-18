@@ -262,6 +262,8 @@ var opCategories = map[string][]string{
 	"OR":                                 {catEncryptionEncoding},
 	"Offset checker":                     {catUtils},
 	"PEM to Hex":                         {catDataFormat, catPublicKey},
+	"PRESENT Decrypt":                    {catEncryptionEncoding},
+	"PRESENT Encrypt":                    {catEncryptionEncoding},
 	"Pad lines":                          {catUtils},
 	"Parse ASN.1 hex string":             {catDataFormat, catPublicKey},
 	"Parse DateTime":                     {catDateTime},
