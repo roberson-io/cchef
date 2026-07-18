@@ -319,6 +319,7 @@ var opCategories = map[string][]string{
 	"SHA384":                             {catHashing},
 	"SHA512":                             {catHashing},
 	"SUB":                                {catEncryptionEncoding},
+	"Salsa20":                            {catEncryptionEncoding},
 	"Set Difference":                     {catArithmeticLogic},
 	"Set Intersection":                   {catArithmeticLogic},
 	"Set Union":                          {catArithmeticLogic},
@@ -390,6 +391,7 @@ var opCategories = map[string][]string{
 	"Wrap":                               {catUtils},
 	"XOR":                                {catEncryptionEncoding},
 	"XOR Brute Force":                    {catEncryptionEncoding},
+	"XSalsa20":                           {catEncryptionEncoding},
 	"YAML to JSON":                       {catDataFormat},
 }
 

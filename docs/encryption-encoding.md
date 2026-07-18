@@ -85,11 +85,13 @@ Classic ciphers and bitwise operations.
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
+| Salsa20 | `salsa20` | [Salsa20](https://wikipedia.org/wiki/Salsa20) |
 | To Morse Code | `to-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
 | XOR Brute Force | `xor-brute-force` | [Exclusive or](https://wikipedia.org/wiki/Exclusive_or) |
+| XSalsa20 | `xsalsa20` | [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce) |
 
 The bitwise key operations (`add`, `and`, `or`, `sub`, `xor`) all take a `--key`
 whose encoding is chosen with `--key-type` (`Hex`, `Decimal`, `Binary`, `Base64`,
@@ -3134,6 +3136,40 @@ Output:
 
 ---
 
+## Salsa20
+
+Reference: [Salsa20](https://wikipedia.org/wiki/Salsa20)
+
+Applies the Salsa20 stream cipher (Bernstein). Because it XORs the input with a
+keystream, the same operation encrypts and decrypts. The key is 16 or 32 bytes and
+the nonce is 8 bytes (or an integer, encoded as 8 little-endian bytes). `Rounds`
+selects the full 20 or the reduced Salsa20/12 and Salsa20/8 variants.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16- or 32-byte key. |
+| `--nonce` / `--nonce-type` | toggleString | `Hex` | 8-byte nonce (or an `Integer`). |
+| `--counter` | number | `0` | Initial block counter (incremented every 64 bytes). |
+| `--rounds` | option | `20` | `20`, `12` or `8`. |
+| `--input-format` | option | `Hex` | Read the input as `Hex` or `Raw`. |
+| `--output-format` | option | `Raw` | Emit the output as `Raw` or `Hex` (space-delimited). |
+
+**Simple example**
+
+```bash
+cchef salsa20 -i "Hello, Salsa20!" --key 00112233445566778899aabbccddeeff --nonce 0011223344556677 --input-format Raw --output-format Hex
+```
+
+Output:
+
+```
+99 87 7f 17 e2 4b fd 5c d7 fb a3 1c e2 77 09
+```
+
+---
+
 ## To Morse Code
 
 Reference: [Morse code](https://wikipedia.org/wiki/Morse_code)
@@ -3345,4 +3381,38 @@ Output:
 ```
 Key = 42: 48 65 6c 6c 6f
 Key = 62: 68 45 4c 4c 4f
+```
+
+---
+
+## XSalsa20
+
+Reference: [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce)
+
+Applies the XSalsa20 stream cipher, a variant of [Salsa20](#salsa20) that takes a
+longer 24-byte nonce (it derives a subkey from the first 16 nonce bytes with
+HSalsa20, then runs Salsa20 with the remaining 8). Like Salsa20 it is symmetric —
+the same operation encrypts and decrypts — and takes a 16- or 32-byte key.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16- or 32-byte key. |
+| `--nonce` / `--nonce-type` | toggleString | `Hex` | 24-byte nonce. |
+| `--counter` | number | `0` | Initial block counter (incremented every 64 bytes). |
+| `--rounds` | option | `20` | `20`, `12` or `8`. |
+| `--input-format` | option | `Hex` | Read the input as `Hex` or `Raw`. |
+| `--output-format` | option | `Raw` | Emit the output as `Raw` or `Hex` (space-delimited). |
+
+**Simple example**
+
+```bash
+cchef xsalsa20 -i "Hello, XSalsa20!" --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f --nonce 000102030405060708090a0b0c0d0e0f1011121314151617 --input-format Raw --output-format Hex
+```
+
+Output:
+
+```
+34 d3 0c c3 b2 b2 e6 1e dc 36 b1 1e 45 01 c9 15
 ```

@@ -102,6 +102,17 @@ helper now shared with PRESENT. Verified against the upstream IETF draft-krovetz
 fixtures (w=8/16/32/64/128 plus non-standard w=24/80) and a broad oracle sweep over
 word sizes, modes, rounds and paddings.
 
+Note: **Salsa20 / XSalsa20** are a from-scratch pure-Go port of CyberChef's
+self-contained Salsa20 engine (`internal/ops/salsa20.go`) — **no new dependency**.
+Both share the `salsa20Permute` / `salsa20Block` core; XSalsa20 adds only the
+`hsalsa20` subkey derivation over the first 16 nonce bytes. Supports 16/32-byte
+keys, 8/12/20 rounds, and the Hex/UTF8/Latin1/Base64/Integer nonce formats.
+Byte-for-byte verified against the upstream ECRYPT fixtures and a broad oracle
+sweep over key/nonce sizes, rounds, counters and input/output formats. One
+divergence for a degenerate input: an *Integer* nonce yields only 8 bytes, so for
+XSalsa20 (which needs 24) cchef zero-pads the sub-nonces rather than reproducing
+CyberChef's out-of-bounds/NaN output.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -142,7 +153,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 290
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 292
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -155,7 +166,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **290 operations** (`internal/ops/`), each a faithful port with tests
+- **292 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -299,7 +310,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **287 unique** CyberChef operations are covered (286 directly plus
+Currently **289 unique** CyberChef operations are covered (288 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -391,7 +402,7 @@ Currently **287 unique** CyberChef operations are covered (286 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (76/94)
+### Encryption / Encoding (78/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -464,7 +475,7 @@ Currently **287 unique** CyberChef operations are covered (286 directly plus
 - [x] ROT47
 - [x] ROT47 Brute Force
 - [x] ROT8000
-- [ ] Salsa20
+- [x] Salsa20
 - [ ] Scrypt
 - [ ] SIGABA
 - [ ] SM4 Decrypt
@@ -482,7 +493,7 @@ Currently **287 unique** CyberChef operations are covered (286 directly plus
 - [ ] Vigenère Encode
 - [x] XOR
 - [x] XOR Brute Force
-- [ ] XSalsa20
+- [x] XSalsa20
 - [ ] XTEA Decrypt
 - [ ] XTEA Encrypt
 - [ ] XXTEA Decrypt
