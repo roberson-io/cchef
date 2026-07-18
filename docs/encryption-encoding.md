@@ -69,6 +69,8 @@ Classic ciphers and bitwise operations.
 | PRESENT Encrypt | `present-encrypt` | [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher)) |
 | RC2 Decrypt | `rc2-decrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
 | RC2 Encrypt | `rc2-encrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
+| RC4 | `rc4` | [RC4](https://wikipedia.org/wiki/RC4) |
+| RC4 Drop | `rc4-drop` | [RC4](https://wikipedia.org/wiki/RC4) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
 | ROT13 | `rot13` | [ROT13](https://wikipedia.org/wiki/ROT13) |
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
@@ -2551,6 +2553,87 @@ Output:
 
 ```
 fed01cb7381c9e20ee87aa826eb75428
+```
+
+---
+
+## RC4
+
+Reference: [RC4](https://wikipedia.org/wiki/RC4)
+
+Applies the RC4 stream cipher. Because RC4 XORs the input with a keystream, the
+same operation both encrypts and decrypts. The passphrase and the input/output are
+each read/written in a selectable format (`Latin1`, `UTF8`, `UTF16`, `UTF16LE`,
+`UTF16BE`, `Hex` or `Base64`). The passphrase is used as a raw key (there is no
+password-based key derivation).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--passphrase` / `--passphrase-type` | toggleString | `UTF8` | Key, parsed in the chosen format. |
+| `--input-format` | option | `Latin1` | How to read the input. |
+| `--output-format` | option | `Latin1` | How to write the output. |
+
+> **Note:** `UTF8` output errors if the ciphertext is not valid UTF-8 (matching
+> CryptoJS). `UTF16*` output is faithful only for representable code units — the
+> lone surrogates CryptoJS can emit are not valid in a Go string and become U+FFFD;
+> use `Hex` or `Base64` for binary output.
+
+**Simple example** — encrypt (the classic "Secret"/"Attack at dawn" vector):
+
+```bash
+cchef rc4 -i "Attack at dawn" --passphrase Secret --passphrase-type Latin1 --input-format Latin1 --output-format Hex
+```
+
+Output:
+
+```
+45a01f645fc35b383552544b9bf5
+```
+
+**Complex example** — decrypt the ciphertext back (Hex input, Latin1 output):
+
+```bash
+cchef rc4 -i "45a01f645fc35b383552544b9bf5" --passphrase Secret --passphrase-type Latin1 --input-format Hex --output-format Latin1
+```
+
+Output:
+
+```
+Attack at dawn
+```
+
+---
+
+## RC4 Drop
+
+Reference: [RC4](https://wikipedia.org/wiki/RC4)
+
+Applies RC4 after discarding the initial portion of the keystream (the "drop"),
+which defends against the Fluhrer–Mantin–Shamir weakness in RC4's first output
+bytes. The drop is measured in 32-bit dwords (4 keystream bytes each); a drop of 0
+is identical to plain [RC4](#rc4). Formats work exactly as for RC4.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--passphrase` / `--passphrase-type` | toggleString | `UTF8` | Key, parsed in the chosen format. |
+| `--input-format` | option | `Latin1` | How to read the input. |
+| `--output-format` | option | `Latin1` | How to write the output. |
+| `--number-of-dwords-to-drop` | number | `192` | Keystream dwords (×4 bytes) to discard. |
+
+**Simple example** — with the default 192-dword drop:
+
+```bash
+cchef rc4-drop -i "Attack at dawn" --passphrase Secret --passphrase-type Latin1 --input-format Latin1 --output-format Hex --number-of-dwords-to-drop 192
+```
+
+Output:
+
+```
+0500fe98fe4c9c49eb5ae08e95b1
 ```
 
 ---
