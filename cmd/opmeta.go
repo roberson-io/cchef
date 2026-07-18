@@ -290,6 +290,7 @@ var opCategories = map[string][]string{
 	"ROT13":                              {catEncryptionEncoding},
 	"ROT47":                              {catEncryptionEncoding},
 	"ROT8000":                            {catEncryptionEncoding},
+	"Rabbit":                             {catEncryptionEncoding},
 	"Regular expression":                 {catUtils},
 	"Remove ANSI Escape Codes":           {catUtils},
 	"Remove line numbers":                {catUtils},

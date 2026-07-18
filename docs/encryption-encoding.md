@@ -71,6 +71,7 @@ Classic ciphers and bitwise operations.
 | ROT13 | `rot13` | [ROT13](https://wikipedia.org/wiki/ROT13) |
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
 | ROT8000 | `rot8000` | [ROT8000](https://rot8000.com/info) |
+| Rabbit | `rabbit` | [Rabbit (cipher)](https://wikipedia.org/wiki/Rabbit_(cipher)) |
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
@@ -2587,6 +2588,53 @@ Output:
 
 ```
 Hi
+```
+
+---
+
+## Rabbit
+
+Reference: [Rabbit (cipher)](https://wikipedia.org/wiki/Rabbit_(cipher))
+
+Rabbit is a high-speed stream cipher (RFC 4503) taking a 128-bit key and an
+optional 64-bit IV. Because it works by XORing the input with a keystream, the
+same operation both encrypts and decrypts — run it again on the ciphertext with
+the same key and IV to recover the plaintext. The endianness selects the byte
+convention: `Big` follows RFC 4503, while `Little` is compatible with Crypto++.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16-byte (128-bit) key. |
+| `--iv` / `--iv-type` | toggleString | `Hex` | Optional IV: 0 or 8 bytes. |
+| `--endianness` | option | `Big` | `Big` (RFC 4503) or `Little` (Crypto++). |
+| `--input-format` | option | `Raw` | Read the input as `Raw` or `Hex`. |
+| `--output-format` | option | `Raw` | Emit the output as `Raw` or `Hex`. |
+
+**Simple example** — encrypt some text (run the same command with the output as
+`Hex` input to decrypt):
+
+```bash
+cchef rabbit -i "Attack at dawn" --key 00112233445566778899aabbccddeeff --input-format Raw --output-format Hex
+```
+
+Output:
+
+```
+cc34a7cbed2269c75acfdb4ebb00
+```
+
+**Complex example** — little-endian (Crypto++-compatible) with an IV:
+
+```bash
+cchef rabbit -i "Rabbit stream cipher test" --key 23c2731e8b5469fd8dabb5bc592a0f3a --iv 712906405ef03201 --endianness Little --input-format Raw --output-format Hex
+```
+
+Output:
+
+```
+1ae2d4edcf9b6063b00fd6fda0b223aded157e77031cf0440b
 ```
 
 ---
