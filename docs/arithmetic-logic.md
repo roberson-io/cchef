@@ -225,7 +225,7 @@ ignored.
 **Simple example**
 
 ```bash
-printf 'a,b,c' | cchef power-set
+cchef power-set -i 'a,b,c'
 ```
 
 Output:

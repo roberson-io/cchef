@@ -99,7 +99,7 @@ Converts alphabet order numbers back into their corresponding letters (`1` → `
 **Simple example**
 
 ```bash
-printf '8 5 12 12 15' | cchef a1z26-cipher-decode
+cchef a1z26-cipher-decode -i '8 5 12 12 15'
 ```
 
 Output:
@@ -111,7 +111,7 @@ hello
 **Comma delimiter**
 
 ```bash
-printf '8,5,12,12,15' | cchef a1z26-cipher-decode --delimiter Comma
+cchef a1z26-cipher-decode -i '8,5,12,12,15' --delimiter Comma
 ```
 
 Output:
@@ -135,7 +135,7 @@ are dropped.
 **Simple example**
 
 ```bash
-printf 'Hello, World!' | cchef a1z26-cipher-encode
+cchef a1z26-cipher-encode -i 'Hello, World!'
 ```
 
 Output:
@@ -147,7 +147,7 @@ Output:
 **Comma delimiter**
 
 ```bash
-printf 'Hello, World!' | cchef a1z26-cipher-encode --delimiter Comma
+cchef a1z26-cipher-encode -i 'Hello, World!' --delimiter Comma
 ```
 
 Output:
@@ -225,7 +225,7 @@ verified and decryption fails if it does not authenticate.
 **Simple example**
 
 ```bash
-printf '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' | cchef aes-decrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
+cchef aes-decrypt -i '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
 ```
 
 Output:
@@ -263,7 +263,7 @@ bytes.
 **Simple example**
 
 ```bash
-printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC
+cchef aes-encrypt -i 'The quick brown fox jumps over the lazy dog.' --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC
 ```
 
 Output:
@@ -277,7 +277,7 @@ Output:
 In GCM mode the authentication tag is appended after the ciphertext.
 
 ```bash
-printf 'The quick brown fox jumps over the lazy dog.' | cchef aes-encrypt --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --additional-authenticated-data 'additional data' --additional-authenticated-data-type UTF8
+cchef aes-encrypt -i 'The quick brown fox jumps over the lazy dog.' --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --additional-authenticated-data 'additional data' --additional-authenticated-data-type UTF8
 ```
 
 Output:
@@ -312,7 +312,7 @@ key-encryption key (KEK) and verifies the 64-bit integrity IV, failing with
 **Simple example**
 
 ```bash
-printf '1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5' | cchef aes-key-unwrap --key-kek 000102030405060708090a0b0c0d0e0f
+cchef aes-key-unwrap -i '1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5' --key-kek 000102030405060708090a0b0c0d0e0f
 ```
 
 Output:
@@ -345,7 +345,7 @@ multiple of 8 bytes and at least 16 bytes.
 **Simple example**
 
 ```bash
-printf '00112233445566778899aabbccddeeff' | cchef aes-key-wrap --key-kek 000102030405060708090a0b0c0d0e0f
+cchef aes-key-wrap -i '00112233445566778899aabbccddeeff' --key-kek 000102030405060708090a0b0c0d0e0f
 ```
 
 Output:
@@ -532,7 +532,7 @@ but not encrypted.
 **Simple example**
 
 ```bash
-printf 'Hello' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
+cchef ascon-encrypt -i 'Hello' --key 000102030405060708090a0b0c0d0e0f --nonce 000102030405060708090a0b0c0d0e0f
 ```
 
 Output:
@@ -547,7 +547,7 @@ Associated data (e.g. a header) is authenticated alongside the ciphertext; the
 same value is required to decrypt.
 
 ```bash
-printf 'Secret' | cchef ascon-encrypt --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
+cchef ascon-encrypt -i 'Secret' --key 000102030405060708090a0b0c0d0e0f --nonce 101112131415161718191a1b1c1d1e1f --associated-data hdr-v1 --associated-data-type UTF8
 ```
 
 Output:
@@ -1814,7 +1814,7 @@ dropped.
 **Simple example**
 
 ```bash
-echo -n '... --- ...' | cchef from-morse-code
+cchef from-morse-code -i '... --- ...'
 ```
 
 Output:
@@ -2221,7 +2221,7 @@ Windows shellcode to resolve exports without embedding their names.
 **Simple example**
 
 ```bash
-printf 'LoadLibraryA' | cchef ror13
+cchef ror13 -i 'LoadLibraryA'
 ```
 
 Output:
@@ -2453,7 +2453,7 @@ delimiters between letters and words are all configurable.
 **Simple example**
 
 ```bash
-echo -n 'SOS' | cchef to-morse-code
+cchef to-morse-code -i 'SOS'
 ```
 
 Output:
@@ -2467,7 +2467,7 @@ Output:
 Underscores for dashes, `/` between words:
 
 ```bash
-echo -n 'Hello World' | cchef to-morse-code --format-options '_/.' --word-delimiter 'Forward slash'
+cchef to-morse-code -i 'Hello World' --format-options '_/.' --word-delimiter 'Forward slash'
 ```
 
 Output:

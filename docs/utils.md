@@ -149,7 +149,7 @@ Degrees Minutes Seconds, Geohash, MGRS, Ordnance Survey National Grid and UTM.
 **Simple example**
 
 ```bash
-printf '51.5074, -0.1278' | cchef convert-co-ordinate-format --output-format 'Degrees Minutes Seconds'
+cchef convert-co-ordinate-format -i '51.5074, -0.1278' --output-format 'Degrees Minutes Seconds'
 ```
 
 Output:
@@ -305,7 +305,7 @@ with `<ins>` and `<del>` tags.
 **Simple example**
 
 ```bash
-printf 'the quick brown fox|the quick red fox' | cchef diff --sample-delimiter '|' --diff-by Word
+cchef diff -i 'the quick brown fox|the quick red fox' --sample-delimiter '|' --diff-by Word
 ```
 
 Output:
@@ -547,7 +547,7 @@ Conducts a fuzzy search to find a pattern within the input, wrapping each match 
 **Simple example**
 
 ```bash
-printf 'test input' | cchef fuzzy-match --search tein
+cchef fuzzy-match -i 'test input' --search tein
 ```
 
 Output:
@@ -712,7 +712,7 @@ Takes no options.
 **Simple example**
 
 ```bash
-printf '#ff0000' | cchef parse-colour-code
+cchef parse-colour-code -i '#ff0000'
 ```
 
 Output:
@@ -736,7 +736,7 @@ bytes), as an ISO 8601 string. Takes no options.
 **Simple example**
 
 ```bash
-printf '507f1f77bcf86cd799439011' | cchef parse-objectid-timestamp
+cchef parse-objectid-timestamp -i '507f1f77bcf86cd799439011'
 ```
 
 Output:
@@ -825,7 +825,7 @@ highlighting or listing the matches.
 **Simple example**
 
 ```bash
-printf 'a1b22c333' | cchef regular-expression --regex '\d+' --output-format 'List matches'
+cchef regular-expression -i 'a1b22c333' --regex '\d+' --output-format 'List matches'
 ```
 
 Output:
@@ -969,7 +969,7 @@ the parsed pair that the map would use.
 **Simple example**
 
 ```bash
-printf '51.5074, -0.1278' | cchef show-on-map
+cchef show-on-map -i '51.5074, -0.1278'
 ```
 
 Output:
@@ -1020,7 +1020,7 @@ unchanged.
 **Simple example**
 
 ```bash
-printf 'hello' | cchef sleep --time-ms 0
+cchef sleep -i 'hello' --time-ms 0
 ```
 
 Output:
@@ -1336,7 +1336,7 @@ characters.
 **Simple example**
 
 ```bash
-printf 'The quick brown fox' | cchef wrap --line-width 10
+cchef wrap -i 'The quick brown fox' --line-width 10
 ```
 
 Output:

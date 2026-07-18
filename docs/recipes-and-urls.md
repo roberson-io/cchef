@@ -44,7 +44,7 @@ or `--in-file`).
 **Inline Chef format**
 
 ```bash
-printf 'hello' | cchef bake -e "To_Base64()To_Hex()"
+cchef bake -i 'hello' -e "To_Base64()To_Hex()"
 ```
 
 Output:
@@ -66,7 +66,7 @@ Output:
 ```
 
 ```bash
-printf 'hello' | cchef bake -r recipe.json
+cchef bake -i 'hello' -r recipe.json
 ```
 
 Output:

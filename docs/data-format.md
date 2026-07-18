@@ -1245,7 +1245,7 @@ or newline are quoted.
 **Array of objects**:
 
 ```bash
-echo -n '{"a":1,"b":"2","c":3}' | cchef json-to-csv
+cchef json-to-csv -i '{"a":1,"b":"2","c":3}'
 ```
 
 Output:
@@ -1258,7 +1258,7 @@ a,b,c
 **Nested JSON** (flattened to dotted columns):
 
 ```bash
-echo -n '{"a":1,"b":{"c":2,"d":3}}' | cchef json-to-csv
+cchef json-to-csv -i '{"a":1,"b":{"c":2,"d":3}}'
 ```
 
 Output:

@@ -57,7 +57,7 @@ input format. Parsing is done in UTC.
 **Simple example**
 
 ```bash
-printf '20/02/2024 13:36:00' | cchef datetime-delta --time-operation Add --minutes 1
+cchef datetime-delta -i '20/02/2024 13:36:00' --time-operation Add --minutes 1
 ```
 
 Output:
@@ -82,7 +82,7 @@ Extracts dates in `yyyy-mm-dd`, `dd/mm/yyyy` and `mm/dd/yyyy` shapes (separators
 **Simple example**
 
 ```bash
-printf 'Due 2024-02-20, ship 01/04/1999.' | cchef extract-dates --display-total
+cchef extract-dates -i 'Due 2024-02-20, ship 01/04/1999.' --display-total
 ```
 
 Output:
@@ -109,7 +109,7 @@ Renders a UNIX timestamp as a human-readable UTC datetime.
 **Simple example**
 
 ```bash
-printf '1276263039' | cchef from-unix-timestamp
+cchef from-unix-timestamp -i '1276263039'
 ```
 
 Output:
@@ -159,7 +159,7 @@ Parses a datetime in the given format and timezone and reports its components.
 **Simple example**
 
 ```bash
-printf '01/04/1999 22:33:01' | cchef parse-datetime
+cchef parse-datetime -i '01/04/1999 22:33:01'
 ```
 
 Output:
@@ -198,7 +198,7 @@ is parsed leniently (ISO 8601 and close relatives).
 **Simple example**
 
 ```bash
-printf '2013-02-04 22:33:01' | cchef to-unix-timestamp
+cchef to-unix-timestamp -i '2013-02-04 22:33:01'
 ```
 
 Output:
@@ -210,7 +210,7 @@ Output:
 **Just the number**
 
 ```bash
-printf '2013-02-04 22:33:01' | cchef to-unix-timestamp --show-parsed-datetime=false
+cchef to-unix-timestamp -i '2013-02-04 22:33:01' --show-parsed-datetime=false
 ```
 
 Output:
@@ -238,7 +238,7 @@ Parses a datetime in one format/timezone and re-writes it in another. Returns
 **Simple example**
 
 ```bash
-printf '01/04/1999 22:33:01' | cchef translate-datetime-format
+cchef translate-datetime-format -i '01/04/1999 22:33:01'
 ```
 
 Output:
@@ -250,7 +250,7 @@ Thursday 1st April 1999 22:33:01 +00:00 UTC
 **Convert timezone**
 
 ```bash
-printf '01/04/1999 22:33:01' | cchef translate-datetime-format --output-timezone US/Eastern
+cchef translate-datetime-format -i '01/04/1999 22:33:01' --output-timezone US/Eastern
 ```
 
 Output:
@@ -276,7 +276,7 @@ Converts a UNIX timestamp to a Windows Filetime (100 ns intervals since
 **Simple example**
 
 ```bash
-printf '1276263039' | cchef unix-timestamp-to-windows-filetime --input-units 'Seconds (s)'
+cchef unix-timestamp-to-windows-filetime -i '1276263039' --input-units 'Seconds (s)'
 ```
 
 Output:
@@ -301,7 +301,7 @@ Converts a Windows Filetime back to a UNIX timestamp in the chosen unit.
 **Simple example**
 
 ```bash
-printf '129207366395297693' | cchef windows-filetime-to-unix-timestamp --output-units 'Nanoseconds (ns)'
+cchef windows-filetime-to-unix-timestamp -i '129207366395297693' --output-units 'Nanoseconds (ns)'
 ```
 
 Output:
