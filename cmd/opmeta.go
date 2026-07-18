@@ -401,6 +401,8 @@ var opCategories = map[string][]string{
 	"XSalsa20":                           {catEncryptionEncoding},
 	"XTEA Decrypt":                       {catEncryptionEncoding},
 	"XTEA Encrypt":                       {catEncryptionEncoding},
+	"XXTEA Decrypt":                      {catEncryptionEncoding},
+	"XXTEA Encrypt":                      {catEncryptionEncoding},
 	"YAML to JSON":                       {catDataFormat},
 }
 

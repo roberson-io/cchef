@@ -101,6 +101,8 @@ Classic ciphers and bitwise operations.
 | XSalsa20 | `xsalsa20` | [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce) |
 | XTEA Decrypt | `xtea-decrypt` | [XTEA](https://wikipedia.org/wiki/XTEA) |
 | XTEA Encrypt | `xtea-encrypt` | [XTEA](https://wikipedia.org/wiki/XTEA) |
+| XXTEA Decrypt | `xxtea-decrypt` | [XXTEA](https://wikipedia.org/wiki/XXTEA) |
+| XXTEA Encrypt | `xxtea-encrypt` | [XXTEA](https://wikipedia.org/wiki/XXTEA) |
 
 The bitwise key operations (`add`, `and`, `or`, `sub`, `xor`) all take a `--key`
 whose encoding is chosen with `--key-type` (`Hex`, `Decimal`, `Binary`, `Base64`,
@@ -3743,4 +3745,56 @@ Output:
 
 ```
 aac3e90cadce5b0d6b1f46e9955d6a99
+```
+
+---
+
+## XXTEA Decrypt
+
+Reference: [XXTEA](https://wikipedia.org/wiki/XXTEA)
+
+Decrypts Corrected Block TEA (XXTEA) ciphertext. Input and output are raw bytes;
+the key is truncated or zero-padded to 16 bytes. See [XXTEA Encrypt](#xxtea-encrypt)
+for the option details. If the data is not valid XXTEA ciphertext for the given
+key, the operation reports `Unable to decrypt using this key`.
+
+**Simple example** — recover a message from its hex ciphertext:
+
+```bash
+cchef from-hex "088d10311561387126d165c1d0c51d87c022ba9a" | cchef xxtea-decrypt --key 1234567890 --key-type UTF8
+```
+
+Output:
+
+```
+Secret message
+```
+
+---
+
+## XXTEA Encrypt
+
+Reference: [XXTEA](https://wikipedia.org/wiki/XXTEA)
+
+Encrypts with Corrected Block TEA (XXTEA), a variable-length block cipher that
+operates on the whole message as a block of 32-bit words (rather than fixed 64-bit
+blocks), so no padding or mode is needed. Input and output are raw bytes. The
+128-bit key is truncated or zero-padded to 16 bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Key, as `Hex`, `UTF8`, `Latin1` or `Base64` (padded/truncated to 16 bytes). |
+
+**Simple example** — the raw ciphertext is shown as hex via `to-hex`:
+
+```bash
+cchef xxtea-encrypt -i "Secret message" --key 1234567890 --key-type UTF8 | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+088d10311561387126d165c1d0c51d87c022ba9a
 ```

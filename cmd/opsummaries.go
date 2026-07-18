@@ -169,6 +169,8 @@ var opSummaries = map[string]string{
 	"TEA Encrypt":                    "Encrypt with the TEA block cipher (64-bit blocks)",
 	"XTEA Decrypt":                   "Decrypt with the XTEA block cipher",
 	"XTEA Encrypt":                   "Encrypt with the XTEA block cipher",
+	"XXTEA Decrypt":                  "Decrypt with XXTEA (Corrected Block TEA)",
+	"XXTEA Encrypt":                  "Encrypt with XXTEA (Corrected Block TEA)",
 	"Swap endianness":                "Reverses byte order within each word",
 	"XSalsa20":                       "XSalsa20 stream cipher (24-byte nonce)",
 	"Take bytes":                     "Keeps a range of bytes from the input",
