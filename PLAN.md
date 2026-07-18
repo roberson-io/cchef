@@ -71,6 +71,16 @@ exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
 differential-tested against it; no runtime dependency on the JS library is added.
 
+Note: **RC2 Encrypt/Decrypt** (CyberChef wraps `node-forge`) are a from-scratch
+pure-Go port of the RFC 2268 cipher (`internal/ops/rc2.go`) — **no new
+dependency** — reusing the shared ECB/CBC + PKCS#7 block plumbing. Fixed at 128
+effective key bits (forge's default). Byte-for-byte differential-verified against
+the node-forge oracle across key lengths 1–130 bytes, all input alignments, and
+both modes, including forge's lenient unpadding and its all-`0xd9` empty-key
+register. One deliberate divergence: cchef rejects non-standard IV lengths
+(requires 0 for ECB or 8 for CBC), whereas CyberChef feeds any length to forge and
+emits buggy output.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -111,7 +121,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 282
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 284
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -124,7 +134,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **282 operations** (`internal/ops/`), each a faithful port with tests
+- **284 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -268,7 +278,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **279 unique** CyberChef operations are covered (278 directly plus
+Currently **281 unique** CyberChef operations are covered (280 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -360,7 +370,7 @@ Currently **279 unique** CyberChef operations are covered (278 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (68/94)
+### Encryption / Encoding (70/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -421,8 +431,8 @@ Currently **279 unique** CyberChef operations are covered (278 directly plus
 - [x] Rabbit
 - [x] Rail Fence Cipher Decode
 - [x] Rail Fence Cipher Encode
-- [ ] RC2 Decrypt
-- [ ] RC2 Encrypt
+- [x] RC2 Decrypt
+- [x] RC2 Encrypt
 - [ ] RC4
 - [ ] RC4 Drop
 - [ ] RC6 Decrypt

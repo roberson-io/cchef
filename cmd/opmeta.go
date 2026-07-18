@@ -285,6 +285,8 @@ var opCategories = map[string][]string{
 	"Protobuf Decode":                    {catNetworking},
 	"Protobuf Encode":                    {catNetworking},
 	"Pseudo-Random Number Generator":     {catUtils},
+	"RC2 Decrypt":                        {catEncryptionEncoding},
+	"RC2 Encrypt":                        {catEncryptionEncoding},
 	"ROR13":                              {catEncryptionEncoding},
 	"RIPEMD":                             {catHashing},
 	"ROT13":                              {catEncryptionEncoding},

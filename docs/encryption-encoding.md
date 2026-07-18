@@ -67,6 +67,8 @@ Classic ciphers and bitwise operations.
 | OR | `or` | [Bitwise OR](https://wikipedia.org/wiki/Bitwise_operation#OR) |
 | PRESENT Decrypt | `present-decrypt` | [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher)) |
 | PRESENT Encrypt | `present-encrypt` | [PRESENT (cipher)](https://wikipedia.org/wiki/PRESENT_(cipher)) |
+| RC2 Decrypt | `rc2-decrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
+| RC2 Encrypt | `rc2-encrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
 | ROT13 | `rot13` | [ROT13](https://wikipedia.org/wiki/ROT13) |
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
@@ -2471,6 +2473,84 @@ Output:
 
 ```
 24923642d2ce04d577ae12bb2a619dad
+```
+
+---
+
+## RC2 Decrypt
+
+Reference: [RC2](https://wikipedia.org/wiki/RC2)
+
+Decrypts [RC2 Encrypt](#rc2-encrypt) ciphertext. RC2 is a 64-bit block cipher with
+a variable-length key (used here with 128 effective key bits). Leave the IV blank
+for ECB mode, or supply an 8-byte IV for CBC. As in CyberChef, decryption is
+lenient: it strips PKCS#7 padding only when the input is a whole number of blocks
+and the trailing count is valid, otherwise it returns the decrypted blocks
+unchanged rather than erroring.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Variable-length key. |
+| `--iv` / `--iv-type` | toggleString | `Hex` | Blank for ECB, or 8 bytes for CBC. |
+| `--input-format` | option | `Hex` | Read the ciphertext as `Hex` or `Raw`. |
+| `--output-format` | option | `Raw` | Emit the plaintext as `Raw` or `Hex`. |
+
+**Simple example**
+
+```bash
+cchef rc2-decrypt -i "abfd24cbb7706c69d00ae132c70b3df8" --key 0123456789abcdef --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
+Attack at dawn!
+```
+
+---
+
+## RC2 Encrypt
+
+Reference: [RC2](https://wikipedia.org/wiki/RC2)
+
+Encrypts with the RC2 (ARC2) block cipher, designed by Ron Rivest in 1987. It
+operates on 64-bit blocks with a variable-length key (used here with 128 effective
+key bits) and PKCS#7 padding. Leave the IV blank for ECB mode, or supply an 8-byte
+IV for CBC.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Variable-length key. |
+| `--iv` / `--iv-type` | toggleString | `Hex` | Blank for ECB, or 8 bytes for CBC. |
+| `--input-format` | option | `Raw` | Read the plaintext as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the ciphertext as `Hex` or `Raw`. |
+
+**Simple example**
+
+```bash
+cchef rc2-encrypt -i "Attack at dawn!" --key 0123456789abcdef --input-format Raw --output-format Hex
+```
+
+Output:
+
+```
+abfd24cbb7706c69d00ae132c70b3df8
+```
+
+**Complex example** — CBC mode with an 8-byte IV:
+
+```bash
+cchef rc2-encrypt -i "Attack at dawn!" --key 0123456789abcdef --iv 0011223344556677 --input-format Raw --output-format Hex
+```
+
+Output:
+
+```
+fed01cb7381c9e20ee87aa826eb75428
 ```
 
 ---

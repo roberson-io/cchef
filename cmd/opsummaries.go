@@ -122,6 +122,8 @@ var opSummaries = map[string]string{
 	"Parse User Agent":               "Identifies details in a user-agent string",
 	"Parse colour code":              "Converts a colour code between formats",
 	"Pseudo-Random Number Generator": "Generates cryptographically-secure random data",
+	"RC2 Decrypt":                    "Decrypts with the RC2 (ARC2) block cipher",
+	"RC2 Encrypt":                    "Encrypts with the RC2 (ARC2) block cipher",
 	"ROT13":                          "Caesar cipher rotating letters by an amount",
 	"ROT47":                          "ROT variant over printable ASCII (33-126)",
 	"ROT8000":                        "Caesar cipher over the full Unicode range",
