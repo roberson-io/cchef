@@ -289,6 +289,8 @@ var opCategories = map[string][]string{
 	"RC2 Encrypt":                        {catEncryptionEncoding},
 	"RC4":                                {catEncryptionEncoding},
 	"RC4 Drop":                           {catEncryptionEncoding},
+	"RC6 Decrypt":                        {catEncryptionEncoding},
+	"RC6 Encrypt":                        {catEncryptionEncoding},
 	"ROR13":                              {catEncryptionEncoding},
 	"RIPEMD":                             {catHashing},
 	"ROT13":                              {catEncryptionEncoding},

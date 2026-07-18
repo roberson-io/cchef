@@ -215,25 +215,25 @@ func TestPRESENTDecryptErrors(t *testing.T) {
 func TestPRESENTRemovePaddingBranches(t *testing.T) {
 	// Empty message is returned unchanged (guard mirrors the upstream check;
 	// unreachable via decrypt, which short-circuits empty ciphertext).
-	if out, err := presentRemovePadding([]byte{}, "PKCS5"); err != nil || len(out) != 0 {
+	if out, err := blockRemovePadding([]byte{}, "PKCS5", presentBlockSize); err != nil || len(out) != 0 {
 		t.Fatalf("empty: %v %v", out, err)
 	}
 	// PKCS5: pad byte in range but the bytes do not all match.
-	if _, err := presentRemovePadding([]byte{1, 2, 3, 4, 5, 6, 0, 2}, "PKCS5"); err == nil ||
+	if _, err := blockRemovePadding([]byte{1, 2, 3, 4, 5, 6, 0, 2}, "PKCS5", presentBlockSize); err == nil ||
 		!strings.Contains(err.Error(), "Invalid PKCS#5 padding.") {
 		t.Fatalf("pkcs5 mismatch: %v", err)
 	}
 	// PKCS5: pad byte of zero is invalid.
-	if _, err := presentRemovePadding([]byte{1, 2, 3, 4, 5, 6, 7, 0}, "PKCS5"); err == nil {
+	if _, err := blockRemovePadding([]byte{1, 2, 3, 4, 5, 6, 7, 0}, "PKCS5", presentBlockSize); err == nil {
 		t.Fatal("pkcs5 zero pad byte should error")
 	}
 	// BIT: a non-zero byte before any 0x80 is invalid.
-	if _, err := presentRemovePadding([]byte{1, 2, 3, 4, 5, 6, 7, 9}, "BIT"); err == nil ||
+	if _, err := blockRemovePadding([]byte{1, 2, 3, 4, 5, 6, 7, 9}, "BIT", presentBlockSize); err == nil ||
 		!strings.Contains(err.Error(), "Invalid BIT padding.") {
 		t.Fatalf("bit non-zero: %v", err)
 	}
 	// BIT: all-zero (no 0x80 marker) is invalid.
-	if _, err := presentRemovePadding([]byte{0, 0, 0, 0, 0, 0, 0, 0}, "BIT"); err == nil {
+	if _, err := blockRemovePadding([]byte{0, 0, 0, 0, 0, 0, 0, 0}, "BIT", presentBlockSize); err == nil {
 		t.Fatal("bit all-zero should error")
 	}
 }

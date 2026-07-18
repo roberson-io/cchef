@@ -126,6 +126,8 @@ var opSummaries = map[string]string{
 	"RC2 Encrypt":                    "Encrypts with the RC2 (ARC2) block cipher",
 	"RC4":                            "RC4 (ARC4) stream cipher",
 	"RC4 Drop":                       "RC4 discarding the initial keystream bytes",
+	"RC6 Decrypt":                    "Decrypts with the RC6 block cipher (AES finalist)",
+	"RC6 Encrypt":                    "Encrypts with the RC6 block cipher (AES finalist)",
 	"ROT13":                          "Caesar cipher rotating letters by an amount",
 	"ROT47":                          "ROT variant over printable ASCII (33-126)",
 	"ROT8000":                        "Caesar cipher over the full Unicode range",

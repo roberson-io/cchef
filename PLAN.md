@@ -92,6 +92,16 @@ matches only for representable code units — CryptoJS emits lone surrogates (va
 in a JS string but not in Go's UTF-8), so surrogate-range ciphertext decodes to
 U+FFFD instead. UTF16* *input* is fully faithful.
 
+Note: **RC6 Encrypt/Decrypt** are a from-scratch pure-Go port of CyberChef's
+self-contained RC6 engine (`internal/ops/rc6.go`) — **no new dependency**. Fully
+parameterised (word size 8–256 bits, rounds 1–255), with words held as `math/big`
+integers so 128- and 256-bit word sizes work. All five modes (ECB/CBC/CFB/OFB/CTR,
+the last with a little-endian counter) and PKCS5/NO/ZERO/RANDOM/BIT padding are
+supported; the ECB/CBC padding is the `blockApplyPadding`/`blockRemovePadding`
+helper now shared with PRESENT. Verified against the upstream IETF draft-krovetz
+fixtures (w=8/16/32/64/128 plus non-standard w=24/80) and a broad oracle sweep over
+word sizes, modes, rounds and paddings.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -132,7 +142,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 286
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 288
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -145,7 +155,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **286 operations** (`internal/ops/`), each a faithful port with tests
+- **288 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -289,7 +299,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **283 unique** CyberChef operations are covered (282 directly plus
+Currently **285 unique** CyberChef operations are covered (284 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -381,7 +391,7 @@ Currently **283 unique** CyberChef operations are covered (282 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (72/94)
+### Encryption / Encoding (74/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -446,8 +456,8 @@ Currently **283 unique** CyberChef operations are covered (282 directly plus
 - [x] RC2 Encrypt
 - [x] RC4
 - [x] RC4 Drop
-- [ ] RC6 Decrypt
-- [ ] RC6 Encrypt
+- [x] RC6 Decrypt
+- [x] RC6 Encrypt
 - [x] ROR13
 - [x] ROT13
 - [ ] ROT13 Brute Force

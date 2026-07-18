@@ -71,6 +71,8 @@ Classic ciphers and bitwise operations.
 | RC2 Encrypt | `rc2-encrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
 | RC4 | `rc4` | [RC4](https://wikipedia.org/wiki/RC4) |
 | RC4 Drop | `rc4-drop` | [RC4](https://wikipedia.org/wiki/RC4) |
+| RC6 Decrypt | `rc6-decrypt` | [RC6](https://wikipedia.org/wiki/RC6) |
+| RC6 Encrypt | `rc6-encrypt` | [RC6](https://wikipedia.org/wiki/RC6) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
 | ROT13 | `rot13` | [ROT13](https://wikipedia.org/wiki/ROT13) |
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
@@ -2634,6 +2636,91 @@ Output:
 
 ```
 0500fe98fe4c9c49eb5ae08e95b1
+```
+
+---
+
+## RC6 Decrypt
+
+Reference: [RC6](https://wikipedia.org/wiki/RC6)
+
+Decrypts [RC6 Encrypt](#rc6-encrypt) ciphertext. The `Word Size` and `Rounds` must
+match those used to encrypt, and RC6's block size is `4 × wordSize/8` bytes (16
+bytes for the standard `w=32`). Leave the IV blank for ECB, or supply a full-block
+IV for the other modes. As in CyberChef, ECB/CBC use PKCS#7 padding by default.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Variable-length key. |
+| `--iv` / `--iv-type` | toggleString | `Hex` | Block-size IV (blank ⇒ null bytes; unused for ECB). |
+| `--mode` | option | `CBC` | `CBC`, `CFB`, `OFB`, `CTR` or `ECB`. |
+| `--input-format` | option | `Hex` | Read the ciphertext as `Hex` or `Raw`. |
+| `--output-format` | option | `Raw` | Emit the plaintext as `Raw` or `Hex`. |
+| `--padding` | option | `PKCS5` | `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+| `--word-size` | number | `32` | Word size in bits (multiple of 8, 8–256). |
+| `--rounds` | number | `20` | Number of rounds (1–255). |
+
+**Simple example** — the IETF RC6-32/20/16 test vector:
+
+```bash
+cchef rc6-decrypt -i "3a96f9c7f6755cfe46f00e3dcd5d2a3c" --key 000102030405060708090a0b0c0d0e0f --mode ECB --input-format Hex --output-format Hex --padding NO --word-size 32 --rounds 20
+```
+
+Output:
+
+```
+000102030405060708090a0b0c0d0e0f
+```
+
+---
+
+## RC6 Encrypt
+
+Reference: [RC6](https://wikipedia.org/wiki/RC6)
+
+Encrypts with the RC6 block cipher, an AES-competition finalist derived from RC5.
+RC6 is parameterised as RC6-w/r/b: `Word Size` w (a multiple of 8 from 8 to 256;
+32 is standard), `Rounds` r (1–255; 20 is standard), and the key length b. The
+block size is `4 × w/8` bytes. Leave the IV blank for ECB, or supply a full-block
+IV for the other modes; ECB/CBC use PKCS#7 padding by default.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | Variable-length key. |
+| `--iv` / `--iv-type` | toggleString | `Hex` | Block-size IV (blank ⇒ null bytes; unused for ECB). |
+| `--mode` | option | `CBC` | `CBC`, `CFB`, `OFB`, `CTR` or `ECB`. |
+| `--input-format` | option | `Raw` | Read the plaintext as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the ciphertext as `Hex` or `Raw`. |
+| `--padding` | option | `PKCS5` | `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+| `--word-size` | number | `32` | Word size in bits (multiple of 8, 8–256). |
+| `--rounds` | number | `20` | Number of rounds (1–255). |
+
+**Simple example** — the IETF RC6-32/20/16 test vector (ECB, no padding):
+
+```bash
+cchef rc6-encrypt -i "000102030405060708090a0b0c0d0e0f" --key 000102030405060708090a0b0c0d0e0f --mode ECB --input-format Hex --output-format Hex --padding NO --word-size 32 --rounds 20
+```
+
+Output:
+
+```
+3a96f9c7f6755cfe46f00e3dcd5d2a3c
+```
+
+**Complex example** — CBC mode with an IV and PKCS#7 padding:
+
+```bash
+cchef rc6-encrypt -i "Attack at dawn" --key 00112233445566778899aabbccddeeff --iv 000102030405060708090a0b0c0d0e0f --mode CBC --input-format Raw --output-format Hex --padding PKCS5 --word-size 32 --rounds 20
+```
+
+Output:
+
+```
+7e29a72dd5a5ac89128230c10689d948
 ```
 
 ---
