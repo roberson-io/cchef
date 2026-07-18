@@ -72,6 +72,8 @@ Classic ciphers and bitwise operations.
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
 | ROT8000 | `rot8000` | [ROT8000](https://rot8000.com/info) |
 | Rabbit | `rabbit` | [Rabbit (cipher)](https://wikipedia.org/wiki/Rabbit_(cipher)) |
+| Rail Fence Cipher Decode | `rail-fence-cipher-decode` | [Rail fence cipher](https://wikipedia.org/wiki/Rail_fence_cipher) |
+| Rail Fence Cipher Encode | `rail-fence-cipher-encode` | [Rail fence cipher](https://wikipedia.org/wiki/Rail_fence_cipher) |
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
@@ -2635,6 +2637,77 @@ Output:
 
 ```
 1ae2d4edcf9b6063b00fd6fda0b223aded157e77031cf0440b
+```
+
+---
+
+## Rail Fence Cipher Decode
+
+Reference: [Rail fence cipher](https://wikipedia.org/wiki/Rail_fence_cipher)
+
+Reverses the [Rail Fence Cipher Encode](#rail-fence-cipher-encode) transposition,
+given the same `Key` (number of rails) and `Offset`. The key must be at least 2
+and no larger than the input length; the offset must not be negative.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | number | `2` | Number of rails. |
+| `--offset` | number | `0` | Starting offset into the zig-zag. |
+
+**Simple example**
+
+```bash
+cchef rail-fence-cipher-decode -i "WRIVDETCEAEDSOEE LEA NE  CRF O" --key 3
+```
+
+Output:
+
+```
+WE ARE DISCOVERED FLEE AT ONCE
+```
+
+---
+
+## Rail Fence Cipher Encode
+
+Reference: [Rail fence cipher](https://wikipedia.org/wiki/Rail_fence_cipher)
+
+Encodes text with the Rail Fence cipher, a transposition cipher that writes the
+characters in a zig-zag across `Key` rails and reads them off row by row. `Offset`
+shifts the starting position in the zig-zag. The key must be at least 2 and no
+larger than the input length; the offset must not be negative.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | number | `2` | Number of rails. |
+| `--offset` | number | `0` | Starting offset into the zig-zag. |
+
+**Simple example**
+
+```bash
+cchef rail-fence-cipher-encode -i "WE ARE DISCOVERED FLEE AT ONCE" --key 3
+```
+
+Output:
+
+```
+WRIVDETCEAEDSOEE LEA NE  CRF O
+```
+
+**Complex example** — with a non-zero offset:
+
+```bash
+cchef rail-fence-cipher-encode -i "No one expects the spanish Inquisition." --key 3 --offset 2
+```
+
+Output:
+
+```
+  e  n ut.ooeepcstesaihIqiiinNnxthpsnso
 ```
 
 ---

@@ -126,6 +126,8 @@ var opSummaries = map[string]string{
 	"ROT47":                          "ROT variant over printable ASCII (33-126)",
 	"ROT8000":                        "Caesar cipher over the full Unicode range",
 	"Rabbit":                         "Rabbit stream cipher (RFC 4503)",
+	"Rail Fence Cipher Decode":       "Decodes text with the Rail Fence cipher",
+	"Rail Fence Cipher Encode":       "Encodes text with the Rail Fence cipher",
 	"Regular expression":             "Searches the input with your own RE2 regex",
 	"Remove line numbers":            "Removes leading line numbers from each line",
 	"Remove whitespace":              "Removes selected whitespace characters",
