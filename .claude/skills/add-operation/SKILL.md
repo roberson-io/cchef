@@ -10,7 +10,8 @@ hand-written Go file implementing `core.Operation`, self-registered via `init()`
 and developed **test-first**. Follow these steps in order for every new operation.
 
 Always use the **Makefile targets** (`make test`, `make build`, `make lint`,
-`make vet`, `make all`, `make sec`) — never raw `go` commands (except
+`make vet`, `make complexity`, `make all` — which itself runs
+fmt-check/fix-check/vet/test/build/lint/**sec**) — never raw `go` commands (except
 `go tool cover` for coverage inspection).
 
 ## 1. Research the operation in ../CyberChef
@@ -282,12 +283,18 @@ number across `PLAN.md README.md docs/README.md` to confirm none were missed.
 Run the full gate and ensure it is clean:
 
 ```
-make all   # fmt-check + fix-check + vet + test + build + lint
-make sec   # gosec SAST + govulncheck
+make all   # fmt-check + fix-check + vet + test + build + lint + sec
 ```
 
-- **`make all`** includes **`fix-check`** (`go fix` must have nothing to
-  modernise) and **`fmt-check`** — don't skip it for a bare `make test`.
+- **`make all`** runs the whole gate: **`fmt-check`**, **`fix-check`** (`go fix`
+  must have nothing to modernise), `vet`, `test`, `build`, `lint`, and **`sec`**
+  (`make all: fmt-check fix-check vet test build lint sec`). So `make all` already
+  includes `make sec` — running it covers everything; don't skip it for a bare
+  `make test`. (`make sec` on its own is only useful to re-run just the security
+  scans.)
+- **`make complexity`** is separate from `make all` — run it after implementing
+  and confirm no new function is over the cyclomatic threshold (see the
+  "complexity and magic numbers" note above); split any offender into helpers.
 - **`make sec`** runs gosec and govulncheck. If the op trips a gosec finding that
   is **by design** — a narrowing byte/bit conversion (G115), an intentional
   MD5/SHA1 use (G401/G501/G505), reading a user-supplied path (G304) — add an
@@ -319,6 +326,7 @@ invocation). Do not commit unless the user asks.
   curated one in `cmd/opsummaries.go` if it truncates.
 - **Keep counts in sync**: PLAN.md category totals + unique/subcommand counts,
   and both READMEs (`README.md`, `docs/README.md`) — no test catches these.
-- **`make all` + `make sec` must be clean** before finishing; annotate by-design
+- **`make all` must be clean** before finishing (it runs `sec` too); also run
+  **`make complexity`** and split any over-threshold function. Annotate by-design
   gosec findings with justified `// #nosec`.
 - Module path is `github.com/roberson-io/cchef`.

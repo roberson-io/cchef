@@ -12,6 +12,7 @@ are the exceptions).
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt compare | `bcrypt-compare` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
+| GOST Hash | `gost-hash` | [GOST (hash function)](https://wikipedia.org/wiki/GOST_(hash_function)) |
 | HAS-160 | `has-160` | [HAS-160](https://wikipedia.org/wiki/HAS-160) |
 | HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
 | Keccak | `keccak` | [SHA-3 / Keccak](https://wikipedia.org/wiki/SHA-3) |
@@ -106,6 +107,47 @@ Rounds: 10
 Salt: $2a$10$qyon0LQCmMxpFFjwWH6Qh.
 Password hash: dDdhqntQh./IN0RXCc3XIMILuOYZKgK
 Full hash: $2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK
+```
+
+## GOST Hash
+
+Reference: [GOST (hash function)](https://wikipedia.org/wiki/GOST_(hash_function))
+
+Computes a GOST cryptographic hash. Two algorithms are offered: the original
+256-bit GOST R 34.11-94 (built on the GOST 28147-89 block cipher, selectable
+paramset S-box) and the newer GOST R 34.11-2012 "Streebog" (256- or 512-bit).
+Output is lowercase hex.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--algorithm` | option | `GOST 28147 (1994)` | `GOST 28147 (1994)` or `GOST R 34.11 (Streebog, 2012)`. |
+| `--digest-length` | option | `256` | Streebog digest size: `256` or `512` (ignored for the 1994 hash). |
+| `--sbox` | option | `E-TEST` | Paramset S-box for the 1994 hash: `E-TEST`, `E-A`…`E-Z`, `D-TEST`, `D-A`, `D-SC`. |
+
+**Simple example (Streebog-256)**
+
+```bash
+cchef gost-hash -i "The quick brown fox" --algorithm "GOST R 34.11 (Streebog, 2012)" --digest-length 256
+```
+
+Output:
+
+```
+2a47e26fb8fd4b46668fb8835b3f8966a692ad062d17398a907f025ba4762aa7
+```
+
+**GOST R 34.11-94 (E-A S-box)**
+
+```bash
+cchef gost-hash -i "The quick brown fox" --algorithm "GOST 28147 (1994)" --sbox E-A
+```
+
+Output:
+
+```
+17d0212fab4ede36ca5c302bcb3bebd675324d3cfe04122dbb97f7cd1f6bf9e6
 ```
 
 ## HAS-160

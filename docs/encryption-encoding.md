@@ -50,6 +50,12 @@ Classic ciphers and bitwise operations.
 | Flask Session Sign | `flask-session-sign` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
 | Flask Session Verify | `flask-session-verify` | [Flask sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions) |
 | From Morse Code | `from-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
+| GOST Decrypt | `gost-decrypt` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
+| GOST Encrypt | `gost-encrypt` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
+| GOST Key Unwrap | `gost-key-unwrap` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
+| GOST Key Wrap | `gost-key-wrap` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
+| GOST Sign | `gost-sign` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
+| GOST Verify | `gost-verify` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -1815,6 +1821,251 @@ Output:
 
 ```
 SOS
+```
+
+---
+
+## GOST Decrypt
+
+Reference: [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher))
+
+Decrypts input with a GOST block cipher — GOST 28147-89 / GOST R 34.12-2015
+"Magma" (64-bit block) or "Kuznyechik" (128-bit block). This reverses
+[GOST Encrypt](#gost-encrypt); the same key, IV, algorithm, S-box, block mode,
+key-meshing and padding must be supplied. Keys are 256 bits (shorter keys are
+zero-extended). ZERO/PKCS5 padding is not stripped on decryption, so trailing
+padding bytes remain in the output.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 256-bit key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | IV (block size; block size / 2 for CTR-2015). Defaults to zeros. |
+| `--iv-type` | option | `Hex` | IV encoding. |
+| `--input-type` | option | `Hex` | Read the input as `Hex` or `Raw` bytes. |
+| `--output-type` | option | `Raw` | Render the output as `Raw` bytes or `Hex`. |
+| `--algorithm` | option | `GOST 28147 (1989)` | `GOST 28147 (1989)`, `GOST R 34.12 (Magma, 2015)`, `GOST R 34.12 (Kuznyechik, 2015)`. |
+| `--sbox` | option | `E-TEST` | Paramset S-box (GOST 28147-89 only): `E-TEST`, `E-A`…`E-Z`, `D-TEST`, `D-A`, `D-SC`. |
+| `--block-mode` | option | `ECB` | `ECB`, `CFB`, `OFB`, `CTR`, `CBC`. |
+| `--key-meshing-mode` | option | `NO` | `NO` or `CP` (CryptoPro key meshing, every 1024 bytes). |
+| `--padding` | option | `NO` | `NO`, `PKCS5`, `ZERO`, `RANDOM`, `BIT` (`NO`/`PKCS5`/`ZERO` are all zero-padding). |
+
+**Simple example**
+
+```bash
+cchef gost-decrypt -i "813f92e29526d2a2cd4115136759a05fda0657" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --iv 0011223344556677 --algorithm "GOST 28147 (1989)" --sbox E-A --block-mode CFB
+```
+
+Output:
+
+```
+The quick brown fox
+```
+
+---
+
+## GOST Encrypt
+
+Reference: [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher))
+
+Encrypts input with a GOST block cipher. GOST 28147-89 (RFC 5830) and its
+GOST R 34.12-2015 successor "Magma" use a 64-bit block; the 2015 standard also
+defines the 128-bit "Kuznyechik" cipher. The 1989 algorithm additionally selects
+a paramset S-box; the 2015 algorithms use fixed transforms (the `--sbox` flag is
+ignored). ECB and CBC pad the input (ZERO by default — `NO`, `PKCS5` and `ZERO`
+all zero-pad in this implementation, matching CyberChef); CFB, OFB and CTR are
+streaming. CryptoPro key meshing re-keys every 1024 bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 256-bit key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--iv` | string | (empty) | IV (block size; block size / 2 for CTR-2015). Defaults to zeros. |
+| `--iv-type` | option | `Hex` | IV encoding. |
+| `--input-type` | option | `Raw` | Read the input as `Raw` bytes or `Hex`. |
+| `--output-type` | option | `Hex` | Render the output as `Hex` or `Raw` bytes. |
+| `--algorithm` | option | `GOST 28147 (1989)` | `GOST 28147 (1989)`, `GOST R 34.12 (Magma, 2015)`, `GOST R 34.12 (Kuznyechik, 2015)`. |
+| `--sbox` | option | `E-TEST` | Paramset S-box (GOST 28147-89 only). |
+| `--block-mode` | option | `ECB` | `ECB`, `CFB`, `OFB`, `CTR`, `CBC`. |
+| `--key-meshing-mode` | option | `NO` | `NO` or `CP`. |
+| `--padding` | option | `NO` | `NO`, `PKCS5`, `ZERO`, `RANDOM`, `BIT`. |
+
+**Simple example**
+
+```bash
+cchef gost-encrypt -i "The quick brown fox" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --iv 0011223344556677 --algorithm "GOST 28147 (1989)" --sbox E-A --block-mode CFB
+```
+
+Output:
+
+```
+813f92e29526d2a2cd4115136759a05fda0657
+```
+
+**Kuznyechik (128-bit, CBC with PKCS5 padding)**
+
+```bash
+cchef gost-encrypt -i "The quick brown fox" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --iv 00112233445566778899aabbccddeeff --algorithm "GOST R 34.12 (Kuznyechik, 2015)" --sbox E-A --block-mode CBC --padding PKCS5
+```
+
+Output:
+
+```
+c3ceeac2ac997bcf0d2f27d07ff44f5f3021ec5e87f053c370a50cf033dd51b6
+```
+
+---
+
+## GOST Key Unwrap
+
+Reference: [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher))
+
+Reverses [GOST Key Wrap](#gost-key-wrap), recovering a content-encryption key
+from a wrapped blob. The same key-encryption key (KEK), User Key Material (UKM)
+and wrapping mode must be supplied; the embedded MAC is verified and an error is
+returned if it does not match. `CP` (CryptoPro) wrapping is only defined for the
+64-bit algorithms.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | Key-encryption key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding. |
+| `--user-key-material` | string | (empty) | UKM (block size); required for `NO`/`CP`. |
+| `--user-key-material-type` | option | `Hex` | UKM encoding. |
+| `--input-type` | option | `Hex` | Read the wrapped input as `Hex` or `Raw` bytes. |
+| `--output-type` | option | `Raw` | Render the recovered key as `Raw` bytes or `Hex`. |
+| `--algorithm` | option | `GOST 28147 (1989)` | Block-cipher variant. |
+| `--sbox` | option | `E-TEST` | Paramset S-box (GOST 28147-89 only). |
+| `--key-wrapping` | option | `NO` | `NO` (RFC 4357 6.1), `CP` (CryptoPro), `SC` (SignalCom). |
+
+**Simple example**
+
+```bash
+cchef gost-key-unwrap -i "e0241d25cac43b42867d22580e9c01cbe0241d25cac43b42867d22580e9c01cbb8ed2bf5" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --user-key-material 0011223344556677 --algorithm "GOST 28147 (1989)" --sbox E-A --key-wrapping CP
+```
+
+Output:
+
+```
+0123456789abcdef0123456789abcdef
+```
+
+---
+
+## GOST Key Wrap
+
+Reference: [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher))
+
+Wraps a content-encryption key for storage in untrusted locations using a GOST
+block cipher (RFC 4357). The output is the encrypted key followed by a MAC. Three
+wrapping modes are supported: `NO` (plain GOST 28147-89 key wrap), `CP`
+(CryptoPro, which diversifies the KEK with the UKM), and `SC` (SignalCom). The
+UKM must be the block size in length. Wrap a full 256-bit key for a clean
+round-trip (shorter inputs are zero-filled to the key size before the MAC).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | Key-encryption key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding. |
+| `--user-key-material` | string | (empty) | UKM (block size); required for `NO`/`CP`. |
+| `--user-key-material-type` | option | `Hex` | UKM encoding. |
+| `--input-type` | option | `Raw` | Read the key to wrap as `Raw` bytes or `Hex`. |
+| `--output-type` | option | `Hex` | Render the wrapped key as `Hex` or `Raw` bytes. |
+| `--algorithm` | option | `GOST 28147 (1989)` | Block-cipher variant (`CP` is 64-bit only). |
+| `--sbox` | option | `E-TEST` | Paramset S-box (GOST 28147-89 only). |
+| `--key-wrapping` | option | `NO` | `NO`, `CP`, `SC`. |
+
+**Simple example**
+
+```bash
+cchef gost-key-wrap -i "0123456789abcdef0123456789abcdef" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --user-key-material 0011223344556677 --algorithm "GOST 28147 (1989)" --sbox E-A --key-wrapping CP
+```
+
+Output (the CryptoGost encoder wraps the hex at 32 bytes with a CRLF):
+
+```
+e0241d25cac43b42867d22580e9c01cbe0241d25cac43b42867d22580e9c01cb
+b8ed2bf5
+```
+
+---
+
+## GOST Sign
+
+Reference: [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher))
+
+Computes a message authentication code (imitovstavka) over the input using a
+GOST block cipher in MAC mode. The MAC length is configurable from 8 to 64 bits
+(in 8-bit steps). Verify a MAC with [GOST Verify](#gost-verify).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 256-bit key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding. |
+| `--iv` | string | (empty) | IV (block size). Defaults to zeros. |
+| `--iv-type` | option | `Hex` | IV encoding. |
+| `--input-type` | option | `Raw` | Read the input as `Raw` bytes or `Hex`. |
+| `--output-type` | option | `Hex` | Render the MAC as `Hex` or `Raw` bytes. |
+| `--algorithm` | option | `GOST 28147 (1989)` | Block-cipher variant. |
+| `--sbox` | option | `E-TEST` | Paramset S-box (GOST 28147-89 only). |
+| `--mac-length` | number | `32` | MAC length in bits (8–64, multiples of 8). |
+
+**Simple example**
+
+```bash
+cchef gost-sign -i "The quick brown fox" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --iv 0011223344556677 --algorithm "GOST 28147 (1989)" --sbox E-A --mac-length 32
+```
+
+Output:
+
+```
+ccd815bc
+```
+
+---
+
+## GOST Verify
+
+Reference: [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher))
+
+Verifies a GOST block-cipher MAC (from [GOST Sign](#gost-sign)) against the
+input. Enter the signature in the `--mac` field; the MAC length is taken from
+its length. Reports whether the signature matches.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | string | (empty) | 256-bit key, interpreted per `--key-type`. |
+| `--key-type` | option | `Hex` | Key encoding. |
+| `--iv` | string | (empty) | IV (block size). Defaults to zeros. |
+| `--iv-type` | option | `Hex` | IV encoding. |
+| `--mac` | string | (empty) | The MAC to verify, interpreted per `--mac-type`. |
+| `--mac-type` | option | `Hex` | MAC encoding. |
+| `--input-type` | option | `Raw` | Read the input as `Raw` bytes or `Hex`. |
+| `--algorithm` | option | `GOST 28147 (1989)` | Block-cipher variant. |
+| `--sbox` | option | `E-TEST` | Paramset S-box (GOST 28147-89 only). |
+
+**Simple example**
+
+```bash
+cchef gost-verify -i "The quick brown fox" --key 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff --iv 0011223344556677 --mac ccd815bc --algorithm "GOST 28147 (1989)" --sbox E-A
+```
+
+Output:
+
+```
+The signature matches
 ```
 
 ---

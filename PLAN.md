@@ -102,7 +102,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 265
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 272
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -115,7 +115,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **265 operations** (`internal/ops/`), each a faithful port with tests
+- **272 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -259,7 +259,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **262 unique** CyberChef operations are covered (261 directly plus
+Currently **269 unique** CyberChef operations are covered (268 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -351,7 +351,7 @@ Currently **262 unique** CyberChef operations are covered (261 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (52/94)
+### Encryption / Encoding (58/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -393,12 +393,12 @@ Currently **262 unique** CyberChef operations are covered (261 directly plus
 - [x] Flask Session Sign
 - [x] Flask Session Verify
 - [x] From Morse Code
-- [ ] GOST Decrypt
-- [ ] GOST Encrypt
-- [ ] GOST Key Unwrap
-- [ ] GOST Key Wrap
-- [ ] GOST Sign
-- [ ] GOST Verify
+- [x] GOST Decrypt
+- [x] GOST Encrypt
+- [x] GOST Key Unwrap
+- [x] GOST Key Wrap
+- [x] GOST Sign
+- [x] GOST Verify
 - [ ] JWT Decode
 - [ ] JWT Sign
 - [ ] JWT Verify
@@ -684,7 +684,7 @@ Currently **262 unique** CyberChef operations are covered (261 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (17/50)
+### Hashing (18/50)
 
 - [x] Adler-32 Checksum
 - [ ] Analyse hash
@@ -709,7 +709,7 @@ Currently **262 unique** CyberChef operations are covered (261 directly plus
 - [ ] Fletcher-8 Checksum
 - [ ] Generate all checksums
 - [ ] Generate all hashes
-- [ ] GOST Hash
+- [x] GOST Hash
 - [x] HAS-160
 - [x] HMAC
 - [x] Keccak
