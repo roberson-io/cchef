@@ -75,7 +75,9 @@ Classic ciphers and bitwise operations.
 | RC6 Encrypt | `rc6-encrypt` | [RC6](https://wikipedia.org/wiki/RC6) |
 | ROR13 | `ror13` | [Circular shift](https://wikipedia.org/wiki/Circular_shift) |
 | ROT13 | `rot13` | [ROT13](https://wikipedia.org/wiki/ROT13) |
+| ROT13 Brute Force | `rot13-brute-force` | [ROT13](https://wikipedia.org/wiki/ROT13) |
 | ROT47 | `rot47` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
+| ROT47 Brute Force | `rot47-brute-force` | [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants) |
 | ROT8000 | `rot8000` | [ROT8000](https://rot8000.com/info) |
 | Rabbit | `rabbit` | [Rabbit (cipher)](https://wikipedia.org/wiki/Rabbit_(cipher)) |
 | Rail Fence Cipher Decode | `rail-fence-cipher-decode` | [Rail fence cipher](https://wikipedia.org/wiki/Rail_fence_cipher) |
@@ -2786,6 +2788,40 @@ nop 456
 
 ---
 
+## ROT13 Brute Force
+
+Reference: [ROT13](https://wikipedia.org/wiki/ROT13)
+
+Tries every meaningful ROT13 rotation (amounts 1–25) and prints each result,
+optionally filtered to those containing a known-plaintext `Crib`. You choose which
+character classes rotate (lower/upper/digits), and can sample a slice of the input.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rotate-lower-case-chars` | boolean | `true` | Rotate `a`–`z`. |
+| `--rotate-upper-case-chars` | boolean | `true` | Rotate `A`–`Z`. |
+| `--rotate-numbers` | boolean | `false` | Rotate `0`–`9`. |
+| `--sample-length` | number | `100` | Bytes of input to try. |
+| `--sample-offset` | number | `0` | Offset into the input to sample from. |
+| `--print-amount` | boolean | `true` | Prefix each line with `Amount = NN:`. |
+| `--crib-known-plaintext-string` | string | (empty) | Only show results containing this text. |
+
+**Simple example**
+
+```bash
+cchef rot13-brute-force -i "Uryyb Jbeyq" --crib-known-plaintext-string hello
+```
+
+Output:
+
+```
+Amount = 13: Hello World
+```
+
+---
+
 ## ROT47
 
 A variant of the Caesar cipher covering printable ASCII characters from `!` (33)
@@ -2807,6 +2843,38 @@ Output:
 
 ```
 w6==@[ (@C=5P
+```
+
+---
+
+## ROT47 Brute Force
+
+Reference: [ROT13 variants](https://wikipedia.org/wiki/ROT13#Variants)
+
+Tries every meaningful ROT47 rotation (amounts 1–93) over printable ASCII and
+prints each result, optionally filtered to those containing a known-plaintext
+`Crib`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--sample-length` | number | `100` | Bytes of input to try. |
+| `--sample-offset` | number | `0` | Offset into the input to sample from. |
+| `--print-amount` | boolean | `true` | Prefix each line with `Amount = NN:`. |
+| `--crib-known-plaintext-string` | string | (empty) | Only show results containing this text. |
+
+**Simple example** — the crib `test` matches two rotations:
+
+```bash
+cchef rot47-brute-force -i "E6DE >6DD286" --crib-known-plaintext-string test
+```
+
+Output:
+
+```
+Amount = 15: TEST MESSAGE
+Amount = 47: test message
 ```
 
 ---
