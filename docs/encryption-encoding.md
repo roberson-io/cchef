@@ -96,6 +96,8 @@ Classic ciphers and bitwise operations.
 | To Morse Code | `to-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
+| Twofish Decrypt | `twofish-decrypt` | [Twofish](https://wikipedia.org/wiki/Twofish) |
+| Twofish Encrypt | `twofish-encrypt` | [Twofish](https://wikipedia.org/wiki/Twofish) |
 | XOR | `xor` | [XOR](https://wikipedia.org/wiki/XOR) |
 | XOR Brute Force | `xor-brute-force` | [Exclusive or](https://wikipedia.org/wiki/Exclusive_or) |
 | XSalsa20 | `xsalsa20` | [XSalsa20](https://en.wikipedia.org/wiki/Salsa20#XSalsa20_with_192-bit_nonce) |
@@ -3555,6 +3557,76 @@ Output:
 
 ```
 6e4f4b9ecdeea4f3757574f02960c9a840a57a0332192c83
+```
+
+---
+
+## Twofish Decrypt
+
+Reference: [Twofish](https://wikipedia.org/wiki/Twofish)
+
+Decrypts with the Twofish block cipher (an AES finalist by Bruce Schneier). The
+key is 16, 24 or 32 bytes and the IV is 16 bytes. `CBC`/`ECB` expect the padding
+scheme the ciphertext was produced with; `CFB`, `OFB` and `CTR` are stream modes.
+See [Twofish Encrypt](#twofish-encrypt) for the option details; the flags are
+identical apart from the `--input-format`/`--output-format` defaults.
+
+**Simple example** — decipher a CBC ciphertext back to text:
+
+```bash
+cchef twofish-decrypt -i "d53d64a6fb51288e518e4ae1dae02e9b" --key 0123456789abcdeffedcba9876543210 --iv 000102030405060708090a0b0c0d0e0f --mode CBC --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
+Hello, Twofish!
+```
+
+---
+
+## Twofish Encrypt
+
+Reference: [Twofish](https://wikipedia.org/wiki/Twofish)
+
+Encrypts with the Twofish block cipher, an AES finalist designed by Bruce
+Schneier. It uses 128-bit blocks with a 128-, 192- or 256-bit key over 16 rounds
+of a Feistel network. `CBC`/`ECB` apply the chosen padding scheme (PKCS#7 by
+default); `CFB`, `OFB` and `CTR` are stream modes that need no padding.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16-, 24- or 32-byte key (`Hex`, `UTF8`, `Latin1` or `Base64`). |
+| `--iv` / `--iv-type` | toggleString | `Hex` | 16-byte IV (unused in ECB mode). |
+| `--mode` | option | `CBC` | `CBC`, `CFB`, `OFB`, `CTR` or `ECB`. |
+| `--input-format` | option | `Raw` | Read the input as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the output as `Hex` or `Raw`. |
+| `--padding` | option | `PKCS5` | Padding for CBC/ECB: `PKCS5`, `NO`, `ZERO`, `RANDOM` or `BIT`. |
+
+**Simple example**
+
+```bash
+cchef twofish-encrypt -i "Hello, Twofish!" --key 0123456789abcdeffedcba9876543210 --iv 000102030405060708090a0b0c0d0e0f --mode CBC
+```
+
+Output:
+
+```
+d53d64a6fb51288e518e4ae1dae02e9b
+```
+
+**Complex example** — a 256-bit key in ECB mode with PKCS#5 padding:
+
+```bash
+cchef twofish-encrypt -i "The quick brown fox" --key 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f --mode ECB --padding PKCS5
+```
+
+Output:
+
+```
+83340180bf5365a5b25bf926d47e85e6b6ed4ed5e8df4839653f0fff236e1ddb
 ```
 
 ---

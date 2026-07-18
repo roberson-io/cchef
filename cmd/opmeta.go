@@ -385,6 +385,8 @@ var opCategories = map[string][]string{
 	"Translate DateTime Format":          {catDateTime},
 	"Triple DES Decrypt":                 {catEncryptionEncoding},
 	"Triple DES Encrypt":                 {catEncryptionEncoding},
+	"Twofish Decrypt":                    {catEncryptionEncoding},
+	"Twofish Encrypt":                    {catEncryptionEncoding},
 	"UNIX Timestamp to Windows Filetime": {catDateTime},
 	"URL Decode":                         {catDataFormat, catNetworking},
 	"Unescape Unicode Characters":        {catDataFormat, catLanguage},
