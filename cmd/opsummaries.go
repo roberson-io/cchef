@@ -174,6 +174,7 @@ var opSummaries = map[string]string{
 	"Twofish Decrypt":                "Decrypt with the Twofish block cipher (AES finalist)",
 	"Twofish Encrypt":                "Encrypt with the Twofish block cipher (AES finalist)",
 	"Typex":                          "Encipher/decipher with the WW2 Typex machine",
+	"ECDSA Verify":                   "Verify an ECDSA signature with an EC public key",
 	"Vigenère Decode":                "Decrypt with the Vigenère polyalphabetic cipher",
 	"Vigenère Encode":                "Encrypt with the Vigenère polyalphabetic cipher",
 	"Swap endianness":                "Reverses byte order within each word",

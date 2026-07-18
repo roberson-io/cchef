@@ -205,6 +205,23 @@ against the upstream Ciphers.mjs fixtures plus a broad oracle sweep (320
 comparisons + 160 Encrypt→Decrypt round trips over random keys and mixed
 case/punctuation/digit inputs). This completes the Encryption / Encoding category.
 
+Note: **ECDSA Sign / ECDSA Verify / ECDSA Signature Conversion / Generate ECDSA
+Key Pair** (Public Key) are a from-scratch port of CyberChef's `jsrsasign`-backed
+operations, built entirely on the Go **standard library**
+(`crypto/ecdsa`/`elliptic`/`x509`, `encoding/pem`/`asn1`/`base64`) — **no new
+dependency** (`internal/ops/ecdsa.go`). The signature-format helpers replicate
+jsrsasign's exact string algorithms (ASN.1 ↔ P1363 ↔ JWS base64url ↔ `{r,s}` JSON,
+including its curve-length heuristics and Raw-JSON leading-zero preservation), and
+Generate matches jsrsasign's PEM/DER(scalar-hex)/JWK output shapes over P-256/384/521.
+Verified against the upstream fixtures plus a broad oracle cross-compatibility
+sweep (byte-exact Signature Conversion; cchef↔oracle cross-verify across all five
+digests incl. SHA-1/MD5; Generate keys interoperable both directions). Sign and
+Generate are non-deterministic (random nonce/key), so they are validated by
+round-trip and cross-verification rather than byte-equality. One documented
+divergence: for the **Hex/Base64 message formats**, CyberChef re-UTF-8-encodes the
+decoded bytes (double-encoding bytes ≥ 0x80); cchef hashes the raw decoded bytes,
+which matches the oracle for all text and keeps Sign/Verify self-consistent.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -245,7 +262,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 308
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 312
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -258,7 +275,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **308 operations** (`internal/ops/`), each a faithful port with tests
+- **312 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -413,7 +430,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **305 unique** CyberChef operations are covered (304 directly plus
+Currently **309 unique** CyberChef operations are covered (308 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -602,12 +619,12 @@ Currently **305 unique** CyberChef operations are covered (304 directly plus
 - [x] XXTEA Decrypt
 - [x] XXTEA Encrypt
 
-### Public Key (4/31)
+### Public Key (8/31)
 
-- [ ] ECDSA Sign
-- [ ] ECDSA Signature Conversion
-- [ ] ECDSA Verify
-- [ ] Generate ECDSA Key Pair
+- [x] ECDSA Sign
+- [x] ECDSA Signature Conversion
+- [x] ECDSA Verify
+- [x] Generate ECDSA Key Pair
 - [ ] Generate PGP Key Pair
 - [ ] Generate RSA Key Pair
 - [ ] Hex to Object Identifier
