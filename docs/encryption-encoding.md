@@ -56,6 +56,9 @@ Classic ciphers and bitwise operations.
 | GOST Key Wrap | `gost-key-wrap` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
 | GOST Sign | `gost-sign` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
 | GOST Verify | `gost-verify` | [GOST (block cipher)](https://wikipedia.org/wiki/GOST_(block_cipher)) |
+| JWT Decode | `jwt-decode` | [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token) |
+| JWT Sign | `jwt-sign` | [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token) |
+| JWT Verify | `jwt-verify` | [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token) |
 | Lorenz | `lorenz` | [Lorenz cipher](https://wikipedia.org/wiki/Lorenz_cipher) |
 | Multiple Bombe | `multiple-bombe` | [Bombe](https://wikipedia.org/wiki/Bombe) |
 | NOT | `not` | [Bitwise NOT](https://wikipedia.org/wiki/Bitwise_operation#NOT) |
@@ -2066,6 +2069,109 @@ Output:
 
 ```
 The signature matches
+```
+
+---
+
+## JWT Decode
+
+Reference: [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token)
+
+Decodes a JSON Web Token and returns its payload **without** verifying the
+signature. Use [JWT Verify](#jwt-verify) to check the signature as well. Takes no
+options.
+
+**Simple example**
+
+```bash
+cchef jwt-decode -i "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJTdHJpbmciOiJTb21lU3RyaW5nIiwiTnVtYmVyIjo0MiwiaWF0IjoxfQ.0ha6-j4FwvEIKPVZ-hf3S_R9Hy_UtXzq4dnedXcUrXk"
+```
+
+Output:
+
+```
+{
+    "String": "SomeString",
+    "Number": 42,
+    "iat": 1
+}
+```
+
+---
+
+## JWT Sign
+
+Reference: [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token)
+
+Signs a JSON object as a JSON Web Token. The key is the shared secret for the
+HMAC (`HS*`) algorithms, or a PEM-encoded private key for the RSA (`RS*`) and
+ECDSA (`ES*`) algorithms; `None` produces an unsigned token. When the payload has
+no `iat` claim, the current Unix time is added as one (matching CyberChef), so
+tokens for the same input vary over time unless you supply `iat` yourself.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--privatesecret-key` | string | `secret` | HMAC secret or PEM-encoded private key. |
+| `--signing-algorithm` | option | `HS256` | One of `HS256/384/512`, `RS256/384/512`, `ES256/384/512`, `None`. |
+| `--header` | string | `{}` | Extra JWT header fields, as a JSON object. |
+
+**Simple example**
+
+```bash
+cchef jwt-sign -i '{"user":"admin","iat":1}' --privatesecret-key secret_cat
+```
+
+Output:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4iLCJpYXQiOjF9.3GOQ7aWeGeTJEkIRMXuErxG55jgXsvTQW-RZQRc5n_E
+```
+
+**Complex example** — HS512 with a custom `kid` header field:
+
+```bash
+cchef jwt-sign -i '{"user":"admin","iat":1}' --privatesecret-key secret_cat --signing-algorithm HS512 --header '{"kid":"key-1"}'
+```
+
+Output:
+
+```
+eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCIsImtpZCI6ImtleS0xIn0.eyJ1c2VyIjoiYWRtaW4iLCJpYXQiOjF9.UyxlWcBvMBa_PCnytzP0ZYP1hdh11zR5uy1wdgy6kGjdfkDiXvLsIDxS_-3TxtGyiN37QSr_IIoNDQXE7Ja44Q
+```
+
+---
+
+## JWT Verify
+
+Reference: [JSON Web Token](https://wikipedia.org/wiki/JSON_Web_Token)
+
+Verifies that a JSON Web Token is valid and was signed with the provided key,
+then returns its payload. The key is the shared secret for HMAC algorithms or a
+PEM-encoded public key for RSA and ECDSA. Verification fails if the signature does
+not match or the token has expired (`exp`) or is not yet active (`nbf`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--publicsecret-key` | string | `secret` | HMAC secret or PEM-encoded public key. |
+
+**Simple example**
+
+```bash
+cchef jwt-verify -i "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJTdHJpbmciOiJTb21lU3RyaW5nIiwiTnVtYmVyIjo0MiwiaWF0IjoxfQ.0ha6-j4FwvEIKPVZ-hf3S_R9Hy_UtXzq4dnedXcUrXk" --publicsecret-key secret_cat
+```
+
+Output:
+
+```
+{
+    "String": "SomeString",
+    "Number": 42,
+    "iat": 1
+}
 ```
 
 ---
