@@ -90,6 +90,7 @@ Classic ciphers and bitwise operations.
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
 | Salsa20 | `salsa20` | [Salsa20](https://wikipedia.org/wiki/Salsa20) |
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
+| Substitute | `substitute` | [Substitution cipher](https://wikipedia.org/wiki/Substitution_cipher) |
 | To Morse Code | `to-morse-code` | [Morse code](https://wikipedia.org/wiki/Morse_code) |
 | Triple DES Decrypt | `triple-des-decrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
 | Triple DES Encrypt | `triple-des-encrypt` | [Triple DES](https://wikipedia.org/wiki/Triple_DES) |
@@ -3331,6 +3332,51 @@ Output:
 
 ```
 fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640
+```
+
+---
+
+## Substitute
+
+Reference: [Substitution cipher](https://wikipedia.org/wiki/Substitution_cipher)
+
+A substitution cipher: each byte listed in `Plaintext` is replaced by the byte at
+the same position in `Ciphertext`. Any byte value can be mapped (not just letters,
+and not necessarily in order), so this generalises Caesar-style ciphers. Byte
+ranges use a hyphen (`0-9` means `0123456789`), and non-printable bytes use string
+escapes (`\n`, `\x0a`); escape a literal backslash as `\\`. If the two fields
+differ in length, a warning is prepended and only the overlapping mappings apply.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--plaintext` | string | `ABCDEFGHIJKLMNOPQRSTUVWXYZ` | Bytes to replace (ranges/escapes allowed). |
+| `--ciphertext` | string | `XYZABCDEFGHIJKLMNOPQRSTUVW` | Replacement bytes, positionally matched. |
+| `--ignore-case` | boolean | `false` | Match keys case-insensitively, preserving the input's case in the output. |
+
+**Simple example** — the defaults shift each letter back by three (A→X, B→Y, …):
+
+```bash
+cchef substitute -i "HELLO"
+```
+
+Output:
+
+```
+EBIIL
+```
+
+**Complex example** — a case-insensitive ROT13 map preserves the input casing:
+
+```bash
+cchef substitute -i "Attack at dawn" --plaintext "ABCDEFGHIJKLMNOPQRSTUVWXYZ" --ciphertext "NOPQRSTUVWXYZABCDEFGHIJKLM" --ignore-case
+```
+
+Output:
+
+```
+Nggnpx ng qnja
 ```
 
 ---

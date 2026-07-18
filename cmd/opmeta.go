@@ -339,6 +339,7 @@ var opCategories = map[string][]string{
 	"Strip IPv4 header":                  {catNetworking},
 	"Strip TCP header":                   {catNetworking},
 	"Strip UDP header":                   {catNetworking},
+	"Substitute":                         {catEncryptionEncoding},
 	"Subtract":                           {catArithmeticLogic},
 	"Sum":                                {catArithmeticLogic},
 	"Swap case":                          {catUtils},

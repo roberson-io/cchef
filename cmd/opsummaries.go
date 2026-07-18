@@ -164,6 +164,7 @@ var opSummaries = map[string]string{
 	"Strip IPv4 header":              "Strips the IPv4 header, outputting the payload",
 	"Strip TCP header":               "Strips the TCP header, outputting the payload",
 	"Strip UDP header":               "Strips the UDP header, outputting the payload",
+	"Substitute":                     "Substitution cipher mapping bytes to other bytes",
 	"Swap endianness":                "Reverses byte order within each word",
 	"XSalsa20":                       "XSalsa20 stream cipher (24-byte nonce)",
 	"Take bytes":                     "Keeps a range of bytes from the input",
