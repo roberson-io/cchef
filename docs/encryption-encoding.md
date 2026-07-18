@@ -85,6 +85,8 @@ Classic ciphers and bitwise operations.
 | Rotate left | `rotate-left` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | Rotate right | `rotate-right` | [Bit shifts](https://wikipedia.org/wiki/Bitwise_operation#Bit_shifts) |
 | SIGABA | `sigaba` | [SIGABA](https://wikipedia.org/wiki/SIGABA) |
+| SM4 Decrypt | `sm4-decrypt` | [SM4 (cipher)](https://wikipedia.org/wiki/SM4_(cipher)) |
+| SM4 Encrypt | `sm4-encrypt` | [SM4 (cipher)](https://wikipedia.org/wiki/SM4_(cipher)) |
 | SUB | `sub` | [Bitwise operation](https://wikipedia.org/wiki/Bitwise_operation#Bitwise_operators) |
 | Salsa20 | `salsa20` | [Salsa20](https://wikipedia.org/wiki/Salsa20) |
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
@@ -3164,6 +3166,63 @@ Output:
 
 ```
 HELLO WORLD
+```
+
+---
+
+## SM4 Decrypt
+
+Reference: [SM4 (cipher)](https://wikipedia.org/wiki/SM4_(cipher))
+
+Decrypts with the SM4 block cipher (China's GB/T 32907-2016 standard, a 128-bit
+block / 128-bit key cipher). The key and IV are 16 bytes. `CBC` and `ECB` expect
+PKCS#7 padding; the `CBC/NoPadding` and `ECB/NoPadding` variants require the input
+to already be a multiple of 16 bytes. `CFB`, `OFB` and `CTR` are stream modes and
+need no padding. See [SM4 Encrypt](#sm4-encrypt) for the option details; the flags
+are identical.
+
+**Simple example** — decipher a CBC ciphertext back to text:
+
+```bash
+cchef sm4-decrypt -i "50 f9 7f f9 18 2a 5a c2 b9 a8 65 67 cf 44 e6 2a" --key 0123456789abcdeffedcba9876543210 --iv 000102030405060708090a0b0c0d0e0f --mode CBC --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
+Hello, SM4!
+```
+
+---
+
+## SM4 Encrypt
+
+Reference: [SM4 (cipher)](https://wikipedia.org/wiki/SM4_(cipher))
+
+Encrypts with the SM4 block cipher (China's GB/T 32907-2016 standard). The key and
+IV are 16 bytes (128 bits). `CBC`/`ECB` apply PKCS#7 padding; the `/NoPadding`
+variants require a block-aligned input; `CFB`/`OFB`/`CTR` are stream modes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` / `--key-type` | toggleString | `Hex` | 16-byte key (`Hex`, `UTF8`, `Latin1` or `Base64`). |
+| `--iv` / `--iv-type` | toggleString | `Hex` | 16-byte IV (unused in ECB modes). |
+| `--mode` | option | `CBC` | `CBC`, `CFB`, `OFB`, `CTR`, `ECB`, `CBC/NoPadding` or `ECB/NoPadding`. |
+| `--input-format` | option | `Raw` | Read the input as `Raw` or `Hex`. |
+| `--output-format` | option | `Hex` | Emit the output as `Hex` (space-delimited) or `Raw`. |
+
+**Simple example**
+
+```bash
+cchef sm4-encrypt -i "Hello, SM4!" --key 0123456789abcdeffedcba9876543210 --iv 000102030405060708090a0b0c0d0e0f --mode CBC
+```
+
+Output:
+
+```
+50 f9 7f f9 18 2a 5a c2 b9 a8 65 67 cf 44 e6 2a
 ```
 
 ---

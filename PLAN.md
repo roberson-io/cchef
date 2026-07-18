@@ -132,6 +132,16 @@ bare invocation is a valid machine. Byte-for-byte verified against the three
 upstream fixtures and a broad oracle sweep over varied inputs (letters, spaces,
 mixed case); the space↔`Z`/`Z`→`X` substitution and rotor stepping match exactly.
 
+Note: **SM4 Encrypt/Decrypt** are a from-scratch pure-Go port of CyberChef's
+self-contained SM4 engine (`internal/ops/sm4engine.go`) — **no new dependency** —
+implementing the GB/T 32907-2016 cipher and the IETF draft-ribose-cfrg-sm4-09 block
+modes (ECB/CBC with PKCS#7 or NoPadding, and CFB/OFB/CTR, the CTR counter added to
+the low 32-bit word as upstream does). Both ops share the engine. Byte-for-byte
+verified against the upstream draft-ribose fixtures and a broad oracle sweep over
+all modes and input lengths (with round-trip decryption). The block loops guard
+against a short final read so a degenerate misaligned NoPadding input can't panic
+(CyberChef reads past the array and emits NaN garbage there instead).
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -172,7 +182,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 294
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 296
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -185,7 +195,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **294 operations** (`internal/ops/`), each a faithful port with tests
+- **296 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -340,7 +350,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **291 unique** CyberChef operations are covered (290 directly plus
+Currently **293 unique** CyberChef operations are covered (292 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -432,7 +442,7 @@ Currently **291 unique** CyberChef operations are covered (290 directly plus
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (80/94)
+### Encryption / Encoding (82/94)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -508,8 +518,8 @@ Currently **291 unique** CyberChef operations are covered (290 directly plus
 - [x] Salsa20
 - [x] Scrypt
 - [x] SIGABA
-- [ ] SM4 Decrypt
-- [ ] SM4 Encrypt
+- [x] SM4 Decrypt
+- [x] SM4 Encrypt
 - [ ] Substitute
 - [ ] TEA Decrypt
 - [ ] TEA Encrypt
