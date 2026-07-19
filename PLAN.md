@@ -65,6 +65,13 @@ fixture cases for parity, and keeps external dependencies minimal:
   the RSA-min-size / ECDSA-curve precondition error messages. Signing is
   non-deterministic where `jsonwebtoken` is (auto-`iat`, randomized `ES*`), so
   those cases round-trip through Decode; HS/RS tokens are verified byte-exact.
+- `github.com/ProtonMail/go-crypto` — backs the seven **PGP** operations (CyberChef
+  wraps the `kbpgp` npm library, which has no logic to port). The maintained,
+  ProtonMail-backed OpenPGP library; its one transitive dependency
+  `github.com/cloudflare/circl` (Cloudflare-backed) is pinned to ≥ v1.6.3 to avoid
+  GO-2026-4550. Fully interoperable with kbpgp: cchef reads/writes messages and
+  keys that round-trip against the CyberChef-server oracle in both directions,
+  across RSA and NIST-curve ECC keys.
 
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
@@ -222,6 +229,19 @@ divergence: for the **Hex/Base64 message formats**, CyberChef re-UTF-8-encodes t
 decoded bytes (double-encoding bytes ≥ 0x80); cchef hashes the raw decoded bytes,
 which matches the oracle for all text and keeps Sign/Verify self-consistent.
 
+Note: **PGP Encrypt/Decrypt, PGP Sign/Verify, PGP Encrypt and Sign, PGP Decrypt
+and Verify, and Generate PGP Key Pair** (7 ops, Public Key) port CyberChef's
+`kbpgp`-backed operations onto the maintained `github.com/ProtonMail/go-crypto`
+OpenPGP library (`internal/ops/pgp.go`) — a **new dependency** (with a
+Cloudflare-backed `circl` transitive dep). kbpgp's exact OpenPGP output is not
+reproduced byte-for-byte (ASCII-armor headers and generated-key subkey structure
+differ), but full interoperability holds: cchef decrypts/verifies the upstream
+fixtures byte-exact (including the signer key ID, fingerprint and signing time in
+the verify report), and an oracle sweep confirms bidirectional round-trips
+(cchef↔kbpgp encrypt/decrypt, sign/verify, encrypt+sign/decrypt+verify, and
+cchef-generated RSA/ECC keys usable by kbpgp). Generate and the encrypt/sign ops
+are non-deterministic, so they are validated by round-trip and cross-verification.
+
 ### Dependency policy and planned reductions
 
 **Policy.** `golang.org/x/*` modules and libraries with large-organization
@@ -262,7 +282,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 312
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 319
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -275,7 +295,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **312 operations** (`internal/ops/`), each a faithful port with tests
+- **319 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -430,7 +450,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **309 unique** CyberChef operations are covered (308 directly plus
+Currently **316 unique** CyberChef operations are covered (315 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -619,13 +639,13 @@ Currently **309 unique** CyberChef operations are covered (308 directly plus
 - [x] XXTEA Decrypt
 - [x] XXTEA Encrypt
 
-### Public Key (8/31)
+### Public Key (15/31)
 
 - [x] ECDSA Sign
 - [x] ECDSA Signature Conversion
 - [x] ECDSA Verify
 - [x] Generate ECDSA Key Pair
-- [ ] Generate PGP Key Pair
+- [x] Generate PGP Key Pair
 - [ ] Generate RSA Key Pair
 - [ ] Hex to Object Identifier
 - [x] Hex to PEM
@@ -638,12 +658,12 @@ Currently **309 unique** CyberChef operations are covered (308 directly plus
 - [ ] Parse X.509 CRL
 - [x] PEM to Hex
 - [ ] PEM to JWK
-- [ ] PGP Decrypt
-- [ ] PGP Decrypt and Verify
-- [ ] PGP Encrypt
-- [ ] PGP Encrypt and Sign
-- [ ] PGP Sign
-- [ ] PGP Verify
+- [x] PGP Decrypt
+- [x] PGP Decrypt and Verify
+- [x] PGP Encrypt
+- [x] PGP Encrypt and Sign
+- [x] PGP Sign
+- [x] PGP Verify
 - [ ] Public Key from Certificate
 - [ ] Public Key from Private Key
 - [ ] RSA Decrypt

@@ -1,12 +1,18 @@
 # Public Key
 
-Operations for public-key cryptography material — ECDSA keys and signatures,
-certificates, and the ASN.1 structures they are built from.
+Operations for public-key cryptography material — ECDSA and PGP keys, signatures
+and messages, certificates, and the ASN.1 structures they are built from.
 
-The ECDSA operations are documented in full below. The ASN.1, PEM and hex
+The ECDSA and PGP operations are documented in full below. The ASN.1, PEM and hex
 operations also belong to [Data format](data-format.md), and
 [Parse SSH Host Key](networking.md#parse-ssh-host-key) to
 [Networking](networking.md), where their detailed descriptions live.
+
+The PGP operations are backed by the maintained
+[ProtonMail go-crypto](https://github.com/ProtonMail/go-crypto) OpenPGP library,
+and interoperate with CyberChef's Keybase (`kbpgp`) implementation. Output is not
+byte-identical to CyberChef (ASCII-armor headers and key structure differ), but
+messages and keys round-trip in both directions.
 
 > Operations are listed alphabetically.
 
@@ -16,8 +22,15 @@ operations also belong to [Data format](data-format.md), and
 | ECDSA Signature Conversion | `ecdsa-signature-conversion` | [ECDSA](https://wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 | ECDSA Verify | `ecdsa-verify` | [ECDSA](https://wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 | Generate ECDSA Key Pair | `generate-ecdsa-key-pair` | [ECDSA](https://wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
+| Generate PGP Key Pair | `generate-pgp-key-pair` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | Hex to PEM | `hex-to-pem` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | PEM to Hex | `pem-to-hex` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| PGP Decrypt | `pgp-decrypt` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
+| PGP Decrypt and Verify | `pgp-decrypt-and-verify` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
+| PGP Encrypt | `pgp-encrypt` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
+| PGP Encrypt and Sign | `pgp-encrypt-and-sign` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
+| PGP Sign | `pgp-sign` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
+| PGP Verify | `pgp-verify` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | Parse ASN.1 hex string | `parse-asn1-hex-string` | [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One) |
 | Parse SSH Host Key | `parse-ssh-host-key` | [SSH](https://wikipedia.org/wiki/Secure_Shell) |
 
@@ -147,3 +160,197 @@ Output (a fresh random private scalar, differing each run):
 ```
 bfb723360863d8a402b52a75ff90540c41412d36457320915634f66d5316498b
 ```
+
+---
+
+## Generate PGP Key Pair
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Generates a fresh random PGP key pair (private key block followed by public key
+block). RSA and NIST-curve ECC keys are supported. Optionally protect the private
+key with a password and attach a name/email user ID.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key-type` | option | `RSA-1024` | `RSA-1024/2048/4096` or `ECC-256/384/521`. |
+| `--password-optional` | string | (empty) | Passphrase to encrypt the private key. |
+| `--name-optional` | string | (empty) | User-ID name. |
+| `--email-optional` | string | (empty) | User-ID email. |
+
+**Simple example**
+
+```bash
+cchef generate-pgp-key-pair --key-type ECC-256 --name-optional Alice --email-optional alice@example.com > keypair.asc
+```
+
+The output contains a `PGP PRIVATE KEY BLOCK` then a `PGP PUBLIC KEY BLOCK` (fresh
+random keys, differing each run). Split them into `priv.asc` / `pub.asc` for the
+operations below.
+
+---
+
+## PGP Encrypt
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Encrypts the input to a recipient using their ASCII-armoured PGP public key,
+producing an armoured `PGP MESSAGE`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--public-key-of-recipient` | string | (empty) | The recipient's armoured public key. |
+
+**Simple example**
+
+```bash
+echo -n "secret message" | cchef pgp-encrypt --public-key-of-recipient "$(cat pub.asc)"
+```
+
+Output is an armoured `-----BEGIN PGP MESSAGE-----` block (differs each run).
+Decrypt it with [PGP Decrypt](#pgp-decrypt) and the matching private key.
+
+---
+
+## PGP Decrypt
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Decrypts an armoured `PGP MESSAGE` with the recipient's private key, unlocking it
+with the passphrase if the key is protected.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--private-key-of-recipient` | string | (empty) | The recipient's armoured private key. |
+| `--private-key-passphrase` | string | (empty) | Passphrase, if the key is encrypted. |
+
+**Simple example**
+
+```bash
+cchef pgp-decrypt --private-key-of-recipient "$(cat priv.asc)" --in-file message.asc
+```
+
+Output:
+
+```
+secret message
+```
+
+---
+
+## PGP Sign
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Signs the input with the signer's private key, producing an armoured signed
+`PGP MESSAGE` (verify it with [PGP Verify](#pgp-verify)).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--private-key-of-signer` | string | (empty) | The signer's armoured private key. |
+| `--private-key-passphrase-optional` | string | (empty) | Passphrase, if the key is encrypted. |
+
+**Simple example**
+
+```bash
+echo -n "signed message" | cchef pgp-sign --private-key-of-signer "$(cat priv.asc)"
+```
+
+Output is an armoured `PGP MESSAGE` containing the message and its signature.
+
+---
+
+## PGP Verify
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Verifies a signed `PGP MESSAGE` against the signer's public key, printing the
+signer details and the message.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--public-key-of-signer` | string | (empty) | The signer's armoured public key. |
+
+**Simple example**
+
+```bash
+cchef pgp-verify --public-key-of-signer "$(cat pub.asc)" --in-file signed.asc
+```
+
+Output (key ID, fingerprint and time vary by key and signing moment):
+
+```
+Signed by Alice <alice@example.com>
+PGP key ID: DC8753A6
+PGP fingerprint: 6c36ee8a3bc8414b1fae3d4289371858dc8753a6
+Signed on Sun, 19 Jul 2026 00:27:21 GMT
+----------------------------------
+signed message
+```
+
+---
+
+## PGP Encrypt and Sign
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Encrypts the input to a recipient **and** signs it with the sender's private key
+in one armoured `PGP MESSAGE`. Decrypt and check the signature with
+[PGP Decrypt and Verify](#pgp-decrypt-and-verify).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--private-key-of-signer` | string | (empty) | The sender's armoured private key. |
+| `--private-key-passphrase` | string | (empty) | Passphrase, if the signer's key is encrypted. |
+| `--public-key-of-recipient` | string | (empty) | The recipient's armoured public key. |
+
+**Simple example**
+
+```bash
+echo -n "secret and signed" | cchef pgp-encrypt-and-sign \
+    --private-key-of-signer "$(cat sender-priv.asc)" \
+    --public-key-of-recipient "$(cat recipient-pub.asc)"
+```
+
+Output is an armoured, encrypted-and-signed `PGP MESSAGE`.
+
+---
+
+## PGP Decrypt and Verify
+
+Reference: [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy)
+
+Decrypts an encrypted-and-signed `PGP MESSAGE` with the recipient's private key
+and verifies the sender's signature, printing the signer details and the message.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--public-key-of-signer` | string | (empty) | The sender's armoured public key. |
+| `--private-key-of-recipient` | string | (empty) | The recipient's armoured private key. |
+| `--private-key-password` | string | (empty) | Passphrase, if the recipient's key is encrypted. |
+
+**Simple example**
+
+```bash
+cchef pgp-decrypt-and-verify \
+    --public-key-of-signer "$(cat sender-pub.asc)" \
+    --private-key-of-recipient "$(cat recipient-priv.asc)" \
+    --in-file message.asc
+```
+
+The output is the same "Signed by …" report as [PGP Verify](#pgp-verify),
+followed by the decrypted message.
