@@ -1,12 +1,22 @@
 # Public Key
 
-Operations for public-key cryptography material — ECDSA and PGP keys, signatures
-and messages, certificates, and the ASN.1 structures they are built from.
+Operations for public-key cryptography material — RSA, ECDSA and PGP keys,
+signatures and messages, certificates, and the ASN.1 structures they are built
+from.
 
-The ECDSA and PGP operations are documented in full below. The ASN.1, PEM and hex
-operations also belong to [Data format](data-format.md), and
+The RSA, ECDSA and PGP operations are documented in full below. The ASN.1, PEM and
+hex operations also belong to [Data format](data-format.md), and
 [Parse SSH Host Key](networking.md#parse-ssh-host-key) to
 [Networking](networking.md), where their detailed descriptions live.
+
+The RSA and ECDSA operations are backed by the Go standard library
+(`crypto/rsa`, `crypto/x509`); CyberChef backs them with node-forge and jsrsasign.
+Standard signatures (RSASSA-PKCS1-v1.5) and the RAW scheme are byte-identical to
+CyberChef; OAEP/PKCS#1 v1.5 encryption is randomised, so ciphertext differs each
+run but round-trips both ways. Two RSA fidelity notes: password-protected private
+keys are supported for PKCS#1 (legacy PEM) but not PKCS#8-encrypted keys, and the
+`Generate → JSON` output uses cchef's own key-parameter shape rather than
+node-forge's internal serialization.
 
 The PGP operations are backed by the maintained
 [ProtonMail go-crypto](https://github.com/ProtonMail/go-crypto) OpenPGP library,
@@ -23,6 +33,7 @@ messages and keys round-trip in both directions.
 | ECDSA Verify | `ecdsa-verify` | [ECDSA](https://wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 | Generate ECDSA Key Pair | `generate-ecdsa-key-pair` | [ECDSA](https://wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 | Generate PGP Key Pair | `generate-pgp-key-pair` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
+| Generate RSA Key Pair | `generate-rsa-key-pair` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | Hex to PEM | `hex-to-pem` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | PEM to Hex | `pem-to-hex` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | PGP Decrypt | `pgp-decrypt` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
@@ -33,6 +44,10 @@ messages and keys round-trip in both directions.
 | PGP Verify | `pgp-verify` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | Parse ASN.1 hex string | `parse-asn1-hex-string` | [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One) |
 | Parse SSH Host Key | `parse-ssh-host-key` | [SSH](https://wikipedia.org/wiki/Secure_Shell) |
+| RSA Decrypt | `rsa-decrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
+| RSA Encrypt | `rsa-encrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
+| RSA Sign | `rsa-sign` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
+| RSA Verify | `rsa-verify` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 
 For Hex to PEM, PEM to Hex, Parse ASN.1 hex string and Parse SSH Host Key, see
 [Data format](data-format.md) and [Networking](networking.md).
@@ -354,3 +369,157 @@ cchef pgp-decrypt-and-verify \
 
 The output is the same "Signed by …" report as [PGP Verify](#pgp-verify),
 followed by the decrypted message.
+
+---
+
+## RSA Encrypt
+
+Reference: [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem))
+
+Encrypts the input with a PEM-encoded RSA public key (PKCS#1 `RSA PUBLIC KEY` or
+SPKI `PUBLIC KEY`). Three schemes are offered: `RSA-OAEP` (with a selectable
+digest for the label/MGF1 hash), `RSAES-PKCS1-V1_5`, and `RAW` (textbook RSA over
+the input bytes). The ciphertext is raw bytes. OAEP and PKCS#1 v1.5 are
+randomised; RAW is deterministic.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rsa-public-key-pem` | string | (header only) | The RSA public key in PEM. |
+| `--encryption-scheme` | option | `RSA-OAEP` | `RSA-OAEP`, `RSAES-PKCS1-V1_5` or `RAW`. |
+| `--message-digest-algorithm` | option | `SHA-1` | OAEP hash: `SHA-1`, `MD5`, `SHA-256`, `SHA-384` or `SHA-512`. |
+
+**Simple example** — encrypt then decrypt, round-tripping through a pipe (with the
+public key in `pub.pem` and the private key in `priv.pem`):
+
+```bash
+echo -n "secret message" | cchef rsa-encrypt --rsa-public-key-pem "$(cat pub.pem)" --encryption-scheme RSA-OAEP --message-digest-algorithm SHA-256 | cchef rsa-decrypt --rsa-private-key-pem "$(cat priv.pem)" --encryption-scheme RSA-OAEP --message-digest-algorithm SHA-256
+```
+
+Output:
+
+```
+secret message
+```
+
+---
+
+## RSA Decrypt
+
+Reference: [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem))
+
+Decrypts an RSA-encrypted message (the input) with a PEM-encoded private key,
+using the scheme it was encrypted with. The key may be PKCS#1 (`RSA PRIVATE KEY`,
+optionally legacy-PEM-encrypted with a password) or PKCS#8 (`PRIVATE KEY`).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rsa-private-key-pem` | string | (header only) | The RSA private key in PEM. |
+| `--key-password` | string | (empty) | Password for a legacy-PEM-encrypted key. |
+| `--encryption-scheme` | option | `RSA-OAEP` | `RSA-OAEP`, `RSAES-PKCS1-V1_5` or `RAW`. |
+| `--message-digest-algorithm` | option | `SHA-1` | OAEP hash, matching the encrypt side. |
+
+See [RSA Encrypt](#rsa-encrypt) for a round-trip example. The ciphertext must be
+exactly the modulus width (e.g. 256 bytes for a 2048-bit key), or decryption fails
+with `Encrypted message length is invalid.`
+
+---
+
+## RSA Sign
+
+Reference: [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem))
+
+Signs the input message with a PEM-encoded RSA private key, producing an
+RSASSA-PKCS1-v1.5 signature (raw bytes). The signature is deterministic, so it
+matches CyberChef byte-for-byte.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rsa-private-key-pem` | string | (header only) | The RSA private key in PEM. |
+| `--key-password` | string | (empty) | Password for a legacy-PEM-encrypted key. |
+| `--message-digest-algorithm` | option | `SHA-1` | `SHA-1`, `MD5`, `SHA-256`, `SHA-384` or `SHA-512`. |
+
+**Simple example** (hex-encoding the binary signature for display):
+
+```bash
+cchef rsa-sign -i "Hello, World!" --rsa-private-key-pem "$(cat priv.pem)" --message-digest-algorithm SHA-256 | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+8d7e39505b40c05e62adac1888a9515fd9c233cb5a4741509dce1fd1938baf174301c07150afef241f9dae27f328d439cc18cff4cd774aff73f2840a9e33f2333ae05e80c84e76170906ad2a74bb19a9f6199134faa480b34c9a49bef510732643a0b2eff8f2b861c94a962f5fe3683ff5291ffc8703de7b55fe647f19b28758b9866ce5955404aac82dc60bf4465d1c6a4d3f04721dbed7c05d725f0d01966ecf1b5f50422f327f3b3299dc2de7834a240c10bf0da5c0081adfee6a7e4acbfa4bc9d109db61dd3e7344dd60a39271c5c3d3dc32cc7a3b29dcb924cadec8cb269cc207171ad78e478351ea58daeea81218043bc8095fa90b0fc14380fcd3c391
+```
+
+---
+
+## RSA Verify
+
+Reference: [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem))
+
+Verifies an RSASSA-PKCS1-v1.5 signature (the input) against a message and a
+PEM-encoded RSA public key, printing `Verified OK` or `Verification Failure`. The
+message can be given as raw text, hex or Base64.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rsa-public-key-pem` | string | (header only) | The RSA public key in PEM. |
+| `--message` | string | (empty) | The message the signature covers. |
+| `--message-format` | option | `Raw` | `Raw`, `Hex` or `Base64`. |
+| `--message-digest-algorithm` | option | `SHA-1` | The digest used when signing. |
+
+**Simple example** — verify the signature produced by [RSA Sign](#rsa-sign)
+(passed as raw bytes via `from-hex`):
+
+```bash
+cchef rsa-sign -i "Hello, World!" --rsa-private-key-pem "$(cat priv.pem)" --message-digest-algorithm SHA-256 | cchef rsa-verify --rsa-public-key-pem "$(cat pub.pem)" --message "Hello, World!" --message-format Raw --message-digest-algorithm SHA-256
+```
+
+Output:
+
+```
+Verified OK
+```
+
+---
+
+## Generate RSA Key Pair
+
+Reference: [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem))
+
+Generates a fresh RSA key pair of the chosen bit length. `PEM` emits an SPKI public
+key followed by a PKCS#1 private key; `DER` emits the raw PKCS#1 private-key DER;
+`JSON` emits the key parameters as a JSON object (cchef's own shape — hex-encoded
+integers — which differs from node-forge's).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rsa-key-length` | option | `1024` | `1024`, `2048` or `4096` bits. |
+| `--output-format` | option | `PEM` | `PEM`, `JSON` or `DER`. |
+
+**Simple example** (output is random and abbreviated here):
+
+```bash
+cchef generate-rsa-key-pair --rsa-key-length 2048 --output-format PEM
+```
+
+Output:
+
+```
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
+-----END PUBLIC KEY-----
+
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA...
+-----END RSA PRIVATE KEY-----
+```

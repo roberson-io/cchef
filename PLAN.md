@@ -229,6 +229,20 @@ divergence: for the **Hex/Base64 message formats**, CyberChef re-UTF-8-encodes t
 decoded bytes (double-encoding bytes ≥ 0x80); cchef hashes the raw decoded bytes,
 which matches the oracle for all text and keeps Sign/Verify self-consistent.
 
+Note: **RSA Encrypt / RSA Decrypt / RSA Sign / RSA Verify / Generate RSA Key Pair**
+(Public Key) are a from-scratch port of CyberChef's `node-forge`-backed operations,
+built entirely on the Go **standard library** (`crypto/rsa`/`x509`,
+`encoding/pem`, `math/big`) — **no new dependency** (`internal/ops/rsa.go`). RSA-OAEP,
+RSAES-PKCS1-V1_5 and the RAW textbook scheme (reimplemented over `math/big` to match
+forge's fixed modulus-width block, byte-exact) are all supported, across the SHA-1/
+MD5/SHA-256/384/512 digests. Signing (RSASSA-PKCS1-v1.5) is deterministic and
+byte-verified against the oracle; OAEP/PKCS#1 v1.5 encryption is randomized, so it is
+validated by round-trip and forge cross-compatibility. Private keys parse from PKCS#1
+(incl. legacy PEM encryption) and PKCS#8. Two documented divergences: PKCS#8-encrypted
+private keys are unsupported (no stdlib support without a dependency), and the
+`Generate → JSON` format uses cchef's own hex-parameter shape rather than forge's
+non-portable internal BigInteger serialization (PEM and DER are faithful).
+
 Note: **PGP Encrypt/Decrypt, PGP Sign/Verify, PGP Encrypt and Sign, PGP Decrypt
 and Verify, and Generate PGP Key Pair** (7 ops, Public Key) port CyberChef's
 `kbpgp`-backed operations onto the maintained `github.com/ProtonMail/go-crypto`
@@ -282,7 +296,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 319
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 324
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -295,7 +309,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **319 operations** (`internal/ops/`), each a faithful port with tests
+- **324 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -450,7 +464,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **316 unique** CyberChef operations are covered (315 directly plus
+Currently **321 unique** CyberChef operations are covered (320 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -639,14 +653,14 @@ Currently **316 unique** CyberChef operations are covered (315 directly plus
 - [x] XXTEA Decrypt
 - [x] XXTEA Encrypt
 
-### Public Key (15/31)
+### Public Key (20/31)
 
 - [x] ECDSA Sign
 - [x] ECDSA Signature Conversion
 - [x] ECDSA Verify
 - [x] Generate ECDSA Key Pair
 - [x] Generate PGP Key Pair
-- [ ] Generate RSA Key Pair
+- [x] Generate RSA Key Pair
 - [ ] Hex to Object Identifier
 - [x] Hex to PEM
 - [ ] JWK to PEM
@@ -666,10 +680,10 @@ Currently **316 unique** CyberChef operations are covered (315 directly plus
 - [x] PGP Verify
 - [ ] Public Key from Certificate
 - [ ] Public Key from Private Key
-- [ ] RSA Decrypt
-- [ ] RSA Encrypt
-- [ ] RSA Sign
-- [ ] RSA Verify
+- [x] RSA Decrypt
+- [x] RSA Encrypt
+- [x] RSA Sign
+- [x] RSA Verify
 - [ ] SM2 Decrypt
 - [ ] SM2 Encrypt
 
