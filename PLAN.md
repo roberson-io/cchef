@@ -296,7 +296,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 331
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 333
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -309,7 +309,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **331 operations** (`internal/ops/`), each a faithful port with tests
+- **333 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -464,7 +464,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **321 unique** CyberChef operations are covered (320 directly plus
+Currently **323 unique** CyberChef operations are covered (322 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -653,7 +653,7 @@ Currently **321 unique** CyberChef operations are covered (320 directly plus
 - [x] XXTEA Decrypt
 - [x] XXTEA Encrypt
 
-### Public Key (27/31)
+### Public Key (29/31)
 
 - [x] ECDSA Sign
 - [x] ECDSA Signature Conversion
@@ -678,8 +678,8 @@ Currently **321 unique** CyberChef operations are covered (320 directly plus
 - [x] PGP Encrypt and Sign
 - [x] PGP Sign
 - [x] PGP Verify
-- [ ] Public Key from Certificate
-- [ ] Public Key from Private Key
+- [x] Public Key from Certificate
+- [x] Public Key from Private Key
 - [x] RSA Decrypt
 - [x] RSA Encrypt
 - [x] RSA Sign

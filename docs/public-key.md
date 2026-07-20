@@ -51,6 +51,8 @@ messages and keys round-trip in both directions.
 | Parse SSH Host Key | `parse-ssh-host-key` | [SSH](https://wikipedia.org/wiki/Secure_Shell) |
 | Parse X.509 CRL | `parse-x509-crl` | [CRL](https://wikipedia.org/wiki/Certificate_revocation_list) |
 | Parse X.509 certificate | `parse-x509-certificate` | [X.509](https://wikipedia.org/wiki/X.509) |
+| Public Key from Certificate | `public-key-from-certificate` | [X.509](https://en.wikipedia.org/wiki/X.509) |
+| Public Key from Private Key | `public-key-from-private-key` | [PKCS#8](https://en.wikipedia.org/wiki/PKCS_8) |
 | RSA Decrypt | `rsa-decrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | RSA Encrypt | `rsa-encrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | RSA Sign | `rsa-sign` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
@@ -763,4 +765,64 @@ Revoked Certificates:
                 Certificate Hold
 Signature Value:
         03:1b:2b:fb:d9:c4:2d:45:...
+```
+
+---
+
+## Public Key from Certificate
+
+Reference: [X.509](https://en.wikipedia.org/wiki/X.509)
+
+Extracts the public key (the `SubjectPublicKeyInfo`) from one or more PEM X.509
+certificates and emits each as a `PUBLIC KEY` PEM block. If the input contains
+several certificates, every extracted key is returned in order. RSA, EC and DSA
+keys are supported; EdDSA (Ed25519/Ed448) certificates are rejected as an
+unsupported key type, matching CyberChef. A faithful port of CyberChef's
+jsrsasign-based operation — the output is byte-for-byte identical.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef public-key-from-certificate --in-file rsa.crt
+```
+
+Output:
+
+```
+-----BEGIN PUBLIC KEY-----
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPKr0Dp6YdItzOfk6a7ma7L4BF4LnelM
+YKtboGLrk6ihtqFPZFRLNcJi68Hvnt8stMrP50t6jqwWQ2EjMdkj6fsCAwEAAQ==
+-----END PUBLIC KEY-----
+```
+
+---
+
+## Public Key from Private Key
+
+Reference: [PKCS#8](https://en.wikipedia.org/wiki/PKCS_8)
+
+Extracts the public key from one or more PEM private keys and emits each as a
+`PUBLIC KEY` PEM block. Traditional (PKCS#1 RSA, SEC1 EC, OpenSSL DSA) and PKCS#8
+keys are accepted; for RSA and DSA the public value is read directly, and for EC
+it is derived from the private scalar. DSA keys in PKCS#8 (which omit the public
+value) and EdDSA keys are rejected, matching CyberChef. A faithful port of
+CyberChef's jsrsasign-based operation — the output is byte-for-byte identical.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef public-key-from-private-key --in-file rsa.key
+```
+
+Output:
+
+```
+-----BEGIN PUBLIC KEY-----
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPKr0Dp6YdItzOfk6a7ma7L4BF4LnelM
+YKtboGLrk6ihtqFPZFRLNcJi68Hvnt8stMrP50t6jqwWQ2EjMdkj6fsCAwEAAQ==
+-----END PUBLIC KEY-----
 ```
