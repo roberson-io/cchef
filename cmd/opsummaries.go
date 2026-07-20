@@ -153,6 +153,7 @@ var opSummaries = map[string]string{
 	"RIPEMD":                         "RIPEMD hash (128/160/256/320-bit)",
 	"SHA0":                           "The withdrawn 1993 SHA-0 (160-bit)",
 	"SHA3":                           "Computes the SHA-3 (Keccak) digest",
+	"SM3":                            "SM3 cryptographic hash (Chinese standard GM/T 0004)",
 	"SM4 Decrypt":                    "Decrypt with the SM4 block cipher (GB/T 32907-2016)",
 	"SM4 Encrypt":                    "Encrypt with the SM4 block cipher (GB/T 32907-2016)",
 	"Salsa20":                        "Salsa20 stream cipher (8-byte nonce)",

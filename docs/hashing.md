@@ -28,6 +28,7 @@ are the exceptions).
 | SHA3 | `sha3` | [SHA-3](https://wikipedia.org/wiki/SHA-3) |
 | SHA384 | `sha384` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA512 | `sha512` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
+| SM3 | `sm3` | [SM3](https://wikipedia.org/wiki/SM3_(hash_function)) |
 | Snefru | `snefru` | [Snefru](https://wikipedia.org/wiki/Snefru) |
 | Whirlpool | `whirlpool` | [Whirlpool](https://wikipedia.org/wiki/Whirlpool_(hash_function)) |
 
@@ -412,6 +413,49 @@ Because input can come from a file, hashing a file's contents is straightforward
 
 ```bash
 cchef sha256 --in-file ./document.pdf
+```
+
+## SM3
+
+Reference: [SM3](https://wikipedia.org/wiki/SM3_(hash_function))
+
+The SM3 cryptographic hash (Chinese National Standard GM/T 0004), a 256-bit hash
+used in the SM2/SM9 signature schemes. A from-scratch port of the crypto-api
+implementation CyberChef wraps, so — like upstream — the output length and round
+count are configurable. Note this follows crypto-api's behaviour for non-default
+values: `Length` truncates the digest to `floor(Length / 32)` 32-bit words (a
+value below 32 yields the full digest), and `Rounds` above 64 reads past the
+internal message schedule, collapsing the state toward the initial value.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--length` | number | `256` | Output length in bits (truncated to whole 32-bit words). |
+| `--rounds` | number | `64` | Number of compression rounds (minimum 16). |
+
+**Example**
+
+```bash
+echo -n "abc" | cchef sm3
+```
+
+Output:
+
+```
+66c7f0f462eeedd9d1f2d46bdc10e4e24167c4875cf2f7a2297da02b8f4ba8e0
+```
+
+**Complex example** (truncated to 128 bits)
+
+```bash
+echo -n "abc" | cchef sm3 --length 128
+```
+
+Output:
+
+```
+66c7f0f462eeedd9d1f2d46bdc10e4e2
 ```
 
 ## Snefru

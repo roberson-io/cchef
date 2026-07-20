@@ -24,6 +24,11 @@ and interoperate with CyberChef's Keybase (`kbpgp`) implementation. Output is no
 byte-identical to CyberChef (ASCII-armor headers and key structure differ), but
 messages and keys round-trip in both directions.
 
+The SM2 operations (GM/T 0003, `sm2p256v1` curve) are a dependency-free port: the
+SM2 elliptic-curve arithmetic and the SM3 hash are reimplemented in Go, and match
+CyberChef byte-for-byte (encryption is randomised, so it is verified by
+round-trip).
+
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
@@ -57,6 +62,8 @@ messages and keys round-trip in both directions.
 | RSA Encrypt | `rsa-encrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | RSA Sign | `rsa-sign` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | RSA Verify | `rsa-verify` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
+| SM2 Decrypt | `sm2-decrypt` | [SM2](https://datatracker.ietf.org/doc/html/draft-shen-sm2-ecdsa) |
+| SM2 Encrypt | `sm2-encrypt` | [SM2](https://datatracker.ietf.org/doc/html/draft-shen-sm2-ecdsa) |
 
 For Hex to PEM, PEM to Hex, Parse ASN.1 hex string and Parse SSH Host Key, see
 [Data format](data-format.md) and [Networking](networking.md).
@@ -825,4 +832,74 @@ Output:
 MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPKr0Dp6YdItzOfk6a7ma7L4BF4LnelM
 YKtboGLrk6ihtqFPZFRLNcJi68Hvnt8stMrP50t6jqwWQ2EjMdkj6fsCAwEAAQ==
 -----END PUBLIC KEY-----
+```
+
+---
+
+## SM2 Decrypt
+
+Reference: [SM2](https://datatracker.ietf.org/doc/html/draft-shen-sm2-ecdsa)
+
+Decrypts a message with the SM2 public-key algorithm (the Chinese GM/T 0003
+standard) over the `sm2p256v1` curve. The input is the hex-encoded ciphertext
+package (C1 ‖ C3 ‖ C2 or C1 ‖ C2 ‖ C3); the private key is 32 bytes of hex. The
+recovered plaintext is authenticated against the embedded C3 (SM3) tag — a
+mismatch is reported as an error. A from-scratch port (SM2 curve arithmetic and
+the SM3 hash reimplemented in Go), byte-for-byte identical to CyberChef.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--private-key` | string | `DEADBEEF` | The 32-byte private key, in hex. |
+| `--input-format` | option | `C1C3C2` | Component order of the ciphertext: `C1C3C2` or `C1C2C3`. |
+| `--curve` | option | `sm2p256v1` | The elliptic curve (only `sm2p256v1` is defined). |
+
+**Example**
+
+```bash
+cchef sm2-decrypt --private-key e74a72505084c3269aa9b696d603e3e08c74c6740212c11a31e26cdfe08bdf6a --input-format C1C3C2 -i 9a31bc0adb4677cdc4141479e3949572a55c3e6fb52094721f741c2bd2e179aaa87be6263bc1be602e473be3d5de5dce97f8248948b3a7e15f9f67f64aef21575e0c05e6171870a10ff9ab778dbef24267ad90e1a9d47d68f757d57c4816612e9829f804025dea05a511cda39371c22a2828f976f72e
+```
+
+Output:
+
+```
+I am a small plaintext
+```
+
+---
+
+## SM2 Encrypt
+
+Reference: [SM2](https://datatracker.ietf.org/doc/html/draft-shen-sm2-ecdsa)
+
+Encrypts a message with the SM2 public-key algorithm over the `sm2p256v1` curve,
+producing the hex-encoded ciphertext package. The public key is supplied as its
+two 32-byte coordinates (hex). Encryption draws a fresh random scalar each run,
+so the ciphertext differs every time; it round-trips back through **SM2 Decrypt**
+with the corresponding private key. A from-scratch port, interoperable with
+CyberChef.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--public-key-x` | string | `DEADBEEF` | The public key's X coordinate, 32 bytes of hex. |
+| `--public-key-y` | string | `DEADBEEF` | The public key's Y coordinate, 32 bytes of hex. |
+| `--output-format` | option | `C1C3C2` | Component order of the ciphertext: `C1C3C2` or `C1C2C3`. |
+| `--curve` | option | `sm2p256v1` | The elliptic curve (only `sm2p256v1` is defined). |
+
+**Example** (piped straight into SM2 Decrypt, since the ciphertext is randomised)
+
+```bash
+echo -n "Secret message" | cchef sm2-encrypt \
+  --public-key-x f7d903cab7925066c31150a92b31e548e63f954f92d01eaa0271fb2a336baef8 \
+  --public-key-y fb0c45e410ef7a6cdae724e6a78dbff52562e97ede009e762b667d9b14adea6c | \
+  cchef sm2-decrypt --private-key e74a72505084c3269aa9b696d603e3e08c74c6740212c11a31e26cdfe08bdf6a
+```
+
+Output:
+
+```
+Secret message
 ```
