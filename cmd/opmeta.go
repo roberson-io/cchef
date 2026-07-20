@@ -224,6 +224,7 @@ var opCategories = map[string][]string{
 	"From Quoted Printable":              {catDataFormat},
 	"From UNIX Timestamp":                {catDateTime},
 	"Fuzzy Match":                        {catUtils},
+	"Generate all checksums":             {catHashing},
 	"Generate ECDSA Key Pair":            {catPublicKey},
 	"Generate PGP Key Pair":              {catPublicKey},
 	"Generate RSA Key Pair":              {catPublicKey},

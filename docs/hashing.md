@@ -17,6 +17,7 @@ emit their own text format, and several operations take options.
 | Fletcher-32 Checksum | `fletcher-32-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Fletcher-64 Checksum | `fletcher-64-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Fletcher-8 Checksum | `fletcher-8-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
+| Generate all checksums | `generate-all-checksums` | [Checksum](https://wikipedia.org/wiki/Checksum) |
 | GOST Hash | `gost-hash` | [GOST (hash function)](https://wikipedia.org/wiki/GOST_(hash_function)) |
 | HAS-160 | `has-160` | [HAS-160](https://wikipedia.org/wiki/HAS-160) |
 | HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
@@ -234,6 +235,37 @@ Output:
 ```
 c8c6c527646362c6
 ```
+
+## Generate all checksums
+
+Reference: [Checksum](https://wikipedia.org/wiki/Checksum)
+
+Runs every built-in checksum over the input and lists the results: all ~170 CRC
+variants plus the Fletcher-8/16/32/64 and Adler-32 checksums. The listing can be
+filtered to a single bit width, and the algorithm names can be omitted.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--length-bits` | option | `All` | Restrict the output to checksums of this width (`All`, `3`, `4`, … `82`). |
+| `--include-names` | boolean | `true` | Prefix each value with its aligned algorithm name. |
+
+**Simple example** (only the 3-bit checksums)
+
+```bash
+cchef generate-all-checksums --length-bits 3 -i 123456789
+```
+
+Output:
+
+```
+CRC-3/GSM:                4
+CRC-3/ROHC:               6
+```
+
+With `--length-bits All` (the default) the operation emits all 176 checksums;
+`--include-names=false` outputs just the values, one per line.
 
 ## GOST Hash
 
