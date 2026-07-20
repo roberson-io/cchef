@@ -296,7 +296,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 328
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 331
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -309,7 +309,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **328 operations** (`internal/ops/`), each a faithful port with tests
+- **331 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -653,7 +653,7 @@ Currently **321 unique** CyberChef operations are covered (320 directly plus
 - [x] XXTEA Decrypt
 - [x] XXTEA Encrypt
 
-### Public Key (24/31)
+### Public Key (27/31)
 
 - [x] ECDSA Sign
 - [x] ECDSA Signature Conversion
@@ -666,10 +666,10 @@ Currently **321 unique** CyberChef operations are covered (320 directly plus
 - [x] JWK to PEM
 - [x] Object Identifier to Hex
 - [x] Parse ASN.1 hex string
-- [ ] Parse CSR
+- [x] Parse CSR
 - [x] Parse SSH Host Key
-- [ ] Parse X.509 certificate
-- [ ] Parse X.509 CRL
+- [x] Parse X.509 certificate
+- [x] Parse X.509 CRL
 - [x] PEM to Hex
 - [x] PEM to JWK
 - [x] PGP Decrypt

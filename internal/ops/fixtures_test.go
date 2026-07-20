@@ -1,10 +1,25 @@
 package ops
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
+
+// derTLV builds a DER TLV (tag + length + value) from a tag byte and value, both
+// hex, using short-form or long-form length encoding as needed.
+func derTLV(tag, value string) string {
+	n := len(value) / 2
+	if n < 128 {
+		return tag + fmt.Sprintf("%02x", n) + value
+	}
+	lenHex := fmt.Sprintf("%x", n)
+	if len(lenHex)%2 != 0 {
+		lenHex = "0" + lenHex
+	}
+	return tag + fmt.Sprintf("%02x", 0x80|len(lenHex)/2) + lenHex + value
+}
 
 // opCase mirrors a CyberChef fixture case
 // (../CyberChef/tests/operations/tests/<Op>.mjs): an input, the expected output,

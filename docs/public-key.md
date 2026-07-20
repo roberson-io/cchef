@@ -47,7 +47,10 @@ messages and keys round-trip in both directions.
 | PGP Sign | `pgp-sign` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | PGP Verify | `pgp-verify` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | Parse ASN.1 hex string | `parse-asn1-hex-string` | [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One) |
+| Parse CSR | `parse-csr` | [CSR](https://wikipedia.org/wiki/Certificate_signing_request) |
 | Parse SSH Host Key | `parse-ssh-host-key` | [SSH](https://wikipedia.org/wiki/Secure_Shell) |
+| Parse X.509 CRL | `parse-x509-crl` | [CRL](https://wikipedia.org/wiki/Certificate_revocation_list) |
+| Parse X.509 certificate | `parse-x509-certificate` | [X.509](https://wikipedia.org/wiki/X.509) |
 | RSA Decrypt | `rsa-decrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | RSA Encrypt | `rsa-encrypt` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | RSA Sign | `rsa-sign` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
@@ -623,4 +626,141 @@ Output:
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDUc8A0EDNKoCYIPWMHz1yUzqE5mJ
 gusgcAE8H6810fkJ8ZmTNiCCa6sLgR2vD1VNh2diirWgKPH4PVMKav5e6Q==
 -----END PUBLIC KEY-----
+```
+
+## Parse X.509 certificate
+
+Reference: [X.509](https://wikipedia.org/wiki/X.509)
+
+Displays the contents of an X.509 certificate in a human-readable form similar to
+`openssl x509 -text`: version, serial number, signature algorithm, validity,
+issuer/subject distinguished names, MD5/SHA-1/SHA-256 fingerprints, the public
+key (RSA or EC), the certificate signature, and the v3 extensions. This is a
+from-scratch port of CyberChef's jsrsasign-backed operation, walking the DER
+directly; output is byte-for-byte identical to CyberChef (differential-verified
+against the CyberChef-server oracle, which has no upstream fixture file for it).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `PEM` | `PEM`, `DER Hex`, `Base64` or `Raw`. |
+
+**Example** (output abbreviated)
+
+```bash
+cchef parse-x509-certificate --in-file cert.pem
+```
+
+Output:
+
+```
+Version:          3 (0x02)
+Serial number:    325195407439739868690796149162879408866195452662 (0x38f6...)
+Algorithm ID:     SHA256withRSA
+Validity
+  Not Before:     20/07/2026 01:42:23 (dd-mm-yyyy hh:mm:ss) (260720014223Z)
+  Not After:      17/07/2036 01:42:23 (dd-mm-yyyy hh:mm:ss) (360717014223Z)
+Issuer
+  CN = example.com
+Subject
+  CN = example.com
+...
+Extensions
+  basicConstraints CRITICAL:
+    {}
+  keyUsage CRITICAL:
+    digitalSignature,keyEncipherment
+  extKeyUsage :
+    serverAuth, clientAuth
+```
+
+## Parse CSR
+
+Reference: [CSR](https://wikipedia.org/wiki/Certificate_signing_request)
+
+Parses a PKCS#10 Certificate Signing Request, showing the subject, public key
+(RSA, EC or DSA), signature, and the requested extensions (basic constraints,
+key usage, extended key usage, subject alternative name). A from-scratch port of
+CyberChef's jsrsasign `CSRUtil.getParam`, byte-for-byte identical to CyberChef
+(verified against its fixture suite).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `PEM` | `PEM`. |
+
+**Example** (output abbreviated)
+
+```bash
+cchef parse-csr --in-file request.csr
+```
+
+Output:
+
+```
+Subject
+  CN = example.com
+Public Key
+  Algorithm:      ECDSA
+  Length:         256 bits
+  Pub:            04:09:a9:61:73:61:f8:bf:44:...
+  ASN1 OID:       secp256r1
+  NIST CURVE:     P-256
+Signature
+  Algorithm:      SHA256withECDSA
+  Signature:      30:45:02:20:42:4b:a6:fe:...
+Requested Extensions
+  Basic Constraints: critical
+    CA = false
+  Key Usage: critical
+    Digital Signature
+    Key encipherment
+  Subject Alternative Name:
+    DNS: example.com
+    DNS: www.example.com
+```
+
+## Parse X.509 CRL
+
+Reference: [CRL](https://wikipedia.org/wiki/Certificate_revocation_list)
+
+Parses a Certificate Revocation List, showing its version, signature algorithm,
+issuer, update times, CRL extensions, the revoked-certificate entries (with their
+entry extensions such as reason code and invalidity date), and the signature. A
+from-scratch port of CyberChef's jsrsasign `X509CRL`, byte-for-byte identical to
+CyberChef (verified against its fixture suite).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--input-format` | option | `PEM` | `PEM`, `DER Hex`, `Base64` or `Raw`. |
+
+**Example** (output abbreviated)
+
+```bash
+cchef parse-x509-crl --in-file list.crl
+```
+
+Output:
+
+```
+Certificate Revocation List (CRL):
+    Version: 2 (0x1)
+    Signature Algorithm: SHA256withRSA
+    Issuer:
+        C  = UK
+        CN = Test Root CA
+    Last Update: Sun, 25 Aug 2024 11:49:10 GMT
+    Next Update: Tue, 24 Sep 2024 11:49:10 GMT
+Revoked Certificates:
+    Serial Number: 1000
+        Revocation Date: Sun, 25 Aug 2024 03:23:08 GMT
+    	CRL entry extensions:
+            X509v3 CRL Reason Code:
+                Certificate Hold
+Signature Value:
+        03:1b:2b:fb:d9:c4:2d:45:...
 ```
