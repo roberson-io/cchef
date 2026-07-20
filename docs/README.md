@@ -5,7 +5,7 @@ the "Cyber Swiss Army Knife". Every operation is a subcommand that reads input a
 writes output, so operations chain together through Unix pipes or as a single
 recipe.
 
-> **Scope:** 324 operations are currently ported, covering the whole architecture.
+> **Scope:** 326 operations are currently ported, covering the whole architecture.
 > More operations are added over time against the same interfaces. Run `cchef list`
 > to see everything currently available.
 
@@ -89,7 +89,7 @@ Within each category, operations are listed alphabetically.
 | [Hashing](hashing.md) | Adler-32 Checksum, Bcrypt, Bcrypt compare, Bcrypt parse, GOST Hash, HAS-160, HMAC, Keccak, MD2, MD4, MD5, RIPEMD, Scrypt, SHA0, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512, Snefru, Whirlpool |
 | [Language](language.md) | Decode text, Encode text, Unescape Unicode Characters |
 | [Networking](networking.md) | Change IP format, Dechunk HTTP response, Decode NetBIOS Name, Defang IP Addresses, Defang URL, DNS over HTTPS, Encode NetBIOS Name, Fang URL, Format MAC addresses, Group IP addresses, HASSH Client Fingerprint, HASSH Server Fingerprint, HTTP request, IPv6 Transition Addresses, JA3 Fingerprint, JA3S Fingerprint, JA4 Fingerprint, JA4Server Fingerprint, Parse Ethernet frame, Parse IP range, Parse IPv4 header, Parse IPv6 address, Parse SSH Host Key, Parse TCP, Parse TLS record, Parse UDP, Parse URI, Parse User Agent, Protobuf Decode, Protobuf Encode, Strip HTTP headers, Strip IPv4 header, Strip TCP header, Strip UDP header, URL Decode, URL Encode, VarInt Decode, VarInt Encode |
-| [Public Key](public-key.md) | ECDSA Sign, ECDSA Signature Conversion, ECDSA Verify, Generate ECDSA Key Pair, Generate PGP Key Pair, Generate RSA Key Pair, Hex to PEM, PEM to Hex, PGP Decrypt, PGP Decrypt and Verify, PGP Encrypt, PGP Encrypt and Sign, PGP Sign, PGP Verify, Parse ASN.1 hex string, Parse SSH Host Key, RSA Decrypt, RSA Encrypt, RSA Sign, RSA Verify |
+| [Public Key](public-key.md) | ECDSA Sign, ECDSA Signature Conversion, ECDSA Verify, Generate ECDSA Key Pair, Generate PGP Key Pair, Generate RSA Key Pair, Hex to Object Identifier, Hex to PEM, Object Identifier to Hex, PEM to Hex, PGP Decrypt, PGP Decrypt and Verify, PGP Encrypt, PGP Encrypt and Sign, PGP Sign, PGP Verify, Parse ASN.1 hex string, Parse SSH Host Key, RSA Decrypt, RSA Encrypt, RSA Sign, RSA Verify |
 | [Utils](utils.md) | Add line numbers, Alternating Caps, Convert area, Convert co-ordinate format, Convert data units, Convert distance, Convert mass, Convert speed, Count occurrences, Diff, Drop bytes, Drop nth bytes, Escape string, Expand alphabet range, File Tree, Filter, Find / Replace, From Case Insensitive Regex, Fuzzy Match, Get All Casings, Hamming Distance, Head, Levenshtein Distance, Offset checker, Pad lines, Parse colour code, Parse ObjectID timestamp, Parse UNIX file permissions, Pseudo-Random Number Generator, Regular expression, Remove ANSI Escape Codes, Remove line numbers, Remove null bytes, Remove whitespace, Reverse, Show on map, Shuffle, Sleep, Sort, Split, Swap case, Tail, Take bytes, Take nth bytes, To Case Insensitive Regex, To Lower case, To Table, To Upper case, Unescape string, Unique, Wrap |
 
 ## Recipes, URLs, and tooling

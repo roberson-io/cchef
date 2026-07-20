@@ -34,7 +34,9 @@ messages and keys round-trip in both directions.
 | Generate ECDSA Key Pair | `generate-ecdsa-key-pair` | [ECDSA](https://wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 | Generate PGP Key Pair | `generate-pgp-key-pair` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | Generate RSA Key Pair | `generate-rsa-key-pair` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
+| Hex to Object Identifier | `hex-to-object-identifier` | [OID](https://wikipedia.org/wiki/Object_identifier) |
 | Hex to PEM | `hex-to-pem` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| Object Identifier to Hex | `object-identifier-to-hex` | [OID](https://wikipedia.org/wiki/Object_identifier) |
 | PEM to Hex | `pem-to-hex` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
 | PGP Decrypt | `pgp-decrypt` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | PGP Decrypt and Verify | `pgp-decrypt-and-verify` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
@@ -522,4 +524,48 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA...
 -----END RSA PRIVATE KEY-----
+```
+
+## Object Identifier to Hex
+
+Reference: [OID](https://wikipedia.org/wiki/Object_identifier)
+
+Encodes a dotted-decimal object identifier as the hex of its ASN.1 content octets:
+the first two arcs collapse into one byte (`40 × arc1 + arc2`) and each remaining
+arc is written base-128 (seven bits per byte, the high bit set on all but the last).
+This is a port of jsrsasign's `oidIntToHex`, including its quirks — a single-arc
+input yields `NaN`, and any character outside `[0-9.]` is a `malformed oid string`
+error.
+
+**Example**
+
+```bash
+cchef object-identifier-to-hex -i '1.2.840.113549.1.1.1'
+```
+
+Output:
+
+```
+2a864886f70d010101
+```
+
+## Hex to Object Identifier
+
+Reference: [OID](https://wikipedia.org/wiki/Object_identifier)
+
+Decodes the hex of ASN.1 OID content octets back into dotted-decimal notation
+(the inverse of Object Identifier to Hex). Whitespace in the input is ignored, and
+the entire input is treated as content octets — a leading tag/length is decoded as
+extra arcs rather than skipped. Ported from jsrsasign's `oidHexToInt`.
+
+**Example**
+
+```bash
+cchef hex-to-object-identifier -i '2a8648ce3d0201'
+```
+
+Output:
+
+```
+1.2.840.10045.2.1
 ```
