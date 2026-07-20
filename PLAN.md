@@ -296,7 +296,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 336
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 345
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -309,7 +309,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **336 operations** (`internal/ops/`), each a faithful port with tests
+- **345 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -464,7 +464,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **326 unique** CyberChef operations are covered (325 directly plus
+Currently **335 unique** CyberChef operations are covered (334 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -889,7 +889,7 @@ Currently **326 unique** CyberChef operations are covered (325 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (20/50)
+### Hashing (29/50)
 
 - [x] Adler-32 Checksum
 - [ ] Analyse hash
@@ -906,12 +906,12 @@ Currently **326 unique** CyberChef operations are covered (325 directly plus
 - [ ] CMAC
 - [ ] Compare CTPH hashes
 - [ ] Compare SSDEEP hashes
-- [ ] CRC Checksum
+- [x] CRC Checksum
 - [ ] CTPH
-- [ ] Fletcher-16 Checksum
-- [ ] Fletcher-32 Checksum
-- [ ] Fletcher-64 Checksum
-- [ ] Fletcher-8 Checksum
+- [x] Fletcher-16 Checksum
+- [x] Fletcher-32 Checksum
+- [x] Fletcher-64 Checksum
+- [x] Fletcher-8 Checksum
 - [ ] Generate all checksums
 - [ ] Generate all hashes
 - [x] GOST Hash
@@ -919,14 +919,14 @@ Currently **326 unique** CyberChef operations are covered (325 directly plus
 - [x] HMAC
 - [x] Keccak
 - [ ] LM Hash
-- [ ] Luhn Checksum
+- [x] Luhn Checksum
 - [x] MD2
 - [x] MD4
 - [x] MD5
 - [ ] MD6
 - [ ] MurmurHash3
 - [ ] NT Hash
-- [ ] Parity Bit
+- [x] Parity Bit
 - [x] RIPEMD
 - [x] Scrypt
 - [x] SHA0
@@ -938,9 +938,9 @@ Currently **326 unique** CyberChef operations are covered (325 directly plus
 - [x] Snefru
 - [ ] SSDEEP
 - [ ] Streebog
-- [ ] TCP/IP Checksum
+- [x] TCP/IP Checksum
 - [x] Whirlpool
-- [ ] XOR Checksum
+- [x] XOR Checksum
 
 ### Code tidy (3/30)
 

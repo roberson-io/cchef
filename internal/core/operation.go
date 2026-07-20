@@ -70,6 +70,17 @@ func DefaultArgs(defs []ArgDef) []any {
 				continue
 			}
 		}
+		if def.Type == ArgToggleString {
+			// The declared Value is the string part; pair it with the first mode
+			// so an omitted toggle-string argument has a valid ToggleString default.
+			s, _ := def.Value.(string)
+			opt := ""
+			if len(def.ToggleValues) > 0 {
+				opt = def.ToggleValues[0]
+			}
+			out[i] = ToggleString{Value: s, Option: opt}
+			continue
+		}
 		out[i] = def.Value
 	}
 	return out

@@ -1,8 +1,8 @@
 # Hashing
 
-Cryptographic hash functions and checksums. Each operation takes input and
-outputs the lower-case hexadecimal digest. Most take no options (SHA3 and HMAC
-are the exceptions).
+Cryptographic hash functions and checksums. Most take input and output a
+lower-case hexadecimal digest; a few of the checksums (Luhn Checksum, Parity Bit)
+emit their own text format, and several operations take options.
 
 > Operations are listed alphabetically.
 
@@ -12,13 +12,20 @@ are the exceptions).
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt compare | `bcrypt-compare` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
+| CRC Checksum | `crc-checksum` | [CRC](https://wikipedia.org/wiki/Cyclic_redundancy_check) |
+| Fletcher-16 Checksum | `fletcher-16-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
+| Fletcher-32 Checksum | `fletcher-32-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
+| Fletcher-64 Checksum | `fletcher-64-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
+| Fletcher-8 Checksum | `fletcher-8-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | GOST Hash | `gost-hash` | [GOST (hash function)](https://wikipedia.org/wiki/GOST_(hash_function)) |
 | HAS-160 | `has-160` | [HAS-160](https://wikipedia.org/wiki/HAS-160) |
 | HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
 | Keccak | `keccak` | [SHA-3 / Keccak](https://wikipedia.org/wiki/SHA-3) |
+| Luhn Checksum | `luhn-checksum` | [Luhn mod N](https://wikipedia.org/wiki/Luhn_mod_N_algorithm) |
 | MD2 | `md2` | [MD2](https://wikipedia.org/wiki/MD2_(cryptography)) |
 | MD4 | `md4` | [MD4](https://wikipedia.org/wiki/MD4) |
 | MD5 | `md5` | [MD5](https://wikipedia.org/wiki/MD5) |
+| Parity Bit | `parity-bit` | [Parity bit](https://wikipedia.org/wiki/Parity_bit) |
 | RIPEMD | `ripemd` | [RIPEMD](https://wikipedia.org/wiki/RIPEMD) |
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
 | SHA0 | `sha0` | [SHA-0](https://wikipedia.org/wiki/SHA-1#SHA-0) |
@@ -30,7 +37,9 @@ are the exceptions).
 | SHA512 | `sha512` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SM3 | `sm3` | [SM3](https://wikipedia.org/wiki/SM3_(hash_function)) |
 | Snefru | `snefru` | [Snefru](https://wikipedia.org/wiki/Snefru) |
+| TCP/IP Checksum | `tcp-ip-checksum` | [IPv4 checksum](https://wikipedia.org/wiki/IPv4_header_checksum) |
 | Whirlpool | `whirlpool` | [Whirlpool](https://wikipedia.org/wiki/Whirlpool_(hash_function)) |
+| XOR Checksum | `xor-checksum` | [XOR](https://wikipedia.org/wiki/XOR) |
 
 > **Note:** MD5 and SHA1 are not collision resistant and should not be used for
 > security-sensitive purposes such as signatures or certificates. They remain
@@ -109,6 +118,121 @@ Rounds: 10
 Salt: $2a$10$qyon0LQCmMxpFFjwWH6Qh.
 Password hash: dDdhqntQh./IN0RXCc3XIMILuOYZKgK
 Full hash: $2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK
+```
+
+## CRC Checksum
+
+Reference: [CRC](https://wikipedia.org/wiki/Cyclic_redundancy_check)
+
+Computes a Cyclic Redundancy Check over the raw input bytes. Around 170 named CRC
+variants (widths 3–82 bits) are built in, or a fully custom width / polynomial /
+initialisation / reflection / xor configuration can be given. A faithful port of
+CyberChef's operation (the Rocksoft parameterised model), byte-for-byte identical
+to upstream. Output is the checksum as hex, padded to the variant's width.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--algorithm` | option | `Custom` | The CRC variant (e.g. `CRC-32`, `CRC-16`, `CRC-8`), or `Custom` to specify the parameters below. |
+| `--width-bits` | toggleString (`Decimal`) | `0` | Custom width in bits. |
+| `--polynomial` | toggleString (`Hex`) | `0` | Custom generator polynomial. |
+| `--initialization` | toggleString (`Hex`) | `0` | Custom initial value. |
+| `--reflect-input` | option | `True` | Reflect each input byte. |
+| `--reflect-output` | option | `True` | Reflect the final CRC. |
+| `--xor-output` | toggleString (`Hex`) | `0` | Value XORed into the final CRC. |
+
+**Simple example**
+
+```bash
+cchef crc-checksum --algorithm CRC-32 -i 123456789
+```
+
+Output:
+
+```
+cbf43926
+```
+
+**Custom example** (the same CRC-32 specified by hand)
+
+```bash
+cchef crc-checksum --algorithm Custom --width-bits 32 --polynomial 04C11DB7 \
+  --initialization FFFFFFFF --reflect-input True --reflect-output True --xor-output FFFFFFFF -i 123456789
+```
+
+Output:
+
+```
+cbf43926
+```
+
+## Fletcher-8 Checksum
+
+Reference: [Fletcher's checksum](https://wikipedia.org/wiki/Fletcher%27s_checksum)
+
+Computes the 8-bit Fletcher checksum (two running 4-bit sums, mod 15) of the raw
+input, output as hex. See also **Fletcher-16/32/64 Checksum**. Takes no options.
+
+```bash
+cchef fletcher-8-checksum -i abcde
+```
+
+Output:
+
+```
+50
+```
+
+## Fletcher-16 Checksum
+
+Reference: [Fletcher's checksum](https://wikipedia.org/wiki/Fletcher%27s_checksum)
+
+Computes the 16-bit Fletcher checksum (two running 8-bit sums, mod 255) of the raw
+input, output as hex. Takes no options.
+
+```bash
+cchef fletcher-16-checksum -i abcde
+```
+
+Output:
+
+```
+c8f0
+```
+
+## Fletcher-32 Checksum
+
+Reference: [Fletcher's checksum](https://wikipedia.org/wiki/Fletcher%27s_checksum)
+
+Computes the 32-bit Fletcher checksum over 16-bit little-endian words (two running
+16-bit sums, mod 65535), output as hex. Takes no options.
+
+```bash
+cchef fletcher-32-checksum -i abcde
+```
+
+Output:
+
+```
+f04fc729
+```
+
+## Fletcher-64 Checksum
+
+Reference: [Fletcher's checksum](https://wikipedia.org/wiki/Fletcher%27s_checksum)
+
+Computes the 64-bit Fletcher checksum over 32-bit little-endian words (two running
+32-bit sums, mod 2³²−1), output as hex. Takes no options.
+
+```bash
+cchef fletcher-64-checksum -i abcde
+```
+
+Output:
+
+```
+c8c6c527646362c6
 ```
 
 ## GOST Hash
@@ -224,6 +348,34 @@ Output:
 acaf3289d7b601cbd114fb36c4d29c85bbfd5e133f14cb355c3fd8d99367964f
 ```
 
+## Luhn Checksum
+
+Reference: [Luhn mod N](https://wikipedia.org/wiki/Luhn_mod_N_algorithm)
+
+Computes the Luhn mod-N checksum of a string, reporting the checksum, the check
+digit, and the input with the check digit appended (the "Luhn validated string").
+The radix must be even and in the range 2–36.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--radix` | number | `10` | The even base (2–36) the input digits are in. |
+
+**Simple example**
+
+```bash
+cchef luhn-checksum -i 35641709012469
+```
+
+Output:
+
+```
+Checksum: 7
+Checkdigit: 0
+Luhn Validated String: 356417090124690
+```
+
 ## MD2
 
 The 128-bit MD2 message digest (RFC 1319). The `--rounds` argument mirrors
@@ -271,6 +423,48 @@ Output:
 
 ```
 65a8e27d8879283831b664bd8b7f0ad4
+```
+
+## Parity Bit
+
+Reference: [Parity bit](https://wikipedia.org/wiki/Parity_bit)
+
+Adds (Encode) or removes (Decode) a parity bit on a string of binary digits, at
+the start or end. With a delimiter set, each delimited token is handled
+independently (e.g. one parity bit per byte). On encode, only `0`, `1`, spaces and
+the delimiter are permitted; any other character is an error.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--mode` | option | `Even Parity` | `Even Parity` or `Odd Parity`. |
+| `--postion` | option | `Start` | Put the parity bit at the `Start` or `End`. |
+| `--encode-or-decode` | option | `Encode` | `Encode` to add a parity bit, `Decode` to remove it. |
+| `--delimiter` | string | (empty) | If set, split on this delimiter and process each token. |
+
+**Simple example**
+
+```bash
+cchef parity-bit -i "01010101 10101010" --mode "Even Parity" --postion Start --encode-or-decode Encode
+```
+
+Output:
+
+```
+001010101 10101010
+```
+
+**Per-byte example** (binary of "hello world!", one parity bit per byte)
+
+```bash
+echo -n "hello world!" | cchef to-binary --delimiter Space | cchef parity-bit --mode "Even Parity" --postion Start --delimiter " "
+```
+
+Output:
+
+```
+101101000 001100101 001101100 001101100 001101111 100100000 001110111 001101111 001110010 001101100 101100100 000100001
 ```
 
 ## RIPEMD
@@ -483,6 +677,24 @@ Output:
 bd456c6c33df28257b8736f798e40ac57d9b61996d94ada339abaa8d2a97ec86
 ```
 
+## TCP/IP Checksum
+
+Reference: [IPv4 header checksum](https://wikipedia.org/wiki/IPv4_header_checksum)
+
+Computes the 16-bit one's-complement Internet checksum (RFC 1071) over the raw
+input bytes — the checksum used in IPv4, TCP, UDP and ICMP headers. Output is hex.
+Takes no options.
+
+```bash
+echo -n "45 00 00 3c 1c 46 40 00 40 06 00 00 ac 10 0a 63 ac 10 0a 0c" | cchef from-hex | cchef tcp-ip-checksum
+```
+
+Output:
+
+```
+b1e6
+```
+
 ## Whirlpool
 
 The 512-bit Whirlpool hash and its two earlier variants. Note: this follows
@@ -506,4 +718,30 @@ Output:
 
 ```
 00acca7b4456c52a74c589d668b48e1b3d33c9620a0a9b61635111aa92ed8488f21372e27b2122735e561491f8050ed2775a6fb55f7f8b24075d1166bf326bca
+```
+
+## XOR Checksum
+
+Reference: [XOR](https://wikipedia.org/wiki/XOR)
+
+Splits the input into blocks of the given size and XORs the blocks together, one
+byte position at a time (a short final block leaves its missing positions
+unchanged). Output is the resulting block as hex.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--blocksize` | number | `4` | The block size, in bytes (must be a positive integer). |
+
+**Simple example**
+
+```bash
+cchef xor-checksum --blocksize 4 -i "The ships hung in the sky in much the same way that bricks don't."
+```
+
+Output:
+
+```
+4918421b
 ```

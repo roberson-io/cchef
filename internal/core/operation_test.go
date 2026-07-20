@@ -173,6 +173,22 @@ func TestDefaultArgsOption(t *testing.T) {
 	}
 }
 
+// TestDefaultArgsToggleString checks that an omitted toggle-string argument
+// defaults to a ToggleString pairing the declared value with the first mode, so
+// coercion of the default succeeds.
+func TestDefaultArgsToggleString(t *testing.T) {
+	got := DefaultArgs([]ArgDef{{Type: ArgToggleString, Value: "0", ToggleValues: []string{"Hex", "Decimal"}}})
+	ts, ok := got[0].(ToggleString)
+	if !ok || ts.Value != "0" || ts.Option != "Hex" {
+		t.Fatalf("DefaultArgs toggleString = %#v, want {Value:0 Option:Hex}", got[0])
+	}
+	// With no modes declared the option is empty but still a valid ToggleString.
+	got = DefaultArgs([]ArgDef{{Type: ArgToggleString, Value: "x"}})
+	if ts, ok := got[0].(ToggleString); !ok || ts.Value != "x" || ts.Option != "" {
+		t.Fatalf("DefaultArgs toggleString (no modes) = %#v", got[0])
+	}
+}
+
 // TestCoerceArgsCoerceError covers the per-argument coercion error branch of
 // CoerceArgs (distinct from the too-many-arguments guard).
 func TestCoerceArgsCoerceError(t *testing.T) {
