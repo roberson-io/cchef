@@ -36,8 +36,10 @@ messages and keys round-trip in both directions.
 | Generate RSA Key Pair | `generate-rsa-key-pair` | [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem)) |
 | Hex to Object Identifier | `hex-to-object-identifier` | [OID](https://wikipedia.org/wiki/Object_identifier) |
 | Hex to PEM | `hex-to-pem` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| JWK to PEM | `jwk-to-pem` | [JWK](https://datatracker.ietf.org/doc/html/rfc7517) |
 | Object Identifier to Hex | `object-identifier-to-hex` | [OID](https://wikipedia.org/wiki/Object_identifier) |
 | PEM to Hex | `pem-to-hex` | [PEM](https://wikipedia.org/wiki/Privacy-Enhanced_Mail) |
+| PEM to JWK | `pem-to-jwk` | [JWK](https://datatracker.ietf.org/doc/html/rfc7517) |
 | PGP Decrypt | `pgp-decrypt` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | PGP Decrypt and Verify | `pgp-decrypt-and-verify` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
 | PGP Encrypt | `pgp-encrypt` | [PGP](https://wikipedia.org/wiki/Pretty_Good_Privacy) |
@@ -568,4 +570,57 @@ Output:
 
 ```
 1.2.840.10045.2.1
+```
+
+## PEM to JWK
+
+Reference: [JWK](https://datatracker.ietf.org/doc/html/rfc7517)
+
+Converts PEM keys and certificates to [JSON Web Key](https://datatracker.ietf.org/doc/html/rfc7517)
+format. Each PEM block in the input is parsed and emitted as a compact JWK; when
+the input holds several blocks, their JWKs are newline-separated. RSA keys
+(PKCS#1 or PKCS#8, public or private), EC keys (SEC1 or PKCS#8, over P-256/P-384/P-521),
+and X.509 certificates (the certificate's public key) are supported. PKCS#1 RSA
+public keys (`-----BEGIN RSA PUBLIC KEY-----`) and DSA keys are rejected, as in
+CyberChef. The conversion is backed by Go's `crypto/x509`; CyberChef backs it with
+jsrsasign, but the JWK output is identical.
+
+**Example**
+
+```bash
+cchef pem-to-jwk -i '-----BEGIN PUBLIC KEY-----
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPKr0Dp6YdItzOfk6a7ma7L4BF4LnelM
+YKtboGLrk6ihtqFPZFRLNcJi68Hvnt8stMrP50t6jqwWQ2EjMdkj6fsCAwEAAQ==
+-----END PUBLIC KEY-----'
+```
+
+Output:
+
+```
+{"kty":"RSA","n":"8qvQOnph0i3M5-TpruZrsvgEXgud6Uxgq1ugYuuTqKG2oU9kVEs1wmLrwe-e3yy0ys_nS3qOrBZDYSMx2SPp-w","e":"AQAB"}
+```
+
+## JWK to PEM
+
+Reference: [JWK](https://datatracker.ietf.org/doc/html/rfc7517)
+
+Converts keys in JSON Web Key format to PEM (the inverse of PEM to JWK): private
+keys as PKCS#8, public keys as SPKI, with CRLF line endings. The input may be a
+single JWK, a JSON array of JWKs, or a JWK Set (`{"keys":[…]}`); every key is
+converted and the PEM blocks concatenated. Only RSA and EC (P-256/P-384/P-521)
+key types are supported.
+
+**Example**
+
+```bash
+cchef jwk-to-pem -i '{"kty":"EC","crv":"P-256","x":"DUc8A0EDNKoCYIPWMHz1yUzqE5mJgusgcAE8H6810fk","y":"CfGZkzYggmurC4Edrw9VTYdnYoq1oCjx-D1TCmr-Xuk"}'
+```
+
+Output:
+
+```
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDUc8A0EDNKoCYIPWMHz1yUzqE5mJ
+gusgcAE8H6810fkJ8ZmTNiCCa6sLgR2vD1VNh2diirWgKPH4PVMKav5e6Q==
+-----END PUBLIC KEY-----
 ```
