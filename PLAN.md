@@ -149,6 +149,18 @@ all modes and input lengths (with round-trip decryption). The block loops guard
 against a short final read so a degenerate misaligned NoPadding input can't panic
 (CyberChef reads past the array and emits NaN garbage there instead).
 
+Note: **Argon2 / Argon2 compare** (CyberChef wraps the `argon2-browser` WASM
+package) are a hybrid: **Argon2i** and **Argon2id** use `golang.org/x/crypto/argon2`
+(the already-required `x/crypto` module — **no new dependency**), and **Argon2d**
+uses a from-scratch RFC 9106 port (`internal/ops/argon2core.go`), since `x/crypto`
+does not provide it. The op layer adds the PHC encoded-hash format, the hex/raw
+outputs, the reference parameter-validation error messages (output/salt/memory/
+time/lanes order), and PHC parsing + constant-time verify for compare. The
+CyberChef-server oracle cannot load the Argon2 WASM, so vectors were taken from
+`argon2-cffi` (the reference phc-winner-argon2 C library `argon2-browser` is built
+from); `x/crypto` reproduces the Argon2i/Argon2id values exactly, and the
+from-scratch Argon2d matches the reference across single- and multi-lane params.
+
 Note: **TEA / XTEA Encrypt/Decrypt** (4 ops) are a from-scratch pure-Go port of
 CyberChef's self-contained `lib/TEA.mjs` (`internal/ops/tea.go`) — **no new
 dependency**. Both algorithms share one file: 64-bit-block Feistel ciphers with a
@@ -296,7 +308,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 351
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 353
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -309,7 +321,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **351 operations** (`internal/ops/`), each a faithful port with tests
+- **353 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -431,6 +443,16 @@ cchef list                                   # discover operations
   needs a one-line patch** to test this op at all (`AvroToJSON.run` must be
   `async`; the upstream CyberChef bug is documented on the `CyberChef` fork's
   `bugfix/node-api-async-promise-ops` branch).
+- **Evaluate the file/string input convention.** cchef currently uses explicit
+  separate flags (`-i/--input` for a literal string, `--in-file` for a file,
+  `--in-dir` for a directory, stdin as fallback), and — unlike most Unix tools —
+  treats the positional argument as a *string* rather than a *filename*. Review
+  this against common CLI conventions: (1) positional = file + stdin (the
+  `cat`/`grep`/`sha256sum` mainstream), (2) curl's `@file` sigil for
+  inline-or-file on one flag, (3) `-in`/`-out` file flags (openssl), (4) paired
+  `--x`/`--x-file` flags (secrets/12-factor). Decide whether to keep the current
+  explicit scheme, add `@file` shorthand on `-i` as a familiar convenience, or
+  otherwise nudge closer to convention — without breaking existing usage.
 - (Done: a repo-root `README.md` and GitHub Actions CI running fmt/vet/test/lint,
   a gosec + govulncheck security job, plus an SBOM scan now exist.)
 
@@ -464,7 +486,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **341 unique** CyberChef operations are covered (340 directly plus
+Currently **343 unique** CyberChef operations are covered (342 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -889,12 +911,12 @@ Currently **341 unique** CyberChef operations are covered (340 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (35/50)
+### Hashing (37/50)
 
 - [x] Adler-32 Checksum
 - [x] Analyse hash
-- [ ] Argon2
-- [ ] Argon2 compare
+- [x] Argon2
+- [x] Argon2 compare
 - [ ] Ascon Hash
 - [ ] Ascon MAC
 - [x] Bcrypt

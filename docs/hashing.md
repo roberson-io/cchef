@@ -10,6 +10,8 @@ emit their own text format, and several operations take options.
 | --- | --- | --- |
 | Adler-32 Checksum | `adler-32-checksum` | [Adler-32](https://wikipedia.org/wiki/Adler-32) |
 | Analyse hash | `analyse-hash` | [Hash functions](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions) |
+| Argon2 | `argon2` | [Argon2](https://wikipedia.org/wiki/Argon2) |
+| Argon2 compare | `argon2-compare` | [Argon2](https://wikipedia.org/wiki/Argon2) |
 | BLAKE2b | `blake2b` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2b_algorithm) |
 | BLAKE2s | `blake2s` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2) |
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
@@ -94,6 +96,79 @@ HAVAL-128
 RIPEMD-128
 Snefru
 Tiger-128
+```
+
+## Argon2
+
+Reference: [Argon2](https://wikipedia.org/wiki/Argon2)
+
+Derives a hash from the input password with the Argon2 password-hashing function
+(the Password Hashing Competition winner). All three variants are supported, and
+the result can be emitted as a PHC-encoded hash, hex, or raw bytes. Argon2i and
+Argon2id are computed with Go's `x/crypto/argon2`; Argon2d uses a from-scratch
+implementation (`x/crypto` does not provide it). Verified against argon2-cffi —
+the reference phc-winner-argon2 library CyberChef's argon2-browser is built from.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--salt` | toggleString | `somesalt` | Salt (min 8 bytes), interpreted by `--salt-type` (`UTF8`, `Hex`, `Base64`, `Latin1`). |
+| `--iterations` | number | `3` | Time cost (passes over memory). |
+| `--memory-kib` | number | `4096` | Memory cost in KiB (min 8 × parallelism). |
+| `--parallelism` | number | `1` | Number of lanes. |
+| `--hash-length-bytes` | number | `32` | Output length in bytes (min 4). |
+| `--type` | option | `Argon2i` | `Argon2i`, `Argon2d` or `Argon2id`. |
+| `--output-format` | option | `Encoded hash` | `Encoded hash` (PHC string), `Hex hash` or `Raw hash`. |
+
+**Simple example**
+
+```bash
+cchef argon2 --salt somesalt --iterations 2 --memory-kib 256 --type Argon2id -i password
+```
+
+Output:
+
+```
+$argon2id$v=19$m=256,t=2,p=1$c29tZXNhbHQ$nf65EOgLrQMR/uIPnA4rEsF5h7TKyQwu9U1bMCHGi/4
+```
+
+**Hex output (Argon2d)**
+
+```bash
+cchef argon2 --salt somesalt --iterations 2 --memory-kib 256 --type Argon2d --output-format "Hex hash" -i password
+```
+
+Output:
+
+```
+25c4ee8ba448054b49efc804e478b9d823be1f9bd2e99f51d6ec4007a3a1501f
+```
+
+## Argon2 compare
+
+Reference: [Argon2](https://wikipedia.org/wiki/Argon2)
+
+Tests whether the input password matches a given Argon2 PHC-encoded hash (any of
+the three variants), returning `Match: <password>` or `No match`. A malformed
+encoded hash also returns `No match`.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--encoded-hash` | string | (empty) | The Argon2 encoded hash to test against. |
+
+**Simple example**
+
+```bash
+cchef argon2-compare --encoded-hash '$argon2id$v=19$m=256,t=2,p=1$c29tZXNhbHQ$nf65EOgLrQMR/uIPnA4rEsF5h7TKyQwu9U1bMCHGi/4' -i password
+```
+
+Output:
+
+```
+Match: password
 ```
 
 ## BLAKE2b
