@@ -12,6 +12,8 @@ emit their own text format, and several operations take options.
 | Analyse hash | `analyse-hash` | [Hash functions](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions) |
 | Argon2 | `argon2` | [Argon2](https://wikipedia.org/wiki/Argon2) |
 | Argon2 compare | `argon2-compare` | [Argon2](https://wikipedia.org/wiki/Argon2) |
+| Ascon Hash | `ascon-hash` | [Ascon](https://wikipedia.org/wiki/Ascon_(cipher)) |
+| Ascon MAC | `ascon-mac` | [Ascon](https://wikipedia.org/wiki/Ascon_(cipher)) |
 | BLAKE2b | `blake2b` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2b_algorithm) |
 | BLAKE2s | `blake2s` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2) |
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
@@ -170,6 +172,52 @@ Output:
 
 ```
 Match: password
+```
+
+## Ascon Hash
+
+Reference: [Ascon](https://wikipedia.org/wiki/Ascon_(cipher))
+
+Ascon-Hash256 produces a fixed 256-bit (32-byte) hash, part of the Ascon
+lightweight-cryptography family standardised in NIST SP 800-232 (selected in
+2023). It is designed for constrained devices such as IoT sensors. Output is
+hex. Takes no options.
+
+**Simple example**
+
+```bash
+cchef ascon-hash -i "Hello, World!"
+```
+
+Output:
+
+```
+f40e1ce8d4272e628e9535193f196f4ff2a720b00f6380c5d6f16b975f3a7777
+```
+
+## Ascon MAC
+
+Reference: [Ascon](https://wikipedia.org/wiki/Ascon_(cipher))
+
+Ascon-Mac produces a 128-bit (16-byte) message authentication code under a
+16-byte key, from the same NIST SP 800-232 Ascon family. Output is hex.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | toggleString | `` (Hex) | The MAC key — must be exactly 16 bytes. Encoding: `Hex`, `UTF8`, `Latin1` or `Base64`. |
+
+**Simple example**
+
+```bash
+cchef ascon-mac --key 000102030405060708090a0b0c0d0e0f -i "Hello, World!"
+```
+
+Output:
+
+```
+cf2675e26d71ddcd760be5f6455b1f53
 ```
 
 ## BLAKE2b

@@ -18,6 +18,8 @@ var opSummaries = map[string]string{
 	"Add line numbers":               "Prepends a line number to each line",
 	"Analyse hash":                   "Guesses the hash algorithm from the digest length",
 	"Argon2":                         "Argon2 password hash (i/d/id; encoded/hex/raw)",
+	"Ascon Hash":                     "Ascon-Hash256 lightweight hash (NIST SP 800-232)",
+	"Ascon MAC":                      "Ascon-Mac 128-bit MAC, 16-byte key (SP 800-232)",
 	"Adler-32 Checksum":              "Computes the Adler-32 checksum as hex",
 	"Affine Cipher Decode":           "Decrypts an Affine cipher: (y - b) * a⁻¹ mod 26",
 	"Affine Cipher Encode":           "Encrypts with an Affine cipher: (ax + b) mod 26",

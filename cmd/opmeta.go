@@ -119,6 +119,8 @@ var opCategories = map[string][]string{
 	"Analyse hash":                       {catHashing},
 	"Ascon Decrypt":                      {catEncryptionEncoding},
 	"Ascon Encrypt":                      {catEncryptionEncoding},
+	"Ascon Hash":                         {catHashing},
+	"Ascon MAC":                          {catHashing},
 	"Argon2":                             {catHashing},
 	"Argon2 compare":                     {catHashing},
 	"Atbash Cipher":                      {catEncryptionEncoding},

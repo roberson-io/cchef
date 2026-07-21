@@ -14,6 +14,8 @@ import (
 func init() {
 	core.Register(AsconEncrypt{})
 	core.Register(AsconDecrypt{})
+	core.Register(AsconHash{})
+	core.Register(AsconMAC{})
 }
 
 // asconToggleValues are the encodings offered for the Key, Nonce and Associated
@@ -199,6 +201,106 @@ func asconDecryptCore(key, nonce, ad, ciphertext []byte) (plaintext, tag []byte)
 	return pt, asconFinalize(&s, key)
 }
 
+// --- Ascon-Hash256 (NIST SP 800-232) ---
+//
+// Ported from the js-ascon package CyberChef's Ascon Hash wraps. The hash sponge
+// uses a 12-round permutation throughout (both a and b rounds are 12) over an
+// 8-byte rate, and squeezes 32 output bytes from s[0].
+
+const (
+	asconHashRate = 8  // hash sponge rate in bytes
+	asconHashLen  = 32 // Ascon-Hash256 output length in bytes
+)
+
+// asconHashPad appends the 0x01 padding byte followed by zeroes so the length
+// becomes a multiple of the 8-byte rate (a full extra block when already
+// aligned).
+func asconHashPad(data []byte) []byte {
+	padLen := asconHashRate - len(data)%asconHashRate
+	out := make([]byte, len(data)+padLen)
+	copy(out, data)
+	out[len(data)] = 0x01
+	return out
+}
+
+// asconHash256 computes the Ascon-Hash256 digest of message.
+func asconHash256(message []byte) []byte {
+	iv := []byte{2, 0, (asconRoundsA << 4) + asconRoundsA, 0x00, 0x01, asconHashRate, 0, 0}
+	s := [5]uint64{binary.LittleEndian.Uint64(iv), 0, 0, 0, 0}
+	asconPermutation(&s, asconRoundsA)
+
+	padded := asconHashPad(message)
+	for block := 0; block < len(padded); block += asconHashRate {
+		s[0] ^= binary.LittleEndian.Uint64(padded[block : block+8])
+		asconPermutation(&s, asconRoundsA)
+	}
+
+	out := make([]byte, 0, asconHashLen)
+	var w [8]byte
+	for len(out) < asconHashLen {
+		binary.LittleEndian.PutUint64(w[:], s[0])
+		out = append(out, w[:]...)
+		asconPermutation(&s, asconRoundsA)
+	}
+	return out[:asconHashLen]
+}
+
+// --- Ascon-Mac (NIST SP 800-232) ---
+//
+// Ported from the vendored ../CyberChef/src/core/vendor/ascon.mjs the Ascon MAC
+// operation wraps. It absorbs the message in 8-byte words cycling through
+// s[0..3] (permuting after four), pads the final partial word, applies domain
+// separation, and squeezes a 16-byte tag from s[0]‖s[1].
+
+const (
+	asconMACKeyLen = 16                 // Ascon-Mac key length in bytes
+	asconMACIV     = 0x0010200080cc0005 // Ascon-Mac initial value word
+	asconMACDSEP   = 1 << 63            // domain separation constant (0x80 << 56)
+)
+
+// asconLoadPartial reads up to n little-endian bytes of b into a 64-bit word.
+func asconLoadPartial(b []byte, n int) uint64 {
+	var v uint64
+	for i := range n {
+		v |= uint64(b[i]) << (8 * i)
+	}
+	return v
+}
+
+// asconMac computes the 16-byte Ascon-Mac tag of message under a 16-byte key.
+func asconMac(key, message []byte) []byte {
+	s := [5]uint64{
+		asconMACIV,
+		binary.LittleEndian.Uint64(key[0:8]),
+		binary.LittleEndian.Uint64(key[8:16]),
+		0, 0,
+	}
+	asconPermutation(&s, asconRoundsA)
+
+	pos, wordIdx := 0, 0
+	for pos+8 <= len(message) {
+		s[wordIdx] ^= binary.LittleEndian.Uint64(message[pos : pos+8])
+		wordIdx++
+		if wordIdx == 4 {
+			wordIdx = 0
+			asconPermutation(&s, asconRoundsA)
+		}
+		pos += 8
+	}
+	remaining := len(message) - pos
+	if remaining > 0 {
+		s[wordIdx] ^= asconLoadPartial(message[pos:], remaining)
+	}
+	s[wordIdx] ^= uint64(0x01) << (8 * remaining) // padding
+	s[4] ^= asconMACDSEP
+	asconPermutation(&s, asconRoundsA)
+
+	tag := make([]byte, asconMACKeyLen)
+	binary.LittleEndian.PutUint64(tag[0:8], s[0])
+	binary.LittleEndian.PutUint64(tag[8:16], s[1])
+	return tag
+}
+
 // --- CyberChef operation wrappers ---
 
 // asconKeyNonce decodes and validates the key and nonce arguments shared by both
@@ -326,4 +428,67 @@ func (AsconDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, errors.New("Unable to decrypt: authentication failed. The ciphertext, key, nonce, or associated data may be incorrect or tampered with.")
 	}
 	return asconOutput(plaintext, args[4].(string)), nil
+}
+
+// AsconHash computes the Ascon-Hash256 digest (NIST SP 800-232). Ported from
+// CyberChef AsconHash.mjs (which wraps the js-ascon package).
+type AsconHash struct{}
+
+// Meta returns the operation metadata.
+func (AsconHash) Meta() core.OpMeta {
+	return core.OpMeta{
+		Name:        "Ascon Hash",
+		Module:      "Crypto",
+		Description: "Ascon-Hash256 produces a fixed 256-bit (32-byte) cryptographic hash as standardised in NIST SP 800-232. Ascon is a family of lightweight authenticated encryption and hashing algorithms designed for constrained devices such as IoT sensors and embedded systems.<br><br>The algorithm was selected by NIST in 2023 as the new standard for lightweight cryptography after a multi-year competition.",
+		InfoURL:     "https://wikipedia.org/wiki/Ascon_(cipher)",
+		InputType:   core.TypeArrayBuffer,
+		OutputType:  core.TypeString,
+	}
+}
+
+// Args returns the argument definitions.
+func (AsconHash) Args() []core.ArgDef { return nil }
+
+// Run computes the Ascon-Hash256 digest.
+func (AsconHash) Run(in *core.Dish, args []any) (*core.Dish, error) {
+	digest := asconHash256(in.Bytes())
+	return core.NewDish([]byte(hex.EncodeToString(digest)), core.TypeString), nil
+}
+
+// AsconMAC computes the Ascon-Mac message authentication code (NIST SP 800-232).
+// Ported from CyberChef AsconMAC.mjs (which wraps the vendored ascon.mjs).
+type AsconMAC struct{}
+
+// Meta returns the operation metadata.
+func (AsconMAC) Meta() core.OpMeta {
+	return core.OpMeta{
+		Name:        "Ascon MAC",
+		Module:      "Crypto",
+		Description: "Ascon-Mac produces a 128-bit (16-byte) message authentication code as part of the Ascon family standardised by NIST in SP 800-232. It provides authentication for messages using a secret key, ensuring both data integrity and authenticity.<br><br>Ascon is designed for lightweight cryptography on constrained devices such as IoT sensors and embedded systems.",
+		InfoURL:     "https://wikipedia.org/wiki/Ascon_(cipher)",
+		InputType:   core.TypeArrayBuffer,
+		OutputType:  core.TypeString,
+	}
+}
+
+// Args returns the argument definitions.
+func (AsconMAC) Args() []core.ArgDef {
+	return []core.ArgDef{
+		{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: asconToggleValues},
+	}
+}
+
+// Run computes the Ascon-Mac tag.
+func (AsconMAC) Run(in *core.Dish, args []any) (*core.Dish, error) {
+	keyArg := args[0].(core.ToggleString)
+	key, err := convertToByteArray(keyArg.Value, keyArg.Option)
+	if err != nil {
+		return nil, err
+	}
+	if len(key) != asconMACKeyLen {
+		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
+		return nil, fmt.Errorf("Invalid key length: %d bytes.\n\nAscon-Mac requires a key of exactly 16 bytes (128 bits).", len(key))
+	}
+	tag := asconMac(key, in.Bytes())
+	return core.NewDish([]byte(hex.EncodeToString(tag)), core.TypeString), nil
 }

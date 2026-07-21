@@ -159,6 +159,100 @@ func TestAsconErrors(t *testing.T) {
 	}
 }
 
+// asconHash / asconMAC build Hash and MAC recipes. Both take ArrayBuffer input.
+func asconHash() core.Recipe {
+	return core.Recipe{{Op: "Ascon Hash", Args: []any{}}}
+}
+
+func asconMAC(key core.ToggleString) core.Recipe {
+	return core.Recipe{{Op: "Ascon MAC", Args: []any{key}}}
+}
+
+// Ascon Hash fixtures transcribed from Ascon.mjs (NIST SP 800-232 / ACVP).
+func TestAsconHash(t *testing.T) {
+	runCases(t, []opCase{
+		{
+			"Ascon Hash: empty", "",
+			"0b3be5850f2f6b98caf29f8fdea89b64a1fa70aa249b8f839bd53baa304d92b2", asconHash(),
+		},
+		{
+			"Ascon Hash: 0x50", "P",
+			"b96da347d720272533a87f5a94a356155f49cdf7c0c10a3e6f346d8a2293e480", asconHash(),
+		},
+		{
+			"Ascon Hash: Hello", "Hello",
+			"c1beebe1251d562c4526d6b947cefb932998499424f6cd186e764aa0a36cddb7", asconHash(),
+		},
+		{
+			"Ascon Hash: Hello, World!", "Hello, World!",
+			"f40e1ce8d4272e628e9535193f196f4ff2a720b00f6380c5d6f16b975f3a7777", asconHash(),
+		},
+	})
+}
+
+// Ascon MAC fixtures transcribed from Ascon.mjs (NIST LWC_MAC_KAT_128_128).
+func TestAsconMAC(t *testing.T) {
+	key := core.ToggleString{Value: "000102030405060708090a0b0c0d0e0f", Option: "Hex"}
+	runCases(t, []opCase{
+		{
+			"Ascon MAC: KAT Count=1 (empty)", "",
+			"eac9d74bbedf8bf1eba2862b26aa6d39", asconMAC(key),
+		},
+		{
+			"Ascon MAC: KAT Count=2 (0x10)", "\x10",
+			"e5be5b6dfb7b0e3eae00a070791947a8", asconMAC(key),
+		},
+		{
+			"Ascon MAC: KAT Count=5 (0x10111213)", "\x10\x11\x12\x13",
+			"727f6386405a52ad7ca0669a6a885294", asconMAC(key),
+		},
+	})
+}
+
+// Multi-block messages exercise the 8-byte-word absorb loop and the cross-lane
+// permutation after four words. Vectors computed from the same vendored ascon.mjs
+// CyberChef's Ascon MAC wraps (key = 000102…0f).
+func TestAsconMACMultiBlock(t *testing.T) {
+	key := core.ToggleString{Value: "000102030405060708090a0b0c0d0e0f", Option: "Hex"}
+	seq := func(start, n int) string {
+		b := make([]byte, n)
+		for i := range b {
+			b[i] = byte(start + i)
+		}
+		return string(b)
+	}
+	cases := []struct{ name, input, want string }{
+		{"one 8-byte word", seq(0x10, 8), "ae64d5de267ad795e29bfe13da776a53"},
+		{"40 bytes (5 words)", seq(0x20, 40), "6627c28ee05ec0136ba9d9722171e756"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := runOp(t, "Ascon MAC", c.input, key)
+			if err != nil || got != c.want {
+				t.Fatalf("got %q, %v\nwant %q", got, err, c.want)
+			}
+		})
+	}
+}
+
+// A key whose declared encoding cannot be decoded surfaces the decode error.
+func TestAsconMACKeyDecodeError(t *testing.T) {
+	_, err := runOp(t, "Ascon MAC", "msg", core.ToggleString{Value: "@@@", Option: "Base64"})
+	if err == nil {
+		t.Fatal("want error for undecodable key")
+	}
+}
+
+// The MAC key must be exactly 16 bytes, matching CyberChef's error text.
+func TestAsconMACKeyLength(t *testing.T) {
+	_, err := runOp(t, "Ascon MAC", "test",
+		core.ToggleString{Value: "0001020304050607", Option: "Hex"})
+	want := "Invalid key length: 8 bytes.\n\nAscon-Mac requires a key of exactly 16 bytes (128 bits)."
+	if err == nil || err.Error() != want {
+		t.Fatalf("got %v\nwant %q", err, want)
+	}
+}
+
 // TestAsconArgDecodeErrors covers the argument-decoding error paths: an
 // undecodable Key, Nonce or Associated Data (here invalid Base64) is surfaced as
 // an error, as with the other cipher operations.
