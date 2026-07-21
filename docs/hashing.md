@@ -22,6 +22,9 @@ emit their own text format, and several operations take options.
 | Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | CMAC | `cmac` | [CMAC](https://wikipedia.org/wiki/CMAC) |
 | CRC Checksum | `crc-checksum` | [CRC](https://wikipedia.org/wiki/Cyclic_redundancy_check) |
+| CTPH | `ctph` | [CTPH](https://forensics.wiki/context_triggered_piecewise_hashing/) |
+| Compare CTPH hashes | `compare-ctph-hashes` | [CTPH](https://forensics.wiki/context_triggered_piecewise_hashing/) |
+| Compare SSDEEP hashes | `compare-ssdeep-hashes` | [SSDEEP](https://forensics.wiki/ssdeep/) |
 | Fletcher-16 Checksum | `fletcher-16-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Fletcher-32 Checksum | `fletcher-32-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Fletcher-64 Checksum | `fletcher-64-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
@@ -49,6 +52,7 @@ emit their own text format, and several operations take options.
 | SHA384 | `sha384` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA512 | `sha512` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SM3 | `sm3` | [SM3](https://wikipedia.org/wiki/SM3_(hash_function)) |
+| SSDEEP | `ssdeep` | [SSDEEP](https://forensics.wiki/ssdeep) |
 | Shake | `shake` | [SHAKE](https://wikipedia.org/wiki/SHA-3#Instances) |
 | Snefru | `snefru` | [Snefru](https://wikipedia.org/wiki/Snefru) |
 | Streebog | `streebog` | [Streebog](https://wikipedia.org/wiki/Streebog) |
@@ -499,6 +503,77 @@ Output:
 
 ```
 50
+```
+
+## CTPH
+
+Reference: [Context Triggered Piecewise Hashing](https://forensics.wiki/context_triggered_piecewise_hashing/)
+
+Computes a Context Triggered Piecewise Hash (a "fuzzy hash") that can match
+inputs sharing homologous byte sequences. This is a faithful port of the
+non-standard `ctph.js` package CyberChef uses, so output matches CyberChef (and
+differs from standard tools). Takes no options.
+
+**Simple example**
+
+```bash
+cchef ctph -i "Hello world"
+```
+
+Output:
+
+```
+A:YX8:YX8
+```
+
+## Compare CTPH hashes
+
+Reference: [Context Triggered Piecewise Hashing](https://forensics.wiki/context_triggered_piecewise_hashing/)
+
+Compares two CTPH hashes and returns their similarity on a scale of 0–100. The
+two hashes are given as input, separated by the chosen delimiter.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Line feed` | Separator between the two hashes: `Line feed`, `CRLF`, `Space` or `Comma`. |
+
+**Simple example**
+
+```bash
+printf 'A:YX8:YX8\nA:YX8:YX8' | cchef compare-ctph-hashes
+```
+
+Output:
+
+```
+100
+```
+
+## Compare SSDEEP hashes
+
+Reference: [SSDEEP](https://forensics.wiki/ssdeep/)
+
+Compares two SSDEEP hashes and returns their similarity on a scale of 0–100, with
+the two hashes given as input separated by the chosen delimiter.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--delimiter` | option | `Line feed` | Separator between the two hashes: `Line feed`, `CRLF`, `Space` or `Comma`. |
+
+**Simple example**
+
+```bash
+printf '3:agPn:agPn\n3:agPn:agPn' | cchef compare-ssdeep-hashes
+```
+
+Output:
+
+```
+100
 ```
 
 ## Fletcher-16 Checksum
@@ -1079,6 +1154,27 @@ Output:
 
 ```
 66c7f0f462eeedd9d1f2d46bdc10e4e2
+```
+
+## SSDEEP
+
+Reference: [SSDEEP](https://forensics.wiki/ssdeep)
+
+Computes an SSDEEP fuzzy hash — the same idea as CTPH but a different output
+format. A faithful port of the non-standard `ssdeep.js` package CyberChef uses,
+so output matches CyberChef (and differs from the standard ssdeep tool). Takes no
+options.
+
+**Simple example**
+
+```bash
+cchef ssdeep -i "Hello world"
+```
+
+Output:
+
+```
+3:agPn:agPn
 ```
 
 ## Shake
