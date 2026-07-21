@@ -10,6 +10,8 @@ emit their own text format, and several operations take options.
 | --- | --- | --- |
 | Adler-32 Checksum | `adler-32-checksum` | [Adler-32](https://wikipedia.org/wiki/Adler-32) |
 | Analyse hash | `analyse-hash` | [Hash functions](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions) |
+| BLAKE2b | `blake2b` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2b_algorithm) |
+| BLAKE2s | `blake2s` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2) |
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt compare | `bcrypt-compare` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
@@ -39,6 +41,7 @@ emit their own text format, and several operations take options.
 | SHA384 | `sha384` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA512 | `sha512` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SM3 | `sm3` | [SM3](https://wikipedia.org/wiki/SM3_(hash_function)) |
+| Shake | `shake` | [SHAKE](https://wikipedia.org/wiki/SHA-3#Instances) |
 | Snefru | `snefru` | [Snefru](https://wikipedia.org/wiki/Snefru) |
 | TCP/IP Checksum | `tcp-ip-checksum` | [IPv4 checksum](https://wikipedia.org/wiki/IPv4_header_checksum) |
 | Whirlpool | `whirlpool` | [Whirlpool](https://wikipedia.org/wiki/Whirlpool_(hash_function)) |
@@ -91,6 +94,75 @@ HAVAL-128
 RIPEMD-128
 Snefru
 Tiger-128
+```
+
+## BLAKE2b
+
+Reference: [BLAKE2b](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2b_algorithm)
+
+Computes the BLAKE2b hash (the 64-bit-optimised BLAKE2 flavour) at a chosen digest
+size, with an optional key (turning it into a MAC). Output can be hex, Base64 or
+raw bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | option | `512` | Digest size in bits: `512`, `384`, `256`, `160` or `128`. |
+| `--output-encoding` | option | `Hex` | `Hex`, `Base64` or `Raw`. |
+| `--key` | toggleString | (empty) | Optional key (max 64 bytes), interpreted by `--key-type` (`UTF8`, `Decimal`, `Base64`, `Hex`, `Latin1`). |
+
+**Simple example**
+
+```bash
+cchef blake2b --size 256 -i "Hello World"
+```
+
+Output:
+
+```
+1dc01772ee0171f5f614c673e3c7fa1107a8cf727bdf5a6dadb379e93c0d1d00
+```
+
+**Keyed example**
+
+```bash
+cchef blake2b --size 128 --key "pseudorandom key" -i "message data"
+```
+
+Output:
+
+```
+3d363ff7401e02026f4a4687d4863ced
+```
+
+## BLAKE2s
+
+Reference: [BLAKE2s](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2)
+
+Computes the BLAKE2s hash (the 8- to 32-bit-optimised BLAKE2 flavour) at a chosen
+digest size, with an optional key. A from-scratch port (Go's `x/crypto/blake2s`
+only offers the 256-bit and keyed-128-bit variants, not the 160-bit or unkeyed
+128-bit digests this operation needs). Output can be hex, Base64 or raw bytes.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | option | `256` | Digest size in bits: `256`, `160` or `128`. |
+| `--output-encoding` | option | `Hex` | `Hex`, `Base64` or `Raw`. |
+| `--key` | toggleString | (empty) | Optional key (max 32 bytes), interpreted by `--key-type` (`UTF8`, `Decimal`, `Base64`, `Hex`, `Latin1`). |
+
+**Simple example**
+
+```bash
+cchef blake2s --size 160 -i "Hello World"
+```
+
+Output:
+
+```
+0e4fcfc2ee0097ac1d72d70b595a39e09a3c7c7e
 ```
 
 ## Bcrypt
@@ -753,6 +825,33 @@ Output:
 
 ```
 66c7f0f462eeedd9d1f2d46bdc10e4e2
+```
+
+## Shake
+
+Reference: [SHAKE](https://wikipedia.org/wiki/SHA-3#Instances)
+
+The SHAKE extendable-output function (XOF) of SHA-3, producing a digest of any
+requested length. The `Size` is given in bits, and the output is `floor(size/8)`
+bytes as hex.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--capacity` | option | `256` | The SHAKE variant: `256` (SHAKE256) or `128` (SHAKE128). |
+| `--size` | number | `512` | Output length in bits. |
+
+**Simple example**
+
+```bash
+cchef shake --capacity 256 --size 256 -i "Hello World"
+```
+
+Output:
+
+```
+840d1ce81a4327840b54cb1d419907fd1f62359bad33656e058653d2e4172a43
 ```
 
 ## Snefru

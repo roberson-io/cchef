@@ -167,6 +167,7 @@ var opSummaries = map[string]string{
 	"Salsa20":                        "Salsa20 stream cipher (8-byte nonce)",
 	"Scrypt":                         "scrypt password-based key derivation (RFC 7914)",
 	"Set Difference":                 "Relative complement of two sets",
+	"Shake":                          "SHAKE XOF of SHA-3 with variable output length",
 	"Show Base64 offsets":            "Shows a string's three Base64 offset encodings",
 	"Shuffle":                        "Randomly reorders input sections",
 	"Snefru":                         "Snefru hash (128/256-bit, Merkle 1990)",
