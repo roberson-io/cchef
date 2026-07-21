@@ -39,6 +39,7 @@ emit their own text format, and several operations take options.
 | MD2 | `md2` | [MD2](https://wikipedia.org/wiki/MD2_(cryptography)) |
 | MD4 | `md4` | [MD4](https://wikipedia.org/wiki/MD4) |
 | MD5 | `md5` | [MD5](https://wikipedia.org/wiki/MD5) |
+| MD6 | `md6` | [MD6](https://wikipedia.org/wiki/MD6) |
 | MurmurHash3 | `murmurhash3` | [MurmurHash](https://wikipedia.org/wiki/MurmurHash) |
 | NT Hash | `nt-hash` | [NT LAN Manager](https://wikipedia.org/wiki/NT_LAN_Manager) |
 | Parity Bit | `parity-bit` | [Parity bit](https://wikipedia.org/wiki/Parity_bit) |
@@ -867,6 +868,49 @@ Output:
 
 ```
 65a8e27d8879283831b664bd8b7f0ad4
+```
+
+## MD6
+
+Reference: [MD6](https://wikipedia.org/wiki/MD6)
+
+The MD6 (Message-Digest 6) hash function, using a Merkle-tree structure that
+allows parallel hashing of long inputs. A from-scratch port of the `node-md6`
+package CyberChef uses (MD6 is not in Go's `x/crypto`). Output is hex, at a
+configurable digest size.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | number | `256` | Digest size in bits (0–512). |
+| `--levels` | number | `64` | Maximum tree height before switching to sequential mode. |
+| `--key` | string | (empty) | Optional key (up to 64 bytes). |
+
+**Simple example**
+
+```bash
+cchef md6 -i "Hello, World!"
+```
+
+Output:
+
+```
+ce5effce32637e6b8edaacc9284b873c3fd4e66f9779a79df67eb4a82dda8230
+```
+
+**Complex example**
+
+A 512-bit keyed digest:
+
+```bash
+cchef md6 --size 512 --key secretkey -i "Hello, World!"
+```
+
+Output:
+
+```
+482ee679ae23b6dc0163f8f9e327ccfaabb01d5d032f6e0ca22fdbb01eb55a6a967a51ae35b30f1f837b93f5a258dceb8d83a3e4aa0a1a32d15e9fd0d07bccab
 ```
 
 ## MurmurHash3

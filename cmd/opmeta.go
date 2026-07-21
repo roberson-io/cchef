@@ -280,6 +280,7 @@ var opCategories = map[string][]string{
 	"MD2":                                {catHashing},
 	"MD4":                                {catHashing},
 	"MD5":                                {catHashing},
+	"MD6":                                {catHashing},
 	"Mean":                               {catArithmeticLogic},
 	"Median":                             {catArithmeticLogic},
 	"MIME Decoding":                      {catDataFormat},

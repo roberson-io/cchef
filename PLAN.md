@@ -308,7 +308,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 364
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 365
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -321,7 +321,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **364 operations** (`internal/ops/`), each a faithful port with tests
+- **365 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -486,7 +486,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **354 unique** CyberChef operations are covered (353 directly plus
+Currently **355 unique** CyberChef operations are covered (354 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -911,7 +911,7 @@ Currently **354 unique** CyberChef operations are covered (353 directly plus
 - [ ] Zlib Deflate
 - [ ] Zlib Inflate
 
-### Hashing (48/50)
+### Hashing (49/50)
 
 - [x] Adler-32 Checksum
 - [x] Analyse hash
@@ -945,7 +945,7 @@ Currently **354 unique** CyberChef operations are covered (353 directly plus
 - [x] MD2
 - [x] MD4
 - [x] MD5
-- [ ] MD6
+- [x] MD6
 - [x] MurmurHash3
 - [x] NT Hash
 - [x] Parity Bit

@@ -166,6 +166,7 @@ var opSummaries = map[string]string{
 	"Rotate right":                   "Rotates each byte's bits right",
 	"MD2":                            "MD2 message digest (RFC 1319, 128-bit)",
 	"MD4":                            "MD4 message digest (RFC 1320, 128-bit)",
+	"MD6":                            "MD6 hash (Merkle-tree; size, levels, key)",
 	"MurmurHash3":                    "MurmurHash v3 (32-bit) with an optional seed",
 	"NT Hash":                        "NT/NTLM hash: MD4 of UTF-16LE input",
 	"RIPEMD":                         "RIPEMD hash (128/160/256/320-bit)",
