@@ -19,6 +19,7 @@ emit their own text format, and several operations take options.
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt compare | `bcrypt-compare` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
+| CMAC | `cmac` | [CMAC](https://wikipedia.org/wiki/CMAC) |
 | CRC Checksum | `crc-checksum` | [CRC](https://wikipedia.org/wiki/Cyclic_redundancy_check) |
 | Fletcher-16 Checksum | `fletcher-16-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Fletcher-32 Checksum | `fletcher-32-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
@@ -29,11 +30,13 @@ emit their own text format, and several operations take options.
 | HAS-160 | `has-160` | [HAS-160](https://wikipedia.org/wiki/HAS-160) |
 | HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
 | Keccak | `keccak` | [SHA-3 / Keccak](https://wikipedia.org/wiki/SHA-3) |
+| LM Hash | `lm-hash` | [LAN Manager](https://wikipedia.org/wiki/LAN_Manager#Password_hashing_algorithm) |
 | Luhn Checksum | `luhn-checksum` | [Luhn mod N](https://wikipedia.org/wiki/Luhn_mod_N_algorithm) |
 | MD2 | `md2` | [MD2](https://wikipedia.org/wiki/MD2_(cryptography)) |
 | MD4 | `md4` | [MD4](https://wikipedia.org/wiki/MD4) |
 | MD5 | `md5` | [MD5](https://wikipedia.org/wiki/MD5) |
 | MurmurHash3 | `murmurhash3` | [MurmurHash](https://wikipedia.org/wiki/MurmurHash) |
+| NT Hash | `nt-hash` | [NT LAN Manager](https://wikipedia.org/wiki/NT_LAN_Manager) |
 | Parity Bit | `parity-bit` | [Parity bit](https://wikipedia.org/wiki/Parity_bit) |
 | RIPEMD | `ripemd` | [RIPEMD](https://wikipedia.org/wiki/RIPEMD) |
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
@@ -348,6 +351,49 @@ Password hash: dDdhqntQh./IN0RXCc3XIMILuOYZKgK
 Full hash: $2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK
 ```
 
+## CMAC
+
+Reference: [CMAC](https://wikipedia.org/wiki/CMAC)
+
+CMAC is a block-cipher-based message authentication code (RFC 4493 defines
+AES-CMAC; NIST SP 800-38B also covers Triple DES). Input is the message bytes;
+output is the tag as hex (16 bytes for AES, 8 for Triple DES).
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--key` | toggleString | `` (Hex) | The key. AES needs 16, 24 or 32 bytes; Triple DES needs 16 or 24. Encoding: `Hex`, `UTF8`, `Latin1` or `Base64`. |
+| `--encryption-algorithm` | option | `AES` | Block cipher: `AES` or `Triple DES`. |
+
+**Simple example**
+
+The AES-128 CMAC of an empty message (NIST CSRC example):
+
+```bash
+cchef cmac --key 2b7e151628aed2a6abf7158809cf4f3c -i ""
+```
+
+Output:
+
+```
+bb1d6929e95937287fa37d129b756746
+```
+
+**Complex example**
+
+Triple DES CMAC over a 16-byte message supplied as hex:
+
+```bash
+echo -n "6bc1bee22e409f96e93d7e117393172a" | cchef from-hex | cchef cmac --key 0123456789abcdef23456789abcdef01456789abcdef0123 --encryption-algorithm "Triple DES"
+```
+
+Output:
+
+```
+30239cf1f52e6609
+```
+
 ## CRC Checksum
 
 Reference: [CRC](https://wikipedia.org/wiki/Cyclic_redundancy_check)
@@ -607,6 +653,27 @@ Output:
 acaf3289d7b601cbd114fb36c4d29c85bbfd5e133f14cb355c3fd8d99367964f
 ```
 
+## LM Hash
+
+Reference: [LAN Manager](https://wikipedia.org/wiki/LAN_Manager#Password_hashing_algorithm)
+
+The LM (LAN Manager) hash is a deprecated Windows password hash. The password is
+uppercased, truncated/padded to 14 bytes, split into two 7-byte halves, and each
+half becomes a DES key that encrypts the constant `KGS!@#$%`; the two ciphertexts
+are concatenated. It is extremely weak and takes no options.
+
+**Simple example**
+
+```bash
+cchef lm-hash -i "password"
+```
+
+Output:
+
+```
+E52CAC67419A9A224A3B108F3FA6CB6D
+```
+
 ## Luhn Checksum
 
 Reference: [Luhn mod N](https://wikipedia.org/wiki/Luhn_mod_N_algorithm)
@@ -722,6 +789,26 @@ Output:
 
 ```
 -156908512
+```
+
+## NT Hash
+
+Reference: [NT LAN Manager](https://wikipedia.org/wiki/NT_LAN_Manager)
+
+The NT hash (also called an NTLM hash) is how Windows stores passwords: MD4 of
+the password encoded as UTF-16LE. Output is uppercase hex. It takes no options
+and is considered weak against modern brute-forcing.
+
+**Simple example**
+
+```bash
+cchef nt-hash -i "password"
+```
+
+Output:
+
+```
+8846F7EAEE8FB117AD06BDD830B7586C
 ```
 
 ## Parity Bit
