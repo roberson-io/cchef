@@ -45,6 +45,7 @@ emit their own text format, and several operations take options.
 | SM3 | `sm3` | [SM3](https://wikipedia.org/wiki/SM3_(hash_function)) |
 | Shake | `shake` | [SHAKE](https://wikipedia.org/wiki/SHA-3#Instances) |
 | Snefru | `snefru` | [Snefru](https://wikipedia.org/wiki/Snefru) |
+| Streebog | `streebog` | [Streebog](https://wikipedia.org/wiki/Streebog) |
 | TCP/IP Checksum | `tcp-ip-checksum` | [IPv4 checksum](https://wikipedia.org/wiki/IPv4_header_checksum) |
 | Whirlpool | `whirlpool` | [Whirlpool](https://wikipedia.org/wiki/Whirlpool_(hash_function)) |
 | XOR Checksum | `xor-checksum` | [XOR](https://wikipedia.org/wiki/XOR) |
@@ -952,6 +953,44 @@ Output:
 
 ```
 bd456c6c33df28257b8736f798e40ac57d9b61996d94ada339abaa8d2a97ec86
+```
+
+## Streebog
+
+Reference: [Streebog](https://wikipedia.org/wiki/Streebog)
+
+Streebog is the cryptographic hash function of the Russian national standard
+GOST R 34.11-2012, created to replace the older GOST R 34.11-94 hash. It shares
+the GOST digest engine with the `gost-hash` operation. Output is hex.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--digest-length` | option | `256` | Digest length in bits: `256` or `512`. |
+
+**Simple example**
+
+```bash
+cchef streebog -i "Hello"
+```
+
+Output:
+
+```
+3c10d2ffe0787bc8bd6eacd337d59c314ce689c847a422f6c34b4b75f45751bc
+```
+
+**Complex example**
+
+```bash
+cchef streebog --digest-length 512 -i "Hello"
+```
+
+Output:
+
+```
+5bfa12a667f8da6ec0d3101f02122b6f8b7686fffcc524a7acc4c202f7b2d8f50f135405b8f4626f9ae97a8dcbec714f5294ae7b9fb32a0d6bf3dbf98a3c1d90
 ```
 
 ## TCP/IP Checksum

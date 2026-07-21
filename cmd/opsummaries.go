@@ -176,6 +176,7 @@ var opSummaries = map[string]string{
 	"Sort":                           "Sorts input sections by the chosen order",
 	"Whirlpool":                      "Whirlpool 512-bit hash (with -0/-T variants)",
 	"Split":                          "Splits on one delimiter, rejoins with another",
+	"Streebog":                       "Streebog hash, GOST R 34.11-2012 (256/512-bit)",
 	"Strip HTTP headers":             "Removes HTTP headers, keeping the body",
 	"Strip IPv4 header":              "Strips the IPv4 header, outputting the payload",
 	"Strip TCP header":               "Strips the TCP header, outputting the payload",

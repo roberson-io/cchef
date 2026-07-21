@@ -378,6 +378,7 @@ var opCategories = map[string][]string{
 	"Sort":                               {catUtils},
 	"Split":                              {catUtils},
 	"Standard Deviation":                 {catArithmeticLogic},
+	"Streebog":                           {catHashing},
 	"Strip HTTP headers":                 {catNetworking},
 	"Strip IPv4 header":                  {catNetworking},
 	"Strip TCP header":                   {catNetworking},
