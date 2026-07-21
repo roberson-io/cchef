@@ -31,6 +31,7 @@ var opSummaries = map[string]string{
 	"Bacon Cipher Encode":            "Encodes text as a Baconian cipher",
 	"Bcrypt":                         "Hashes a password with bcrypt",
 	"Bcrypt parse":                   "Extracts the rounds, salt and hash from a bcrypt hash",
+	"BLAKE3":                         "BLAKE3 hash, variable length, optional 32-byte key",
 	"Bifid Cipher Decode":            "Decodes a Bifid cipher with a keyword",
 	"Bifid Cipher Encode":            "Encodes text with a keyed Bifid cipher",
 	"Bit shift left":                 "Shifts each byte's bits left by an amount",

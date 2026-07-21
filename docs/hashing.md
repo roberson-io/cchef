@@ -16,6 +16,7 @@ emit their own text format, and several operations take options.
 | Ascon MAC | `ascon-mac` | [Ascon](https://wikipedia.org/wiki/Ascon_(cipher)) |
 | BLAKE2b | `blake2b` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2b_algorithm) |
 | BLAKE2s | `blake2s` | [BLAKE](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2) |
+| BLAKE3 | `blake3` | [BLAKE3](https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE3) |
 | Bcrypt | `bcrypt` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt compare | `bcrypt-compare` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
 | Bcrypt parse | `bcrypt-parse` | [Bcrypt](https://wikipedia.org/wiki/Bcrypt) |
@@ -290,6 +291,48 @@ Output:
 
 ```
 0e4fcfc2ee0097ac1d72d70b595a39e09a3c7c7e
+```
+
+## BLAKE3
+
+Reference: [BLAKE3](https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE3)
+
+Computes the BLAKE3 hash at a chosen output length, with an optional key. A
+from-scratch port of the BLAKE3 spec (it is not in Go's `x/crypto`). BLAKE3 is an
+extendable-output function, so any length up to 65535 bytes can be requested.
+Output is hex.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size-bytes` | number | `16` | Output length in bytes (1–65535). |
+| `--key` | string | (empty) | Optional key; if given, must be exactly 32 bytes (keyed mode). |
+
+**Simple example**
+
+```bash
+cchef blake3 --size-bytes 32 -i "Hello world"
+```
+
+Output:
+
+```
+e7e6fb7d2869d109b62cdb1227208d4016cdaa0af6603d95223c6a698137d945
+```
+
+**Complex example**
+
+Keyed hash with a 32-byte key:
+
+```bash
+cchef blake3 --size-bytes 8 --key "ThiskeyisexactlythirtytwoBytesLo" -i "Hello world"
+```
+
+Output:
+
+```
+59dd23ac9d025690
 ```
 
 ## Bcrypt

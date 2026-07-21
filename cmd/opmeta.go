@@ -138,6 +138,7 @@ var opCategories = map[string][]string{
 	"Blowfish Encrypt":                   {catEncryptionEncoding},
 	"BLAKE2b":                            {catHashing},
 	"BLAKE2s":                            {catHashing},
+	"BLAKE3":                             {catHashing},
 	"Bombe":                              {catEncryptionEncoding},
 	"Caesar Box Cipher":                  {catEncryptionEncoding},
 	"Caret/M-decode":                     {catDataFormat},
