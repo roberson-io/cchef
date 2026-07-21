@@ -237,6 +237,7 @@ var opCategories = map[string][]string{
 	"From UNIX Timestamp":                {catDateTime},
 	"Fuzzy Match":                        {catUtils},
 	"Generate all checksums":             {catHashing},
+	"Generate all hashes":                {catHashing},
 	"Generate ECDSA Key Pair":            {catPublicKey},
 	"Generate PGP Key Pair":              {catPublicKey},
 	"Generate RSA Key Pair":              {catPublicKey},

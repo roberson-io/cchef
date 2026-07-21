@@ -30,6 +30,7 @@ emit their own text format, and several operations take options.
 | Fletcher-64 Checksum | `fletcher-64-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Fletcher-8 Checksum | `fletcher-8-checksum` | [Fletcher](https://wikipedia.org/wiki/Fletcher%27s_checksum) |
 | Generate all checksums | `generate-all-checksums` | [Checksum](https://wikipedia.org/wiki/Checksum) |
+| Generate all hashes | `generate-all-hashes` | [Hash functions](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions) |
 | GOST Hash | `gost-hash` | [GOST (hash function)](https://wikipedia.org/wiki/GOST_(hash_function)) |
 | HAS-160 | `has-160` | [HAS-160](https://wikipedia.org/wiki/HAS-160) |
 | HMAC | `hmac` | [HMAC](https://wikipedia.org/wiki/HMAC) |
@@ -658,6 +659,45 @@ CRC-3/ROHC:               6
 
 With `--length-bits All` (the default) the operation emits all 176 checksums;
 `--include-names=false` outputs just the values, one per line.
+
+## Generate all hashes
+
+Reference: [Comparison of cryptographic hash functions](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions)
+
+Runs every hash and checksum operation over the input and lists the results. It
+composes the individual hash operations (MD2–MD6, the SHA families, Keccak,
+SHAKE, RIPEMD, HAS-160, Whirlpool, BLAKE2b/2s, Streebog, GOST, LM/NT, SSDEEP,
+CTPH). Output is text.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--length-bits` | option | `All` | Only show digests of this bit-length: `All`, `128`, `160`, `224`, `256`, `320`, `384` or `512`. |
+| `--include-names` | boolean | `true` | Prefix each digest with the algorithm name. |
+
+**Simple example**
+
+Show only the 128-bit digests:
+
+```bash
+cchef generate-all-hashes --length-bits 128 -i "test"
+```
+
+Output:
+
+```
+MD2:          dd34716876364a02d0195e2fb9ae2d1b
+MD4:          db346d691d7acc4dc2625db19f9e3f52
+MD5:          098f6bcd4621d373cade4e832627b4f6
+RIPEMD-128:   f1abb5083c9ff8a9dbbca9cd2b11fead
+BLAKE2b-128:  44a8995dd50b6657a037a7839304535b
+BLAKE2s-128:  e9ddd9926b9dcb382e09be39ba403d2c
+LM Hash:      01FC5A6BE7BC6929AAD3B435B51404EE
+NT Hash:      0CB6948805F797BF2A82807973B89537
+```
+
+Pass `--length-bits All` (the default) to list every algorithm.
 
 ## GOST Hash
 
