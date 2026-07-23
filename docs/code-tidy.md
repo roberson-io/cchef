@@ -21,6 +21,7 @@ full below.
 | JavaScript Beautify | `javascript-beautify` | [escodegen](https://github.com/estools/escodegen) |
 | JavaScript Minify | `javascript-minify` | [esbuild](https://github.com/evanw/esbuild) |
 | JavaScript Parser | `javascript-parser` | [Abstract syntax tree](https://wikipedia.org/wiki/Abstract_syntax_tree) |
+| Jq | `jq` | [jq](https://github.com/jqlang/jq) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
 
@@ -235,4 +236,68 @@ Output:
   ],
   "sourceType": "script"
 }
+```
+
+## Jq
+
+Processes the JSON input with a [jq](https://github.com/jqlang/jq) query. CyberChef
+wraps jq-web (jq compiled to WebAssembly); cchef reimplements the operation over
+[gojq](https://github.com/itchyny/gojq), a pure-Go jq, so it stays a single static
+binary with no cgo.
+
+The input must be valid JSON. jq's output is a stream of values, which is
+collapsed the way jq-web's `jq.json()` does: **zero** results is an error, a
+**single** result is returned directly, and **multiple** results become a JSON
+array. The result is then printed raw (only when *Raw* is set and the result is a
+string) or serialised like JavaScript's `JSON.stringify` (compact, UTF-8
+preserved).
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Query | string | (empty) | The jq program to run. |
+| Raw | boolean | `false` | When set, a string result is printed without surrounding quotes; non-string results are still JSON-encoded. |
+
+An invalid query, or one that raises a runtime error, is reported as
+`Invalid jq expression: <message>`. A query that produces no output is reported as
+`Invalid jq expression: Unexpected end of JSON input`, matching jq-web.
+
+> As gojq is an independent reimplementation of jq, error message wording can
+> differ from jq-web, and rare numeric edge cases may vary; `NaN` serialises to
+> `null` (as `JSON.stringify` does).
+
+### Simple example
+
+```bash
+cchef jq -i '{"name":"cchef","tags":["cli","json"]}' --query ".tags"
+```
+
+Output:
+
+```
+["cli","json"]
+```
+
+### Complex example
+
+Pull a field out of each element, then reduce — and print a bare string with
+`--raw`:
+
+```bash
+cchef jq -i '[{"n":1},{"n":2},{"n":3}]' --query "map(.n) | add"
+```
+
+Output:
+
+```
+6
+```
+
+```bash
+cchef jq -i '{"msg":"hello world"}' --query ".msg" --raw
+```
+
+Output:
+
+```
+hello world
 ```

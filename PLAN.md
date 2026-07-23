@@ -89,6 +89,16 @@ fixture cases for parity, and keeps external dependencies minimal:
   (`cssxpath.go`). This preserves byte-for-byte fidelity to CyberChef's
   `@xmldom/xmldom` + `nwmatcher` output, which the general-purpose HTML5 parser
   libraries (cascadia, goquery) could not reproduce.
+- `github.com/itchyny/gojq` — backs **Jq** (CyberChef wraps jq-web, jq compiled to
+  WASM, which has no logic to port). gojq is a pure-Go reimplementation of jq, so
+  cchef stays a single static binary with **no cgo**; its only transitive
+  dependency is `github.com/itchyny/timefmt-go` (also pure Go — gojq's other
+  module requirements are used solely by its CLI package, which cchef does not
+  build). The op reproduces jq-web's `jq.json()` stream collapse (0 results → an
+  error, 1 → the value, N → a JSON array) and `JSON.stringify`-style output
+  (NaN → null). As gojq is an independent implementation, error-message wording
+  and rare numeric edges can differ; differential-verified against the
+  CyberChef-server oracle across the common query surface.
 
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
@@ -325,7 +335,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 371
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 372
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -338,7 +348,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **371 operations** (`internal/ops/`), each a faithful port with tests
+- **372 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -503,7 +513,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **361 unique** CyberChef operations are covered (360 directly plus
+Currently **362 unique** CyberChef operations are covered (361 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -981,7 +991,7 @@ Currently **361 unique** CyberChef operations are covered (360 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (8/30)
+### Code tidy (9/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -995,7 +1005,7 @@ Currently **361 unique** CyberChef operations are covered (360 directly plus
 - [x] JavaScript Minify
 - [x] JavaScript Parser
 - [ ] JPath expression
-- [ ] Jq
+- [x] Jq
 - [ ] JSON Beautify
 - [ ] JSON Minify
 - [ ] Microsoft Script Decoder

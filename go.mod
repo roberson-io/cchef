@@ -11,6 +11,7 @@ require (
 	github.com/evanw/esbuild v0.28.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/im7mortal/UTM v1.4.0
+	github.com/itchyny/gojq v0.12.19
 	github.com/klaus-tockloth/coco v0.2.0
 	github.com/mmcloughlin/geohash v0.10.0
 	github.com/sergi/go-diff v1.4.0
@@ -25,6 +26,7 @@ require (
 require (
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/itchyny/timefmt-go v0.1.8 // indirect
 	github.com/jcoene/gologger v0.0.0-20150511233422-6bdddb86fa18 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	golang.org/x/sync v0.21.0 // indirect

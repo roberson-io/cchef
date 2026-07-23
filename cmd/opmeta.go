@@ -276,6 +276,7 @@ var opCategories = map[string][]string{
 	"JavaScript Beautify":                {catCodeTidy},
 	"JavaScript Minify":                  {catCodeTidy},
 	"JavaScript Parser":                  {catCodeTidy},
+	"Jq":                                 {catCodeTidy},
 	"Keccak":                             {catHashing},
 	"LS47 Decrypt":                       {catEncryptionEncoding},
 	"LS47 Encrypt":                       {catEncryptionEncoding},
