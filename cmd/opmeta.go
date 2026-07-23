@@ -382,6 +382,7 @@ var opCategories = map[string][]string{
 	"SSDEEP":                             {catHashing},
 	"SM4 Decrypt":                        {catEncryptionEncoding},
 	"SM4 Encrypt":                        {catEncryptionEncoding},
+	"SQL Beautify":                       {catCodeTidy},
 	"SUB":                                {catEncryptionEncoding},
 	"Salsa20":                            {catEncryptionEncoding},
 	"Scrypt":                             {catEncryptionEncoding, catHashing},

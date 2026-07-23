@@ -24,6 +24,7 @@ full below.
 | JavaScript Parser | `javascript-parser` | [Abstract syntax tree](https://wikipedia.org/wiki/Abstract_syntax_tree) |
 | JPath expression | `jpath-expression` | [JSONPath](extractors.md#jpath-expression) |
 | Jq | `jq` | [jq](https://github.com/jqlang/jq) |
+| SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
 
@@ -302,4 +303,73 @@ Output:
 
 ```
 hello world
+```
+
+## SQL Beautify
+
+Indents and prettifies SQL. CyberChef wraps the
+[sql-formatter](https://github.com/sql-formatter-org/sql-formatter) npm library
+(MySQL dialect, standard indent style, keyword case preserved); cchef reimplements
+that formatter from scratch — a tokenizer, a small clause/expression parser and a
+port of sql-formatter's whitespace-layout engine — so no dependency is added and
+the output matches byte-for-byte across the common SQL surface.
+
+Each top-level clause (`SELECT`, `FROM`, `WHERE`, `GROUP BY`, `JOIN`, …) starts a
+new line with its contents indented; comma-separated items each go on their own
+line; `AND`/`OR` begin new lines; and parenthesised sub-queries expand when they
+do not fit inline. Keyword case is preserved. Bind variables (`:name`) are left
+untouched.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Indent string | string | `\t` (tab) | The indentation unit. A tab indents with tabs; anything else indents with that many spaces (`  ` → 2 spaces). Backslash escapes are interpreted. |
+
+> **Fidelity.** This reproduces sql-formatter's MySQL/standard output for the
+> common SQL surface (verified byte-for-byte against the CyberChef-server oracle
+> over a broad corpus). Exotic dialect-specific constructs may differ.
+
+### Simple example
+
+```bash
+cchef sql-beautify -i "SELECT id, name FROM users WHERE active = 1"
+```
+
+Output:
+
+```
+SELECT
+	id,
+	name
+FROM
+	users
+WHERE
+	active = 1
+```
+
+### Complex example
+
+Joins, aggregation and clauses, indented with two spaces:
+
+```bash
+cchef sql-beautify -i "select o.id, c.name, sum(o.total) from orders o join customers c on o.cust_id=c.id where o.total>100 group by c.name having sum(o.total)>500 order by 2" --indent-string "  "
+```
+
+Output:
+
+```
+select
+  o.id,
+  c.name,
+  sum(o.total)
+from
+  orders o
+  join customers c on o.cust_id = c.id
+where
+  o.total > 100
+group by
+  c.name
+having
+  sum(o.total) > 500
+order by
+  2
 ```
