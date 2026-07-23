@@ -410,6 +410,7 @@ var opCategories = map[string][]string{
 	"Swap case":                          {catUtils},
 	"Swap endianness":                    {catDataFormat},
 	"Symmetric Difference":               {catArithmeticLogic},
+	"Syntax highlighter":                 {catCodeTidy},
 	"TCP/IP Checksum":                    {catHashing},
 	"TEA Decrypt":                        {catEncryptionEncoding},
 	"TEA Encrypt":                        {catEncryptionEncoding},

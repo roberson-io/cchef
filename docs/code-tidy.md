@@ -26,6 +26,7 @@ full below.
 | Jq | `jq` | [jq](https://github.com/jqlang/jq) |
 | Render Markdown | `render-markdown` | [Markdown](https://wikipedia.org/wiki/Markdown) |
 | SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
+| Syntax highlighter | `syntax-highlighter` | [Syntax highlighting](https://wikipedia.org/wiki/Syntax_highlighting) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
 
@@ -429,4 +430,64 @@ having
   sum(o.total) > 500
 order by
   2
+```
+
+## Syntax highlighter
+
+Adds syntax highlighting to source code. CyberChef highlights with
+[highlight.js](https://highlightjs.org/), emitting HTML `<span>`s that carry
+`hljs-*` CSS classes (or auto-detecting the language); cchef reimplements this
+over [chroma](https://github.com/alecthomas/chroma), mapping chroma's token types
+onto the same `hljs-*` class vocabulary so the HTML can be styled with a
+highlight.js theme.
+
+As a CLI-native addition beyond CyberChef (which only produces HTML), the
+**Output format** option can instead render the highlighting straight to the
+terminal with ANSI colours.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Language | string | `auto detect` | A chroma language name or alias (case-insensitive, e.g. `go`, `javascript`, `python`), or `auto detect` to infer it from the input. An unrecognised name is an error. |
+| Output format | option | `HTML` | `HTML` emits `hljs-*` spans (matching CyberChef); `Terminal` emits ANSI-coloured text for direct display in a terminal. |
+
+> **Fidelity.** chroma is not highlight.js, so token boundaries and, especially,
+> language auto-detection differ — the highlighted regions are not byte-identical
+> to CyberChef's. The `hljs-*` class vocabulary and output shape do match. This
+> operation is excluded from CyberChef's own Node build, so there are no upstream
+> test fixtures or oracle output to compare against.
+
+### Simple example
+
+```bash
+cchef syntax-highlighter -i "let x = 42; // answer" --language javascript
+```
+
+Output:
+
+```
+<span class="hljs-keyword">let</span> x = <span class="hljs-number">42</span>; <span class="hljs-comment">// answer
+</span>
+```
+
+### Complex example
+
+Highlighting Python — note the function name picks up `hljs-title`:
+
+```bash
+cchef syntax-highlighter -i "def add(a, b):
+    return a + b" --language python
+```
+
+Output:
+
+```
+<span class="hljs-keyword">def</span> <span class="hljs-title">add</span>(a, b):
+    <span class="hljs-keyword">return</span> a + b
+```
+
+To view the highlighting in a terminal instead of as HTML, select the terminal
+output format (the result is ANSI-coloured text, so it is not reproduced here):
+
+```bash
+cchef syntax-highlighter -i "func add(a, b int) int { return a + b }" --language go --output-format Terminal
 ```

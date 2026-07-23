@@ -112,6 +112,18 @@ fixture cases for parity, and keeps external dependencies minimal:
   inert) and block-level raw HTML is escaped without markdown-it's surrounding
   `<p>`. See `docs/code-tidy.md`.
 
+- `github.com/alecthomas/chroma/v2` — backs **Syntax highlighter** (CyberChef
+  highlights with highlight.js, which has ~190 hand-written grammars and an
+  auto-detector that no Go library reproduces). chroma is a pure-Go highlighter
+  (**no cgo**; its one transitive dependency, `github.com/dlclark/regexp2/v2`, is
+  also pure Go). The op maps chroma's token types onto highlight.js's `hljs-*` CSS
+  class vocabulary so the default HTML output keeps CyberChef's shape, and adds a
+  CLI-native *Terminal* output format (chroma's ANSI formatter) for direct display
+  in a terminal. **Reduced fidelity, by design**: chroma ≠ highlight.js, so token
+  boundaries and especially language auto-detection differ. The op is excluded
+  from CyberChef's own Node build, so there are no upstream fixtures or oracle
+  output; tests assert the structural contract. See `docs/code-tidy.md`.
+
 Note: **SQL Beautify** (CyberChef wraps the `sql-formatter` npm library) is a
 from-scratch pure-Go port (`internal/ops/sqlbeautify.go`) — **no new dependency**.
 It reimplements sql-formatter's tokenizer, a small clause/expression parser and a
@@ -370,7 +382,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 375
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 376
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -383,7 +395,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **375 operations** (`internal/ops/`), each a faithful port with tests
+- **376 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -548,7 +560,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **365 unique** CyberChef operations are covered (364 directly plus
+Currently **366 unique** CyberChef operations are covered (365 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1026,7 +1038,7 @@ Currently **365 unique** CyberChef operations are covered (364 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (12/30)
+### Code tidy (13/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -1050,7 +1062,7 @@ Currently **365 unique** CyberChef operations are covered (364 directly plus
 - [x] SQL Beautify
 - [ ] SQL Minify
 - [ ] Strip HTML tags
-- [ ] Syntax highlighter
+- [x] Syntax highlighter
 - [ ] To Camel case
 - [ ] To Kebab case
 - [x] To MessagePack
