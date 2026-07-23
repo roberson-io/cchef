@@ -3,8 +3,10 @@
 Operations for working with source code and serialised data formats. Some of
 these operations belong to another category too, where their detailed
 description, options and examples live:
-[Diff](utils.md#diff) is documented under [Utils](utils.md), and the MessagePack
-operations under [Data format](data-format.md). Operations whose only category is
+[CSS selector](extractors.md#css-selector) is documented under
+[Extractors](extractors.md), [Diff](utils.md#diff) is documented under
+[Utils](utils.md), and the MessagePack operations under
+[Data format](data-format.md). Operations whose only category is
 Code tidy (such as JavaScript Beautify and JavaScript Parser) are documented in
 full below.
 
@@ -12,6 +14,7 @@ full below.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Diff | `diff` | |
 | From MessagePack | `from-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | JavaScript Beautify | `javascript-beautify` | [escodegen](https://github.com/estools/escodegen) |

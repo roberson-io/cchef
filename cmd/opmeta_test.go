@@ -16,6 +16,7 @@ var knownCategories = map[string]bool{
 	catDataFormat:         true,
 	catDateTime:           true,
 	catEncryptionEncoding: true,
+	catExtractors:         true,
 	catHashing:            true,
 	catLanguage:           true,
 	catNetworking:         true,

@@ -4,6 +4,7 @@ go 1.26.5
 
 require (
 	github.com/ProtonMail/go-crypto v1.4.1
+	github.com/antchfx/xpath v1.3.7
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/dlclark/regexp2 v1.12.0
 	github.com/elobuff/goamf v0.0.0-20140202161438-1508c33821c7

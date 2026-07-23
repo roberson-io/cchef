@@ -88,6 +88,7 @@ const (
 	catDataFormat         = "Data format"
 	catDateTime           = "Date / Time"
 	catEncryptionEncoding = "Encryption / Encoding"
+	catExtractors         = "Extractors"
 	catHashing            = "Hashing"
 	catLanguage           = "Language"
 	catNetworking         = "Networking"
@@ -165,6 +166,7 @@ var opCategories = map[string][]string{
 	"Convert speed":                      {catUtils},
 	"Count occurrences":                  {catUtils},
 	"CRC Checksum":                       {catHashing},
+	"CSS selector":                       {catExtractors, catCodeTidy},
 	"CTPH":                               {catHashing},
 	"CSV to JSON":                        {catDataFormat},
 	"DNS over HTTPS":                     {catNetworking},
@@ -193,7 +195,7 @@ var opCategories = map[string][]string{
 	"Escape Unicode Characters":          {catDataFormat},
 	"Escape string":                      {catUtils},
 	"Expand alphabet range":              {catUtils},
-	"Extract dates":                      {catDateTime},
+	"Extract dates":                      {catDateTime, catExtractors},
 	"Fang URL":                           {catNetworking},
 	"Fernet Decrypt":                     {catEncryptionEncoding},
 	"Fernet Encrypt":                     {catEncryptionEncoding},
@@ -354,7 +356,7 @@ var opCategories = map[string][]string{
 	"RSA Verify":                         {catPublicKey},
 	"Rail Fence Cipher Decode":           {catEncryptionEncoding},
 	"Rail Fence Cipher Encode":           {catEncryptionEncoding},
-	"Regular expression":                 {catUtils},
+	"Regular expression":                 {catUtils, catExtractors},
 	"Remove ANSI Escape Codes":           {catUtils},
 	"Remove line numbers":                {catUtils},
 	"Remove null bytes":                  {catUtils},
