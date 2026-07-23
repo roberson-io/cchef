@@ -1,0 +1,43 @@
+{"src":"// only comment","want":"// only comment\n"}
+{"src":"/* block */","want":"/* block */\n"}
+{"src":"var x = 1; // trailing","want":"var x = 1;\t// trailing\n"}
+{"src":"// a\n// b\nvar x;","want":"// a\n// b\nvar x;"}
+{"src":"function f() {\n  // body comment\n  return 1;\n}","want":"function f() {\n\t// body comment\n\treturn 1;\n}"}
+{"src":"var a = 1, /* mid */ b = 2;","want":"var a = 1,\n\t/* mid */\n\tb = 2;"}
+{"src":"/* leading */ function g() {}","want":"/* leading */\nfunction g() {\n}"}
+{"src":"if (x) {\n  // then\n  y();\n} else {\n  // else\n  z();\n}","want":"if (x) {\n\t// then\n\ty();\n} else {\n\t// else\n\tz();\n}"}
+{"src":"const obj = {\n  // prop a\n  a: 1,\n  b: 2 // trailing b\n};","want":"const obj = {\n\t// prop a\n\ta: 1,\n\tb: 2\t// trailing b\n};"}
+{"src":"class A {\n  // method m\n  m() {}\n}","want":"class A {\n\t// method m\n\tm() {\n\t}\n}"}
+{"src":"for (var i = 0; i < 10; i++) {\n  // loop body\n  work();\n}","want":"for (var i = 0; i < 10; i++) {\n\t// loop body\n\twork();\n}"}
+{"src":"// header\n\n// second\nfunction main() {}","want":"// header\n// second\nfunction main() {\n}"}
+{"src":"x(); /* after */ y();","want":"x();\n/* after */\ny();"}
+{"src":"switch (n) {\n  // case one\n  case 1:\n    a();\n    break;\n}","want":"switch (n) {\n// case one\ncase 1:\n\ta();\n\tbreak;\n}"}
+{"src":"try {\n  a();\n} catch (e) {\n  // handle\n  b();\n}","want":"try {\n\ta();\n} catch (e) {\n\t// handle\n\tb();\n}"}
+{"src":"var arr = [\n  1, // one\n  2, // two\n  3\n];","want":"var arr = [\n\t1,\n\t// one\n\t2,\n\t// two\n\t3\n];"}
+{"src":"/**\n * JSDoc\n * @param x\n */\nfunction h(x) { return x; }","want":"/**\n * JSDoc\n * @param x\n */\nfunction h(x) {\n\treturn x;\n}"}
+{"src":"a = b + /* inline */ c;","want":"a = b + /* inline */\nc;"}
+{"src":"// c1\nvar x = 1;\n// c2\nvar y = 2;","want":"// c1\nvar x = 1;\n// c2\nvar y = 2;"}
+{"src":"function f() {} // trailing func","want":"function f() {\n}\t// trailing func\n"}
+{"src":"/* a */ /* b */ x;","want":"/* a */\n/* b */\nx;"}
+{"src":"x; // t1\n// t2","want":"x;\t// t1\n   // t2\n"}
+{"src":"function f(/* p1 */ a, b /* p2 */) {}","want":"function f(a, b) {\n}"}
+{"src":"var x = function () {\n  // inner\n  return 1;\n};","want":"var x = function () {\n\t// inner\n\treturn 1;\n};"}
+{"src":"const f = (a) => {\n  // arrow body\n  return a;\n};","want":"const f = a => {\n\t// arrow body\n\treturn a;\n};"}
+{"src":"while (x) {\n  // loop\n}","want":"while (x) {\n}"}
+{"src":"do {\n  // do body\n} while (x);","want":"do {\n} while (x);"}
+{"src":"label:\n// labeled comment\nfor (;;) break label;","want":"label:\n\t// labeled comment\n\tfor (;;)\n\t\tbreak label;"}
+{"src":"throw new Error('x'); // after throw","want":"throw new Error('x');\t// after throw\n"}
+{"src":"a\n  .b // chain\n  .c();","want":"a.b.c();"}
+{"src":"new Foo(\n  // arg\n  1\n);","want":"new Foo(// arg\n1);"}
+{"src":"const x = cond // test\n  ? a\n  : b;","want":"const x = cond\t// test\n ? a : b;"}
+{"src":";// empty then comment","want":";\t// empty then comment\n"}
+{"src":"{\n  // block\n  stmt();\n}","want":"{\n\t// block\n\tstmt();\n}"}
+{"src":"var multi = {\n  a: 1,\n  // between\n  b: 2,\n  // last\n  c: 3\n};","want":"var multi = {\n\ta: 1,\n\t// between\n\tb: 2,\n\t// last\n\tc: 3\n};"}
+{"src":"function outer() {\n  function inner() {\n    // deep\n    return 1;\n  }\n  return inner;\n}","want":"function outer() {\n\tfunction inner() {\n\t\t// deep\n\t\treturn 1;\n\t}\n\treturn inner;\n}"}
+{"src":"if (a) b(); // trailing if\nelse c();","want":"if (a)\n\tb();\t// trailing if\nelse\n\tc();"}
+{"src":"async function f() {\n  // await it\n  await g();\n}","want":"async function f() {\n\t// await it\n\tawait g();\n}"}
+{"src":"x /* a */ /* b */ ;","want":"x\t/* a */\n  /* b */;"}
+{"src":"var x = 1; /* a */ /* b */","want":"var x = 1;\t/* a */\n           /* b */"}
+{"src":"function f() {} /* a */ /* b */","want":"function f() {\n}\t/* a */\n  /* b */"}
+{"src":"[1 /* a */ /* b */];","want":"[1\t/* a */\n   /* b */];"}
+{"src":"a; // one\n// two\nb;","want":"a;\n// one\n// two\nb;"}

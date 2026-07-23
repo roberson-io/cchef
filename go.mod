@@ -7,6 +7,7 @@ require (
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/dlclark/regexp2 v1.12.0
 	github.com/elobuff/goamf v0.0.0-20140202161438-1508c33821c7
+	github.com/evanw/esbuild v0.28.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/im7mortal/UTM v1.4.0
 	github.com/klaus-tockloth/coco v0.2.0
@@ -16,7 +17,7 @@ require (
 	github.com/wroge/wgs84 v1.1.7
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/crypto v0.53.0
-	golang.org/x/text v0.38.0
+	golang.org/x/text v0.39.0
 	google.golang.org/protobuf v1.36.11
 )
 

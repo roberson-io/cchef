@@ -72,6 +72,14 @@ fixture cases for parity, and keeps external dependencies minimal:
   GO-2026-4550. Fully interoperable with kbpgp: cchef reads/writes messages and
   keys that round-trip against the CyberChef-server oracle in both directions,
   across RSA and NIST-curve ECC keys.
+- `github.com/evanw/esbuild` — backs **JavaScript Minify** (CyberChef wraps the
+  npm `terser` library, which has no logic to port). esbuild's minifier is pure
+  Go, keeping cchef a single static binary; its only transitive dependency
+  (`golang.org/x/sys`) was already in the build graph, so it adds **no new
+  transitive dependency**. **Reduced fidelity, by design**: esbuild ≠ terser, so
+  the minified output is equivalent but not byte-identical (different identifier
+  manglers / compression passes). This is the one JS operation that is not a
+  faithful byte-for-byte port; see `docs/code-tidy.md`.
 
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
@@ -308,7 +316,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 366
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 369
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -321,7 +329,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **366 operations** (`internal/ops/`), each a faithful port with tests
+- **369 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -486,7 +494,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **356 unique** CyberChef operations are covered (355 directly plus
+Currently **359 unique** CyberChef operations are covered (358 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -964,7 +972,7 @@ Currently **356 unique** CyberChef operations are covered (355 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (3/30)
+### Code tidy (6/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -974,9 +982,9 @@ Currently **356 unique** CyberChef operations are covered (355 directly plus
 - [x] Diff
 - [x] From MessagePack
 - [ ] Generic Code Beautify
-- [ ] JavaScript Beautify
-- [ ] JavaScript Minify
-- [ ] JavaScript Parser
+- [x] JavaScript Beautify
+- [x] JavaScript Minify
+- [x] JavaScript Parser
 - [ ] JPath expression
 - [ ] Jq
 - [ ] JSON Beautify

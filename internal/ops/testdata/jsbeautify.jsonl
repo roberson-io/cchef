@@ -1,0 +1,214 @@
+{"src":"1","want":"1;"}
+{"src":"1+2","want":"1 + 2;"}
+{"src":"x = 3","want":"x = 3;"}
+{"src":"var x = 1;","want":"var x = 1;"}
+{"src":"const a = 1, b = 2;","want":"const a = 1, b = 2;"}
+{"src":"let x;","want":"let x;"}
+{"src":"function f(a, b) { return a + b; }","want":"function f(a, b) {\n\treturn a + b;\n}"}
+{"src":"if (x) y; else z;","want":"if (x)\n\ty;\nelse\n\tz;"}
+{"src":"while (x) y;","want":"while (x)\n\ty;"}
+{"src":"for (var i = 0; i < 10; i++) {}","want":"for (var i = 0; i < 10; i++) {\n}"}
+{"src":"[1, 2, 3]","want":"[\n\t1,\n\t2,\n\t3\n];"}
+{"src":"({a: 1, b: 2})","want":"({\n\ta: 1,\n\tb: 2\n});"}
+{"src":"a.b.c","want":"a.b.c;"}
+{"src":"f(1, 2)","want":"f(1, 2);"}
+{"src":"x ? y : z","want":"x ? y : z;"}
+{"src":"!x","want":"!x;"}
+{"src":"-x","want":"-x;"}
+{"src":"a && b || c","want":"a && b || c;"}
+{"src":"'hello'","want":"'hello';"}
+{"src":"\"world\"","want":"'world';"}
+{"src":"true","want":"true;"}
+{"src":"null","want":"null;"}
+{"src":"x++","want":"x++;"}
+{"src":"const add = (a, b) => a + b;","want":"const add = (a, b) => a + b;"}
+{"src":"class A extends B { m() { return super.m(); } }","want":"class A extends B {\n\tm() {\n\t\treturn super.m();\n\t}\n}"}
+{"src":"async function f() { return await g(); }","want":"async function f() {\n\treturn await g();\n}"}
+{"src":"function* gen() { yield 1; yield* h(); }","want":"function* gen() {\n\tyield 1;\n\tyield* h();\n}"}
+{"src":"var o = {a: 1, b: [1, 2, 3], c: function () { return 1; }};","want":"var o = {\n\ta: 1,\n\tb: [\n\t\t1,\n\t\t2,\n\t\t3\n\t],\n\tc: function () {\n\t\treturn 1;\n\t}\n};"}
+{"src":"try { a(); } catch (e) { b(); } finally { c(); }","want":"try {\n\ta();\n} catch (e) {\n\tb();\n} finally {\n\tc();\n}"}
+{"src":"switch (x) { case 1: a(); break; default: b(); }","want":"switch (x) {\ncase 1:\n\ta();\n\tbreak;\ndefault:\n\tb();\n}"}
+{"src":"do x(); while (y);","want":"do\n\tx();\nwhile (y);"}
+{"src":"label: for (;;) break label;","want":"label:\n\tfor (;;)\n\t\tbreak label;"}
+{"src":"throw new Error('x');","want":"throw new Error('x');"}
+{"src":"for (const k in obj) {}","want":"for (const k in obj) {\n}"}
+{"src":"for (const v of arr) {}","want":"for (const v of arr) {\n}"}
+{"src":"const {a, b: c} = d;","want":"const {\n\ta,\n\tb: c\n} = d;"}
+{"src":"const [x, , y] = z;","want":"const [x, , y] = z;"}
+{"src":"a ** b ** c","want":"a ** b ** c;"}
+{"src":"new Foo(1, 2)","want":"new Foo(1, 2);"}
+{"src":"`a${b}c`","want":"`a${ b }c`;"}
+{"src":"1 .toString()","want":"1 .toString();"}
+{"src":"0xFF","want":"255;"}
+{"src":"1e10","want":"10000000000;"}
+{"src":"1.5e-3","want":"0.0015;"}
+{"src":"/ab+c/gi","want":"/ab+c/gi;"}
+{"src":"(function () {})()","want":"(function () {\n}());"}
+{"src":"({}).x","want":"({}.x);"}
+{"src":"[]","want":"[];"}
+{"src":"({})","want":"({});"}
+{"src":"a = b = c","want":"a = b = c;"}
+{"src":"typeof x === 'string'","want":"typeof x === 'string';"}
+{"src":"(a + b) * c","want":"(a + b) * c;"}
+{"src":"a + b * c","want":"a + b * c;"}
+{"src":"a - (b - c)","want":"a - (b - c);"}
+{"src":"-(-x)","want":"- -x;"}
+{"src":"!(a && b)","want":"!(a && b);"}
+{"src":"a || b && c","want":"a || b && c;"}
+{"src":"(a || b) && c","want":"(a || b) && c;"}
+{"src":"a ? b ? c : d : e","want":"a ? b ? c : d : e;"}
+{"src":"(a ? b : c) ? d : e","want":"(a ? b : c) ? d : e;"}
+{"src":"new (foo())","want":"new (foo())();"}
+{"src":"new foo().bar","want":"new foo().bar;"}
+{"src":"(new foo()).bar","want":"new foo().bar;"}
+{"src":"new foo.bar()","want":"new foo.bar();"}
+{"src":"typeof -x","want":"typeof -x;"}
+{"src":"void 0","want":"void 0;"}
+{"src":"delete a.b","want":"delete a.b;"}
+{"src":"a instanceof B","want":"a instanceof B;"}
+{"src":"a in b ? c : d","want":"a in b ? c : d;"}
+{"src":"for (a in b);","want":"for (a in b);"}
+{"src":"x = y = z","want":"x = y = z;"}
+{"src":"a, b, c","want":"a, b, c;"}
+{"src":"(a, b).c","want":"(a, b).c;"}
+{"src":"[a, b, c].map(x => x)","want":"[\n\ta,\n\tb,\n\tc\n].map(x => x);"}
+{"src":"function f() { function g() {} return g; }","want":"function f() {\n\tfunction g() {\n\t}\n\treturn g;\n}"}
+{"src":"class C { static m() {} get x() { return 1; } set x(v) {} *gen() {} async a() {} ['computed']() {} }","want":"class C {\n\tstatic m() {\n\t}\n\tget x() {\n\t\treturn 1;\n\t}\n\tset x(v) {\n\t}\n\t*gen() {\n\t}\n\tasync a() {\n\t}\n\t['computed']() {\n\t}\n}"}
+{"src":"class D { constructor() { super(); } }","want":"class D {\n\tconstructor() {\n\t\tsuper();\n\t}\n}"}
+{"src":"`outer ${`inner ${x}`} end`","want":"`outer ${ `inner ${ x }` } end`;"}
+{"src":"tag`a${b}c`","want":"tag`a${ b }c`;"}
+{"src":"String.raw`\\n`","want":"String.raw`\\n`;"}
+{"src":"0.5","want":"0.5;"}
+{"src":"5.","want":"5;"}
+{"src":"100","want":"100;"}
+{"src":"1e21","want":"1e+21;"}
+{"src":"1e-7","want":"1e-7;"}
+{"src":"0.1","want":"0.1;"}
+{"src":"255","want":"255;"}
+{"src":"3.14159","want":"3.14159;"}
+{"src":"'it\\'s'","want":"\"it's\";"}
+{"src":"\"say \\\"hi\\\"\"","want":"'say \"hi\"';"}
+{"src":"'has \"both\" and \\'quotes\\''","want":"'has \"both\" and \\'quotes\\'';"}
+{"src":"var re = /foo\\/bar/gi;","want":"var re = /foo\\/bar/gi;"}
+{"src":"x = a ** -b","want":"x = a ** -b;"}
+{"src":"const f = async ({ x = 1 }) => x;","want":"const f = async ({\n\tx = 1\n}) => x;"}
+{"src":"let g = function* () { yield* gen(); };","want":"let g = function* () {\n\tyield* gen();\n};"}
+{"src":"if (a) { b(); } else if (c) { d(); } else { e(); }","want":"if (a) {\n\tb();\n} else if (c) {\n\td();\n} else {\n\te();\n}"}
+{"src":"while (true) { if (x) break; else continue; }","want":"while (true) {\n\tif (x)\n\t\tbreak;\n\telse\n\t\tcontinue;\n}"}
+{"src":"a = { b, c, d };","want":"a = {\n\tb,\n\tc,\n\td\n};"}
+{"src":"[...a, ...b]","want":"[\n\t...a,\n\t...b\n];"}
+{"src":"f(...args)","want":"f(...args);"}
+{"src":"function h(...rest) {}","want":"function h(...rest) {\n}"}
+{"src":"const { a = 1, b: { c } = {} } = obj;","want":"const {\n\ta = 1,\n\tb: {c} = {}\n} = obj;"}
+{"src":"x = y || (z && w)","want":"x = y || z && w;"}
+{"src":"a & b | c ^ d","want":"a & b | c ^ d;"}
+{"src":"a << b >> c >>> d","want":"a << b >> c >>> d;"}
+{"src":"~a","want":"~a;"}
+{"src":"a == b != c === d !== e","want":"a == b != c === d !== e;"}
+{"src":"throw { code: 1 };","want":"throw { code: 1 };"}
+{"src":"1 + +2","want":"1 + +2;"}
+{"src":"1 - -2","want":"1 - -2;"}
+{"src":"a-- - --b","want":"a-- - --b;"}
+{"src":"function fib(n) {\n  if (n < 2) return n;\n  return fib(n - 1) + fib(n - 2);\n}","want":"function fib(n) {\n\tif (n < 2)\n\t\treturn n;\n\treturn fib(n - 1) + fib(n - 2);\n}"}
+{"src":"const obj = {\n  method(x) {\n    return this.value + x;\n  },\n  get prop() { return this._p; },\n  nested: { deep: { value: [1, 2, { a: 3 }] } }\n};","want":"const obj = {\n\tmethod(x) {\n\t\treturn this.value + x;\n\t},\n\tget prop() {\n\t\treturn this._p;\n\t},\n\tnested: {\n\t\tdeep: {\n\t\t\tvalue: [\n\t\t\t\t1,\n\t\t\t\t2,\n\t\t\t\t{ a: 3 }\n\t\t\t]\n\t\t}\n\t}\n};"}
+{"src":"class Stack {\n  constructor() { this.items = []; }\n  push(item) { this.items.push(item); return this; }\n  pop() { return this.items.pop(); }\n  get size() { return this.items.length; }\n  static empty() { return new Stack(); }\n}","want":"class Stack {\n\tconstructor() {\n\t\tthis.items = [];\n\t}\n\tpush(item) {\n\t\tthis.items.push(item);\n\t\treturn this;\n\t}\n\tpop() {\n\t\treturn this.items.pop();\n\t}\n\tget size() {\n\t\treturn this.items.length;\n\t}\n\tstatic empty() {\n\t\treturn new Stack();\n\t}\n}"}
+{"src":"const compose = (...fns) => x => fns.reduceRight((acc, fn) => fn(acc), x);","want":"const compose = (...fns) => x => fns.reduceRight((acc, fn) => fn(acc), x);"}
+{"src":"async function fetchAll(urls) {\n  const results = await Promise.all(urls.map(async url => {\n    const res = await fetch(url);\n    return res.json();\n  }));\n  return results;\n}","want":"async function fetchAll(urls) {\n\tconst results = await Promise.all(urls.map(async url => {\n\t\tconst res = await fetch(url);\n\t\treturn res.json();\n\t}));\n\treturn results;\n}"}
+{"src":"const matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];","want":"const matrix = [\n\t[\n\t\t1,\n\t\t2,\n\t\t3\n\t],\n\t[\n\t\t4,\n\t\t5,\n\t\t6\n\t],\n\t[\n\t\t7,\n\t\t8,\n\t\t9\n\t]\n];"}
+{"src":"function* range(start, end, step = 1) {\n  for (let i = start; i < end; i += step) yield i;\n}","want":"function* range(start, end, step = 1) {\n\tfor (let i = start; i < end; i += step)\n\t\tyield i;\n}"}
+{"src":"const { data: { items = [] } = {}, meta } = response, [first, ...rest] = items;","want":"const {\n\t\tdata: {\n\t\t\titems = []\n\t\t} = {},\n\t\tmeta\n\t} = response, [first, ...rest] = items;"}
+{"src":"try {\n  risky();\n} catch ({ message, code }) {\n  log(message, code);\n} finally {\n  cleanup();\n}","want":"try {\n\trisky();\n} catch ({message, code}) {\n\tlog(message, code);\n} finally {\n\tcleanup();\n}"}
+{"src":"label: while (true) { for (const x of xs) { if (x) continue label; } break; }","want":"label:\n\twhile (true) {\n\t\tfor (const x of xs) {\n\t\t\tif (x)\n\t\t\t\tcontinue label;\n\t\t}\n\t\tbreak;\n\t}"}
+{"src":"const p = new Proxy(target, { get(obj, prop) { return prop in obj ? obj[prop] : 42; } });","want":"const p = new Proxy(target, {\n\tget(obj, prop) {\n\t\treturn prop in obj ? obj[prop] : 42;\n\t}\n});"}
+{"src":"x = condition ? veryLongConsequentExpression : anotherLongAlternateExpression;","want":"x = condition ? veryLongConsequentExpression : anotherLongAlternateExpression;"}
+{"src":"a.b.c.d.e.f().g().h.i(1)(2)(3);","want":"a.b.c.d.e.f().g().h.i(1)(2)(3);"}
+{"src":"with (o) { x; }","want":"with (o) {\n\tx;\n}"}
+{"src":"with (o) foo();","want":"with (o)\n\tfoo();"}
+{"src":"debugger;","want":"debugger;"}
+{"src":";","want":";"}
+{"src":"if (x);","want":"if (x);"}
+{"src":"if (x) ; else y();","want":"if (x);\nelse\n\ty();"}
+{"src":"while (x);","want":"while (x);"}
+{"src":"for (;;) {}","want":"for (;;) {\n}"}
+{"src":"for (;;);","want":"for (;;);"}
+{"src":"for (var i = 0; ; i++) {}","want":"for (var i = 0;; i++) {\n}"}
+{"src":"for (; x; ) {}","want":"for (; x;) {\n}"}
+{"src":"function f() { return new.target; }","want":"function f() {\n\treturn new.target;\n}"}
+{"src":"var C = class {};","want":"var C = class {\n};"}
+{"src":"var C = class extends B {};","want":"var C = class extends B {\n};"}
+{"src":"var C = class D {};","want":"var C = class D {\n};"}
+{"src":"var C = class D extends B {};","want":"var C = class D extends B {\n};"}
+{"src":"(class {});","want":"(class {\n});"}
+{"src":"var s = \"a\\tb\";","want":"var s = 'a\\tb';"}
+{"src":"var s = \"a\\nb\";","want":"var s = 'a\\nb';"}
+{"src":"var s = \"a\\rb\";","want":"var s = 'a\\rb';"}
+{"src":"var s = \"a\\bb\";","want":"var s = 'a\\bb';"}
+{"src":"var s = \"a\\fb\";","want":"var s = 'a\\fb';"}
+{"src":"var s = \"a\\vb\";","want":"var s = 'a\\x0Bb';"}
+{"src":"var s = \"a\\0b\";","want":"var s = 'a\\0b';"}
+{"src":"var s = \"a\\\\b\";","want":"var s = 'a\\\\b';"}
+{"src":"var s = \"\\u2028\\u2029\";","want":"var s = '\\u2028\\u2029';"}
+{"src":"var s = \"\\x00\\x01\\x1f\";","want":"var s = '\\0\\x01\\x1F';"}
+{"src":"var s = \"caf\\u00e9\";","want":"var s = 'café';"}
+{"src":"var s = \"\\u4e2d\";","want":"var s = '中';"}
+{"src":"var s = \"\\u{1f600}\";","want":"var s = '\\uD83D\\uDE00';"}
+{"src":"var s = \"\\x0b\";","want":"var s = '\\x0B';"}
+{"src":"var s = \"a\\07\";","want":"var s = 'a\\x07';"}
+{"src":"var s = 'both \\' and \"';","want":"var s = 'both \\' and \"';"}
+{"src":"var s = \"only ' single\";","want":"var s = \"only ' single\";"}
+{"src":"var s = 'only \" double';","want":"var s = 'only \" double';"}
+{"src":"for (a in b);","want":"for (a in b);"}
+{"src":"a / /re/.test(x);","want":"a / /re/.test(x);"}
+{"src":"2 ** 3 ** 4;","want":"2 ** 3 ** 4;"}
+{"src":"(2 ** 3) ** 4;","want":"(2 ** 3) ** 4;"}
+{"src":"function f() { return; }","want":"function f() {\n\treturn;\n}"}
+{"src":"var f = function () {};","want":"var f = function () {\n};"}
+{"src":"var f = function* () {};","want":"var f = function* () {\n};"}
+{"src":"var f = function g() {};","want":"var f = function g() {\n};"}
+{"src":"var f = function* g() {};","want":"var f = function* g() {\n};"}
+{"src":"5 .toString();","want":"5 .toString();"}
+{"src":"5.5.toString();","want":"5.5.toString();"}
+{"src":"0.5.toString();","want":"0.5.toString();"}
+{"src":"(500).toString();","want":"500 .toString();"}
+{"src":"var t = tag`hello`;","want":"var t = tag`hello`;"}
+{"src":"var t = (tag`hello`).length;","want":"var t = tag`hello`.length;"}
+{"src":"x = () => ({ a: 1 });","want":"x = () => ({ a: 1 });"}
+{"src":"(a = 1) + 2;","want":"(a = 1) + 2;"}
+{"src":"a << b < c;","want":"a << b < c;"}
+{"src":"1 < 2 << 3;","want":"1 < 2 << 3;"}
+{"src":"x = a ? b : c ? d : e;","want":"x = a ? b : c ? d : e;"}
+{"src":"a || b && c;","want":"a || b && c;"}
+{"src":"x = -a;","want":"x = -a;"}
+{"src":"x = - -a;","want":"x = - -a;"}
+{"src":"x = +-a;","want":"x = +-a;"}
+{"src":"x = typeof x;","want":"x = typeof x;"}
+{"src":"x = void 0;","want":"x = void 0;"}
+{"src":"x = !x;","want":"x = !x;"}
+{"src":"x = ~x;","want":"x = ~x;"}
+{"src":"x++;","want":"x++;"}
+{"src":"--x;","want":"--x;"}
+{"src":"async function f() { await x; }","want":"async function f() {\n\tawait x;\n}"}
+{"src":"label: for (;;) break label;","want":"label:\n\tfor (;;)\n\t\tbreak label;"}
+{"src":"outer: { break outer; }","want":"outer: {\n\tbreak outer;\n}"}
+{"src":"switch (x) { case 1: { y(); } default: z(); }","want":"switch (x) {\ncase 1: {\n\t\ty();\n\t}\ndefault:\n\tz();\n}"}
+{"src":"try { a(); } finally { c(); }","want":"try {\n\ta();\n} finally {\n\tc();\n}"}
+{"src":"try { a(); } catch (e) { b(); } finally { c(); }","want":"try {\n\ta();\n} catch (e) {\n\tb();\n} finally {\n\tc();\n}"}
+{"src":"a();\nb();","want":"a();\nb();"}
+{"src":"for (i = 0; i < 3; i++) {}","want":"for (i = 0; i < 3; i++) {\n}"}
+{"src":"for ((a in b); c; ) {}","want":"for ((a in b); c;) {\n}"}
+{"src":"/re/ instanceof RegExp;","want":"/re/ instanceof RegExp;"}
+{"src":"/re/g.test(x);","want":"/re/g.test(x);"}
+{"src":"var {} = o;","want":"var {} = o;"}
+{"src":"function f({}) {}","want":"function f({}) {\n}"}
+{"src":"var x = null;","want":"var x = null;"}
+{"src":"[1, , 3];","want":"[\n\t1,\n\t,\n\t3\n];"}
+{"src":"[, , ];","want":"[\n\t,\n\t,\n];"}
+{"src":"[1, 2, , ];","want":"[\n\t1,\n\t2,\n\t,\n];"}
+{"src":"new foo`bar`;","want":"new foo`bar`();"}
+{"src":"new foo`bar`();","want":"new foo`bar`();"}
+{"src":"(async function () {})();","want":"(async function () {\n}());"}
+{"src":"(async function f() {})();","want":"(async function f() {\n}());"}
+{"src":"x in y;","want":"x in y;"}
+{"src":"1 in [1];","want":"1 in [1];"}
+{"src":"var x = false;","want":"var x = false;"}
+{"src":"var b = true;","want":"var b = true;"}
