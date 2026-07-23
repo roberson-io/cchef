@@ -13,6 +13,7 @@ Operations documented in full below are grouped here.
 | --- | --- | --- |
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
+| JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
 | XPath expression | `xpath-expression` | [XPath](https://wikipedia.org/wiki/XPath) |
 
@@ -73,6 +74,55 @@ Output:
 
 ```
 <a href="/x" class="nav">1</a> | <a href="/y" class="nav">3</a>
+```
+
+## JPath expression
+
+Extracts values from a JSON document using a [JSONPath](http://goessner.net/articles/JsonPath/)
+query, serialising each matched value and joining them with a delimiter. CyberChef
+wraps the [`jsonpath-plus`](https://github.com/JSONPath-Plus/JSONPath) npm library;
+cchef reimplements the evaluator from scratch over an order-preserving JSON
+representation (no new dependency), so matched values serialise byte-for-byte like
+`jsonpath-plus`, including ECMAScript object key ordering.
+
+Supported syntax: root `$`, child `.name` / `['name']`, wildcard `*` / `[*]`,
+recursive descent `..`, array index and index-union `[0,2]`, slices `[start:end:step]`,
+filters `[?(@.price < 10 && @.name == "x")]`, and script expressions `[(@.length-1)]`.
+The magic `.length` property yields the length of an array or string.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Query | string | (empty) | The JSONPath query. |
+| Result delimiter | string | `\n` | Joins the serialised matches. Backslash escapes are interpreted (`\n` → newline, `\t` → tab). |
+
+Invalid input is reported as `Invalid input JSON: <message>`; a malformed query as
+`Invalid JPath expression: <message>`.
+
+### Simple example
+
+```bash
+cchef jpath-expression -i '{"store":{"books":[{"title":"Go"},{"title":"Rust"}]}}' --query "$.store.books[*].title"
+```
+
+Output:
+
+```
+"Go"
+"Rust"
+```
+
+### Complex example
+
+Filter by a predicate and join with `, `:
+
+```bash
+cchef jpath-expression -i '{"books":[{"title":"Cheap","price":5},{"title":"Pricey","price":25},{"title":"Mid","price":9}]}' --query '$..books[?(@.price<10)].title' --result-delimiter ", "
+```
+
+Output:
+
+```
+"Cheap", "Mid"
 ```
 
 ## XPath expression

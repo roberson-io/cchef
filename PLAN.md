@@ -100,6 +100,18 @@ fixture cases for parity, and keeps external dependencies minimal:
   and rare numeric edges can differ; differential-verified against the
   CyberChef-server oracle across the common query surface.
 
+Note: **JPath expression** (CyberChef wraps the `jsonpath-plus` npm library) is a
+from-scratch pure-Go JSONPath evaluator (`internal/ops/jpath.go`) — **no new
+dependency**. It reuses the order-preserving JSON representation in `jsonvalue.go`
+(`jsonParseOrdered` + `jsStringify`) so matched values serialize byte-for-byte like
+`jsonpath-plus`, including ECMAScript object-key ordering. Supports child/wildcard/
+recursive-descent/index-union/slice/filter/script-expression syntax; differential-
+verified against the CyberChef-server oracle (127/129), the two divergences being
+degenerate inputs (a trailing unterminated `[`, and a bare `null` document on which
+jsonpath-plus itself throws an uncaught TypeError). The general-purpose Go JSONPath
+libraries (e.g. `ohler55/ojg`) were rejected: they sort object keys and lack script
+expressions, so they could not reproduce `jsonpath-plus` output.
+
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
@@ -335,7 +347,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 372
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 373
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -348,7 +360,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **372 operations** (`internal/ops/`), each a faithful port with tests
+- **373 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -513,7 +525,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **362 unique** CyberChef operations are covered (361 directly plus
+Currently **363 unique** CyberChef operations are covered (362 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -893,7 +905,7 @@ Currently **362 unique** CyberChef operations are covered (361 directly plus
 - [x] UNIX Timestamp to Windows Filetime
 - [x] Windows Filetime to UNIX Timestamp
 
-### Extractors (4/20)
+### Extractors (5/20)
 
 - [x] CSS selector
 - [ ] Extract Audio Metadata
@@ -908,7 +920,7 @@ Currently **362 unique** CyberChef operations are covered (361 directly plus
 - [ ] Extract IP addresses
 - [ ] Extract MAC addresses
 - [ ] Extract URLs
-- [ ] JPath expression
+- [x] JPath expression
 - [ ] Jsonata Query
 - [ ] RAKE
 - [x] Regular expression
@@ -991,7 +1003,7 @@ Currently **362 unique** CyberChef operations are covered (361 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (9/30)
+### Code tidy (10/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -1004,7 +1016,7 @@ Currently **362 unique** CyberChef operations are covered (361 directly plus
 - [x] JavaScript Beautify
 - [x] JavaScript Minify
 - [x] JavaScript Parser
-- [ ] JPath expression
+- [x] JPath expression
 - [x] Jq
 - [ ] JSON Beautify
 - [ ] JSON Minify
