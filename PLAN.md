@@ -100,6 +100,18 @@ fixture cases for parity, and keeps external dependencies minimal:
   and rare numeric edges can differ; differential-verified against the
   CyberChef-server oracle across the common query surface.
 
+- `github.com/yuin/goldmark` — backs **Render Markdown** (CyberChef wraps
+  markdown-it + highlight.js, wrapping the output in a div). goldmark is a pure-Go
+  CommonMark renderer with **zero transitive dependencies**. With the Table and
+  Strikethrough extensions enabled (markdown-it's default surface), plus a custom
+  renderer to escape raw HTML (matching markdown-it's `html:false`), render
+  strikethrough as `<s>`, and a `target="_blank"` pass, cchef matches markdown-it
+  byte-for-byte across the common Markdown surface (verified against the oracle).
+  **Reduced fidelity, by design** on two points: fenced-code syntax highlighting
+  is not ported (no highlight.js, so the *Enable syntax highlighting* option is
+  inert) and block-level raw HTML is escaped without markdown-it's surrounding
+  `<p>`. See `docs/code-tidy.md`.
+
 Note: **SQL Beautify** (CyberChef wraps the `sql-formatter` npm library) is a
 from-scratch pure-Go port (`internal/ops/sqlbeautify.go`) — **no new dependency**.
 It reimplements sql-formatter's tokenizer, a small clause/expression parser and a
@@ -358,7 +370,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 374
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 375
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -371,7 +383,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **374 operations** (`internal/ops/`), each a faithful port with tests
+- **375 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -536,7 +548,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **364 unique** CyberChef operations are covered (363 directly plus
+Currently **365 unique** CyberChef operations are covered (364 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1014,7 +1026,7 @@ Currently **364 unique** CyberChef operations are covered (363 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (11/30)
+### Code tidy (12/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -1034,7 +1046,7 @@ Currently **364 unique** CyberChef operations are covered (363 directly plus
 - [ ] Microsoft Script Decoder
 - [ ] PHP Deserialize
 - [ ] PHP Serialize
-- [ ] Render Markdown
+- [x] Render Markdown
 - [x] SQL Beautify
 - [ ] SQL Minify
 - [ ] Strip HTML tags

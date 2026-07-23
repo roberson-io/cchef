@@ -24,6 +24,7 @@ full below.
 | JavaScript Parser | `javascript-parser` | [Abstract syntax tree](https://wikipedia.org/wiki/Abstract_syntax_tree) |
 | JPath expression | `jpath-expression` | [JSONPath](extractors.md#jpath-expression) |
 | Jq | `jq` | [jq](https://github.com/jqlang/jq) |
+| Render Markdown | `render-markdown` | [Markdown](https://wikipedia.org/wiki/Markdown) |
 | SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
@@ -303,6 +304,62 @@ Output:
 
 ```
 hello world
+```
+
+## Render Markdown
+
+Renders Markdown input as HTML, wrapped in a `<div>`. CyberChef uses the
+[markdown-it](https://github.com/markdown-it/markdown-it) library (with raw HTML
+disabled) plus [highlight.js](https://highlightjs.org/) to colour fenced code
+blocks; cchef reimplements it over the pure-Go
+[goldmark](https://github.com/yuin/goldmark) library.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Autoconvert URLs to links | boolean | `false` | When set, bare URLs in the text become links (markdown-it's `linkify`). |
+| Enable syntax highlighting | boolean | `true` | Accepted for compatibility but has no effect (see below). |
+| Open links in new tab. | boolean | `false` | When set, `target="_blank"` is added to every link. |
+
+The common Markdown surface — headings, emphasis, strikethrough, lists (nested),
+links, images, inline code, fenced code, blockquotes, tables and linkify —
+matches CyberChef byte-for-byte.
+
+> **Reduced fidelity.** goldmark is not markdown-it, and two areas differ and are
+> not ported: **syntax highlighting** of fenced code blocks (CyberChef colours
+> them with highlight.js; cchef emits the plain escaped code, so the *Enable
+> syntax highlighting* option has no effect) and **block-level raw HTML**
+> (markdown-it escapes it inside a paragraph; cchef escapes it without the
+> surrounding `<p>`). Inline raw HTML is escaped identically.
+
+### Simple example
+
+```bash
+cchef render-markdown -i "# Title
+
+Some **bold** text and \`code\`."
+```
+
+Output:
+
+```
+<div style="font-family: var(--primary-font-family)"><h1>Title</h1>
+<p>Some <strong>bold</strong> text and <code>code</code>.</p>
+</div>
+```
+
+### Complex example
+
+Autoconvert URLs to links and open every link in a new tab:
+
+```bash
+cchef render-markdown -i "Visit https://example.com and see [docs](https://docs.example.com)." --autoconvert-urls-to-links --open-links-in-new-tab
+```
+
+Output:
+
+```
+<div style="font-family: var(--primary-font-family)"><p>Visit <a href="https://example.com" target="_blank">https://example.com</a> and see <a href="https://docs.example.com" target="_blank">docs</a>.</p>
+</div>
 ```
 
 ## SQL Beautify

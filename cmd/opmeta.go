@@ -359,6 +359,7 @@ var opCategories = map[string][]string{
 	"Rail Fence Cipher Decode":           {catEncryptionEncoding},
 	"Rail Fence Cipher Encode":           {catEncryptionEncoding},
 	"Regular expression":                 {catUtils, catExtractors},
+	"Render Markdown":                    {catCodeTidy},
 	"Remove ANSI Escape Codes":           {catUtils},
 	"Remove line numbers":                {catUtils},
 	"Remove null bytes":                  {catUtils},
