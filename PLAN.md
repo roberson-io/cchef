@@ -81,8 +81,8 @@ fixture cases for parity, and keeps external dependencies minimal:
   manglers / compression passes). This is the one JS operation that is not a
   faithful byte-for-byte port; see `docs/code-tidy.md`.
 - `github.com/antchfx/xpath` — a standalone XPath 1.0 evaluator (**zero transitive
-  dependencies**) used only as the query engine for **CSS selector** (and the
-  forthcoming XPath expression op). It is *not* an HTML parser: cchef parses and
+  dependencies**) used only as the query engine for **CSS selector** and **XPath
+  expression**. It is *not* an HTML parser: cchef parses and
   serialises the document with its own from-scratch xmldom-faithful parser
   (`internal/ops/xmlparse.go`, `xmldom.go`) and adapts the tree to the evaluator
   via a `NodeNavigator` (`xmldomnav.go`); CSS selectors are translated to XPath
@@ -325,7 +325,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 370
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 371
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -338,7 +338,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **370 operations** (`internal/ops/`), each a faithful port with tests
+- **371 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -503,7 +503,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **360 unique** CyberChef operations are covered (359 directly plus
+Currently **361 unique** CyberChef operations are covered (360 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -883,7 +883,7 @@ Currently **360 unique** CyberChef operations are covered (359 directly plus
 - [x] UNIX Timestamp to Windows Filetime
 - [x] Windows Filetime to UNIX Timestamp
 
-### Extractors (3/20)
+### Extractors (4/20)
 
 - [x] CSS selector
 - [ ] Extract Audio Metadata
@@ -904,7 +904,7 @@ Currently **360 unique** CyberChef operations are covered (359 directly plus
 - [x] Regular expression
 - [ ] Strings
 - [ ] Template
-- [ ] XPath expression
+- [x] XPath expression
 
 ### Compression (0/19)
 
@@ -981,7 +981,7 @@ Currently **360 unique** CyberChef operations are covered (359 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (7/30)
+### Code tidy (8/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -1012,7 +1012,7 @@ Currently **360 unique** CyberChef operations are covered (359 directly plus
 - [ ] To Snake case
 - [ ] XML Beautify
 - [ ] XML Minify
-- [ ] XPath expression
+- [x] XPath expression
 
 ### Forensics (0/12)
 

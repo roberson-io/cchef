@@ -14,6 +14,7 @@ Operations documented in full below are grouped here.
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
+| XPath expression | `xpath-expression` | [XPath](https://wikipedia.org/wiki/XPath) |
 
 ## CSS selector
 
@@ -72,4 +73,60 @@ Output:
 
 ```
 <a href="/x" class="nav">1</a> | <a href="/y" class="nav">3</a>
+```
+
+## XPath expression
+
+Extracts nodes from an XML document using an XPath 1.0 query, serialising each
+selected node and joining the results with a delimiter. This is a from-scratch
+port of CyberChef's operation, which wraps [`@xmldom/xmldom`](https://github.com/xmldom/xmldom)
+and the npm [`xpath`](https://github.com/goto100/xpath) library. cchef reuses the
+same from-scratch XML parser and serialiser as [CSS selector](#css-selector) and
+evaluates the query with [`antchfx/xpath`](https://github.com/antchfx/xpath) over
+the parsed tree.
+
+Only **node-set** queries are supported, matching the original: a query that
+evaluates to a number, string or boolean (e.g. `count(//a)`, `string(//a)`,
+`1+2`) is rejected with `Invalid XPath. Details:\nCannot convert <type> to
+nodeset.`. Selected nodes are serialised with the same `node.toString()` rules —
+elements as their markup, attributes as ` name="value"` (with a leading space),
+text as its escaped content, comments as `<!--…-->`, and CDATA as
+`<![CDATA[…]]>`. As with CSS selector, the document is parsed as XML with a single
+root element.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| XPath | string | (empty) | The XPath 1.0 query. Must evaluate to a node-set. |
+| Result delimiter | string | `\n` | Joins the serialised matches. Backslash escapes are interpreted (`\n` → newline, `\t` → tab). |
+
+> The rarely-used `processing-instruction()` node test is not filtered by the
+> underlying engine (it matches every node); every other node test, including
+> `comment()`, behaves as CyberChef does.
+
+### Simple example
+
+```bash
+cchef xpath-expression -i "<r><a>one</a><a>two</a></r>" --xpath "//a"
+```
+
+Output:
+
+```
+<a>one</a>
+<a>two</a>
+```
+
+### Complex example
+
+Select the `<title>` of the `<book>` whose `id` attribute is `2`, using an
+attribute predicate:
+
+```bash
+cchef xpath-expression -i '<books><book id="1"><title>Go</title></book><book id="2"><title>Rust</title></book></books>' --xpath '//book[@id="2"]/title' --result-delimiter " | "
+```
+
+Output:
+
+```
+<title>Rust</title>
 ```

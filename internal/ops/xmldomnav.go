@@ -15,18 +15,32 @@ type xmlNav struct {
 	cur  *xmlNode
 	root *xmlNode
 	attr int // -1 when positioned on the node itself, else index into cur.attrs
+	// cdataAsText controls whether CDATA sections report as text nodes. The npm
+	// `xpath` library (XPath expression) matches CDATA with text(), whereas
+	// nwmatcher (CSS selector) treats CDATA as non-text so :empty ignores it.
+	cdataAsText bool
 }
 
-func newXMLNav(root *xmlNode) *xmlNav { return &xmlNav{cur: root, root: root, attr: -1} }
+func newXMLNav(root *xmlNode, cdataAsText bool) *xmlNav {
+	return &xmlNav{cur: root, root: root, attr: -1, cdataAsText: cdataAsText}
+}
 
 func (n *xmlNav) NodeType() xpath.NodeType {
 	switch n.cur.typ {
-	case xmlComment, xmlCData, xmlPI:
-		// CDATA and PIs are exposed as non-text, non-element nodes so that
-		// text() and :empty ignore them, matching nwmatcher (which keys on
-		// nodeType 1/3); their character data still contributes to string-value
-		// via collectText, so :contains keeps working.
+	case xmlCData:
+		if n.cdataAsText {
+			return xpath.TextNode
+		}
 		return xpath.CommentNode
+	case xmlComment:
+		return xpath.CommentNode
+	case xmlPI:
+		// antchfx/xpath has no processing-instruction node type (its exported
+		// enum stops at CommentNode). Reporting AttributeNode keeps PIs out of
+		// element/text/comment node tests (so //comment() does not match the XML
+		// declaration) while node() still selects them; the attribute axis never
+		// visits child PIs, so this has no other effect.
+		return xpath.AttributeNode
 	case xmlText:
 		return xpath.TextNode
 	case xmlDocument:

@@ -3,7 +3,8 @@
 Operations for working with source code and serialised data formats. Some of
 these operations belong to another category too, where their detailed
 description, options and examples live:
-[CSS selector](extractors.md#css-selector) is documented under
+[CSS selector](extractors.md#css-selector) and
+[XPath expression](extractors.md#xpath-expression) are documented under
 [Extractors](extractors.md), [Diff](utils.md#diff) is documented under
 [Utils](utils.md), and the MessagePack operations under
 [Data format](data-format.md). Operations whose only category is
@@ -21,6 +22,7 @@ full below.
 | JavaScript Minify | `javascript-minify` | [esbuild](https://github.com/evanw/esbuild) |
 | JavaScript Parser | `javascript-parser` | [Abstract syntax tree](https://wikipedia.org/wiki/Abstract_syntax_tree) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
+| XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
 
 ## JavaScript Beautify
 

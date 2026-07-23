@@ -84,7 +84,7 @@ func selectNodes(doc *xmlNode, selector string) ([]*xmlNode, error) {
 		return nil, err
 	}
 	var nodes []*xmlNode
-	iter := expr.Select(newXMLNav(doc))
+	iter := expr.Select(newXMLNav(doc, false))
 	for iter.MoveNext() {
 		if nav, ok := iter.Current().(*xmlNav); ok {
 			nodes = append(nodes, nav.cur)
@@ -100,6 +100,21 @@ func docOrder(doc *xmlNode, nodes []*xmlNode) []*xmlNode {
 	if len(nodes) < 2 {
 		return nodes
 	}
+	index := buildDocIndex(doc)
+	seen := map[*xmlNode]bool{}
+	out := make([]*xmlNode, 0, len(nodes))
+	for _, n := range nodes {
+		if !seen[n] {
+			seen[n] = true
+			out = append(out, n)
+		}
+	}
+	sort.Slice(out, func(a, b int) bool { return index[out[a]] < index[out[b]] })
+	return out
+}
+
+// buildDocIndex assigns each node a pre-order document position.
+func buildDocIndex(doc *xmlNode) map[*xmlNode]int {
 	index := map[*xmlNode]int{}
 	i := 0
 	var walk func(n *xmlNode)
@@ -111,14 +126,5 @@ func docOrder(doc *xmlNode, nodes []*xmlNode) []*xmlNode {
 		}
 	}
 	walk(doc)
-	seen := map[*xmlNode]bool{}
-	out := make([]*xmlNode, 0, len(nodes))
-	for _, n := range nodes {
-		if !seen[n] {
-			seen[n] = true
-			out = append(out, n)
-		}
-	}
-	sort.Slice(out, func(a, b int) bool { return index[out[a]] < index[out[b]] })
-	return out
+	return index
 }

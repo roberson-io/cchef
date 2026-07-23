@@ -466,6 +466,7 @@ var opCategories = map[string][]string{
 	"XOR":                                {catEncryptionEncoding},
 	"XOR Brute Force":                    {catEncryptionEncoding},
 	"XOR Checksum":                       {catHashing},
+	"XPath expression":                   {catExtractors, catCodeTidy},
 	"XSalsa20":                           {catEncryptionEncoding},
 	"XTEA Decrypt":                       {catEncryptionEncoding},
 	"XTEA Encrypt":                       {catEncryptionEncoding},

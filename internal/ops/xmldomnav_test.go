@@ -11,7 +11,7 @@ import (
 // XPath axes the CSS translator does not emit).
 func TestXMLNavCursor(t *testing.T) {
 	doc := parseXML(`<r a="1" b="2"><x:c>hi</x:c><!--k--><![CDATA[cd]]>tail<?pi d?></r>`)
-	nav := newXMLNav(doc)
+	nav := newXMLNav(doc, false)
 
 	if nav.NodeType() != xpath.RootNode {
 		t.Fatalf("root NodeType = %v", nav.NodeType())
@@ -55,8 +55,8 @@ func TestXMLNavCursor(t *testing.T) {
 	if !nav.MoveToNext() || nav.NodeType() != xpath.TextNode || nav.Value() != "tail" {
 		t.Fatalf("text node wrong: %v %q", nav.NodeType(), nav.Value())
 	}
-	if !nav.MoveToNext() || nav.NodeType() != xpath.CommentNode || nav.Value() != "" {
-		t.Fatalf("PI node should be non-text with empty string-value, got %v %q", nav.NodeType(), nav.Value())
+	if !nav.MoveToNext() || nav.NodeType() != xpath.AttributeNode || nav.Value() != "" {
+		t.Fatalf("PI node should report AttributeNode with empty string-value, got %v %q", nav.NodeType(), nav.Value())
 	}
 	if nav.MoveToNext() {
 		t.Fatal("expected no sibling after PI")
@@ -79,7 +79,7 @@ func TestXMLNavCursor(t *testing.T) {
 	if !nav.MoveTo(other) || nav.LocalName() != "c" {
 		t.Fatal("MoveTo(copy) failed")
 	}
-	if nav.MoveTo(newXMLNav(parseXML(`<z/>`))) {
+	if nav.MoveTo(newXMLNav(parseXML(`<z/>`), false)) {
 		t.Fatal("MoveTo across different roots must fail")
 	}
 	nav.MoveToParent() // c -> r
