@@ -25,6 +25,9 @@ dimensions but not every pixel). Read raw bytes with `--in-file` and save with
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Contain Image | `contain-image` | — |
+| Cover Image | `cover-image` | — |
+| Crop Image | `crop-image` | — |
 | Extract EXIF | `extract-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Flip Image | `flip-image` | — |
 | Image Filter | `image-filter` | — |
@@ -35,6 +38,82 @@ dimensions but not every pixel). Read raw bytes with `--in-file` and save with
 | Render Image | `render-image` | [Image file formats](https://wikipedia.org/wiki/Image_file_formats) |
 | Render PDF | `render-pdf` | [PDF](https://wikipedia.org/wiki/PDF) |
 | Rotate Image | `rotate-image` | — |
+
+The resize/crop/contain/cover operations share a **resizing algorithm** option —
+`Nearest Neighbour`, `Bilinear` (default), `Bicubic`, `Hermite` or `Bezier` — all
+ported byte-for-byte from Jimp, so their pixels are identical to CyberChef for
+lossless output.
+
+## Contain Image
+
+Scales an image to fit inside a `Width`×`Height` box while preserving its aspect
+ratio, letterboxing the remaining space. Ported from Jimp's `contain`.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Width | number | `100` | Target box width in pixels. |
+| Height | number | `100` | Target box height in pixels. |
+| Horizontal align | option | `Center` | `Left`, `Center` or `Right`. |
+| Vertical align | option | `Middle` | `Top`, `Middle` or `Bottom`. |
+| Resizing algorithm | option | `Bilinear` | See the note above. |
+| Opaque background | boolean | true | Composite the result over opaque black instead of transparency. |
+
+### Simple example
+
+```bash
+cchef contain-image --in-file photo.png --width 200 --height 200 -o boxed.png
+```
+
+## Cover Image
+
+Scales an image to completely fill a `Width`×`Height` box while preserving aspect
+ratio, cropping the overflow. Ported from Jimp's `cover`.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Width | number | `100` | Target box width in pixels. |
+| Height | number | `100` | Target box height in pixels. |
+| Horizontal align | option | `Center` | `Left`, `Center` or `Right`. |
+| Vertical align | option | `Middle` | `Top`, `Middle` or `Bottom`. |
+| Resizing algorithm | option | `Bilinear` | See the note above. |
+
+### Simple example
+
+```bash
+cchef cover-image --in-file photo.png --width 200 --height 200 -o filled.png
+```
+
+## Crop Image
+
+Crops an image to a rectangular region, or automatically crops a uniform border.
+Ported from Jimp's `crop`/`autocrop`. An out-of-bounds region is rejected with
+`Error cropping image. (…)`.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| X Position | number | `0` | Left edge of the crop region. |
+| Y Position | number | `0` | Top edge of the crop region. |
+| Width | number | `10` | Region width. |
+| Height | number | `10` | Region height. |
+| Autocrop | boolean | false | Ignore the region above and trim a uniform border matching the top-left pixel. |
+| Autocrop tolerance (%) | number | `0.02` | Colour-difference tolerance for the border. |
+| Only autocrop frames | boolean | true | Only crop when all four sides have a border. |
+| Symmetric autocrop | boolean | false | Crop the same amount from opposite sides. |
+| Autocrop keep border (px) | number | `0` | Leave this many border pixels in place. |
+
+### Simple example
+
+```bash
+cchef crop-image --in-file photo.png --x-position 10 --y-position 10 --width 100 --height 80 -o cropped.png
+```
+
+### Complex example
+
+Trim a solid border automatically:
+
+```bash
+cchef crop-image --in-file bordered.png --autocrop -o trimmed.png
+```
 
 ## Extract EXIF
 
@@ -255,6 +334,34 @@ Output:
 
 ```
 data:application/pdf;base64,JVBERi0xLjcgaGk=
+```
+
+## Resize Image
+
+Resizes an image to a target width and height, optionally as a percentage or
+preserving the aspect ratio. Ported from Jimp's `resize`/`scaleToFit` with all
+five resampling algorithms.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Width | number | `100` | Target width (pixels, or percent when Unit type is Percent). |
+| Height | number | `100` | Target height. |
+| Unit type | option | `Pixels` | `Pixels` or `Percent` (of the source size). |
+| Maintain aspect ratio | boolean | false | Scale to fit within Width×Height without distortion. |
+| Resizing algorithm | option | `Bilinear` | See the note under the operation table. |
+
+### Simple example
+
+```bash
+cchef resize-image --in-file photo.png --width 320 --height 240 -o small.png
+```
+
+### Complex example
+
+Halve the size using percent units and nearest-neighbour sampling:
+
+```bash
+cchef resize-image --in-file photo.png --width 50 --height 50 --unit-type Percent --resizing-algorithm "Nearest Neighbour" -o half.png
 ```
 
 ## Rotate Image

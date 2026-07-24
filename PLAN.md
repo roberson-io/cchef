@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **404 operations** (`internal/ops/`), each a faithful port with tests
+- **408 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -628,7 +628,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **394 unique** CyberChef operations are covered (393 directly plus
+Currently **398 unique** CyberChef operations are covered (397 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1154,7 +1154,7 @@ Currently **394 unique** CyberChef operations are covered (393 directly plus
 - [ ] View Bit Plane
 - [ ] YARA Rules
 
-### Multimedia (10/29)
+### Multimedia (14/29)
 
 > **CLI presentation:** CyberChef's Multimedia ops preview their result in the
 > browser (`presentType: "html"`). cchef has no browser, so the byte-emitting
@@ -1180,10 +1180,10 @@ Currently **394 unique** CyberChef operations are covered (393 directly plus
 
 - [ ] Add Text To Image
 - [ ] Blur Image
-- [ ] Contain Image
+- [x] Contain Image
 - [ ] Convert Image Format
-- [ ] Cover Image
-- [ ] Crop Image
+- [x] Cover Image
+- [x] Crop Image
 - [ ] Dither Image
 - [x] Extract EXIF
 - [x] Flip Image
@@ -1201,7 +1201,7 @@ Currently **394 unique** CyberChef operations are covered (393 directly plus
 - [x] Remove EXIF
 - [x] Render Image
 - [x] Render PDF
-- [ ] Resize Image
+- [x] Resize Image
 - [x] Rotate Image
 - [ ] Scatter chart
 - [ ] Series chart

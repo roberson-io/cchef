@@ -37,6 +37,20 @@ func imageTransform(data []byte, invalidMsg string, transform func(*image.NRGBA)
 	return encodeImageNRGBA(transform(img), format)
 }
 
+// imageTransformE is like imageTransform but the transform may fail (e.g. an
+// out-of-bounds crop).
+func imageTransformE(data []byte, invalidMsg string, transform func(*image.NRGBA) (*image.NRGBA, error)) ([]byte, error) {
+	img, format, err := decodeImageNRGBA(data, invalidMsg)
+	if err != nil {
+		return nil, err
+	}
+	out, err := transform(img)
+	if err != nil {
+		return nil, err
+	}
+	return encodeImageNRGBA(out, format)
+}
+
 // decodeImageNRGBA validates that data is an image, decodes it to a dense
 // straight-RGBA bitmap, and returns the bitmap plus the source format name.
 func decodeImageNRGBA(data []byte, invalidMsg string) (*image.NRGBA, string, error) {

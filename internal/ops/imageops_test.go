@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"os"
 	"testing"
 )
 
@@ -48,11 +49,44 @@ func decodePNGOut(t *testing.T, out string) *image.NRGBA {
 // runImageOp runs an image op on a PNG-encoded image and decodes the result.
 func runImageOp(t *testing.T, op string, img image.Image, args ...any) *image.NRGBA {
 	t.Helper()
-	out, err := runOp(t, op, pngBytes(t, img), args...)
+	return runImageOpBytes(t, pngBytes(t, img), op, args...)
+}
+
+// runImageOpBytes runs an image op on raw PNG bytes and decodes the result.
+func runImageOpBytes(t *testing.T, input, op string, args ...any) *image.NRGBA {
+	t.Helper()
+	out, err := runOp(t, op, input, args...)
 	if err != nil {
 		t.Fatalf("%s: %v", op, err)
 	}
 	return decodePNGOut(t, out)
+}
+
+// loadPNGBytes reads a PNG testdata file as a raw byte string (op input).
+func loadPNGBytes(t *testing.T, name string) string {
+	t.Helper()
+	b, err := os.ReadFile("testdata/" + name)
+	if err != nil {
+		t.Fatalf("read %s: %v", name, err)
+	}
+	return string(b)
+}
+
+// assertSamePixels fails if two images differ in bounds or any pixel.
+func assertSamePixels(t *testing.T, ctx string, got, want *image.NRGBA) {
+	t.Helper()
+	if got.Bounds() != want.Bounds() {
+		t.Fatalf("%s: bounds %v != golden %v", ctx, got.Bounds(), want.Bounds())
+	}
+	if !bytes.Equal(got.Pix, want.Pix) {
+		diffs := 0
+		for i := range got.Pix {
+			if got.Pix[i] != want.Pix[i] {
+				diffs++
+			}
+		}
+		t.Fatalf("%s: %d/%d bytes differ from golden", ctx, diffs, len(got.Pix))
+	}
 }
 
 func TestToNRGBARoundTrip(t *testing.T) {
