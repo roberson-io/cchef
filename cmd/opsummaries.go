@@ -27,6 +27,8 @@ var opSummaries = map[string]string{
 	"Ascon Decrypt":                  "Ascon-AEAD128 authenticated decryption (SP 800-232)",
 	"Ascon Encrypt":                  "Ascon-AEAD128 authenticated encryption (SP 800-232)",
 	"Atbash Cipher":                  "Mirror-substitution cipher (a<->z, b<->y)",
+	"BSON deserialise":               "Deserialises BSON (Binary JSON) bytes into JSON",
+	"BSON serialise":                 "Serialises JSON into BSON (Binary JSON) bytes",
 	"Bacon Cipher Decode":            "Decodes a Baconian steganographic cipher",
 	"Bacon Cipher Encode":            "Encodes text as a Baconian cipher",
 	"Bcrypt":                         "Hashes a password with bcrypt",

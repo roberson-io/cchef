@@ -9,7 +9,7 @@ Knife" — built for the terminal. Every operation is a subcommand that reads in
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
 
-> **Status:** a curated, growing subset — **377 operations** so far, each a
+> **Status:** a curated, growing subset — **379 operations** so far, each a
 > faithful, test-driven port. See [PLAN.md](PLAN.md) for the full implementation
 > status against all 495 CyberChef operations (CyberChef's category config names
 > 498, but three have no implementation).
@@ -68,7 +68,7 @@ input; a file whose recipe fails is reported and skipped (non-zero exit).
 
 ## Operations
 
-The 377 operations are grouped using the same categories as CyberChef. Each page
+The 379 operations are grouped using the same categories as CyberChef. Each page
 documents options, examples, and reference links:
 
 - [Arithmetic / Logic](docs/arithmetic-logic.md) — Sum, Subtract, Multiply,

@@ -16,6 +16,8 @@ full below.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| BSON deserialise | `bson-deserialise` | [BSON](https://wikipedia.org/wiki/BSON) |
+| BSON serialise | `bson-serialise` | [BSON](https://wikipedia.org/wiki/BSON) |
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Diff | `diff` | |
 | From MessagePack | `from-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
@@ -30,6 +32,81 @@ full below.
 | Syntax highlighter | `syntax-highlighter` | [Syntax highlighting](https://wikipedia.org/wiki/Syntax_highlighting) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
+
+## BSON deserialise
+
+Deserialises [BSON](https://bsonspec.org/) (Binary JSON, MongoDB's binary
+interchange format) bytes back into JSON. Input is raw BSON bytes; output is
+pretty-printed JSON (2-space indent), matching how CyberChef renders
+`JSON.stringify(deserialize(input), null, 2)`.
+
+The richer BSON element types are rendered as js-bson's `JSON.stringify` does: an
+ObjectId as its hex string, a UTC datetime as an ISO-8601 string, a Binary as
+base64, a Timestamp as `{"$timestamp": "<n>"}`, and RegExp / MinKey / MaxKey as an
+empty object. cchef reimplements the codec from scratch (no dependency).
+
+> **Fidelity.** The common types (double, string, document, array, boolean, null,
+> int32, int64) and the types above are reproduced exactly. Decimal128 and other
+> rare types (JavaScript code, DBPointer, Symbol) are not decoded and produce an
+> error.
+
+### Example
+
+Round-tripping a document through serialise and back:
+
+```bash
+cchef bson-serialise -i '{"hello":"world","n":42}' | cchef bson-deserialise
+```
+
+Output:
+
+```
+{
+  "hello": "world",
+  "n": 42
+}
+```
+
+Deserialising raw bytes supplied as hex:
+
+```bash
+echo -n '160000000268656c6c6f0006000000776f726c640000' | cchef from-hex --delimiter None | cchef bson-deserialise
+```
+
+Output:
+
+```
+{
+  "hello": "world"
+}
+```
+
+## BSON serialise
+
+Serialises JSON into [BSON](https://bsonspec.org/) (Binary JSON, MongoDB's binary
+interchange format) bytes. Input must be valid JSON; output is raw BSON bytes.
+cchef reimplements js-bson's `serialize()` from scratch (no dependency), matching
+it byte-for-byte, including its number-type rule — an integer in int32 range is
+written as an int32, everything else (larger integers, all fractional numbers, and
+negative zero) as a 64-bit double — and its ECMAScript key ordering (integer-like
+keys first, ascending).
+
+The top-level value must be an object (a JSON `null` serialises to an empty
+document); an array or scalar root is rejected, as in js-bson.
+
+### Example
+
+Serialising to bytes (shown here piped through `to-hex` for display):
+
+```bash
+cchef bson-serialise -i '{"hello":"world","n":42}' | cchef to-hex --delimiter Space
+```
+
+Output:
+
+```
+1d 00 00 00 02 68 65 6c 6c 6f 00 06 00 00 00 77 6f 72 6c 64 00 10 6e 00 2a 00 00 00 00
+```
 
 ## JavaScript Beautify
 

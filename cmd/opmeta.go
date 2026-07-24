@@ -141,6 +141,8 @@ var opCategories = map[string][]string{
 	"BLAKE2s":                            {catHashing},
 	"BLAKE3":                             {catHashing},
 	"Bombe":                              {catEncryptionEncoding},
+	"BSON deserialise":                   {catCodeTidy},
+	"BSON serialise":                     {catCodeTidy},
 	"Caesar Box Cipher":                  {catEncryptionEncoding},
 	"Caret/M-decode":                     {catDataFormat},
 	"Cartesian Product":                  {catArithmeticLogic},
