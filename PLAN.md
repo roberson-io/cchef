@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **393 operations** (`internal/ops/`), each a faithful port with tests
+- **397 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -628,7 +628,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **383 unique** CyberChef operations are covered (382 directly plus
+Currently **387 unique** CyberChef operations are covered (386 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1139,9 +1139,9 @@ Currently **383 unique** CyberChef operations are covered (382 directly plus
 - [x] XML Minify
 - [x] XPath expression
 
-### Forensics (0/12)
+### Forensics (1/12)
 
-- [ ] Detect File Type
+- [x] Detect File Type
 - [ ] ELF Info
 - [ ] Extract Audio Metadata
 - [ ] Extract EXIF
@@ -1154,7 +1154,18 @@ Currently **383 unique** CyberChef operations are covered (382 directly plus
 - [ ] View Bit Plane
 - [ ] YARA Rules
 
-### Multimedia (0/29)
+### Multimedia (3/29)
+
+> **CLI presentation:** CyberChef's Multimedia ops preview their result in the
+> browser (`presentType: "html"`). cchef has no browser, so the byte-emitting
+> ops (Render Image, Play Media, Render PDF) validate the input and pass the
+> bytes through — saved with `-o`/redirect — and add a cchef-specific `Output`
+> option (`--output-format`): `Raw` (default), `Base64` (a `data:` URI), and, for
+> Render Image, `Terminal` (an inline preview via the iTerm2 protocol for any
+> format or the kitty protocol for PNG; broader kitty and sixel arrive with the
+> imaging batch, which brings an image decoder). `Detect File Type` (Forensics)
+> was ported alongside the shared `FileSignatures` engine to enable a
+> detect-then-render workflow.
 
 - [ ] Add Text To Image
 - [ ] Blur Image
@@ -1175,10 +1186,10 @@ Currently **383 unique** CyberChef operations are covered (382 directly plus
 - [ ] Invert Image
 - [ ] Normalise Image
 - [ ] Optical Character Recognition
-- [ ] Play Media
+- [x] Play Media
 - [ ] Remove EXIF
-- [ ] Render Image
-- [ ] Render PDF
+- [x] Render Image
+- [x] Render PDF
 - [ ] Resize Image
 - [ ] Rotate Image
 - [ ] Scatter chart

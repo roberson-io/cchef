@@ -72,6 +72,7 @@ var opSummaries = map[string]string{
 	"DES Encrypt":                    "Encrypts with the DES block cipher",
 	"Triple DES Decrypt":             "Decrypts with the Triple DES (3DES) cipher",
 	"Triple DES Encrypt":             "Encrypts with the Triple DES (3DES) cipher",
+	"Detect File Type":               "Guesses a file's MIME type from its magic bytes",
 	"Diff":                           "Highlights differences between two inputs",
 	"Drop nth bytes":                 "Drops every nth byte from a given offset",
 	"Encode NetBIOS Name":            "Encodes a name with NetBIOS name encoding",

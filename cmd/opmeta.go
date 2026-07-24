@@ -89,8 +89,10 @@ const (
 	catDateTime           = "Date / Time"
 	catEncryptionEncoding = "Encryption / Encoding"
 	catExtractors         = "Extractors"
+	catForensics          = "Forensics"
 	catHashing            = "Hashing"
 	catLanguage           = "Language"
+	catMultimedia         = "Multimedia"
 	catNetworking         = "Networking"
 	catPublicKey          = "Public Key"
 	catUtils              = "Utils"
@@ -185,6 +187,7 @@ var opCategories = map[string][]string{
 	"Derive PBKDF2 key":                  {catEncryptionEncoding},
 	"DES Decrypt":                        {catEncryptionEncoding},
 	"DES Encrypt":                        {catEncryptionEncoding},
+	"Detect File Type":                   {catForensics},
 	"Diff":                               {catUtils, catCodeTidy},
 	"Divide":                             {catArithmeticLogic},
 	"Drop bytes":                         {catUtils},
@@ -342,6 +345,7 @@ var opCategories = map[string][]string{
 	"Parse X.509 CRL":                    {catPublicKey},
 	"Parse X.509 certificate":            {catPublicKey},
 	"Parse colour code":                  {catUtils},
+	"Play Media":                         {catMultimedia},
 	"Power Set":                          {catArithmeticLogic},
 	"Protobuf Decode":                    {catNetworking},
 	"Protobuf Encode":                    {catNetworking},
@@ -369,7 +373,9 @@ var opCategories = map[string][]string{
 	"Rail Fence Cipher Decode":           {catEncryptionEncoding},
 	"Rail Fence Cipher Encode":           {catEncryptionEncoding},
 	"Regular expression":                 {catUtils, catExtractors},
+	"Render Image":                       {catMultimedia},
 	"Render Markdown":                    {catCodeTidy},
+	"Render PDF":                         {catMultimedia},
 	"Remove ANSI Escape Codes":           {catUtils},
 	"Remove line numbers":                {catUtils},
 	"Remove null bytes":                  {catUtils},
