@@ -147,6 +147,19 @@ jsonpath-plus itself throws an uncaught TypeError). The general-purpose Go JSONP
 libraries (e.g. `ohler55/ojg`) were rejected: they sort object keys and lack script
 expressions, so they could not reproduce `jsonpath-plus` output.
 
+Note: **JSON Beautify** (CyberChef parses with the `json5` npm library, then
+`JSON.stringify`) is a from-scratch pure-Go port (`internal/ops/jsonbeautify.go`)
+— **no new dependency**. It adds a lenient JSON5 parser (comments, unquoted and
+single-quoted keys, trailing commas, hexadecimal and non-finite numbers,
+leading/trailing decimal points, signs, string line-continuations and \x/\u
+escapes) that feeds the shared order-preserving serialiser in `jsonvalue.go`
+(generalised in this batch to accept an arbitrary indent-unit string, not just a
+space count). All numbers are float64, matching JS Number semantics (large-integer
+precision loss, NaN/Infinity → null, ECMAScript integer-key ordering). The third
+argument (Formatted) is inert — it only drives CyberChef's browser tree view.
+Differential-verified byte-for-byte against the CyberChef-server oracle across the
+lenient-parsing and formatting surface.
+
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
@@ -382,7 +395,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 376
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 377
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -395,7 +408,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **376 operations** (`internal/ops/`), each a faithful port with tests
+- **377 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -560,7 +573,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **366 unique** CyberChef operations are covered (365 directly plus
+Currently **367 unique** CyberChef operations are covered (366 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1038,7 +1051,7 @@ Currently **366 unique** CyberChef operations are covered (365 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (13/30)
+### Code tidy (14/30)
 
 - [ ] BSON deserialise
 - [ ] BSON serialise
@@ -1053,7 +1066,7 @@ Currently **366 unique** CyberChef operations are covered (365 directly plus
 - [x] JavaScript Parser
 - [x] JPath expression
 - [x] Jq
-- [ ] JSON Beautify
+- [x] JSON Beautify
 - [ ] JSON Minify
 - [ ] Microsoft Script Decoder
 - [ ] PHP Deserialize

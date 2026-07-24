@@ -175,13 +175,22 @@ func jsBuffer(b []byte) jsObject {
 // indent 0 is compact, indent > 0 pretty-prints with that many spaces. It
 // understands nil, bool, int64, float64, string, []any, jsObject and
 // jsUndefined values.
+// jsStringify serialises v like JSON.stringify(value, null, indent) using indent
+// spaces (0 = compact).
 func jsStringify(v any, indent int) string {
+	return jsStringifyIndent(v, strings.Repeat(" ", indent))
+}
+
+// jsStringifyIndent serialises v like JSON.stringify(value, null, unit), where
+// unit is the literal indentation string (a tab, N spaces, or any string; ""
+// produces compact output). This backs JSON Beautify's binaryShortString indent.
+func jsStringifyIndent(v any, unit string) string {
 	var sb strings.Builder
-	jsWrite(&sb, v, indent, "")
+	jsWrite(&sb, v, unit, "")
 	return sb.String()
 }
 
-func jsWrite(sb *strings.Builder, v any, indent int, cur string) {
+func jsWrite(sb *strings.Builder, v any, unit, cur string) {
 	switch x := v.(type) {
 	case nil:
 		sb.WriteString("null")
@@ -198,36 +207,36 @@ func jsWrite(sb *strings.Builder, v any, indent int, cur string) {
 	case string:
 		sb.WriteString(jsJSONString(x))
 	case []any:
-		jsWriteArray(sb, x, indent, cur)
+		jsWriteArray(sb, x, unit, cur)
 	case jsObject:
-		jsWriteObject(sb, x, indent, cur)
+		jsWriteObject(sb, x, unit, cur)
 	case jsUndefined:
 		// Only reached for an array element; JSON.stringify renders it as null.
 		sb.WriteString("null")
 	}
 }
 
-func jsWriteArray(sb *strings.Builder, arr []any, indent int, cur string) {
+func jsWriteArray(sb *strings.Builder, arr []any, unit, cur string) {
 	if len(arr) == 0 {
 		sb.WriteString("[]")
 		return
 	}
-	if indent == 0 {
+	if unit == "" {
 		sb.WriteByte('[')
 		for i, e := range arr {
 			if i > 0 {
 				sb.WriteByte(',')
 			}
-			jsWrite(sb, e, 0, "")
+			jsWrite(sb, e, "", "")
 		}
 		sb.WriteByte(']')
 		return
 	}
-	inner := cur + strings.Repeat(" ", indent)
+	inner := cur + unit
 	sb.WriteString("[\n")
 	for i, e := range arr {
 		sb.WriteString(inner)
-		jsWrite(sb, e, indent, inner)
+		jsWrite(sb, e, unit, inner)
 		if i < len(arr)-1 {
 			sb.WriteByte(',')
 		}
@@ -237,7 +246,7 @@ func jsWriteArray(sb *strings.Builder, arr []any, indent int, cur string) {
 	sb.WriteByte(']')
 }
 
-func jsWriteObject(sb *strings.Builder, obj jsObject, indent int, cur string) {
+func jsWriteObject(sb *strings.Builder, obj jsObject, unit, cur string) {
 	// JSON.stringify enumerates in ECMAScript key order and omits properties
 	// whose value is undefined.
 	pairs := make(jsObject, 0, len(obj))
@@ -251,7 +260,7 @@ func jsWriteObject(sb *strings.Builder, obj jsObject, indent int, cur string) {
 		sb.WriteString("{}")
 		return
 	}
-	if indent == 0 {
+	if unit == "" {
 		sb.WriteByte('{')
 		for i, p := range pairs {
 			if i > 0 {
@@ -259,18 +268,18 @@ func jsWriteObject(sb *strings.Builder, obj jsObject, indent int, cur string) {
 			}
 			sb.WriteString(jsJSONString(p.k))
 			sb.WriteByte(':')
-			jsWrite(sb, p.v, 0, "")
+			jsWrite(sb, p.v, "", "")
 		}
 		sb.WriteByte('}')
 		return
 	}
-	inner := cur + strings.Repeat(" ", indent)
+	inner := cur + unit
 	sb.WriteString("{\n")
 	for i, p := range pairs {
 		sb.WriteString(inner)
 		sb.WriteString(jsJSONString(p.k))
 		sb.WriteString(": ")
-		jsWrite(sb, p.v, indent, inner)
+		jsWrite(sb, p.v, unit, inner)
 		if i < len(pairs)-1 {
 			sb.WriteByte(',')
 		}

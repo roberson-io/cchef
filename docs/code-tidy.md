@@ -24,6 +24,7 @@ full below.
 | JavaScript Parser | `javascript-parser` | [Abstract syntax tree](https://wikipedia.org/wiki/Abstract_syntax_tree) |
 | JPath expression | `jpath-expression` | [JSONPath](extractors.md#jpath-expression) |
 | Jq | `jq` | [jq](https://github.com/jqlang/jq) |
+| JSON Beautify | `json-beautify` | [JSON](https://wikipedia.org/wiki/JSON) |
 | Render Markdown | `render-markdown` | [Markdown](https://wikipedia.org/wiki/Markdown) |
 | SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | Syntax highlighter | `syntax-highlighter` | [Syntax highlighting](https://wikipedia.org/wiki/Syntax_highlighting) |
@@ -305,6 +306,66 @@ Output:
 
 ```
 hello world
+```
+
+## JSON Beautify
+
+Indents and pretty-prints JSON. CyberChef parses the input leniently with
+[JSON5](https://json5.org/) (allowing comments, trailing commas, unquoted and
+single-quoted keys, hexadecimal and non-finite numbers, and more) and re-emits it
+with `JSON.stringify(value, null, indent)`; cchef reproduces this over a
+from-scratch JSON5 parser feeding the shared JSON serialiser — no dependency is
+added.
+
+Object keys are enumerated in ECMAScript order (integer-like keys first, in
+ascending numeric order, then the rest in insertion order). Non-finite numbers
+(`Infinity`, `NaN`) become `null`, and large integers lose precision exactly as JS
+Numbers do.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Indent string | string | 4 spaces | The indentation unit. Backslash escapes are interpreted, so `\t` indents with tabs. An empty string produces compact (single-line) output. |
+| Sort Object Keys | boolean | `false` | Recursively sort object keys alphabetically before emitting. |
+| Formatted | boolean | `true` | Inert in cchef: it only controls CyberChef's browser tree view. Kept so recipes round-trip. |
+
+### Simple example
+
+```bash
+cchef json-beautify -i '{"name":"cchef","tags":["json","cli"],"version":2}'
+```
+
+Output:
+
+```
+{
+    "name": "cchef",
+    "tags": [
+        "json",
+        "cli"
+    ],
+    "version": 2
+}
+```
+
+### Complex example
+
+Sorting keys and indenting with tabs, over lenient JSON5 input (a comment, a
+hexadecimal number, a leading-dot number and trailing commas):
+
+```bash
+cchef json-beautify -i '{b:2,a:{d:0xF,/* c */ c:.5,},}' --indent-string '\t' --sort-object-keys
+```
+
+Output:
+
+```
+{
+	"a": {
+		"c": 0.5,
+		"d": 15
+	},
+	"b": 2
+}
 ```
 
 ## Render Markdown

@@ -55,3 +55,26 @@ func TestJSStringifyUndefined(t *testing.T) {
 		t.Fatalf("pretty object with undefined: %q", got)
 	}
 }
+
+// TestJSStringifyIndentUnit checks the arbitrary indent-unit variant used by JSON
+// Beautify: a tab, an empty unit (compact), and a non-whitespace unit all nest
+// correctly, matching JSON.stringify(value, null, unit).
+func TestJSStringifyIndentUnit(t *testing.T) {
+	nested := jsObject{{k: "a", v: []any{int64(1), jsObject{{k: "b", v: int64(2)}}}}}
+	cases := []struct {
+		unit, want string
+	}{
+		{"\t", "{\n\t\"a\": [\n\t\t1,\n\t\t{\n\t\t\t\"b\": 2\n\t\t}\n\t]\n}"},
+		{"", `{"a":[1,{"b":2}]}`},
+		{"--", "{\n--\"a\": [\n----1,\n----{\n------\"b\": 2\n----}\n--]\n}"},
+	}
+	for _, c := range cases {
+		if got := jsStringifyIndent(nested, c.unit); got != c.want {
+			t.Errorf("jsStringifyIndent(_, %q) = %q want %q", c.unit, got, c.want)
+		}
+	}
+	// jsStringify(v, n) must stay equivalent to an n-space unit.
+	if a, b := jsStringify(nested, 4), jsStringifyIndent(nested, "    "); a != b {
+		t.Errorf("jsStringify(_,4)=%q != jsStringifyIndent(_,\"    \")=%q", a, b)
+	}
+}

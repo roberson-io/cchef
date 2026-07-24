@@ -268,6 +268,7 @@ var opCategories = map[string][]string{
 	"JA4 Fingerprint":                    {catNetworking},
 	"JA4Server Fingerprint":              {catNetworking},
 	"JPath expression":                   {catExtractors, catCodeTidy},
+	"JSON Beautify":                      {catCodeTidy},
 	"JSON to CSV":                        {catDataFormat},
 	"JSON to YAML":                       {catDataFormat},
 	"JWK to PEM":                         {catPublicKey},
