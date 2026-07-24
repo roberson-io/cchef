@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **399 operations** (`internal/ops/`), each a faithful port with tests
+- **404 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -628,7 +628,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **389 unique** CyberChef operations are covered (388 directly plus
+Currently **394 unique** CyberChef operations are covered (393 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1154,7 +1154,7 @@ Currently **389 unique** CyberChef operations are covered (388 directly plus
 - [ ] View Bit Plane
 - [ ] YARA Rules
 
-### Multimedia (5/29)
+### Multimedia (10/29)
 
 > **CLI presentation:** CyberChef's Multimedia ops preview their result in the
 > browser (`presentType: "html"`). cchef has no browser, so the byte-emitting
@@ -1166,6 +1166,17 @@ Currently **389 unique** CyberChef operations are covered (388 directly plus
 > imaging batch, which brings an image decoder). `Detect File Type` (Forensics)
 > was ported alongside the shared `FileSignatures` engine to enable a
 > detect-then-render workflow.
+>
+> **Imaging (Flip/Rotate/Invert/Image Filter/Image Opacity, and later batches):**
+> CyberChef runs these over the Jimp library. cchef decodes with the standard
+> library plus `golang.org/x/image` (BMP/TIFF/WEBP) and reproduces **Jimp's pixel
+> maths from scratch** on an `image.NRGBA`, so lossless formats (PNG/BMP/TIFF) are
+> pixel-identical to CyberChef — only the encoded bytes differ. This is more
+> faithful and lighter than wrapping a Go imaging library. Reduced-fidelity
+> corners: **JPEG** output (lossy re-encode) and **Rotate** by non-multiples of 90°
+> (CyberChef upscales first; cchef matches output dimensions, not every pixel).
+> Fidelity is verified against Jimp run directly under Node, since the bundled
+> CyberChef-server oracle cannot execute the image module.
 
 - [ ] Add Text To Image
 - [ ] Blur Image
@@ -1175,15 +1186,15 @@ Currently **389 unique** CyberChef operations are covered (388 directly plus
 - [ ] Crop Image
 - [ ] Dither Image
 - [x] Extract EXIF
-- [ ] Flip Image
+- [x] Flip Image
 - [ ] Generate Image
 - [ ] Heatmap chart
 - [ ] Hex Density chart
 - [ ] Image Brightness / Contrast
-- [ ] Image Filter
+- [x] Image Filter
 - [ ] Image Hue/Saturation/Lightness
-- [ ] Image Opacity
-- [ ] Invert Image
+- [x] Image Opacity
+- [x] Invert Image
 - [ ] Normalise Image
 - [ ] Optical Character Recognition
 - [x] Play Media
@@ -1191,7 +1202,7 @@ Currently **389 unique** CyberChef operations are covered (388 directly plus
 - [x] Render Image
 - [x] Render PDF
 - [ ] Resize Image
-- [ ] Rotate Image
+- [x] Rotate Image
 - [ ] Scatter chart
 - [ ] Series chart
 - [ ] Sharpen Image
