@@ -23,6 +23,7 @@ full below.
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Diff | `diff` | |
 | From MessagePack | `from-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
+| Generic Code Beautify | `generic-code-beautify` | [Prettyprint](https://wikipedia.org/wiki/Prettyprint) |
 | JavaScript Beautify | `javascript-beautify` | [escodegen](https://github.com/estools/escodegen) |
 | JavaScript Minify | `javascript-minify` | [esbuild](https://github.com/evanw/esbuild) |
 | JavaScript Parser | `javascript-parser` | [Abstract syntax tree](https://wikipedia.org/wiki/Abstract_syntax_tree) |
@@ -30,9 +31,13 @@ full below.
 | Jq | `jq` | [jq](https://github.com/jqlang/jq) |
 | JSON Beautify | `json-beautify` | [JSON](https://wikipedia.org/wiki/JSON) |
 | JSON Minify | `json-minify` | [JSON](https://wikipedia.org/wiki/JSON) |
+| Microsoft Script Decoder | `microsoft-script-decoder` | [JScript.Encode](https://wikipedia.org/wiki/JScript.Encode) |
+| PHP Deserialize | `php-deserialize` | [Serialization](https://wikipedia.org/wiki/Serialization) |
+| PHP Serialize | `php-serialize` | [Serialization](https://wikipedia.org/wiki/Serialization) |
 | Render Markdown | `render-markdown` | [Markdown](https://wikipedia.org/wiki/Markdown) |
 | SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | SQL Minify | `sql-minify` | [SQL](https://wikipedia.org/wiki/SQL) |
+| Strip HTML tags | `strip-html-tags` | [HTML element](https://wikipedia.org/wiki/HTML_element) |
 | Syntax highlighter | `syntax-highlighter` | [Syntax highlighting](https://wikipedia.org/wiki/Syntax_highlighting) |
 | To Camel case | `to-camel-case` | [Camel case](https://wikipedia.org/wiki/Camel_case) |
 | To Kebab case | `to-kebab-case` | [Kebab case](https://wikipedia.org/wiki/Letter_case#Special_case_styles) |
@@ -167,6 +172,30 @@ Output:
 
 ```
 body {margin: 0;padding: 0;}
+```
+
+## Generic Code Beautify
+
+Attempts to pretty-print C-style languages (C, Java, PHP, JavaScript, …) with a
+generic, language-agnostic set of rules. A faithful from-scratch port of
+CyberChef's operation: strings, comments and regex literals are preserved verbatim
+while whitespace, braces and indentation are normalised.
+
+This is a best-effort formatter, not a parser — it will not always produce ideal
+output, but it is deterministic and matches CyberChef byte-for-byte.
+
+### Example
+
+```bash
+cchef generic-code-beautify -i 'if(x){y=1;}'
+```
+
+Output:
+
+```
+if (x)  {
+    y = 1;
+}
 ```
 
 ## JavaScript Beautify
@@ -528,6 +557,67 @@ Output:
 {"name":"cchef","tags":["a","b"]}
 ```
 
+## Microsoft Script Decoder
+
+Decodes Microsoft Encoded Script files (`JScript.Encode` / `VBScript.Encode`,
+recognisable by the `#@~^…^#~@` markers). A faithful port of CyberChef's decoder,
+including its substitution tables; input that does not contain the encoded markers
+yields an empty string.
+
+### Example
+
+```bash
+cchef microsoft-script-decoder -i '#@~^AAAAAA==,ACfs$BBBBBB==^#~@'
+```
+
+Output:
+
+```
+[EH3m[
+```
+
+## PHP Deserialize
+
+Deserialises [PHP serialized](https://www.php.net/manual/en/function.serialize.php)
+data, rendering keyed arrays as JSON-like objects. A faithful port of CyberChef's
+recursive parser.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Output valid JSON | boolean | `true` | When `true`, integer keys are quoted (`"0":`) and `"` in strings is escaped; when `false`, integer keys are left bare (`0:`). |
+
+### Example
+
+```bash
+cchef php-deserialize -i 'a:2:{s:4:"name";s:3:"Bob";s:3:"age";i:30;}'
+```
+
+Output:
+
+```
+{"name": "Bob","age": 30}
+```
+
+## PHP Serialize
+
+Performs [PHP serialization](https://www.php.net/manual/en/function.serialize.php)
+on JSON input. A faithful port of CyberChef's serializer: arrays and objects both
+become `a:N:{…}`, and string lengths use JavaScript UTF-16 code-unit counts
+(matching CyberChef; this differs from PHP's own byte-length semantics for
+multi-byte strings).
+
+### Example
+
+```bash
+cchef php-serialize -i '{"name":"Bob","age":30}'
+```
+
+Output:
+
+```
+a:2:{s:4:"name";s:3:"Bob";s:3:"age";i:30;}
+```
+
 ## Render Markdown
 
 Renders Markdown input as HTML, wrapped in a `<div>`. CyberChef uses the
@@ -672,6 +762,28 @@ Output:
 
 ```
 SELECT id, name FROM users WHERE active = 1
+```
+
+## Strip HTML tags
+
+Removes all HTML tags (`<…>`) from a string, repeating until none remain (avoiding
+incomplete sanitisation). Optionally tidies whitespace afterwards.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Remove indentation | boolean | `true` | Removes leading indentation on each line. |
+| Remove excess line breaks | boolean | `true` | Drops a leading blank line and collapses runs of blank lines. |
+
+### Example
+
+```bash
+cchef strip-html-tags -i '<p>Hello <b>World</b></p>'
+```
+
+Output:
+
+```
+Hello World
 ```
 
 ## Syntax highlighter

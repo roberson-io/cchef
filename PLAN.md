@@ -201,6 +201,20 @@ fidelity, by design**: lodash's word regex is UTF-16-oriented, so astral charact
 word constituents where lodash isolates them; BMP text is byte-identical. See
 `docs/code-tidy.md`.
 
+Note: the final **Code tidy** batch — **PHP Serialize** / **PHP Deserialize**,
+**Strip HTML tags**, **Generic Code Beautify**, **Microsoft Script Decoder** — are
+self-contained pure-Go ports of CyberChef's own operation logic (no external
+library), so **no new dependency**. PHP Serialize/Deserialize reproduce the
+serializer/recursive parser (string lengths are JS UTF-16 code units, not PHP byte
+lengths; the "Output valid JSON" flag quotes integer keys); Strip HTML tags and
+Generic Code Beautify are faithful transliterations of the RE2-compatible regex
+chains (Generic Code Beautify's preserve-token exec/lastIndex loop and index-based
+indenter included); Microsoft Script Decoder ports the decode with its D_DECODE /
+D_COMBINATION tables (generated from source). PHP Serialize and PHP Deserialize
+have upstream fixtures; the rest are differential-verified byte-for-byte against
+the CyberChef-server oracle (Generic Code Beautify across 30 varied inputs). This
+batch completes the **Code tidy** category (30/30).
+
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
@@ -436,7 +450,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 388
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 393
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -449,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **388 operations** (`internal/ops/`), each a faithful port with tests
+- **393 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -614,7 +628,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **378 unique** CyberChef operations are covered (377 directly plus
+Currently **383 unique** CyberChef operations are covered (382 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1092,7 +1106,7 @@ Currently **378 unique** CyberChef operations are covered (377 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (25/30)
+### Code tidy (30/30)
 
 - [x] BSON deserialise
 - [x] BSON serialise
@@ -1101,7 +1115,7 @@ Currently **378 unique** CyberChef operations are covered (377 directly plus
 - [x] CSS selector
 - [x] Diff
 - [x] From MessagePack
-- [ ] Generic Code Beautify
+- [x] Generic Code Beautify
 - [x] JavaScript Beautify
 - [x] JavaScript Minify
 - [x] JavaScript Parser
@@ -1109,13 +1123,13 @@ Currently **378 unique** CyberChef operations are covered (377 directly plus
 - [x] Jq
 - [x] JSON Beautify
 - [x] JSON Minify
-- [ ] Microsoft Script Decoder
-- [ ] PHP Deserialize
-- [ ] PHP Serialize
+- [x] Microsoft Script Decoder
+- [x] PHP Deserialize
+- [x] PHP Serialize
 - [x] Render Markdown
 - [x] SQL Beautify
 - [x] SQL Minify
-- [ ] Strip HTML tags
+- [x] Strip HTML tags
 - [x] Syntax highlighter
 - [x] To Camel case
 - [x] To Kebab case
