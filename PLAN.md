@@ -187,6 +187,20 @@ falling back to four spaces, CSS Beautify's trailing newline and its literal
 library directly (`node -e "require('vkbeautify')..."`), since only JSON Minify has
 upstream fixtures.
 
+Note: the **case conversions** — **To Snake case**, **To Camel case**, **To Kebab
+case** (CyberChef wraps lodash's `snakeCase`/`camelCase`/`kebabCase`) — share a
+from-scratch port of lodash's word splitter in `internal/ops/lodashcase.go` —
+**no new dependency**. It reproduces `deburr` (the ~120-entry accent table), the
+ASCII-vs-Unicode word dispatch, and lodash's `reUnicodeWord`. That regex uses
+lookahead, which Go's RE2 cannot express, so it runs under the already-present
+`github.com/dlclark/regexp2`; the "context aware" mode ports lib/Code.mjs's
+`replaceVariableNames`. Differential-verified byte-for-byte against the oracle
+across a broad corpus (accents, acronyms, digits, ordinals, smart mode). **Reduced
+fidelity, by design**: lodash's word regex is UTF-16-oriented, so astral characters
+(emoji, surrogate pairs) may split into words differently — cchef treats them as
+word constituents where lodash isolates them; BMP text is byte-identical. See
+`docs/code-tidy.md`.
+
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
@@ -422,7 +436,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 385
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 388
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -435,7 +449,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **385 operations** (`internal/ops/`), each a faithful port with tests
+- **388 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -600,7 +614,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **375 unique** CyberChef operations are covered (374 directly plus
+Currently **378 unique** CyberChef operations are covered (377 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1078,7 +1092,7 @@ Currently **375 unique** CyberChef operations are covered (374 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (22/30)
+### Code tidy (25/30)
 
 - [x] BSON deserialise
 - [x] BSON serialise
@@ -1103,10 +1117,10 @@ Currently **375 unique** CyberChef operations are covered (374 directly plus
 - [x] SQL Minify
 - [ ] Strip HTML tags
 - [x] Syntax highlighter
-- [ ] To Camel case
-- [ ] To Kebab case
+- [x] To Camel case
+- [x] To Kebab case
 - [x] To MessagePack
-- [ ] To Snake case
+- [x] To Snake case
 - [x] XML Beautify
 - [x] XML Minify
 - [x] XPath expression

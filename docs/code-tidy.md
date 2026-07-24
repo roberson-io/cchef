@@ -34,7 +34,10 @@ full below.
 | SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | SQL Minify | `sql-minify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | Syntax highlighter | `syntax-highlighter` | [Syntax highlighting](https://wikipedia.org/wiki/Syntax_highlighting) |
+| To Camel case | `to-camel-case` | [Camel case](https://wikipedia.org/wiki/Camel_case) |
+| To Kebab case | `to-kebab-case` | [Kebab case](https://wikipedia.org/wiki/Letter_case#Special_case_styles) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
+| To Snake case | `to-snake-case` | [Snake case](https://wikipedia.org/wiki/Snake_case) |
 | XML Beautify | `xml-beautify` | [XML](https://wikipedia.org/wiki/XML) |
 | XML Minify | `xml-minify` | [XML](https://wikipedia.org/wiki/XML) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
@@ -729,6 +732,93 @@ output format (the result is ANSI-coloured text, so it is not reproduced here):
 
 ```bash
 cchef syntax-highlighter -i "func add(a, b int) int { return a + b }" --language go --output-format Terminal
+```
+
+## To Camel case
+
+Converts the input to camel case (all lower case except letters after word
+boundaries, which are upper case, e.g. `thisIsCamelCase`). CyberChef wraps lodash's
+`camelCase`; cchef reimplements lodash's word splitter from scratch (`deburr` +
+`words`), reusing the existing `regexp2` dependency for the splitter's lookahead
+regex.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Attempt to be context aware | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
+
+> **Fidelity.** Byte-for-byte identical to lodash across BMP text. lodash's word
+> regex is UTF-16-oriented, so astral characters (emoji, surrogate pairs) may split
+> into words differently — a documented reduced-fidelity edge.
+
+### Example
+
+```bash
+cchef to-camel-case -i 'XMLHttpRequest handler'
+```
+
+Output:
+
+```
+xmlHttpRequestHandler
+```
+
+## To Kebab case
+
+Converts the input to kebab case (all lower case with dashes as word boundaries,
+e.g. `this-is-kebab-case`), wrapping lodash's `kebabCase`. See
+[To Camel case](#to-camel-case) for the shared options and fidelity notes.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Attempt to be context aware | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
+
+### Example
+
+```bash
+cchef to-kebab-case -i 'XMLHttpRequest handler'
+```
+
+Output:
+
+```
+xml-http-request-handler
+```
+
+## To Snake case
+
+Converts the input to snake case (all lower case with underscores as word
+boundaries, e.g. `this_is_snake_case`), wrapping lodash's `snakeCase`. See
+[To Camel case](#to-camel-case) for the shared options and fidelity notes.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Attempt to be context aware | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
+
+### Simple example
+
+```bash
+cchef to-snake-case -i 'XMLHttpRequest handler'
+```
+
+Output:
+
+```
+xml_http_request_handler
+```
+
+### Complex example
+
+With "context aware" enabled, only the variable name is transformed — the string
+literal is preserved:
+
+```bash
+cchef to-snake-case -i 'var fooBar = "leave This";' --attempt-to-be-context-aware
+```
+
+Output:
+
+```
+var foo_bar = "leave This";
 ```
 
 ## XML Beautify
