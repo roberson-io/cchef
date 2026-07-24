@@ -76,6 +76,7 @@ var opSummaries = map[string]string{
 	"Cover Image":                    "Fills a box with an image, cropping the overflow",
 	"Crop Image":                     "Crops an image to a region or auto-crops edges",
 	"Detect File Type":               "Guesses a file's MIME type from its magic bytes",
+	"Image Hue/Saturation/Lightness": "Adjusts an image's hue, saturation and lightness",
 	"Diff":                           "Highlights differences between two inputs",
 	"Drop nth bytes":                 "Drops every nth byte from a given offset",
 	"Encode NetBIOS Name":            "Encodes a name with NetBIOS name encoding",

@@ -66,6 +66,13 @@ func decodeImageNRGBA(data []byte, invalidMsg string) (*image.NRGBA, string, err
 	return toNRGBA(img), format, nil
 }
 
+// cloneNRGBA returns a deep copy of a dense NRGBA image.
+func cloneNRGBA(img *image.NRGBA) *image.NRGBA {
+	c := image.NewNRGBA(image.Rect(0, 0, img.Rect.Dx(), img.Rect.Dy()))
+	copy(c.Pix, img.Pix)
+	return c
+}
+
 // toNRGBA returns img as a dense image.NRGBA anchored at the origin.
 func toNRGBA(img image.Image) *image.NRGBA {
 	b := img.Bounds()

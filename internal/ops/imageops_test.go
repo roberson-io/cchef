@@ -72,6 +72,14 @@ func loadPNGBytes(t *testing.T, name string) string {
 	return string(b)
 }
 
+// assertImageGolden runs op on resize_input.png and compares its pixels to a
+// golden image produced by the real Jimp library.
+func assertImageGolden(t *testing.T, op, golden string, args ...any) {
+	t.Helper()
+	got := runImageOpBytes(t, loadPNGBytes(t, "resize_input.png"), op, args...)
+	assertSamePixels(t, op, got, decodePNGOut(t, loadPNGBytes(t, golden)))
+}
+
 // assertSamePixels fails if two images differ in bounds or any pixel.
 func assertSamePixels(t *testing.T, ctx string, got, want *image.NRGBA) {
 	t.Helper()

@@ -10,39 +10,61 @@ flag or a shell redirect. Each also offers an **Output** option
 (`--output-format`) to choose how the result is presented — raw bytes, a base64
 `data:` URI, or an inline terminal preview.
 
-The image-transform operations (Flip, Rotate, Invert, Image Filter, Image
-Opacity) decode the image, apply the pixel operation, and re-encode to the source
-format (GIF is re-encoded as PNG, as CyberChef does). CyberChef performs these
-over the Jimp library; cchef reproduces Jimp's pixel maths exactly, so for
-lossless formats (PNG/BMP/TIFF) the pixels are **identical** to CyberChef — only
-the encoded bytes differ. Two caveats: **JPEG** output is re-encoded lossily and
-is therefore an approximation, and **Rotate** by angles that are not a multiple
-of 90° is approximate (CyberChef upscales first; cchef matches the output
-dimensions but not every pixel). Read raw bytes with `--in-file` and save with
-`-o`.
+The image-transform operations (Blur, Crop, Resize, colour adjustments, …) decode
+the image, apply the pixel operation, and re-encode to the source format (GIF is
+re-encoded as PNG, as CyberChef does). CyberChef performs these over the Jimp
+library; cchef reproduces Jimp's pixel maths exactly, so for lossless formats
+(PNG/BMP/TIFF) the pixels are **identical** to CyberChef — only the encoded bytes
+differ. Two caveats: **JPEG** output is re-encoded lossily and is therefore an
+approximation, and **Rotate** by angles that are not a multiple of 90° is
+approximate (CyberChef upscales first; cchef matches the output dimensions but not
+every pixel). Read raw bytes with `--in-file` and save with `-o`.
 
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Blur Image | `blur-image` | — |
 | Contain Image | `contain-image` | — |
 | Cover Image | `cover-image` | — |
 | Crop Image | `crop-image` | — |
+| Dither Image | `dither-image` | — |
 | Extract EXIF | `extract-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Flip Image | `flip-image` | — |
+| Image Brightness / Contrast | `image-brightness-contrast` | — |
 | Image Filter | `image-filter` | — |
+| Image Hue/Saturation/Lightness | `image-hue-saturation-lightness` | — |
 | Image Opacity | `image-opacity` | — |
 | Invert Image | `invert-image` | — |
+| Normalise Image | `normalise-image` | — |
 | Play Media | `play-media` | — |
 | Remove EXIF | `remove-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Render Image | `render-image` | [Image file formats](https://wikipedia.org/wiki/Image_file_formats) |
 | Render PDF | `render-pdf` | [PDF](https://wikipedia.org/wiki/PDF) |
+| Resize Image | `resize-image` | — |
 | Rotate Image | `rotate-image` | — |
+| Sharpen Image | `sharpen-image` | — |
 
 The resize/crop/contain/cover operations share a **resizing algorithm** option —
 `Nearest Neighbour`, `Bilinear` (default), `Bicubic`, `Hermite` or `Bezier` — all
 ported byte-for-byte from Jimp, so their pixels are identical to CyberChef for
 lossless output.
+
+## Blur Image
+
+Blurs an image. Ported from Jimp's `blur` (a fast box blur) and `gaussian`.
+Pixel-identical to CyberChef for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Amount | number | `5` | Blur radius. For `Fast`, an integer 1–256. |
+| Type | option | `Fast` | `Fast` (box blur) or `Gaussian` (slower, smoother). |
+
+### Simple example
+
+```bash
+cchef blur-image --in-file photo.png --amount 4 --type Gaussian -o blurred.png
+```
 
 ## Contain Image
 
@@ -115,6 +137,17 @@ Trim a solid border automatically:
 cchef crop-image --in-file bordered.png --autocrop -o trimmed.png
 ```
 
+## Dither Image
+
+Applies an ordered (RGB565) dither effect. Ported from Jimp's `dither`.
+Pixel-identical to CyberChef for lossless formats. Takes no options.
+
+### Simple example
+
+```bash
+cchef dither-image --in-file photo.png -o dithered.png
+```
+
 ## Extract EXIF
 
 Extracts EXIF metadata from an image (JPEG/TIFF). EXIF records information about
@@ -164,6 +197,22 @@ CyberChef for lossless formats.
 cchef flip-image --in-file photo.png --axis Vertical -o flipped.png
 ```
 
+## Image Brightness / Contrast
+
+Adjusts image brightness and/or contrast. Ported from Jimp's
+`brightness`/`contrast`. Pixel-identical to CyberChef for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Brightness | number | `0` | −100 to 100. 0 leaves brightness unchanged. |
+| Contrast | number | `0` | −100 to 100. 0 leaves contrast unchanged. |
+
+### Simple example
+
+```bash
+cchef image-brightness-contrast --in-file photo.png --brightness 20 --contrast 15 -o adjusted.png
+```
+
 ## Image Filter
 
 Applies a greyscale or sepia filter to an image (Jimp's `greyscale`/`sepia`).
@@ -177,6 +226,24 @@ Pixel-identical to CyberChef for lossless formats.
 
 ```bash
 cchef image-filter --in-file photo.png --filter-type Sepia -o sepia.png
+```
+
+## Image Hue/Saturation/Lightness
+
+Adjusts an image's hue, saturation and lightness in HSL space. Ported from
+CyberChef's operation (Jimp's `color()` via tinycolor), pixel-identical to
+CyberChef for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Hue | number | `0` | −360 to 360 degrees to rotate the hue. |
+| Saturation | number | `0` | −100 to 100. |
+| Lightness | number | `0` | −100 to 100. |
+
+### Simple example
+
+```bash
+cchef image-hue-saturation-lightness --in-file photo.png --hue 30 --saturation 20 -o tweaked.png
 ```
 
 ## Image Opacity
@@ -205,6 +272,18 @@ Takes no options.
 
 ```bash
 cchef invert-image --in-file photo.png -o inverted.png
+```
+
+## Normalise Image
+
+Stretches each colour channel to the full 0–255 range (auto-levels). Ported from
+Jimp's `normalize`. Pixel-identical to CyberChef for lossless formats. Takes no
+options.
+
+### Simple example
+
+```bash
+cchef normalise-image --in-file photo.png -o normalised.png
 ```
 
 ## Play Media
@@ -379,4 +458,23 @@ formula but the interior pixels differ.
 
 ```bash
 cchef rotate-image --in-file photo.png --rotation-amount-degrees 90 -o rotated.png
+```
+
+## Sharpen Image
+
+Sharpens an image with an unsharp mask. Ported from CyberChef's Sharpen Image,
+which builds the mask from a Gaussian blur (Jimp's `gaussian`) and adds it back
+where the local luminance difference exceeds a threshold. Pixel-identical to
+CyberChef for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Radius | number | `2` | Gaussian blur radius used to build the mask. |
+| Amount | number | `1` | Strength the mask is added back with. |
+| Threshold | number | `10` | 0–100; only sharpen where the luminance difference is at least this percent. |
+
+### Simple example
+
+```bash
+cchef sharpen-image --in-file photo.png --radius 2 --amount 1.5 --threshold 5 -o sharp.png
 ```
