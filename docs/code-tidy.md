@@ -18,6 +18,8 @@ full below.
 | --- | --- | --- |
 | BSON deserialise | `bson-deserialise` | [BSON](https://wikipedia.org/wiki/BSON) |
 | BSON serialise | `bson-serialise` | [BSON](https://wikipedia.org/wiki/BSON) |
+| CSS Beautify | `css-beautify` | [CSS](https://wikipedia.org/wiki/CSS) |
+| CSS Minify | `css-minify` | [CSS](https://wikipedia.org/wiki/CSS) |
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Diff | `diff` | |
 | From MessagePack | `from-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
@@ -27,10 +29,14 @@ full below.
 | JPath expression | `jpath-expression` | [JSONPath](extractors.md#jpath-expression) |
 | Jq | `jq` | [jq](https://github.com/jqlang/jq) |
 | JSON Beautify | `json-beautify` | [JSON](https://wikipedia.org/wiki/JSON) |
+| JSON Minify | `json-minify` | [JSON](https://wikipedia.org/wiki/JSON) |
 | Render Markdown | `render-markdown` | [Markdown](https://wikipedia.org/wiki/Markdown) |
 | SQL Beautify | `sql-beautify` | [SQL](https://wikipedia.org/wiki/SQL) |
+| SQL Minify | `sql-minify` | [SQL](https://wikipedia.org/wiki/SQL) |
 | Syntax highlighter | `syntax-highlighter` | [Syntax highlighting](https://wikipedia.org/wiki/Syntax_highlighting) |
 | To MessagePack | `to-messagepack` | [MessagePack](https://wikipedia.org/wiki/MessagePack) |
+| XML Beautify | `xml-beautify` | [XML](https://wikipedia.org/wiki/XML) |
+| XML Minify | `xml-minify` | [XML](https://wikipedia.org/wiki/XML) |
 | XPath expression | `xpath-expression` | [XPath](extractors.md#xpath-expression) |
 
 ## BSON deserialise
@@ -106,6 +112,58 @@ Output:
 
 ```
 1d 00 00 00 02 68 65 6c 6c 6f 00 06 00 00 00 77 6f 72 6c 64 00 10 6e 00 2a 00 00 00 00
+```
+
+## CSS Beautify
+
+Indents and prettifies CSS. Ported from the [vkbeautify](https://github.com/vkiryukhin/vkBeautify)
+library CyberChef wraps — reimplemented from scratch in Go (no dependency),
+matching it byte-for-byte. Each declaration and block is placed on its own line,
+indented by nesting depth.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Indent string | string | `\t` (tab) | The indentation unit. Backslash escapes are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. A step that begins with a digit falls back to four spaces (a vkbeautify quirk). |
+
+### Example
+
+```bash
+cchef css-beautify -i 'body{margin:0;padding:0}' --indent-string '  '
+```
+
+Output:
+
+```
+body{
+  margin:0;
+  padding:0
+}
+```
+
+## CSS Minify
+
+Compresses CSS. Ported from vkbeautify (from scratch, no dependency): comments are
+stripped (unless preserved), whitespace runs are collapsed to a single space, and
+whitespace after `{`, `}`, `;`, `/*` and `*/` is removed.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Preserve comments | boolean | `false` | When `true`, comments are kept instead of stripped. |
+
+### Example
+
+```bash
+cchef css-minify -i 'body {
+  margin: 0;
+  /* reset */
+  padding: 0;
+}'
+```
+
+Output:
+
+```
+body {margin: 0;padding: 0;}
 ```
 
 ## JavaScript Beautify
@@ -445,6 +503,28 @@ Output:
 }
 ```
 
+## JSON Minify
+
+Compresses JSON by removing insignificant whitespace. Equivalent to
+`JSON.stringify(JSON.parse(text), null, 0)`; cchef reuses the shared
+order-preserving JSON serialiser, so output matches byte-for-byte. Strict JSON only
+(unlike JSON Beautify, which accepts JSON5). Empty input yields an empty string.
+
+### Example
+
+```bash
+cchef json-minify -i '{
+  "name": "cchef",
+  "tags": ["a", "b"]
+}'
+```
+
+Output:
+
+```
+{"name":"cchef","tags":["a","b"]}
+```
+
 ## Render Markdown
 
 Renders Markdown input as HTML, wrapped in a `<div>`. CyberChef uses the
@@ -570,6 +650,27 @@ order by
   2
 ```
 
+## SQL Minify
+
+Compresses SQL. Ported from vkbeautify (from scratch, no dependency): whitespace
+runs are collapsed to a single space, then the space before the first `(` and the
+first `)` is removed (the library's replaces for those two are deliberately not
+global, and cchef preserves that).
+
+### Example
+
+```bash
+cchef sql-minify -i 'SELECT  id,  name
+FROM   users
+WHERE  active = 1'
+```
+
+Output:
+
+```
+SELECT id, name FROM users WHERE active = 1
+```
+
 ## Syntax highlighter
 
 Adds syntax highlighting to source code. CyberChef highlights with
@@ -628,4 +729,57 @@ output format (the result is ANSI-coloured text, so it is not reproduced here):
 
 ```bash
 cchef syntax-highlighter -i "func add(a, b int) int { return a + b }" --language go --output-format Terminal
+```
+
+## XML Beautify
+
+Indents and prettifies XML. Ported from the [vkbeautify](https://github.com/vkiryukhin/vkBeautify)
+library CyberChef wraps — reimplemented from scratch in Go (no dependency),
+matching it byte-for-byte. Each nested element is placed on its own line indented
+by depth; comments, CDATA and DOCTYPE content stay on one line, and each `xmlns`
+declaration is put on its own line.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Indent string | string | `\t` (tab) | The indentation unit. Backslash escapes are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. A step that begins with a digit falls back to four spaces (a vkbeautify quirk). |
+
+### Example
+
+```bash
+cchef xml-beautify -i '<note><to>Alice</to><body>Hi</body></note>' --indent-string '  '
+```
+
+Output:
+
+```
+<note>
+  <to>Alice</to>
+  <body>Hi</body>
+</note>
+```
+
+## XML Minify
+
+Compresses XML. Ported from vkbeautify (from scratch, no dependency): comments are
+stripped (unless preserved) and whitespace before `xmlns` is collapsed, then
+whitespace between tags is removed.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Preserve comments | boolean | `false` | When `true`, comments are kept instead of stripped. |
+
+### Example
+
+```bash
+cchef xml-minify -i '<note>
+  <to>Alice</to>
+  <!-- greeting -->
+  <body>Hi</body>
+</note>'
+```
+
+Output:
+
+```
+<note><to>Alice</to><body>Hi</body></note>
 ```

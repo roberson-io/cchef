@@ -173,6 +173,20 @@ across a broad corpus. **Reduced fidelity, by design** for rare externally-sourc
 types: Decimal128 (which needs a full IEEE-754 decimal decode), JavaScript code,
 DBPointer and Symbol are not decoded and error; see `docs/code-tidy.md`.
 
+Note: the **vkbeautify family** — **JSON Minify**, **XML Beautify**, **XML
+Minify**, **SQL Minify**, **CSS Beautify**, **CSS Minify** (CyberChef wraps the
+`vkbeautify` npm library) — is a from-scratch pure-Go port — **no new dependency**.
+A shared `internal/ops/vkbeautify.go` holds the pieces used across ops
+(`createShiftArr` and a JS-`\s` character class, since Go's RE2 `\s` is narrower
+than JavaScript's); each operation lives in its own `<op>.go`. JSON Minify reuses
+`jsonvalue.go` (`JSON.stringify(JSON.parse(text), null, 0)`); the other five are
+faithful transliterations of vkbeautify's regex/loop logic, preserving its quirks
+byte-for-byte (non-global paren replaces in `sqlmin`, the digit-leading indent
+falling back to four spaces, CSS Beautify's trailing newline and its literal
+`"undefined"` output for unbalanced braces). Differential-verified against the
+library directly (`node -e "require('vkbeautify')..."`), since only JSON Minify has
+upstream fixtures.
+
 Note: **Parse User Agent** is a faithful port of `ua-parser-js` **2.0.10** (the
 exact version the CyberChef-server oracle runs). Its rule tables
 (`internal/ops/useragent_rules.go`) are *generated* from that library's source and
@@ -408,7 +422,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 379
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 385
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -421,7 +435,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **379 operations** (`internal/ops/`), each a faithful port with tests
+- **385 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -586,7 +600,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **369 unique** CyberChef operations are covered (368 directly plus
+Currently **375 unique** CyberChef operations are covered (374 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1064,12 +1078,12 @@ Currently **369 unique** CyberChef operations are covered (368 directly plus
 - [x] Whirlpool
 - [x] XOR Checksum
 
-### Code tidy (16/30)
+### Code tidy (22/30)
 
 - [x] BSON deserialise
 - [x] BSON serialise
-- [ ] CSS Beautify
-- [ ] CSS Minify
+- [x] CSS Beautify
+- [x] CSS Minify
 - [x] CSS selector
 - [x] Diff
 - [x] From MessagePack
@@ -1080,21 +1094,21 @@ Currently **369 unique** CyberChef operations are covered (368 directly plus
 - [x] JPath expression
 - [x] Jq
 - [x] JSON Beautify
-- [ ] JSON Minify
+- [x] JSON Minify
 - [ ] Microsoft Script Decoder
 - [ ] PHP Deserialize
 - [ ] PHP Serialize
 - [x] Render Markdown
 - [x] SQL Beautify
-- [ ] SQL Minify
+- [x] SQL Minify
 - [ ] Strip HTML tags
 - [x] Syntax highlighter
 - [ ] To Camel case
 - [ ] To Kebab case
 - [x] To MessagePack
 - [ ] To Snake case
-- [ ] XML Beautify
-- [ ] XML Minify
+- [x] XML Beautify
+- [x] XML Minify
 - [x] XPath expression
 
 ### Forensics (0/12)
