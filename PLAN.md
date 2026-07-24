@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **397 operations** (`internal/ops/`), each a faithful port with tests
+- **399 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -628,7 +628,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **387 unique** CyberChef operations are covered (386 directly plus
+Currently **389 unique** CyberChef operations are covered (388 directly plus
 `SHA2`, exposed as the `sha256` and `sha512` subcommands).
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
@@ -1008,14 +1008,14 @@ Currently **387 unique** CyberChef operations are covered (386 directly plus
 - [x] UNIX Timestamp to Windows Filetime
 - [x] Windows Filetime to UNIX Timestamp
 
-### Extractors (5/20)
+### Extractors (6/20)
 
 - [x] CSS selector
 - [ ] Extract Audio Metadata
 - [x] Extract dates
 - [ ] Extract domains
 - [ ] Extract email addresses
-- [ ] Extract EXIF
+- [x] Extract EXIF
 - [ ] Extract file paths
 - [ ] Extract Files
 - [ ] Extract hashes
@@ -1139,22 +1139,22 @@ Currently **387 unique** CyberChef operations are covered (386 directly plus
 - [x] XML Minify
 - [x] XPath expression
 
-### Forensics (1/12)
+### Forensics (3/12)
 
 - [x] Detect File Type
 - [ ] ELF Info
 - [ ] Extract Audio Metadata
-- [ ] Extract EXIF
+- [x] Extract EXIF
 - [ ] Extract Files
 - [ ] Extract LSB
 - [ ] Extract RGBA
 - [ ] Randomize Colour Palette
-- [ ] Remove EXIF
+- [x] Remove EXIF
 - [ ] Scan for Embedded Files
 - [ ] View Bit Plane
 - [ ] YARA Rules
 
-### Multimedia (3/29)
+### Multimedia (5/29)
 
 > **CLI presentation:** CyberChef's Multimedia ops preview their result in the
 > browser (`presentType: "html"`). cchef has no browser, so the byte-emitting
@@ -1174,7 +1174,7 @@ Currently **387 unique** CyberChef operations are covered (386 directly plus
 - [ ] Cover Image
 - [ ] Crop Image
 - [ ] Dither Image
-- [ ] Extract EXIF
+- [x] Extract EXIF
 - [ ] Flip Image
 - [ ] Generate Image
 - [ ] Heatmap chart
@@ -1187,7 +1187,7 @@ Currently **387 unique** CyberChef operations are covered (386 directly plus
 - [ ] Normalise Image
 - [ ] Optical Character Recognition
 - [x] Play Media
-- [ ] Remove EXIF
+- [x] Remove EXIF
 - [x] Render Image
 - [x] Render PDF
 - [ ] Resize Image

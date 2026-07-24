@@ -14,9 +14,45 @@ flag or a shell redirect. Each also offers an **Output** option
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Extract EXIF | `extract-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Play Media | `play-media` | — |
+| Remove EXIF | `remove-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Render Image | `render-image` | [Image file formats](https://wikipedia.org/wiki/Image_file_formats) |
 | Render PDF | `render-pdf` | [PDF](https://wikipedia.org/wiki/PDF) |
+
+## Extract EXIF
+
+Extracts EXIF metadata from an image (JPEG/TIFF). EXIF records information about
+the image and the device that produced it. This is a from-scratch port of the
+npm `exif-parser` library that CyberChef uses, reproducing its tag names, value
+formatting (rationals as decimals, EXIF dates as UNIX timestamps) and GPS
+coordinate conversion. The output lists a tag count followed by one `name: value`
+per line. Malformed input yields `Could not extract EXIF data from image: …`.
+
+Takes no options. The input is raw bytes, so use the global `--in-file` flag or a
+decode step such as `from-hex`.
+
+### Simple example
+
+```bash
+cchef extract-exif --in-file photo.jpg
+```
+
+Output (from a sample with GPS metadata):
+
+```
+Found 9 tags.
+
+Make: cchef
+Orientation: 1
+XResolution: 72
+GPSLatitudeRef: N
+GPSLatitude: 51.5
+GPSLongitudeRef: E
+GPSLongitude: 0.125
+ExposureTime: 0.01
+InteropIndex: 
+```
 
 ## Play Media
 
@@ -49,6 +85,30 @@ Output:
 
 ```
 data:audio/x-wav;base64,UklGRgAAAABXQVZF
+```
+
+## Remove EXIF
+
+Removes the EXIF metadata segment from a JPEG image, returning the stripped
+bytes. Ported byte-for-byte from CyberChef's vendored piexifjs routine: it splits
+the JPEG into segments and drops the APP1 `Exif` segment. If the image has no
+EXIF data it is returned unchanged; non-JPEG input is rejected with
+`Could not remove EXIF data from image: Given data is not jpeg.`
+
+Takes no options. Save the result with `-o` or a redirect.
+
+### Simple example
+
+Strip EXIF and confirm none remains by piping into Extract EXIF:
+
+```bash
+cchef remove-exif --in-file photo.jpg | cchef extract-exif
+```
+
+Output:
+
+```
+Found 0 tags.
 ```
 
 ## Render Image

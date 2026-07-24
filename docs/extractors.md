@@ -3,7 +3,8 @@
 Operations that pull structured information out of text or markup. Some of these
 operations belong to another category too, where their detailed description,
 options and examples live: [Extract dates](date-time.md#extract-dates) is
-documented under [Date / Time](date-time.md), and
+documented under [Date / Time](date-time.md),
+[Extract EXIF](multimedia.md#extract-exif) under [Multimedia](multimedia.md), and
 [Regular expression](utils.md#regular-expression) under [Utils](utils.md).
 Operations documented in full below are grouped here.
 
@@ -12,6 +13,7 @@ Operations documented in full below are grouped here.
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
+| Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
 | JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
