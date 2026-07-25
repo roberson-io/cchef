@@ -20,17 +20,24 @@ approximation, and **Rotate** by angles that are not a multiple of 90° is
 approximate (CyberChef upscales first; cchef matches the output dimensions but not
 every pixel). Read raw bytes with `--in-file` and save with `-o`.
 
+**Split Colour Channels** is the exception to "one input, one output": it
+produces three images, so it writes them into a directory given with `--out-dir`
+rather than to `-o` or stdout.
+
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Add Text To Image | `add-text-to-image` | — |
 | Blur Image | `blur-image` | — |
 | Contain Image | `contain-image` | — |
+| Convert Image Format | `convert-image-format` | [Image file formats](https://wikipedia.org/wiki/Image_file_formats) |
 | Cover Image | `cover-image` | — |
 | Crop Image | `crop-image` | — |
 | Dither Image | `dither-image` | — |
 | Extract EXIF | `extract-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Flip Image | `flip-image` | — |
+| Generate Image | `generate-image` | — |
 | Image Brightness / Contrast | `image-brightness-contrast` | — |
 | Image Filter | `image-filter` | — |
 | Image Hue/Saturation/Lightness | `image-hue-saturation-lightness` | — |
@@ -44,11 +51,57 @@ every pixel). Read raw bytes with `--in-file` and save with `-o`.
 | Resize Image | `resize-image` | — |
 | Rotate Image | `rotate-image` | — |
 | Sharpen Image | `sharpen-image` | — |
+| Split Colour Channels | `split-colour-channels` | [Channel (digital image)](https://wikipedia.org/wiki/Channel_(digital_image)) |
 
 The resize/crop/contain/cover operations share a **resizing algorithm** option —
 `Nearest Neighbour`, `Bilinear` (default), `Bicubic`, `Hermite` or `Bezier` — all
 ported byte-for-byte from Jimp, so their pixels are identical to CyberChef for
 lossless output.
+
+## Add Text To Image
+
+Draws text onto an image. CyberChef renders the text with Jimp from bundled 72px
+Roboto **bitmap-font atlases**; cchef embeds those same atlases and reproduces
+Jimp's glyph blitting, so the result is pixel-identical for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Text | string | `""` | The text to draw. `\n` starts a new line. |
+| Horizontal align | option | `None` | `None` uses X position; otherwise `Left`, `Center` or `Right`. |
+| Vertical align | option | `None` | `None` uses Y position; otherwise `Top`, `Middle` or `Bottom`. |
+| X position | number | `0` | Left edge, when Horizontal align is `None`. |
+| Y position | number | `0` | Top edge, when Vertical align is `None`. |
+| Size | number | `32` | Point size, minimum 8. The 72px glyphs are bicubically scaled to it. |
+| Font face | option | `Roboto` | `Roboto`, `Roboto Black`, `Roboto Mono` or `Roboto Slab`. |
+| Red / Green / Blue / Alpha | number | `255` | Text colour, each 0–255. |
+
+Only the four Roboto faces are available, as in CyberChef — there is no option to
+supply your own font. Characters outside the atlas are drawn as `?`, and
+whitespace the atlas has no glyph for is skipped.
+
+The text is laid out into its own bitmap before being scaled and composited, and
+CyberChef sizes that bitmap with Jimp's `measureTextHeight`. That call reserves
+one line per space-separated word plus one more, so text with several words gets
+a taller transparent block beneath it than the single drawn line needs. This is
+faithful to CyberChef: it only matters if you align vertically, where the extra
+height shifts `Middle` and `Bottom` upwards.
+
+### Simple example
+
+```bash
+cchef add-text-to-image --in-file photo.png --text "Hello" -o titled.png
+```
+
+### Complex example
+
+Centre 40pt red Roboto Slab across the middle of the image:
+
+```bash
+cchef add-text-to-image --in-file photo.png \
+  --text "CONFIDENTIAL" --font-face "Roboto Slab" --size 40 \
+  --horizontal-align Center --vertical-align Middle \
+  --red 255 --green 0 --blue 0 -o stamped.png
+```
 
 ## Blur Image
 
@@ -84,6 +137,43 @@ ratio, letterboxing the remaining space. Ported from Jimp's `contain`.
 
 ```bash
 cchef contain-image --in-file photo.png --width 200 --height 200 -o boxed.png
+```
+
+## Convert Image Format
+
+Decodes an image and re-encodes it as JPEG, PNG, BMP or TIFF.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Output Format | option | `JPEG` | `JPEG`, `PNG`, `BMP` or `TIFF`. |
+| JPEG Quality | number | `80` | 1–100. Only used for JPEG output. |
+| PNG Filter Type | option | `Auto` | Accepted for compatibility; see the note below. |
+| PNG Deflate Level | number | `9` | 0–9. Only affects PNG compression, never the pixels. |
+
+For the lossless targets (PNG, BMP, TIFF) the decoded pixels are identical to
+CyberChef; only the encoded bytes differ, since Go and Jimp use different
+encoders. BMP is 24-bit, so alpha is flattened to opaque — as it is in CyberChef.
+JPEG output is lossy and re-encoded with Go's encoder, so it is an approximation.
+
+`PNG Filter Type` and `PNG Deflate Level` do not change the image. Go's PNG
+encoder exposes no per-scanline filter selector, so the filter type is accepted
+and ignored, and the deflate level is mapped onto Go's four compression levels
+(`0` → none, `1–3` → best speed, `4–7` → default, `8–9` → best compression).
+Decoding any of these outputs gives the same pixels regardless.
+
+### Simple example
+
+```bash
+cchef convert-image-format --in-file photo.png --output-format PNG -o photo-copy.png
+```
+
+### Complex example
+
+Re-encode as a high-quality JPEG:
+
+```bash
+cchef convert-image-format --in-file photo.png \
+  --output-format JPEG --jpeg-quality 95 -o photo.jpg
 ```
 
 ## Cover Image
@@ -195,6 +285,43 @@ CyberChef for lossless formats.
 
 ```bash
 cchef flip-image --in-file photo.png --axis Vertical -o flipped.png
+```
+
+## Generate Image
+
+Builds a PNG whose pixels are read straight from the input bytes — useful for
+eyeballing the structure of an unknown binary. Pixel-identical to CyberChef.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Mode | option | `Greyscale` | Bytes consumed per pixel: `Greyscale` 1, `RG` 2, `RGB` 3, `RGBA` 4, `Bits` ⅛. |
+| Pixel Scale Factor | number | `8` | 1–64. Each source pixel becomes an N×N block (nearest-neighbour). |
+| Pixels per row | number | `64` | 1–2048. Image width, before scaling. |
+
+In `Bits` mode each input byte becomes eight black-or-white pixels, most
+significant bit first, with a set bit rendered black. Every other mode reads its
+channels in order and leaves alpha opaque unless the mode supplies it. The input
+length must be a whole number of pixels, or the operation fails with
+`Number of bytes is not a divisor of N`.
+
+Empty input produces a single transparent row (matching Jimp's clamping) when a
+scale factor is set. With `--pixel-scale-factor 1` there is no scaling to clamp
+the height, so the image would be zero pixels tall; CyberChef emits a height-0
+PNG there, but Go's encoder rejects that size, so cchef reports an error instead.
+
+### Simple example
+
+```bash
+cchef generate-image --in-file firmware.bin -o firmware.png
+```
+
+### Complex example
+
+Render a binary one bit per pixel at 1024 bits per row, unscaled:
+
+```bash
+cchef generate-image --in-file firmware.bin \
+  --mode Bits --pixels-per-row 1024 --pixel-scale-factor 1 -o bits.png
 ```
 
 ## Image Brightness / Contrast
@@ -477,4 +604,33 @@ CyberChef for lossless formats.
 
 ```bash
 cchef sharpen-image --in-file photo.png --radius 2 --amount 1.5 --threshold 5 -o sharp.png
+```
+
+## Split Colour Channels
+
+Splits an image into three PNGs — its red, green and blue channels, each with the
+other two channels zeroed and the original alpha kept. Pixel-identical to
+CyberChef.
+
+This operation has no options. It is the one operation that produces **several
+files** rather than a single output, so it writes into a directory given with
+`--out-dir` instead of to stdout or `-o`:
+
+```bash
+cchef split-colour-channels --in-file photo.png --out-dir ./channels
+# ./channels/red.png, ./channels/green.png, ./channels/blue.png
+```
+
+Without `--out-dir` the operation fails, since there is nowhere to put the three
+files. For the same reason it cannot be chained: it has to be the last step of a
+recipe.
+
+### Complex example
+
+Split every image in a directory. Each input's channels go into their own
+subdirectory, named after the input file, so the results cannot collide:
+
+```bash
+cchef split-colour-channels --in-dir ./photos --out-dir ./channels
+# ./channels/sunset/red.png, ./channels/sunset/green.png, ...
 ```

@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -16,7 +18,14 @@ import (
 // With --in-dir it fans the recipe out over the files in a directory (one run
 // per file); otherwise it runs once over the single resolved input.
 func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error {
-	if flagOutDir != "" && flagInDir == "" {
+	fileList, err := recipeFileListOutput(recipe)
+	if err != nil {
+		return err
+	}
+	switch {
+	case fileList && flagOutDir == "":
+		return fmt.Errorf("this recipe produces several files; use --out-dir to write them")
+	case !fileList && flagOutDir != "" && flagInDir == "":
 		return fmt.Errorf("--out-dir requires --in-dir")
 	}
 	if flagInDir != "" {
@@ -31,7 +40,60 @@ func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error
 	if err != nil {
 		return err
 	}
+	if out.Type() == core.TypeFileList {
+		return writeFileList(flagOutDir, out.Files())
+	}
 	return writeOutput(cmd, out.Bytes())
+}
+
+// recipeFileListOutput reports whether the recipe's last enabled step produces a
+// file list, which needs --out-dir rather than a single output stream. Knowing
+// this before running lets the flag combination be rejected up front. A file
+// list anywhere earlier is an error: it holds several files and so cannot feed
+// the following step.
+func recipeFileListOutput(recipe core.Recipe) (bool, error) {
+	var last bool
+	for i, step := range recipe {
+		if step.Disabled {
+			continue
+		}
+		op, ok := core.Default.Get(step.Op)
+		if !ok {
+			return false, nil // reported by the recipe run itself
+		}
+		emits := op.Meta().OutputType == core.TypeFileList
+		if emits && hasEnabledStepAfter(recipe, i) {
+			return false, fmt.Errorf("%s produces several files and so cannot be chained; it must be the last step", step.Op)
+		}
+		last = emits
+	}
+	return last, nil
+}
+
+// hasEnabledStepAfter reports whether any step after i is enabled.
+func hasEnabledStepAfter(recipe core.Recipe, i int) bool {
+	for _, step := range recipe[i+1:] {
+		if !step.Disabled {
+			return true
+		}
+	}
+	return false
+}
+
+// writeFileList writes each named file into dir, creating it if needed.
+func writeFileList(dir string, files []core.NamedFile) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil { // #nosec G301 -- 0755 is conventional for an output directory created on the user's behalf
+		return err
+	}
+	for _, f := range files {
+		// Names come from the operation itself (never from user input), so they
+		// are plain file names confined to dir.
+		dest := filepath.Join(dir, f.Name)
+		if err := os.WriteFile(dest, f.Data, 0o644); err != nil { // #nosec G306 -- 0644 is conventional for CLI output files
+			return err
+		}
+	}
+	return nil
 }
 
 // dirFile is one input file discovered under --in-dir: path is where to read it,
@@ -61,42 +123,63 @@ func runRecipeDir(cmd *cobra.Command, recipe core.Recipe) error {
 	errOut := cmd.ErrOrStderr()
 	var failures int
 	for _, f := range files {
-		data, err := os.ReadFile(f.path) // #nosec G304 -- reads files under a user-specified input directory by design
+		res, err := runRecipeOnFile(recipe, f)
 		if err != nil {
 			_, _ = fmt.Fprintf(errOut, "cchef: %s: %v\n", f.rel, err)
 			failures++
 			continue
 		}
-		res, err := recipe.Execute(core.NewDish(data, core.TypeString))
-		if err != nil {
-			_, _ = fmt.Fprintf(errOut, "cchef: %s: %v\n", f.rel, err)
-			failures++
+		fatal, err := writeDirResult(out, f, res)
+		if err == nil {
 			continue
 		}
-		if flagOutDir != "" {
-			if err := writeMirroredOutput(f.rel, res.Bytes()); err != nil {
-				_, _ = fmt.Fprintf(errOut, "cchef: %s: %v\n", f.rel, err)
-				failures++
-			}
-			continue
-		}
-		if _, err := fmt.Fprintf(out, "==> %s <==\n", f.rel); err != nil {
+		if fatal {
 			return err
 		}
-		b := res.Bytes()
-		if _, err := out.Write(b); err != nil {
-			return err
-		}
-		if len(b) == 0 || b[len(b)-1] != '\n' {
-			if _, err := fmt.Fprintln(out); err != nil {
-				return err
-			}
-		}
+		_, _ = fmt.Fprintf(errOut, "cchef: %s: %v\n", f.rel, err)
+		failures++
 	}
 	if failures > 0 {
 		return fmt.Errorf("%d of %d file(s) failed", failures, len(files))
 	}
 	return nil
+}
+
+// runRecipeOnFile reads one input file and runs the recipe over it.
+func runRecipeOnFile(recipe core.Recipe, f dirFile) (*core.Dish, error) {
+	data, err := os.ReadFile(f.path) // #nosec G304 -- reads files under a user-specified input directory by design
+	if err != nil {
+		return nil, err
+	}
+	return recipe.Execute(core.NewDish(data, core.TypeString))
+}
+
+// writeDirResult writes one input's result: into --out-dir when set, otherwise
+// to stdout under a `==> name <==` header. The bool reports whether a failure is
+// fatal — a broken stdout stops the whole run, a per-file write failure does not.
+func writeDirResult(out io.Writer, f dirFile, res *core.Dish) (bool, error) {
+	if res.Type() == core.TypeFileList {
+		// Several files per input: keep each input's results in their own
+		// directory, named after the input, so they cannot collide.
+		stem := strings.TrimSuffix(f.rel, filepath.Ext(f.rel))
+		return false, writeFileList(filepath.Join(flagOutDir, stem), res.Files())
+	}
+	if flagOutDir != "" {
+		return false, writeMirroredOutput(f.rel, res.Bytes())
+	}
+	if _, err := fmt.Fprintf(out, "==> %s <==\n", f.rel); err != nil {
+		return true, err
+	}
+	b := res.Bytes()
+	if _, err := out.Write(b); err != nil {
+		return true, err
+	}
+	if len(b) == 0 || b[len(b)-1] != '\n' {
+		if _, err := fmt.Fprintln(out); err != nil {
+			return true, err
+		}
+	}
+	return false, nil
 }
 
 // writeMirroredOutput writes one output file under --out-dir at rel (the input's

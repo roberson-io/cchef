@@ -23,19 +23,38 @@ const (
 	TypeJSON DishType = "JSON"
 	// TypeBigNumber treats the bytes as the decimal text of an arbitrary-precision number.
 	TypeBigNumber DishType = "BigNumber"
+	// TypeFileList holds several named files rather than one byte string. It is
+	// CyberChef's List<File>; such a dish is terminal — it cannot be converted
+	// back to bytes and so cannot feed a following operation.
+	TypeFileList DishType = "List<File>"
 )
+
+// NamedFile is one file in a TypeFileList dish.
+type NamedFile struct {
+	Name string
+	Data []byte
+}
 
 // Dish is the data container passed between operations. It holds canonical
 // []byte storage plus a type tag describing the current interpretation.
 type Dish struct {
-	data []byte
-	typ  DishType
+	data  []byte
+	typ   DishType
+	files []NamedFile
 }
 
 // NewDish builds a Dish from raw bytes and a type tag.
 func NewDish(data []byte, typ DishType) *Dish {
 	return &Dish{data: data, typ: typ}
 }
+
+// NewFileListDish builds a Dish holding several named files.
+func NewFileListDish(files []NamedFile) *Dish {
+	return &Dish{typ: TypeFileList, files: files}
+}
+
+// Files returns the named files of a TypeFileList dish (nil for any other type).
+func (d *Dish) Files() []NamedFile { return d.files }
 
 // Type returns the dish's current type tag.
 func (d *Dish) Type() DishType { return d.typ }
@@ -50,6 +69,12 @@ func (d *Dish) String() string { return string(d.data) }
 // byteArray and ArrayBuffer are byte-backed and convert trivially; number is
 // parsed from the ASCII representation.
 func (d *Dish) Get(typ DishType) (any, error) {
+	if d.typ == TypeFileList || typ == TypeFileList {
+		if d.typ == TypeFileList && typ == TypeFileList {
+			return d.files, nil
+		}
+		return nil, fmt.Errorf("cannot convert between %q and %q: a file list holds several files and cannot be chained", d.typ, typ)
+	}
 	switch typ {
 	case TypeString, TypeJSON, TypeBigNumber:
 		return string(d.data), nil

@@ -46,6 +46,11 @@ func jimpResize(img *image.NRGBA, wf, hf float64, mode string) *image.NRGBA {
 	}
 	src := bitmapOf(img)
 	dst := resizeBitmap{data: make([]byte, w*h*4), width: w, height: h}
+	if src.width == 0 || src.height == 0 {
+		// Jimp reads past the end of an empty bitmap and yields a fully
+		// transparent result; there is nothing to sample from.
+		return nrgbaOf(dst)
+	}
 	switch mode {
 	case "nearestNeighbor":
 		resizeNearest(src, dst)
@@ -273,7 +278,13 @@ func jimpCropExact(img *image.NRGBA, x, y, w, h int) (*image.NRGBA, error) {
 
 // jimpBlit composites src onto dst at (x,y) using Jimp's over operator.
 func jimpBlit(dst, src *image.NRGBA, x, y int) {
-	srcW, srcH := src.Rect.Dx(), src.Rect.Dy()
+	jimpBlitRect(dst, src, x, y, 0, 0, src.Rect.Dx(), src.Rect.Dy())
+}
+
+// jimpBlitRect composites the srcW×srcH region of src at (srcX,srcY) onto dst at
+// (x,y). Source pixels outside src read as 0, as they do in Jimp.
+func jimpBlitRect(dst, src *image.NRGBA, x, y, srcX, srcY, srcW, srcH int) {
+	stride := src.Rect.Dx()
 	maxW, maxH := dst.Rect.Dx(), dst.Rect.Dy()
 	for sy := range srcH {
 		for sx := range srcW {
@@ -281,7 +292,10 @@ func jimpBlit(dst, src *image.NRGBA, x, y int) {
 			if xOffset < 0 || yOffset < 0 || maxW-xOffset <= 0 || maxH-yOffset <= 0 {
 				continue
 			}
-			idx := (srcW*sy + sx) * 4
+			idx := (stride*(srcY+sy) + srcX + sx) * 4
+			if idx < 0 || idx+4 > len(src.Pix) {
+				continue
+			}
 			dstIdx := (maxW*yOffset + xOffset) * 4
 			sr, sg, sb, sa := int(src.Pix[idx]), int(src.Pix[idx+1]), int(src.Pix[idx+2]), int(src.Pix[idx+3])
 			dr, dg, db, da := int(dst.Pix[dstIdx]), int(dst.Pix[dstIdx+1]), int(dst.Pix[dstIdx+2]), int(dst.Pix[dstIdx+3])

@@ -9,7 +9,7 @@ Knife" — built for the terminal. Every operation is a subcommand that reads in
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
 
-> **Status:** a curated, growing subset — **414 operations** so far, each a
+> **Status:** a curated, growing subset — **418 operations** so far, each a
 > faithful, test-driven port. See [PLAN.md](PLAN.md) for the full implementation
 > status against all 495 CyberChef operations (CyberChef's category config names
 > 498, but three have no implementation).
@@ -68,7 +68,7 @@ input; a file whose recipe fails is reported and skipped (non-zero exit).
 
 ## Operations
 
-The 414 operations are grouped using the same categories as CyberChef. Each page
+The 418 operations are grouped using the same categories as CyberChef. Each page
 documents options, examples, and reference links:
 
 - [Arithmetic / Logic](docs/arithmetic-logic.md) — Sum, Subtract, Multiply,
@@ -145,3 +145,9 @@ Apache-2.0 (see Credits).
 `cchef` is an independent port of [CyberChef](https://github.com/gchq/CyberChef)
 by GCHQ (Crown Copyright, Apache-2.0). All operation semantics and test vectors
 derive from that project.
+
+The Add Text To Image operation embeds the four 72px Roboto bitmap-font atlases
+CyberChef bundles (`internal/ops/bmfonts/`), taken unmodified from that project.
+They are generated from the [Roboto](https://github.com/googlefonts/roboto)
+typeface by Christian Robertson, licensed Apache-2.0. Using the same atlases is
+what makes cchef's rendered text pixel-identical to CyberChef's.

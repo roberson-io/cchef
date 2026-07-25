@@ -25,7 +25,7 @@ func addIOFlags(cmd *cobra.Command) {
 	f.StringVar(&flagInFile, "in-file", "", "read input from a file")
 	f.StringVarP(&flagOutput, "output", "o", "", "write output to a file (default stdout)")
 	f.StringVar(&flagInDir, "in-dir", "", "run the recipe over every file in a directory")
-	f.StringVar(&flagOutDir, "out-dir", "", "mirror per-file output into a directory (with --in-dir)")
+	f.StringVar(&flagOutDir, "out-dir", "", "write output into a directory (with --in-dir, or for operations producing several files)")
 	f.BoolVar(&flagRecursive, "recursive", false, "with --in-dir, recurse into subdirectories")
 }
 

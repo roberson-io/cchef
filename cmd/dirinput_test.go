@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/roberson-io/cchef/internal/core"
 )
 
 // writeTree creates each file (relative path -> content) under a fresh temp dir
@@ -300,5 +302,123 @@ func TestInDirRecursiveWalkError(t *testing.T) {
 	defer os.Chmod(locked, 0o750) //nolint:errcheck // best-effort restore so t.TempDir cleanup can remove it
 	if err := execRootErr(t, "atbash-cipher", "--in-dir", dir, "--recursive"); err == nil {
 		t.Fatal("expected error walking an unreadable subdirectory")
+	}
+}
+
+// A file-list operation writes one file per result into --out-dir, which for
+// these operations does not require --in-dir.
+func TestOutDirFileList(t *testing.T) {
+	src, err := os.ReadFile("../internal/ops/testdata/resize_input.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := filepath.Join(t.TempDir(), "in.png")
+	if err := os.WriteFile(in, src, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	outDir := filepath.Join(t.TempDir(), "channels")
+
+	out := execRoot(t, "split-colour-channels", "--in-file", in, "--out-dir", outDir)
+	if out != "" {
+		t.Errorf("expected no stdout with --out-dir, got %q", out)
+	}
+	for _, name := range []string{"red.png", "green.png", "blue.png"} {
+		b, err := os.ReadFile(filepath.Join(outDir, name))
+		if err != nil {
+			t.Fatalf("read %s: %v", name, err)
+		}
+		if len(b) < 8 || string(b[1:4]) != "PNG" {
+			t.Errorf("%s is not a PNG (%d bytes)", name, len(b))
+		}
+	}
+}
+
+// Without --out-dir a file-list operation has nowhere to put its files, so it
+// fails with a message naming the flag rather than emitting nothing.
+func TestFileListRequiresOutDir(t *testing.T) {
+	src, err := os.ReadFile("../internal/ops/testdata/resize_input.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := filepath.Join(t.TempDir(), "in.png")
+	if err := os.WriteFile(in, src, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err = execRootCapture(t, "split-colour-channels", "--in-file", in)
+	if err == nil || !strings.Contains(err.Error(), "--out-dir") {
+		t.Fatalf("error = %v, want one mentioning --out-dir", err)
+	}
+}
+
+// With --in-dir the per-input results are kept apart in a directory named after
+// the input file, so several inputs cannot overwrite one another.
+func TestInDirOutDirFileList(t *testing.T) {
+	src, err := os.ReadFile("../internal/ops/testdata/resize_input.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inDir := t.TempDir()
+	for _, name := range []string{"one.png", "two.png"} {
+		if err := os.WriteFile(filepath.Join(inDir, name), src, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	outDir := filepath.Join(t.TempDir(), "channels")
+
+	if _, err := execRootCapture(t, "split-colour-channels", "--in-dir", inDir, "--out-dir", outDir); err != nil {
+		t.Fatal(err)
+	}
+	for _, stem := range []string{"one", "two"} {
+		for _, name := range []string{"red.png", "green.png", "blue.png"} {
+			if _, err := os.Stat(filepath.Join(outDir, stem, name)); err != nil {
+				t.Errorf("missing %s/%s: %v", stem, name, err)
+			}
+		}
+	}
+}
+
+// A file list cannot feed a following operation; the recipe must say so.
+func TestFileListCannotChain(t *testing.T) {
+	_, err := execRootCapture(t, "bake", "-e", "Split_Colour_Channels()\nTo_Hex()", "--in-file",
+		"../internal/ops/testdata/resize_input.png", "--out-dir", t.TempDir())
+	if err == nil || !strings.Contains(err.Error(), "cannot be chained") {
+		t.Fatalf("error = %v, want one about chaining", err)
+	}
+}
+
+// A disabled step is skipped when working out whether the recipe ends in a file
+// list, so a disabled trailing step does not hide the file-list output.
+func TestRecipeFileListOutputSkipsDisabled(t *testing.T) {
+	recipe := core.Recipe{
+		{Op: "Split Colour Channels"},
+		{Op: "To Hex", Disabled: true},
+	}
+	fileList, err := recipeFileListOutput(recipe)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !fileList {
+		t.Error("expected a file-list recipe when the trailing step is disabled")
+	}
+}
+
+// Failures writing the file list are reported rather than silently dropped.
+func TestWriteFileListErrors(t *testing.T) {
+	// The output directory path is an existing regular file.
+	blocked := filepath.Join(t.TempDir(), "occupied")
+	if err := os.WriteFile(blocked, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeFileList(blocked, []core.NamedFile{{Name: "red.png"}}); err == nil {
+		t.Error("expected an error when --out-dir is a regular file")
+	}
+
+	// A directory already occupies the name one of the files needs.
+	dir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dir, "red.png"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeFileList(dir, []core.NamedFile{{Name: "red.png"}}); err == nil {
+		t.Error("expected an error when a directory occupies the file name")
 	}
 }

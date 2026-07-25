@@ -138,3 +138,47 @@ func TestDishGetNumberInvalid(t *testing.T) {
 		t.Fatal("expected an error interpreting non-numeric data as a number")
 	}
 }
+
+// A file-list dish carries several named files instead of a single byte string.
+func TestDishFileList(t *testing.T) {
+	files := []NamedFile{
+		{Name: "red.png", Data: []byte("R")},
+		{Name: "green.png", Data: []byte("G")},
+	}
+	d := NewFileListDish(files)
+	if d.Type() != TypeFileList {
+		t.Errorf("type = %q, want %q", d.Type(), TypeFileList)
+	}
+	got, err := d.Get(TypeFileList)
+	if err != nil {
+		t.Fatalf("Get(TypeFileList): %v", err)
+	}
+	gotFiles, ok := got.([]NamedFile)
+	if !ok {
+		t.Fatalf("Get returned %T, want []NamedFile", got)
+	}
+	if len(gotFiles) != 2 || gotFiles[0].Name != "red.png" || string(gotFiles[1].Data) != "G" {
+		t.Errorf("files = %v", gotFiles)
+	}
+	if len(d.Files()) != 2 {
+		t.Errorf("Files() len = %d, want 2", len(d.Files()))
+	}
+}
+
+// A file list cannot be fed to an operation expecting bytes: rather than
+// silently yielding empty input, the conversion fails.
+func TestDishFileListNotConvertible(t *testing.T) {
+	d := NewFileListDish([]NamedFile{{Name: "red.png", Data: []byte("R")}})
+	for _, typ := range []DishType{TypeString, TypeByteArray, TypeArrayBuffer, TypeNumber} {
+		if _, err := d.Get(typ); err == nil {
+			t.Errorf("Get(%q) succeeded, want an error", typ)
+		}
+	}
+}
+
+// Asking a byte-backed dish for a file list is equally an error.
+func TestDishGetFileListFromBytes(t *testing.T) {
+	if _, err := NewDish([]byte("hi"), TypeString).Get(TypeFileList); err == nil {
+		t.Error("expected an error converting a string dish to a file list")
+	}
+}

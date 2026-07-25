@@ -43,3 +43,22 @@ func TestJimpBlitClipping(t *testing.T) {
 		t.Error("expected (1,0) to remain black")
 	}
 }
+
+// A zero-height source must not be read from: Jimp returns a fully transparent
+// image of the clamped destination size rather than throwing. Generate Image
+// reaches this with empty input.
+func TestJimpResizeEmptySource(t *testing.T) {
+	for _, mode := range resizeStrategyNames {
+		t.Run(mode, func(t *testing.T) {
+			got := jimpResize(image.NewNRGBA(image.Rect(0, 0, 8, 0)), 64, 0, mode)
+			if got.Rect.Dx() != 64 || got.Rect.Dy() != 1 {
+				t.Fatalf("bounds = %v, want 64x1", got.Rect)
+			}
+			for i, v := range got.Pix {
+				if v != 0 {
+					t.Fatalf("pixel byte %d = %d, want 0 (transparent)", i, v)
+				}
+			}
+		})
+	}
+}
