@@ -40,7 +40,8 @@ func tcpipChecksum(data []byte) string {
 // escapeHTMLChars escapes HTML-significant characters (CyberChef Utils.escapeHtml).
 var escapeHTMLChars = strings.NewReplacer(
 	"&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&quot;",
-	"'", "&#x27;", "`", "&#x60;", "\x00", "")
+	"'", "&#x27;", "`", "&#x60;", "\x00", "",
+)
 
 // byteArrayToChars maps each byte to a code point (Latin1), matching CyberChef's
 // Utils.byteArrayToChars.

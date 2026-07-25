@@ -119,11 +119,6 @@ CMYK: %s
 func parseHex(s string) float64 { v, _ := strconv.ParseInt(s, 16, 64); return float64(v) }
 func atof(s string) float64     { v, _ := strconv.ParseFloat(s, 64); return v }
 
-// jsNum formats a float like JavaScript Number.toString (integer when whole).
-func jsNum(f float64) string {
-	return strconv.FormatFloat(f, 'f', -1, 64)
-}
-
 // rgbToHSL converts RGB (0-255) to HSL (each 0-1). Ported from ParseColourCode.
 func rgbToHSL(r, g, b float64) (float64, float64, float64) {
 	r, g, b = r/255, g/255, b/255

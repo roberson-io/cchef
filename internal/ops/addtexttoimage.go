@@ -2,7 +2,6 @@ package ops
 
 import (
 	"image"
-	"math"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
@@ -131,13 +130,6 @@ func alignTextPosition(img, textImage *image.NRGBA, p addTextParams) (int, int) 
 		y = float64(img.Rect.Dy() - textImage.Rect.Dy())
 	}
 	return jsRound(x), jsRound(y)
-}
-
-// jsRound rounds half towards positive infinity, as JavaScript's Math.round
-// does. Go's math.Round rounds halves away from zero, which differs for
-// negatives such as -0.5.
-func jsRound(f float64) int {
-	return int(math.Floor(f + 0.5))
 }
 
 // recolourBMFont returns a copy of font with its atlas pages tinted, applying

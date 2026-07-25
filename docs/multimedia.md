@@ -24,6 +24,26 @@ every pixel). Read raw bytes with `--in-file` and save with `-o`.
 produces three images, so it writes them into a directory given with `--out-dir`
 rather than to `-o` or stdout.
 
+The four **chart** operations (Heatmap, Hex Density, Scatter, Series) take
+delimited numeric text and emit **SVG** on stdout — save it with `-o chart.svg`
+and open it in any browser or image viewer. CyberChef draws these with d3 into a
+fake DOM; cchef reproduces d3's scales, ticks, colour ramps and hexagonal binning
+directly, so the geometry is identical. Two deliberate differences make the
+output valid, safe standalone SVG: the clip path is spelled `clipPath` (the
+element nodom emits, `clippath`, is not an SVG element, so the clip is silently
+ignored by real renderers), and D3's internal `__data__` bindings — which carry
+unescaped input into attributes — are never serialised. Upstream applies that
+same fix, but only to Series chart.
+
+> **Trailing newlines.** As in CyberChef, every record must have exactly the
+> expected number of fields — and a trailing newline makes a final empty record,
+> so the operation fails with `Each row must have length N.` Most files end in a
+> newline, so strip it when piping one in:
+>
+> ```bash
+> printf %s "$(cat points.txt)" | cchef scatter-chart -o chart.svg
+> ```
+
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
@@ -38,6 +58,8 @@ rather than to `-o` or stdout.
 | Extract EXIF | `extract-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Flip Image | `flip-image` | — |
 | Generate Image | `generate-image` | — |
+| Heatmap chart | `heatmap-chart` | [Heat map](https://wikipedia.org/wiki/Heat_map) |
+| Hex Density chart | `hex-density-chart` | — |
 | Image Brightness / Contrast | `image-brightness-contrast` | — |
 | Image Filter | `image-filter` | — |
 | Image Hue/Saturation/Lightness | `image-hue-saturation-lightness` | — |
@@ -50,6 +72,8 @@ rather than to `-o` or stdout.
 | Render PDF | `render-pdf` | [PDF](https://wikipedia.org/wiki/PDF) |
 | Resize Image | `resize-image` | — |
 | Rotate Image | `rotate-image` | — |
+| Scatter chart | `scatter-chart` | [Scatter plot](https://wikipedia.org/wiki/Scatter_plot) |
+| Series chart | `series-chart` | — |
 | Sharpen Image | `sharpen-image` | — |
 | Split Colour Channels | `split-colour-channels` | [Channel (digital image)](https://wikipedia.org/wiki/Channel_(digital_image)) |
 
@@ -324,6 +348,84 @@ cchef generate-image --in-file firmware.bin \
   --mode Bits --pixels-per-row 1024 --pixel-scale-factor 1 -o bits.png
 ```
 
+## Heatmap chart
+
+Bins two-variable data into a grid and shades each cell by how many points fall
+in it. Input is one `x y` record per line; output is SVG.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
+| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| Number of vertical bins | number | `25` | Rows in the grid. Must be above 0. |
+| Number of horizontal bins | number | `25` | Columns in the grid. Must be above 0. |
+| Use column headers as labels | boolean | true | Take the axis labels from the first record. |
+| X label | string | `""` | Used when headers are not taken as labels. |
+| Y label | string | `""` | Used when headers are not taken as labels. |
+| Draw bin edges | boolean | false | Outline each cell. |
+| Min colour value | string | `white` | Colour for an empty cell. Any CSS colour. |
+| Max colour value | string | `black` | Colour for the fullest cell. Any CSS colour. |
+
+Cells are shaded by blending the two colours through CIELAB, as CyberChef does.
+The data must vary in both axes: a column of identical x or y values is rejected,
+since there would be nothing to spread across the bins.
+
+### Simple example
+
+```bash
+printf '100 100\n200 200\n300 300' |
+  cchef heatmap-chart --number-of-vertical-bins 5 --number-of-horizontal-bins 5 -o heat.svg
+```
+
+### Complex example
+
+Read from a file, label the axes, outline the cells and shade white to red:
+
+```bash
+printf %s "$(cat points.csv)" |
+  cchef heatmap-chart --field-delimiter Comma \
+    --number-of-vertical-bins 20 --number-of-horizontal-bins 20 \
+    --x-label "requests" --y-label "latency" --draw-bin-edges \
+    --min-colour-value white --max-colour-value red -o heat.svg
+```
+
+## Hex Density chart
+
+Groups points into hexagonal cells and shades each by how many it holds — a
+scatter plot that stays readable when points overlap. Output is SVG.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
+| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| Pack radius | number | `25` | Hexagon size used for grouping the points. |
+| Draw radius | number | `15` | Hexagon size actually drawn, so cells can be spaced apart. |
+| Use column headers as labels | boolean | true | Take the axis labels from the first record. |
+| X label | string | `""` | Used when headers are not taken as labels. |
+| Y label | string | `""` | Used when headers are not taken as labels. |
+| Draw hexagon edges | boolean | false | Outline each hexagon. |
+| Min colour value | string | `white` | Colour for the emptiest hexagon. Any CSS colour. |
+| Max colour value | string | `black` | Colour for the fullest hexagon. Any CSS colour. |
+| Draw empty hexagons within data boundaries | boolean | false | Also draw cells holding no points. |
+
+### Simple example
+
+```bash
+printf '100 100\n200 200\n300 300' | cchef hex-density-chart -o hex.svg
+```
+
+### Complex example
+
+Tighter packing, outlined hexagons, and the empty cells filled in:
+
+```bash
+printf %s "$(cat points.csv)" |
+  cchef hex-density-chart --field-delimiter Comma \
+    --pack-radius 15 --draw-radius 12 --draw-hexagon-edges \
+    --draw-empty-hexagons-within-data-boundaries \
+    --min-colour-value white --max-colour-value blue -o hex.svg
+```
+
 ## Image Brightness / Contrast
 
 Adjusts image brightness and/or contrast. Ported from Jimp's
@@ -585,6 +687,76 @@ formula but the interior pixels differ.
 
 ```bash
 cchef rotate-image --in-file photo.png --rotation-amount-degrees 90 -o rotated.png
+```
+
+## Scatter chart
+
+Plots two-variable data as individual points. Input is one `x y` record per
+line; output is SVG.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
+| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| Use column headers as labels | boolean | true | Take the axis labels from the first record. |
+| X label | string | `""` | Used when headers are not taken as labels. |
+| Y label | string | `""` | Used when headers are not taken as labels. |
+| Colour | string | `black` | Point colour. Any CSS colour. |
+| Point radius | number | `10` | Radius of each point. |
+| Use colour from third column | boolean | false | Read each point's colour from a third field. |
+
+The axes extend a tenth of the data's span past it at each end, so points are
+never drawn on the axis lines.
+
+### Simple example
+
+```bash
+printf '100 100\n200 200\n300 300' | cchef scatter-chart --point-radius 5 -o scatter.svg
+```
+
+### Complex example
+
+Colour each point from a third column:
+
+```bash
+printf '1,2,red\n3,4,blue\n5,9,green' |
+  cchef scatter-chart --field-delimiter Comma \
+    --use-colour-from-third-column --point-radius 4 \
+    --x-label x --y-label y -o scatter.svg
+```
+
+## Series chart
+
+Draws one line graph per named series over a shared x axis. Input is one
+`series x value` record per line; output is SVG.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
+| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| X label | string | `""` | Label under the x axis. |
+| Point radius | number | `1` | Radius of the pip drawn at each value. |
+| Series colours | string | `mediumseagreen, dodgerblue, tomato` | Comma-separated CSS colours, cycled across the series. |
+
+Series and x values keep the order they first appear in, and each series gets its
+own y axis scaled to its own range. A series with no value at some x simply skips
+that point rather than drawing through the gap.
+
+### Simple example
+
+```bash
+printf 'a 1 10\na 2 20\nb 1 5\nb 2 25' | cchef series-chart -o series.svg
+```
+
+### Complex example
+
+Comma-separated input with a labelled axis and custom colours:
+
+```bash
+printf %s "$(cat metrics.csv)" |
+  cchef series-chart --field-delimiter Comma \
+    --x-label "week" --point-radius 3 \
+    --series-colours "tomato, steelblue" -o series.svg
 ```
 
 ## Sharpen Image

@@ -450,7 +450,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 418
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 422
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **418 operations** (`internal/ops/`), each a faithful port with tests
+- **422 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -628,8 +628,9 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **404 unique** CyberChef operations are covered (403 directly plus
-`SHA2`, exposed as the `sha256` and `sha512` subcommands).
+Currently **419 unique** CyberChef operations are covered (418 directly plus
+`SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
+which is where the 422 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
@@ -1154,7 +1155,7 @@ Currently **404 unique** CyberChef operations are covered (403 directly plus
 - [ ] View Bit Plane
 - [ ] YARA Rules
 
-### Multimedia (24/29)
+### Multimedia (28/29)
 
 > **CLI presentation:** CyberChef's Multimedia ops preview their result in the
 > browser (`presentType: "html"`). cchef has no browser, so the byte-emitting
@@ -1185,6 +1186,30 @@ Currently **404 unique** CyberChef operations are covered (403 directly plus
 > **pixel-identical** to CyberChef, including Jimp's quirk of sizing the text
 > bitmap at one line per word plus one. No new Go dependency.
 >
+> **Charts:** the four chart operations emit **SVG text**. CyberChef draws them
+> with d3 + d3-hexbin into `nodom`, a fake DOM; cchef ports the parts of d3-scale,
+> d3-array, d3-axis, d3-format, d3-color and d3-hexbin they use, so scales, tick
+> selection and placement, CIELAB colour ramps and hexagonal binning are
+> **byte-identical**. Verified against goldens produced by running the real
+> operations under Node (`internal/ops/testdata/chart_*.svg`); the upstream
+> fixtures only assert `/^<svg width/`, so they pin nothing.
+>
+> Three mechanical deviations make the output valid, safe, standalone SVG, and the
+> goldens are normalised by exactly these before comparison: D3's `__data__`
+> bindings are not serialised (nodom leaks them as attributes carrying unescaped
+> input — upstream added this fix to Series chart only), the clip element is
+> spelled `clipPath` rather than nodom's `clippath` (not an SVG element, so the
+> clip is silently ignored by real renderers), and the root carries
+> `xmlns="http://www.w3.org/2000/svg"`, without which a saved `.svg` does not
+> render at all. The namespace goes after `viewBox` so the document still opens
+> `<svg width=`, which upstream's own fixture asserts.
+>
+> Two portability details the ports had to pin: Go and V8 disagree by an ulp or
+> two on `sin`/`cos` for the fixed hexagon angles, so those six values are
+> tabulated rather than computed; and Go on arm64 fuses multiply-then-add into an
+> FMA, rounding once where JavaScript rounds twice, so the interpolation sites
+> force the intermediate rounding with an explicit `float64()` conversion.
+>
 > **Multi-file output:** Split Colour Channels is CyberChef's only Multimedia op
 > with a `List<File>` output. `core.Dish` gained a `TypeFileList` holding named
 > files; such a dish is terminal (it cannot convert back to bytes, so the op must
@@ -1202,8 +1227,8 @@ Currently **404 unique** CyberChef operations are covered (403 directly plus
 - [x] Extract EXIF
 - [x] Flip Image
 - [x] Generate Image
-- [ ] Heatmap chart
-- [ ] Hex Density chart
+- [x] Heatmap chart
+- [x] Hex Density chart
 - [x] Image Brightness / Contrast
 - [x] Image Filter
 - [x] Image Hue/Saturation/Lightness
@@ -1217,8 +1242,8 @@ Currently **404 unique** CyberChef operations are covered (403 directly plus
 - [x] Render PDF
 - [x] Resize Image
 - [x] Rotate Image
-- [ ] Scatter chart
-- [ ] Series chart
+- [x] Scatter chart
+- [x] Series chart
 - [x] Sharpen Image
 - [x] Split Colour Channels
 

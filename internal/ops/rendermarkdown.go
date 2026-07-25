@@ -70,7 +70,8 @@ func (RenderMarkdown) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	opts := []goldmark.Option{
 		goldmark.WithExtensions(exts...),
 		goldmark.WithRendererOptions(renderer.WithNodeRenderers(
-			util.Prioritized(escapeRawHTMLRenderer{}, 1))),
+			util.Prioritized(escapeRawHTMLRenderer{}, 1),
+		)),
 	}
 	var buf bytes.Buffer
 	if err := goldmark.New(opts...).Convert(in.Bytes(), &buf); err != nil {

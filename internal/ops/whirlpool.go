@@ -131,8 +131,10 @@ type whirlpool struct {
 	rounds int
 }
 
-func newWhirlpool() hash.Hash  { return &whirlpool{tables: whirlpoolTables, rounds: whirlpoolRounds} }
+func newWhirlpool() hash.Hash { return &whirlpool{tables: whirlpoolTables, rounds: whirlpoolRounds} }
+
 func newWhirlpool0() hash.Hash { return &whirlpool{tables: whirlpool0Tables, rounds: whirlpoolRounds} }
+
 func newWhirlpoolT() hash.Hash { return &whirlpool{tables: whirlpoolTTables, rounds: whirlpoolRounds} }
 
 // newWhirlpoolVariant builds the given variant ("Whirlpool"/"Whirlpool-T"/

@@ -43,14 +43,16 @@ func (Typex) Meta() core.OpMeta {
 func (Typex) Args() []core.ArgDef {
 	args := make([]core.ArgDef, 0, 24)
 	for i := range 5 {
-		args = append(args,
+		args = append(
+			args,
 			core.ArgDef{Name: typexRotorLabels[i], Type: core.ArgEditableOption, Value: typexRotors[i].value},
 			core.ArgDef{Name: typexOrdinals[i] + " rotor reversed", Type: core.ArgBoolean, Value: false},
 			core.ArgDef{Name: typexOrdinals[i] + " rotor ring setting", Type: core.ArgOption, Value: enigmaLetters},
 			core.ArgDef{Name: typexOrdinals[i] + " rotor initial value", Type: core.ArgOption, Value: enigmaLetters},
 		)
 	}
-	return append(args,
+	return append(
+		args,
 		core.ArgDef{Name: "Reflector", Type: core.ArgEditableOption, Value: typexReflectors[0].value},
 		core.ArgDef{Name: "Plugboard", Type: core.ArgString, Value: ""},
 		core.ArgDef{Name: "Typex keyboard emulation", Type: core.ArgOption, Value: []string{"None", "Encrypt", "Decrypt"}},
