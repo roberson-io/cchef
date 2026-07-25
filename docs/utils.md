@@ -34,7 +34,6 @@ General-purpose text utilities.
 | Parse colour code | `parse-colour-code` |
 | Parse ObjectID timestamp | `parse-objectid-timestamp` |
 | Parse UNIX file permissions | `parse-unix-file-permissions` |
-| Pseudo-Random Number Generator | `pseudo-random-number-generator` |
 | Regular expression | `regular-expression` |
 | Remove ANSI Escape Codes | `remove-ansi-escape-codes` |
 | Remove line numbers | `remove-line-numbers` |
@@ -772,32 +771,6 @@ Octal representation:   0755
  +---------+-------+-------+-------+
  | Execute |   X   |   X   |   X   |
  +---------+-------+-------+-------+
-```
-
-## Pseudo-Random Number Generator
-
-Generates a number of cryptographically-secure random bytes (using Go's
-`crypto/rand`) and outputs them in the chosen representation.
-
-**Options**
-
-| Flag | Type | Default | Description |
-| --- | --- | --- | --- |
-| `--number-of-bytes` | number | `32` | How many random bytes to generate. |
-| `--output-as` | option | `Hex` | `Hex`, `Integer`, `Byte array`, or `Raw`. |
-
-> Output is non-deterministic by design.
-
-**Simple example**
-
-```bash
-cchef pseudo-random-number-generator --number-of-bytes 4 --output-as Hex
-```
-
-Output:
-
-```
-1ed9ec81
 ```
 
 ## Regular expression

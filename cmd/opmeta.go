@@ -94,6 +94,7 @@ const (
 	catLanguage           = "Language"
 	catMultimedia         = "Multimedia"
 	catNetworking         = "Networking"
+	catOther              = "Other"
 	catPublicKey          = "Public Key"
 	catUtils              = "Utils"
 )
@@ -194,6 +195,8 @@ var opCategories = map[string][]string{
 	"DES Decrypt":                        {catEncryptionEncoding},
 	"DES Encrypt":                        {catEncryptionEncoding},
 	"Detect File Type":                   {catForensics},
+	"Disassemble ARM":                    {catOther},
+	"Disassemble x86":                    {catOther},
 	"Diff":                               {catUtils, catCodeTidy},
 	"Dither Image":                       {catMultimedia},
 	"Divide":                             {catArithmeticLogic},
@@ -368,7 +371,7 @@ var opCategories = map[string][]string{
 	"Power Set":                          {catArithmeticLogic},
 	"Protobuf Decode":                    {catNetworking},
 	"Protobuf Encode":                    {catNetworking},
-	"Pseudo-Random Number Generator":     {catUtils},
+	"Pseudo-Random Number Generator":     {catOther},
 	"Public Key from Certificate":        {catPublicKey},
 	"Public Key from Private Key":        {catPublicKey},
 	"RC2 Decrypt":                        {catEncryptionEncoding},

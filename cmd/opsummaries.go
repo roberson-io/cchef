@@ -80,6 +80,8 @@ var opSummaries = map[string]string{
 	"Detect File Type":               "Guesses a file's MIME type from its magic bytes",
 	"Generate Image":                 "Builds an image from the input bytes as pixel values",
 	"Image Hue/Saturation/Lightness": "Adjusts an image's hue, saturation and lightness",
+	"Disassemble ARM":                "Translates ARM machine code into assembly language",
+	"Disassemble x86":                "Translates x86 machine code into assembly language",
 	"Diff":                           "Highlights differences between two inputs",
 	"Drop nth bytes":                 "Drops every nth byte from a given offset",
 	"Encode NetBIOS Name":            "Encodes a name with NetBIOS name encoding",

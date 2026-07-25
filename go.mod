@@ -20,6 +20,7 @@ require (
 	github.com/wroge/wgs84 v1.1.7
 	github.com/yuin/goldmark v1.8.4
 	go.yaml.in/yaml/v3 v3.0.4
+	golang.org/x/arch v0.29.0
 	golang.org/x/crypto v0.53.0
 	golang.org/x/image v0.44.0
 	golang.org/x/text v0.40.0

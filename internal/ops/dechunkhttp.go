@@ -12,7 +12,8 @@ func init() {
 }
 
 // jsSlice mimics JavaScript String.prototype.slice(start, end) for non-negative
-// indices, clamping to the string bounds instead of panicking.
+// indices, clamping to the string bounds instead of panicking. Use jsSliceNeg
+// where an index may count back from the end.
 func jsSlice(s string, start, end int) string {
 	if start < 0 {
 		start = 0

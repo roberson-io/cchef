@@ -450,7 +450,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 423
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 425
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **423 operations** (`internal/ops/`), each a faithful port with tests
+- **425 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -549,8 +549,147 @@ cchef list                                   # discover operations
    green. Register it in `init()` and add a docs entry in the relevant
    `docs/<category>.md` (alphabetised) with options + examples.
 
+## Proposed reorganisation of `internal/ops`
+
+**Status: proposal — not started.** `internal/ops` is a single flat Go package
+that has grown to **615 files / 118k LOC** (322 non-test at 78k LOC, 293 test at
+40k LOC) implementing the ~425 registered operations. Nothing about it is broken;
+the concern is navigability and build/test granularity. The figures below come
+from an AST-level cross-file reference analysis of the package (July 2026) and
+will drift as operations are added — re-measure before acting on them.
+
+### What the package looks like today
+
+- **The operation files themselves are healthy.** 246 files declare a `Meta()`:
+  151 register a single operation and 69 register two (encode/decode pairs).
+  One-op-per-file mirrors CyberChef, keeps the TDD loop tight, and should be
+  **kept as-is** — the file count is a symptom of scope, not of bad layout.
+- **76 files register nothing.** These are engines and static data totalling
+  **25k LOC — roughly a third of the non-test code**: `jsparser_*` (5.0k across
+  four files), `htmlentity_tables.go` (2.9k), `jsbeautify_*`, `codepage.go`,
+  `xmldom*`, `protobuf*`, `d3*`, `disassemble*`, the Bletchley machines
+  (`bombe`, `colossuscomputer`, `lorenzmachine`, `typexmachine`,
+  `sigabamachine`), and lookup tables (`snefru_table`, `filesignatures`,
+  `useragent_rules`, `exiftags`, `colournames`). They sit alphabetically
+  interleaved with forty-line operations.
+- **Coupling between files is low.** Across the 322 non-test files there are
+  only **505 cross-file references**. 78 files reference nothing else in the
+  package, and 194 are referenced by nothing.
+- **…but a handful of hubs make it *look* entangled.** The reference graph is one
+  weakly-connected component of 254 files, held together by a small shared-helper
+  layer: `convertToByteArray` (`xor.go`, 28 referring files), `lo`
+  (`utils_case.go`, 19), `parseEscapedChars` (`findreplace.go`, 18), `charRep`
+  (`hex.go`, 18), `jsObject`/`jsStringify` (`jsonvalue.go`, 17/13),
+  `decodeAESInput` (`aes.go`, 13), `imageTransform` (`imageops.go`, 12).
+  Simulating the extraction of the ~177 symbols referenced by two or more files
+  breaks the graph into **200 components, the largest of them 16 files**. The
+  package is therefore genuinely splittable; it is not a ball of mud.
+
+### The three problems worth fixing
+
+1. **One compilation unit and one test binary.** A one-line edit recompiles 78k
+   LOC, and the suite is a single 40k-LOC test binary — no per-package build
+   caching and no parallel package-level test execution. Every unexported helper
+   is also visible to all 322 files, which is why
+   `.claude/skills/add-operation` has to instruct *"before adding a helper,
+   `grep` for it — duplicates like `padEnd`/`isHexByte` already exist and will
+   fail to compile"*. Package boundaries would enforce that instead of prose.
+2. **Category is a side table rather than structure.** `opCategories` in
+   `cmd/opmeta.go` hand-maintains 424 entries, policed by
+   `TestOpCategoriesMatchRegistry`, and the operation counts are duplicated
+   across five places in `PLAN.md`, `README.md` and `docs/README.md` with **no
+   test catching drift** — steps 5–7 of the add-operation skill are largely this
+   bookkeeping.
+3. **Engines and operations carry equal visual weight.** A 2.7k-line JavaScript
+   parser is no more prominent in a directory listing than `atbash.go`, and is
+   exercised only indirectly through the operations that use it.
+
+### Stage 1 — extract the shared helpers and the engines (prerequisite)
+
+Highest value per unit of risk, and worth doing on its own even if the rest is
+never done.
+
+- **`internal/opsutil`** — the cross-cutting helper layer: byte/hex conversion
+  (`convertToByteArray`, `charRep`, `toHex`, `splitHexToBytes`, `toHexFast`),
+  `expandAlphRange`, escaping (`parseEscapedChars`, `escapeHTML`), the
+  JS-semantics shims (`jsNum`, `jsObject`, `jsStringify`, `jsParseInt`,
+  `jsonParseOrdered`, `jsFormatNumber`), and the block-cipher mode/padding
+  plumbing shared by AES/Blowfish/DES. Despite the ~177-symbol count these live
+  in about a dozen files. Each gets a doc comment and direct unit tests instead
+  of incidental coverage.
+- **One package per engine**, moved out of `internal/ops` entirely:
+  `internal/jsparser`, `internal/jsbeautify`, `internal/xmldom`,
+  `internal/codepage`, `internal/protobuf`, `internal/d3`, `internal/exif`,
+  `internal/disasm`, `internal/bletchley`, plus the pure lookup tables into
+  `internal/opsdata` (or alongside their engine). Each then becomes testable on
+  its own terms.
+
+This alone removes ~25k LOC from the `ops` namespace and eliminates the
+grep-before-you-add-a-helper hazard.
+
+### Stage 2 — one package per CyberChef category
+
+`internal/ops/<category>/` — `encoding`, `hashing`, `dataformat`, `codetidy`,
+`networking`, `publickey`, `multimedia`, `utils`, `arithmetic`, `datetime`,
+`extractors`, `forensics`, `language`, `other` — mirroring `docs/` and the
+grouping already shown by `cchef list`. `internal/ops` itself becomes a thin
+aggregator that blank-imports each subpackage, so `cmd/register_ops.go` is
+unchanged. The largest package lands at roughly 52 files / 14k LOC (Encryption /
+Encoding); most are far smaller.
+
+Two findings make **Stage 1 a hard prerequisite**:
+
+- **A naive split creates import cycles.** Measured mutual references include
+  Data format ↔ Public Key, Encryption / Encoding ↔ Utils, Networking ↔ Utils,
+  Data format ↔ Networking, Code tidy ↔ Data format and Multimedia ↔ Utils.
+  Every one of those runs through the hub symbols that `opsutil` takes, so they
+  disappear once Stage 1 lands.
+- **19 operation files span more than one category** (e.g. `ascon.go`,
+  `bcrypt.go` and `scrypt.go` are Encryption/Encoding + Hashing; `pem.go` and
+  `parseasn1hexstring.go` are Data format + Public Key; `urlcode.go` is Data
+  format + Networking). Each needs a deliberate home package; the *display*
+  categories can still be multiple.
+
+Payoffs beyond navigation:
+
+- Category becomes a **compile-time fact**. `opCategories` and its policing test
+  can be derived from package membership (or from a new `Category` field on
+  `core.OpMeta` set per subpackage), deleting step 6.1 of the add-operation
+  skill.
+- Per-package build caching and parallel test execution: editing one operation
+  rebuilds and re-tests one small package.
+- The shared test harness moves to **`internal/optest`** with `opCase`,
+  `runCases` and `runOp` exported, imported by each category's tests in place of
+  today's package-private `fixtures_test.go`.
+
+### Stage 3 — generate the counts (independent of the above)
+
+The operation count appears in five places across `PLAN.md`, `README.md` and
+`docs/README.md`, and the `docs/README.md` master category table duplicates
+`opCategories`. None of it is test-covered. A `go generate` step or a
+`make docs-check` target that derives those lines from `core.Default.All()` and
+fails CI on drift removes step 7 of the add-operation skill entirely. This is
+cheap and can be done first, independently of any file moves.
+
+### Migration notes
+
+- The work is mechanical and incremental: move one category at a time and let
+  the compiler find the breakages. `make all` remains the gate at each step.
+- Suggested pilot: **Date / Time** (4 operation files) to validate the
+  aggregator and `optest` pattern, then **Multimedia** (27 files, but almost all
+  of its cross-file references target just `imageops.go` and `imageresize.go`,
+  so it moves cleanly once Stage 1 exists).
+- Update `.claude/skills/add-operation` in the same change — the "where does the
+  file go" step, the `opsutil` helper-reuse note, and whichever of steps 5–7
+  become automated.
+- Keep one operation per file, and keep the `docs/<category>.md` layout as the
+  user-facing mirror of the new package layout.
+
 ## Remaining / future work
 
+- **Reorganise `internal/ops`** — see *Proposed reorganisation of
+  `internal/ops`* above: extract `internal/opsutil` and the standalone
+  engines, then split the package one-per-category. Not started.
 - Implement more operations from the checklist below, prioritising common
   Data format / Encryption / Hashing ops.
 - Additional Dish types as needed for ops that require them.
@@ -630,7 +769,7 @@ The per-category count is `implemented/total`; some operations appear in more
 than one category.
 Currently **420 unique** CyberChef operations are covered (419 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
-which is where the 423 cchef subcommands come from.
+which is where the 425 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
