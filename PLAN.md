@@ -450,7 +450,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 422
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 423
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **422 operations** (`internal/ops/`), each a faithful port with tests
+- **423 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -628,9 +628,9 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **419 unique** CyberChef operations are covered (418 directly plus
+Currently **420 unique** CyberChef operations are covered (419 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
-which is where the 422 cchef subcommands come from.
+which is where the 423 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
@@ -1155,7 +1155,7 @@ which is where the 422 cchef subcommands come from.
 - [ ] View Bit Plane
 - [ ] YARA Rules
 
-### Multimedia (28/29)
+### Multimedia (29/29)
 
 > **CLI presentation:** CyberChef's Multimedia ops preview their result in the
 > browser (`presentType: "html"`). cchef has no browser, so the byte-emitting
@@ -1210,6 +1210,20 @@ which is where the 422 cchef subcommands come from.
 > FMA, rounding once where JavaScript rounds twice, so the interpolation sites
 > force the intermediate rounding with an explicit `float64()` conversion.
 >
+> **OCR is the one operation cchef does not perform itself.** CyberChef runs
+> Tesseract compiled to WebAssembly in the browser; it throws outright outside
+> one, so there is no oracle and no fixtures. Every cgo-free Go route was
+> examined: `gosseract` needs cgo, which would cost the static single-binary
+> build; `gogosseract` (Tesseract WASM under wazero) is unmaintained, broken
+> against wazero 1.8.0+, and ~6x slower; no Tesseract WASI build exists, so
+> hosting the module means owning Emscripten glue — the burden that killed
+> gogosseract; and no maintained pure-Go OCR engine exists. Embedding the WASM
+> plus `eng.traineddata` would also add ~13MB to a 40MB binary. cchef therefore
+> drives the installed `tesseract` binary, its only external tool: the same
+> engine and language data, so the text matches, and the binary stays pure Go
+> with no cgo. A clear, actionable error is returned when it is absent, and no
+> other operation is affected.
+>
 > **Multi-file output:** Split Colour Channels is CyberChef's only Multimedia op
 > with a `List<File>` output. `core.Dish` gained a `TypeFileList` holding named
 > files; such a dish is terminal (it cannot convert back to bytes, so the op must
@@ -1235,7 +1249,7 @@ which is where the 422 cchef subcommands come from.
 - [x] Image Opacity
 - [x] Invert Image
 - [x] Normalise Image
-- [ ] Optical Character Recognition
+- [x] Optical Character Recognition
 - [x] Play Media
 - [x] Remove EXIF
 - [x] Render Image

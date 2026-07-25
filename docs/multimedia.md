@@ -66,6 +66,7 @@ same fix, but only to Series chart.
 | Image Opacity | `image-opacity` | — |
 | Invert Image | `invert-image` | — |
 | Normalise Image | `normalise-image` | — |
+| Optical Character Recognition | `optical-character-recognition` | [Optical character recognition](https://wikipedia.org/wiki/Optical_character_recognition) |
 | Play Media | `play-media` | — |
 | Remove EXIF | `remove-exif` | [Exif](https://wikipedia.org/wiki/Exif) |
 | Render Image | `render-image` | [Image file formats](https://wikipedia.org/wiki/Image_file_formats) |
@@ -513,6 +514,62 @@ options.
 
 ```bash
 cchef normalise-image --in-file photo.png -o normalised.png
+```
+
+## Optical Character Recognition
+
+Reads text out of an image.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Show confidence | boolean | true | Prefix the text with the mean word confidence. |
+| OCR Engine Mode | option | `LSTM only` | `Tesseract only`, `LSTM only` or `Tesseract/LSTM Combined`. |
+
+> **Requires `tesseract`.** This is the one operation cchef does not perform
+> itself. CyberChef runs Tesseract compiled to WebAssembly in the browser; the
+> only cgo-free way to do that from Go is to host the WebAssembly module, and the
+> one library that did so is unmaintained and several times slower. Shelling out
+> to the installed engine is what keeps cchef a single static binary with no cgo.
+> Install it with `brew install tesseract` (macOS) or
+> `apt install tesseract-ocr` (Debian/Ubuntu); without it the operation fails
+> with a message saying so. Everything else in cchef works regardless.
+
+Because it is the same engine and the same `eng` language data, the recognised
+text matches CyberChef's. The confidence figure is the mean confidence of the
+recognised words.
+
+`Tesseract only` and `Tesseract/LSTM Combined` need the legacy engine, which
+Tesseract 5 no longer ships in its default `eng.traineddata` — those modes fail
+with the engine's own message unless legacy training data is installed. `LSTM
+only`, the default, is unaffected.
+
+### Simple example
+
+```bash
+cchef optical-character-recognition --in-file scan.png
+```
+
+Output:
+
+```
+Confidence: 96%
+
+Hello World
+```
+
+### Complex example
+
+Just the text, with no confidence line, ready to pipe onward:
+
+```bash
+cchef optical-character-recognition --in-file scan.png --show-confidence=false |
+  cchef to-base64
+```
+
+Output:
+
+```
+SGVsbG8gV29ybGQK
 ```
 
 ## Play Media

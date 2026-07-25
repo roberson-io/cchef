@@ -330,6 +330,7 @@ var opCategories = map[string][]string{
 	"OR":                                 {catEncryptionEncoding},
 	"Object Identifier to Hex":           {catPublicKey},
 	"Offset checker":                     {catUtils},
+	"Optical Character Recognition":      {catMultimedia},
 	"PEM to Hex":                         {catDataFormat, catPublicKey},
 	"PEM to JWK":                         {catPublicKey},
 	"PGP Decrypt":                        {catPublicKey},

@@ -201,6 +201,7 @@ var opSummaries = map[string]string{
 	"Sleep":                          "Pauses, then passes the input through",
 	"Sort":                           "Sorts input sections by the chosen order",
 	"Whirlpool":                      "Whirlpool 512-bit hash (with -0/-T variants)",
+	"Optical Character Recognition":  "Reads text out of an image (needs tesseract)",
 	"Scatter chart":                  "Plots two-variable data as points in an SVG",
 	"Series chart":                   "Line graph per named series, as an SVG",
 	"Split":                          "Splits on one delimiter, rejoins with another",
