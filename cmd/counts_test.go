@@ -94,3 +94,41 @@ func TestCategoryCountsMatchChecklist(t *testing.T) {
 		}
 	}
 }
+
+// TestChecklistTicksRegisteredOps ties PLAN.md's checklist to the registry
+// rather than to itself. The other two checks compare PLAN.md against its own
+// numbers, so a revert that undoes a heading and its checkboxes together stays
+// self-consistent and slips through; this one does not, because it asks whether
+// an operation cchef actually registers is recorded as done.
+func TestChecklistTicksRegisteredOps(t *testing.T) {
+	plan := readRepoFile(t, "PLAN.md")
+
+	// An operation may be listed under more than one category, so collect every
+	// occurrence and require them all to be ticked.
+	type entry struct{ ticked, listed bool }
+	checklist := map[string]*entry{}
+	for _, m := range regexp.MustCompile(`(?m)^- \[([ x])\] (.+?)\s*$`).FindAllStringSubmatch(plan, -1) {
+		e, ok := checklist[m[2]]
+		if !ok {
+			e = &entry{ticked: true}
+			checklist[m[2]] = e
+		}
+		e.listed = true
+		if m[1] != "x" {
+			e.ticked = false
+		}
+	}
+
+	for _, op := range core.Default.All() {
+		name := op.Meta().Name
+		e, ok := checklist[name]
+		if !ok {
+			// Some subcommands are one CyberChef operation under another name
+			// (sha256 and friends are all SHA2), so an absent entry is fine.
+			continue
+		}
+		if !e.listed || !e.ticked {
+			t.Errorf("PLAN.md lists %q unticked, but cchef registers it", name)
+		}
+	}
+}

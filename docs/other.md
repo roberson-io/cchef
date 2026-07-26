@@ -18,8 +18,8 @@ whitespace is ignored.
 
 CyberChef runs the Capstone disassembly framework compiled to WebAssembly.
 cchef decodes ARM and AArch64 with `golang.org/x/arch` (pure Go) and decodes
-Thumb from scratch, formatting all three to Capstone's conventions so the output
-matches.
+Thumb, the floating-point unit and Advanced SIMD from scratch, formatting them
+all to Capstone's conventions so the output matches.
 
 **Options**
 
@@ -33,10 +33,11 @@ matches.
 | `--show-instruction-position` | bool | `true` | Show the instruction address. |
 
 > Disassembly stops at the first instruction that cannot be decoded, as
-> Capstone's linear sweep does. The coprocessor, system-register and NEON/VFP
-> encodings are not decoded, and Capstone recognises a few ARM32 forms
-> `golang.org/x/arch` declines; on ordinary compiler-generated code the output
-> matches Capstone exactly.
+> Capstone's linear sweep does. ARM, Thumb, Thumb-2 and AArch64 are all covered,
+> including the floating-point unit and Advanced SIMD (`vadd`, `vld1`, `vmov`
+> and the rest of NEON/VFP), the coprocessor, saturating, parallel-arithmetic
+> and signed-multiply groups, and the exception-return and processor-state
+> instructions.
 
 **Simple example**
 
@@ -51,6 +52,24 @@ Output:
 0x00000004  04b08de2          add fp, sp, #4
 0x00000008  0000a0e1          mov r0, r0
 0x0000000c  0088bde8          pop {fp, pc}
+```
+
+**Vector example**
+
+A NEON sequence: load a vector, add and multiply it, store it back.
+
+```bash
+cchef disassemble-arm -i "8d0720f4400d00f2100d00f38f0701f4" \
+  --show-instruction-hex=false
+```
+
+Output:
+
+```
+0x00000000  vld1.32 {d0}, [r0]!
+0x00000004  vadd.f32 q0, q0, q0
+0x00000008  vmul.f32 d0, d0, d0
+0x0000000c  vst1.32 {d0}, [r1]
 ```
 
 **Complex example**

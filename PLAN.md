@@ -767,7 +767,7 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **420 unique** CyberChef operations are covered (419 directly plus
+Currently **422 unique** CyberChef operations are covered (421 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
 which is where the 425 cchef subcommands come from.
 
@@ -1400,13 +1400,13 @@ which is where the 425 cchef subcommands come from.
 - [x] Sharpen Image
 - [x] Split Colour Channels
 
-### Other (1/22)
+### Other (3/22)
 
 - [ ] Analyse UUID
 - [ ] Automated Validation Test Op
 - [ ] Chi Square
-- [ ] Disassemble ARM
-- [ ] Disassemble x86
+- [x] Disassemble ARM
+- [x] Disassemble x86
 - [ ] Entropy
 - [ ] Frequency distribution
 - [ ] Generate De Bruijn Sequence
