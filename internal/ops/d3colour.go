@@ -246,22 +246,22 @@ func interpolateLab(from, to string) func(float64) string {
 	toColour, _ := parseD3Colour(to)
 	start, end := toLab(fromColour), toLab(toColour)
 
-	l := labChannel(start.l, end.l)
-	a := labChannel(start.a, end.a)
-	b := labChannel(start.b, end.b)
-	alpha := labChannel(start.alpha, end.alpha)
+	l := colourChannel(start.l, end.l)
+	a := colourChannel(start.a, end.a)
+	b := colourChannel(start.b, end.b)
+	alpha := colourChannel(start.alpha, end.alpha)
 
 	return func(t float64) string {
 		return formatRGB(labColour{l: l(t), a: a(t), b: b(t), alpha: alpha(t)}.toRGB())
 	}
 }
 
-// labChannel interpolates one channel, following d3-interpolate's colour
+// colourChannel interpolates one channel, following d3-interpolate's colour
 // helper: blend when the endpoints differ, otherwise hold whichever endpoint is
 // known. A NaN difference counts as no difference, since JavaScript treats NaN
 // as falsy — that is what makes an unparseable endpoint fall back to the other.
 // Note this blends as a + t*(b-a); the numeric scale interpolator does not.
-func labChannel(from, to float64) func(float64) float64 {
+func colourChannel(from, to float64) func(float64) float64 {
 	d := to - from
 	if d != 0 && !math.IsNaN(d) {
 		return func(t float64) float64 { return from + float64(t*d) }
@@ -271,6 +271,22 @@ func labChannel(from, to float64) func(float64) float64 {
 		held = to
 	}
 	return func(float64) float64 { return held }
+}
+
+// interpolateRGB blends two colours through their red, green and blue channels
+// directly, which is what the entropy image shades its cells with.
+func interpolateRGB(from, to string) func(float64) string {
+	start, _ := parseD3Colour(from)
+	end, _ := parseD3Colour(to)
+
+	r := colourChannel(start.r, end.r)
+	g := colourChannel(start.g, end.g)
+	b := colourChannel(start.b, end.b)
+	alpha := colourChannel(start.alpha, end.alpha)
+
+	return func(t float64) string {
+		return formatRGB(d3Colour{r: r(t), g: g(t), b: b(t), alpha: alpha(t)})
+	}
 }
 
 // formatRGB renders a colour as d3 does: rgb() when opaque, rgba() otherwise,

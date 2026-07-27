@@ -7,11 +7,37 @@ the pseudo-random generator.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Chi Square | `chi-square` | [Chi-squared distribution](https://wikipedia.org/wiki/Chi-squared_distribution) |
 | Disassemble ARM | `disassemble-arm` | [ARM architecture family](https://wikipedia.org/wiki/ARM_architecture_family) |
 | Disassemble x86 | `disassemble-x86` | [x86](https://wikipedia.org/wiki/X86) |
+| Entropy | `entropy` | [Entropy (information theory)](https://wikipedia.org/wiki/Entropy_(information_theory)) |
+| Frequency distribution | `frequency-distribution` | [Frequency distribution](https://wikipedia.org/wiki/Frequency_distribution) |
 | Generate QR Code | `generate-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
+| Index of Coincidence | `index-of-coincidence` | [Index of coincidence](https://wikipedia.org/wiki/Index_of_coincidence) |
 | Parse QR Code | `parse-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
 | Pseudo-Random Number Generator | `pseudo-random-number-generator` | [Cryptographically secure PRNG](https://wikipedia.org/wiki/Cryptographically-secure_pseudorandom_number_generator) |
+
+## Chi Square
+
+Calculates the Chi Square distribution of the input's byte values: how far the
+counts stray from an even spread across all 256 values. A low figure suggests
+the bytes are evenly spread, as encrypted or compressed data tends to be.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef chi-square -i "Hello world!"
+```
+
+Output:
+
+```
+403.0885416666666
+```
+
+---
 
 ## Disassemble ARM
 
@@ -148,6 +174,88 @@ Output:
 0016:0003 CD21                            INT 21
 ```
 
+## Entropy
+
+Measures how much information the input carries, and draws it five ways. Zero
+means no randomness at all — every byte the same — and eight, the maximum, means
+the bytes are spread evenly.
+
+As a rule of thumb: ordinary English text falls between 3.5 and 5, and properly
+encrypted or compressed data of any length should be over 7.5. A stretch of
+unusually high entropy within a file often marks an encrypted or compressed
+section, which the scanning views are for.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--visualisation` | option | `Shannon scale` | `Shannon scale` gives the figure for the whole input. `Histogram (Bar)` and `Histogram (Line)` chart how often each byte value occurs. `Curve` and `Image` chart the entropy of each block of the input in turn. |
+
+The four chart views produce an SVG; write it to a file with `-o`. CyberChef
+draws a scale bar beside the Shannon figure, which needs a browser to size and
+render, so cchef gives the figure alone.
+
+**Simple example**
+
+```bash
+cchef entropy -i "Hello world!"
+```
+
+Output:
+
+```
+Shannon entropy: 3.0220552088742005
+```
+
+**Complex example**
+
+Charting how the entropy varies across a file, which shows where any compressed
+or encrypted sections lie:
+
+```bash
+cchef entropy --visualisation Curve --in-file archive.bin -o entropy.svg
+```
+
+The file written is an SVG of the entropy of each block in turn, 500 by 500.
+`--visualisation Image` draws the same readings as a grid of shaded cells
+instead, from black at the lowest entropy to white at the highest.
+
+---
+
+## Frequency distribution
+
+Reports how often each byte value occurs, as a table of percentages with a bar
+beside each.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--show-0s` | bool | `true` | Include byte values that do not occur at all. |
+| `--show-ascii` | bool | `true` | Show the character each byte stands for. The ones that do not print are shown as their control pictures. |
+
+> CyberChef draws a bar chart into a canvas above the table, which needs a
+> browser to size and render. The table carries the same figures.
+
+**Example**
+
+```bash
+cchef frequency-distribution --show-0s=false -i "Hello"
+```
+
+Output (truncated):
+
+```
+Total data length: 5
+Number of bytes represented: 4
+Number of bytes not represented: 252
+
+<table class="table table-hover table-sm">
+    <tr><th>Byte</th><th>ASCII</th><th>Percentage</th><th></th></tr><tr><td>48</td><td>H</td><td>20%     </td><td>||||||||||||||||||||</td></tr>...
+```
+
+---
+
 ## Generate QR Code
 
 Generates a Quick Response (QR) code from the input text, as a raster or vector
@@ -207,6 +315,36 @@ Output (truncated):
 /h { 0 rlineto } bind def
 ...
 ```
+
+---
+
+## Index of Coincidence
+
+The probability that two letters drawn from the text at random are the same.
+Letters only: everything else is ignored, and case does not matter.
+
+Zero means every letter is different; one means they are all the same. English
+text generally falls between 0.067 and 0.078, so a much lower figure suggests
+the text is random, compressed or encrypted. The normalised figure is the same
+value measured in twenty-sixths, so English sits near 1.7 to 2.0.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef index-of-coincidence -i "Hello world, this is a test to determine the correct IC value."
+```
+
+Output:
+
+```
+Index of Coincidence: 0.07142857142857142
+Normalized: 1.857142857142857
+```
+
+> CyberChef draws a scale bar below these figures, which needs a browser to size
+> and render.
 
 ---
 
