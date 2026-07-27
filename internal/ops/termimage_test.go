@@ -79,6 +79,6 @@ func TestEncodeTerminalImageErrors(t *testing.T) {
 		t.Error("expected error for undetected terminal")
 	}
 	if _, err := encodeTerminalImage(termKitty, "image/jpeg", []byte("x")); err == nil {
-		t.Error("expected error: kitty transmission requires PNG in this batch")
+		t.Error("expected error: kitty transmission requires PNG")
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf16"
 )
 
 // Shims for the JavaScript built-ins operations lean on where Go's own answer
@@ -48,6 +49,23 @@ func jsToInt32(f float64) int64 {
 	// #nosec G115 -- wrapping into a signed 32-bit value is exactly what this
 	// conversion is for.
 	return int64(int32(uint32(math.Mod(math.Trunc(f), 1<<32))))
+}
+
+// jsChr turns a number into the character it stands for. A value above the
+// basic plane is split into the pair of sixteen-bit units JavaScript stores it
+// as and joined back up; anything else is taken as one such unit, so a negative
+// number wraps round to the top of the plane rather than being refused. A value
+// that names half of a pair on its own cannot be written down, and comes back
+// as the replacement character.
+func jsChr(code float64) string {
+	if code > 0xFFFF {
+		astral := int64(code) - 0x10000
+		return string(utf16.Decode([]uint16{
+			uint16(0xD800 | (astral>>10)&0x3FF), // #nosec G115 -- masked to ten bits
+			uint16(0xDC00 | astral&0x3FF),       // #nosec G115 -- as above
+		}))
+	}
+	return string(utf16.Decode([]uint16{uint16(jsToInt32(code) & 0xFFFF)})) // #nosec G115 -- masked to sixteen bits
 }
 
 // jsTrimSpace pares space off both ends the way String#trim does. It takes a

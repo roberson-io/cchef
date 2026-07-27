@@ -1,0 +1,63 @@
+{"input": "20", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "30", "want": "0! That's Numberwang!"}
+{"input": "3432", "want": "42! That's Numberwang!"}
+{"input": "2d3432", "want": "-42! That's Numberwang!"}
+{"input": "372e35", "want": "7.5! That's Numberwang!"}
+{"input": "2d372e35", "want": "-7.5! That's Numberwang!"}
+{"input": "302e30", "want": "0.0! That's Numberwang!"}
+{"input": "3030", "want": "00! That's Numberwang!"}
+{"input": "303037", "want": "007! That's Numberwang!"}
+{"input": "343269", "want": "42i! That's Numberwang!"}
+{"input": "2d343269", "want": "-42i! That's Numberwang!"}
+{"input": "372e3569", "want": "7.5i! That's Numberwang!"}
+{"input": "343278", "want": "42x! That's AlphaNumericWang!"}
+{"input": "343258", "want": "42X! That's AlphaNumericWang!"}
+{"input": "2d343278", "want": "-42x! That's AlphaNumericWang!"}
+{"input": "372e3578", "want": "7.5x! That's AlphaNumericWang!"}
+{"input": "34326978", "want": "42ix! That's AlphaNumericWang!"}
+{"input": "34326958", "want": "42iX! That's AlphaNumericWang!"}
+{"input": "343225", "want": "42%! That's Numberwang!"}
+{"input": "34327825", "want": "42x%! That's AlphaNumericWang!"}
+{"input": "34326925", "want": "42i%! That's Numberwang!"}
+{"input": "2d372e356925", "want": "-7.5i%! That's Numberwang!"}
+{"input": "66307274792d733178", "want": "f0rty-s1x! That's Numberwang!"}
+{"input": "46305254592d533158", "want": "F0RTY-S1X! That's Numberwang!"}
+{"input": "7368696e74792d736978", "want": "shinty-six! That's Numberwang!"}
+{"input": "5348494e54592d736978", "want": "SHINTY-six! That's Numberwang!"}
+{"input": "66696c74682d68756e6472656420616e64206e656562", "want": "filth-hundred and neeb! That's Numberwang!"}
+{"input": "46494c54482d48554e4452454420414e44204e454542", "want": "FILTH-HUNDRED AND NEEB! That's Numberwang!"}
+{"input": "6e6f206469676974732068657265", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "616263", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "2d", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "2e", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "25", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "69", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "74686520616e73776572206973203432", "want": "42! That's Numberwang!"}
+{"input": "34322069732074686520616e73776572", "want": "42! That's Numberwang!"}
+{"input": "312c303030", "want": "1! That's Numberwang!"}
+{"input": "316535", "want": "1e! That's AlphaNumericWang!"}
+{"input": "30783166", "want": "0x! That's AlphaNumericWang!"}
+{"input": "d9a1d9a2d9a3", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "39303037313939323534373430393933", "want": "9007199254740993! That's Numberwang!"}
+{"input": "332e3134313539323635333538393739", "want": "3.14159265358979! That's Numberwang!"}
+{"input": "2d2e35", "want": "5! That's Numberwang!"}
+{"input": "352e", "want": "5! That's Numberwang!"}
+{"input": "34322e", "want": "42! That's Numberwang!"}
+{"input": "2e3432", "want": "42! That's Numberwang!"}
+{"input": "3432616263", "want": "42a! That's AlphaNumericWang!"}
+{"input": "6162633432", "want": "42! That's Numberwang!"}
+{"input": "6131", "want": "1! That's Numberwang!"}
+{"input": "3161", "want": "1a! That's AlphaNumericWang!"}
+{"input": "e2889a", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "e2889a34", "want": "\u221a4! That's Numberwang!"}
+{"input": "2de2889a34", "want": "-\u221a4! That's Numberwang!"}
+{"input": "e2889a3478", "want": "\u221a4x! That's AlphaNumericWang!"}
+{"input": "e2889a3425", "want": "\u221a4%! That's Numberwang!"}
+{"input": "2de2889a346925", "want": "-\u221a4i%! That's Numberwang!"}
+{"input": "7368696e74792d736576656e", "want": "Sorry, that's not Numberwang. Let's rotate the board!"}
+{"input": "66307274792d7331787479", "want": "f0rty-s1x! That's Numberwang!"}
+{"input": "34320a3939", "want": "42! That's Numberwang!"}
+{"input": "0a3432", "want": "42! That's Numberwang!"}
+{"input": "34322e352e35", "want": "42.5! That's Numberwang!"}
+{"input": "2d2d3432", "want": "-42! That's Numberwang!"}
+{"input": "2b3432", "want": "42! That's Numberwang!"}

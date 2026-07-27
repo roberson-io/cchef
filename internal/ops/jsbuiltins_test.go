@@ -79,6 +79,37 @@ func TestJSToInt32(t *testing.T) {
 	}
 }
 
+// TestJSChr covers the shim for turning a number into the character it stands
+// for. Anything above the basic plane is split into a surrogate pair and joined
+// back up; anything else is taken as a sixteen-bit unit, so a negative number
+// wraps round rather than being refused.
+func TestJSChr(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		code float64
+		want string
+	}{
+		{"a letter", 65, "A"},
+		{"nothing at all", 0, "\x00"},
+		{"the last of the one-byte characters", 127, "\x7f"},
+		{"a character that takes two bytes", 233, "é"},
+		{"a character that takes three", 0x3042, "あ"},
+		{"the last of the basic plane", 0xFFFF, "￿"},
+		{"the first beyond it, which needs a pair", 0x10000, "\U00010000"},
+		{"an emoji", 128512, "😀"},
+		{"the last code point there is", 0x10FFFF, "\U0010FFFF"},
+		{"one below nothing, which wraps to the top", -1, "￿"},
+		{"three below", -3, "�"},
+		{"a lone half of a pair, which cannot be written", 0xD800, "�"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := jsChr(tc.code); got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 // TestJSTrimSpace covers the shim for JavaScript's String#trim, which pares away
 // a wider set of characters than Go's own does at one end and a narrower one at
 // the other: a byte order mark goes, a zero width space stays.

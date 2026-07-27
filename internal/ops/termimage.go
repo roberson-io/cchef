@@ -9,13 +9,12 @@ import (
 
 // Terminal inline-image previews for the "Terminal" output option.
 //
-// Two protocols are supported in this batch:
+// Two protocols are supported:
 //   - iTerm2 (also honoured by WezTerm): a single OSC 1337 escape carrying the
 //     raw file bytes base64-encoded. Format-agnostic — any image the terminal
 //     can decode works.
 //   - kitty graphics protocol: only PNG can be transmitted directly without a
-//     decoder, so non-PNG input is rejected here. Broader kitty support and
-//     sixel arrive with the imaging batch (which brings an image decoder).
+//     decoder, so non-PNG input is rejected.
 
 // termProtocol identifies a detected terminal graphics protocol.
 type termProtocol int

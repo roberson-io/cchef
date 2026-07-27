@@ -1,7 +1,7 @@
 # Other
 
 Operations that do not fit CyberChef's other categories: the disassemblers, the
-pseudo-random generator, identifiers and one-time passwords.
+random generators, identifiers and one-time passwords, and a game show.
 
 > Operations are listed alphabetically.
 
@@ -14,11 +14,15 @@ pseudo-random generator, identifiers and one-time passwords.
 | Entropy | `entropy` | [Entropy (information theory)](https://wikipedia.org/wiki/Entropy_(information_theory)) |
 | Frequency distribution | `frequency-distribution` | [Frequency distribution](https://wikipedia.org/wiki/Frequency_distribution) |
 | Generate HOTP | `generate-hotp` | [HMAC-based One-time Password algorithm](https://wikipedia.org/wiki/HMAC-based_One-time_Password_algorithm) |
+| Generate Lorem Ipsum | `generate-lorem-ipsum` | [Lorem ipsum](https://wikipedia.org/wiki/Lorem_ipsum) |
 | Generate QR Code | `generate-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
 | Generate TOTP | `generate-totp` | [Time-based One-time Password algorithm](https://wikipedia.org/wiki/Time-based_One-time_Password_algorithm) |
 | Generate UUID | `generate-uuid` | [Universally unique identifier](https://wikipedia.org/wiki/Universally_unique_identifier) |
 | Index of Coincidence | `index-of-coincidence` | [Index of coincidence](https://wikipedia.org/wiki/Index_of_coincidence) |
+| Numberwang | `numberwang` | [That Mitchell and Webb Look](https://wikipedia.org/wiki/That_Mitchell_and_Webb_Look) |
+| P-list Viewer | `p-list-viewer` | [Property list](https://wikipedia.org/wiki/Property_list) |
 | Parse QR Code | `parse-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
+| Pseudo-Random Integer Generator | `pseudo-random-integer-generator` | [Pseudorandom number generator](https://wikipedia.org/wiki/Pseudorandom_number_generator) |
 | Pseudo-Random Number Generator | `pseudo-random-number-generator` | [Cryptographically secure PRNG](https://wikipedia.org/wiki/Cryptographically-secure_pseudorandom_number_generator) |
 
 ## Analyse UUID
@@ -380,6 +384,52 @@ Password: 79090604
 
 ---
 
+## Generate Lorem Ipsum
+
+Generates varying lengths of
+[lorem ipsum](https://wikipedia.org/wiki/Lorem_ipsum) placeholder text. The
+input is ignored.
+
+Sentence and paragraph lengths are drawn about a mean, so no two runs give the
+same text, and the passage always opens with `Lorem ipsum dolor sit amet`.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--length` | number | `3` | How much text to make |
+| `--length-in` | option | `Paragraphs` | `Paragraphs`, `Sentences`, `Words` or `Bytes` |
+
+Lengths up to 100,000 are accepted for paragraphs, sentences and words, and up
+to 1,000,000 for bytes.
+
+**Example**
+
+```bash
+cchef generate-lorem-ipsum --length 2 --length-in Sentences
+```
+
+Output:
+
+```
+Lorem ipsum dolor sit amet deserunt reprehenderit Lorem fugiat occaecat officia qui consectetur et Lorem ullamco quis ut aute ad quis qui nostrud tempor labore fugiat adipisicing pariatur anim non nostrud minim eu magna sunt dolore irure anim. Est ut ad, velit amet.
+```
+
+**Complex example**
+
+Cut to an exact number of characters, which is useful for filling a fixed-width
+field:
+
+```bash
+cchef generate-lorem-ipsum --length 30 --length-in Bytes
+```
+
+Output:
+
+```
+Lorem ipsum dolor sit amet fug
+```
+
+---
+
 ## Generate QR Code
 
 Generates a Quick Response (QR) code from the input text, as a raster or vector
@@ -572,6 +622,68 @@ Normalized: 1.857142857142857
 
 ---
 
+## Numberwang
+
+Tells you whether the input is Numberwang, and offers a fact about Numberwang.
+A number anywhere in the input counts; a number with a letter after it is
+AlphaNumericWang instead. `f0rty-s1x`, `shinty-six` and
+`filth-hundred and neeb` count as numbers in their own right.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef numberwang -i "42"
+```
+
+Output:
+
+```
+42! That's Numberwang!
+
+Did you know: Astronomers suspect God is Numberwang.
+```
+
+The fact is picked at random, so it differs each time.
+
+---
+
+## P-list Viewer
+
+Lays a [property list](https://wikipedia.org/wiki/Property_list) out in a form
+that can be read: braces round a dictionary, brackets round an array, one entry
+to a line, and each name or array position joined to its value by `=>`.
+
+Property lists are how macOS, iOS, NeXTSTEP and GNUstep store serialized
+objects, usually in files ending `.plist`.
+
+Input that is not a well-formed property list is reported as an error.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef p-list-viewer --in-file com.example.agent.plist
+```
+
+Output:
+
+```
+plist => {
+	Label => "com.example.agent"
+	RunAtLoad => true
+	ProgramArguments => [
+		0 => "/usr/bin/say"
+		1 => "hello world"
+	]
+}
+/plist
+```
+
+---
+
 ## Parse QR Code
 
 Reads an image and returns the text of any QR code in it. The image may be a
@@ -617,6 +729,62 @@ Output:
 
 ```
 cchef round trip
+```
+
+---
+
+## Pseudo-Random Integer Generator
+
+Draws random integers from a range, using the system's cryptographic source.
+The input is ignored.
+
+Values are drawn by rejection sampling, so every integer in the range is equally
+likely — no value is favoured by the remainder that simple folding would leave.
+
+Bounds may run from `-(2^53 - 1)` to `2^53 - 1`, and the span between them may
+be as wide as `2^53 - 1`. A bound that is not a whole number is drawn inwards,
+so `0.5` to `3.5` gives integers from 1 to 3.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--number-of-integers` | number | `1` | How many to draw |
+| `--min-value` | number | `0` | The lowest value that may be drawn |
+| `--max-value` | number | `99` | The highest value that may be drawn |
+| `--delimiter` | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon`, `Line feed` or `CRLF` |
+| `--output-format` | option | `Raw` | `Raw`, `Hex` or `Decimal` |
+
+> `Raw` writes each integer as the character it stands for and runs them
+> together, so the delimiter does not apply. `Hex` is not zero-padded, so a
+> value below 16 comes out as a single digit.
+
+**Example**
+
+Five rolls of a die:
+
+```bash
+cchef pseudo-random-integer-generator --number-of-integers 5 \
+  --min-value 1 --max-value 6 --output-format Decimal
+```
+
+Output:
+
+```
+1 3 3 1 4
+```
+
+**Complex example**
+
+Eight random bytes as comma-separated hexadecimal:
+
+```bash
+cchef pseudo-random-integer-generator --number-of-integers 8 \
+  --min-value 0 --max-value 255 --output-format Hex --delimiter Comma
+```
+
+Output:
+
+```
+f4,4c,ba,91,d9,e7,62,25
 ```
 
 ---
