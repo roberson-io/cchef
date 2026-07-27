@@ -4,7 +4,9 @@ Operations for examining unknown or binary data. Some also belong to another
 category, where their detailed description, options and examples live:
 [Extract EXIF](multimedia.md#extract-exif) and
 [Remove EXIF](multimedia.md#remove-exif) are documented under
-[Multimedia](multimedia.md).
+[Multimedia](multimedia.md), and
+[Extract Files](extractors.md#extract-files) under
+[Extractors](extractors.md).
 
 > Operations are listed alphabetically.
 
@@ -12,6 +14,7 @@ category, where their detailed description, options and examples live:
 | --- | --- | --- |
 | Detect File Type | `detect-file-type` | [List of file signatures](https://wikipedia.org/wiki/List_of_file_signatures) |
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
+| Extract Files | `extract-files` | [Extractors](extractors.md#extract-files) |
 | Remove EXIF | `remove-exif` | [Multimedia](multimedia.md#remove-exif) |
 
 ## Detect File Type

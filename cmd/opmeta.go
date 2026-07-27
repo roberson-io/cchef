@@ -214,6 +214,7 @@ var opCategories = map[string][]string{
 	"Escape string":                      {catUtils},
 	"Expand alphabet range":              {catUtils},
 	"Extract EXIF":                       {catExtractors, catForensics, catMultimedia},
+	"Extract Files":                      {catExtractors, catForensics},
 	"Extract dates":                      {catDateTime, catExtractors},
 	"Fang URL":                           {catNetworking},
 	"Fernet Decrypt":                     {catEncryptionEncoding},

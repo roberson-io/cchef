@@ -1,29 +1,33 @@
 package ops
 
 // Code generated from CyberChef src/core/lib/FileSignatures.mjs. DO NOT EDIT.
-// Regenerate via scratchpad/gen_filesigs.mjs when the upstream table changes.
+// Regenerate via the generator in the scratchpad when the upstream table changes.
 
 var fileSignatures = []sigCategory{
 	{name: "Images", types: []fileSig{
 		{
 			name: "Joint Photographic Experts Group image", extension: "jpg,jpeg,jpe,thm,mpo",
 			mime: "image/jpeg", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0xff, hi: 0xff}, {off: 1, lo: 0xd8, hi: 0xd8}, {off: 2, lo: 0xff, hi: 0xff}, {off: 3, set: []byte{0xc0, 0xc4, 0xdb, 0xdd, 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe7, 0xe8, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xfe}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0xff, hi: 0xff}, {off: 1, lo: 0xd8, hi: 0xd8}, {off: 2, lo: 0xff, hi: 0xff}, {off: 3, set: []byte{0xc0, 0xc4, 0xdb, 0xdd, 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe7, 0xe8, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xfe}}}},
+			carver: "JPEG",
 		},
 		{
 			name: "Graphics Interchange Format image", extension: "gif",
 			mime: "image/gif", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x47, hi: 0x47}, {off: 1, lo: 0x49, hi: 0x49}, {off: 2, lo: 0x46, hi: 0x46}, {off: 3, lo: 0x38, hi: 0x38}, {off: 4, set: []byte{0x37, 0x39}}, {off: 5, lo: 0x61, hi: 0x61}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x47, hi: 0x47}, {off: 1, lo: 0x49, hi: 0x49}, {off: 2, lo: 0x46, hi: 0x46}, {off: 3, lo: 0x38, hi: 0x38}, {off: 4, set: []byte{0x37, 0x39}}, {off: 5, lo: 0x61, hi: 0x61}}},
+			carver: "GIF",
 		},
 		{
 			name: "Portable Network Graphics image", extension: "png",
 			mime: "image/png", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x89, hi: 0x89}, {off: 1, lo: 0x50, hi: 0x50}, {off: 2, lo: 0x4e, hi: 0x4e}, {off: 3, lo: 0x47, hi: 0x47}, {off: 4, lo: 0xd, hi: 0xd}, {off: 5, lo: 0xa, hi: 0xa}, {off: 6, lo: 0x1a, hi: 0x1a}, {off: 7, lo: 0xa, hi: 0xa}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x89, hi: 0x89}, {off: 1, lo: 0x50, hi: 0x50}, {off: 2, lo: 0x4e, hi: 0x4e}, {off: 3, lo: 0x47, hi: 0x47}, {off: 4, lo: 0xd, hi: 0xd}, {off: 5, lo: 0xa, hi: 0xa}, {off: 6, lo: 0x1a, hi: 0x1a}, {off: 7, lo: 0xa, hi: 0xa}}},
+			carver: "PNG",
 		},
 		{
 			name: "WEBP Image", extension: "webp",
 			mime: "image/webp", description: "",
-			alts: [][]sigCheck{{{off: 8, lo: 0x57, hi: 0x57}, {off: 9, lo: 0x45, hi: 0x45}, {off: 10, lo: 0x42, hi: 0x42}, {off: 11, lo: 0x50, hi: 0x50}}},
+			alts:   [][]sigCheck{{{off: 8, lo: 0x57, hi: 0x57}, {off: 9, lo: 0x45, hi: 0x45}, {off: 10, lo: 0x42, hi: 0x42}, {off: 11, lo: 0x50, hi: 0x50}}},
+			carver: "WEBP",
 		},
 		{
 			name: "High Efficiency Image File Format", extension: "heic,heif",
@@ -48,7 +52,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Bitmap image", extension: "bmp",
 			mime: "image/bmp", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x42, hi: 0x42}, {off: 1, lo: 0x4d, hi: 0x4d}, {off: 7, lo: 0x0, hi: 0x0}, {off: 9, lo: 0x0, hi: 0x0}, {off: 14, set: []byte{0xc, 0x28, 0x38, 0x40, 0x6c, 0x7c}}, {off: 15, lo: 0x0, hi: 0x0}, {off: 16, lo: 0x0, hi: 0x0}, {off: 17, lo: 0x0, hi: 0x0}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x42, hi: 0x42}, {off: 1, lo: 0x4d, hi: 0x4d}, {off: 7, lo: 0x0, hi: 0x0}, {off: 9, lo: 0x0, hi: 0x0}, {off: 14, set: []byte{0xc, 0x28, 0x38, 0x40, 0x6c, 0x7c}}, {off: 15, lo: 0x0, hi: 0x0}, {off: 16, lo: 0x0, hi: 0x0}, {off: 17, lo: 0x0, hi: 0x0}}},
+			carver: "BMP",
 		},
 		{
 			name: "JPEG Extended Range image", extension: "jxr",
@@ -78,7 +83,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Icon image", extension: "ico",
 			mime: "image/x-icon", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x0, hi: 0x0}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x1, hi: 0x1}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, set: []byte{0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15}}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, set: []byte{0x10, 0x20, 0x30, 0x40, 0x80}}, {off: 7, set: []byte{0x10, 0x20, 0x30, 0x40, 0x80}}, {off: 9, lo: 0x0, hi: 0x0}, {off: 10, set: []byte{0x0, 0x1}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x0, hi: 0x0}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x1, hi: 0x1}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, set: []byte{0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15}}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, set: []byte{0x10, 0x20, 0x30, 0x40, 0x80}}, {off: 7, set: []byte{0x10, 0x20, 0x30, 0x40, 0x80}}, {off: 9, lo: 0x0, hi: 0x0}, {off: 10, set: []byte{0x0, 0x1}}}},
+			carver: "ICO",
 		},
 		{
 			name: "Radiance High Dynamic Range image", extension: "hdr",
@@ -133,7 +139,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Targa Image", extension: "tga",
 			mime: "image/x-targa", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x54, hi: 0x54}, {off: 1, lo: 0x52, hi: 0x52}, {off: 2, lo: 0x55, hi: 0x55}, {off: 3, lo: 0x45, hi: 0x45}, {off: 4, lo: 0x56, hi: 0x56}, {off: 5, lo: 0x49, hi: 0x49}, {off: 6, lo: 0x53, hi: 0x53}, {off: 7, lo: 0x49, hi: 0x49}, {off: 8, lo: 0x4f, hi: 0x4f}, {off: 9, lo: 0x4e, hi: 0x4e}, {off: 10, lo: 0x2d, hi: 0x2d}, {off: 11, lo: 0x58, hi: 0x58}, {off: 12, lo: 0x46, hi: 0x46}, {off: 13, lo: 0x49, hi: 0x49}, {off: 14, lo: 0x4c, hi: 0x4c}, {off: 15, lo: 0x45, hi: 0x45}, {off: 16, lo: 0x2e, hi: 0x2e}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x54, hi: 0x54}, {off: 1, lo: 0x52, hi: 0x52}, {off: 2, lo: 0x55, hi: 0x55}, {off: 3, lo: 0x45, hi: 0x45}, {off: 4, lo: 0x56, hi: 0x56}, {off: 5, lo: 0x49, hi: 0x49}, {off: 6, lo: 0x53, hi: 0x53}, {off: 7, lo: 0x49, hi: 0x49}, {off: 8, lo: 0x4f, hi: 0x4f}, {off: 9, lo: 0x4e, hi: 0x4e}, {off: 10, lo: 0x2d, hi: 0x2d}, {off: 11, lo: 0x58, hi: 0x58}, {off: 12, lo: 0x46, hi: 0x46}, {off: 13, lo: 0x49, hi: 0x49}, {off: 14, lo: 0x4c, hi: 0x4c}, {off: 15, lo: 0x45, hi: 0x45}, {off: 16, lo: 0x2e, hi: 0x2e}}},
+			carver: "TARGA",
 		},
 	}},
 	{name: "Video", types: []fileSig{
@@ -185,7 +192,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Flash Video", extension: "flv",
 			mime: "video/x-flv", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x46, hi: 0x46}, {off: 1, lo: 0x4c, hi: 0x4c}, {off: 2, lo: 0x56, hi: 0x56}, {off: 3, lo: 0x1, hi: 0x1}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x46, hi: 0x46}, {off: 1, lo: 0x4c, hi: 0x4c}, {off: 2, lo: 0x56, hi: 0x56}, {off: 3, lo: 0x1, hi: 0x1}}},
+			carver: "FLV",
 		},
 		{
 			name: "OGG Video", extension: "ogv,ogm,opus,ogx",
@@ -197,7 +205,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Waveform Audio", extension: "wav",
 			mime: "audio/x-wav", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x52, hi: 0x52}, {off: 1, lo: 0x49, hi: 0x49}, {off: 2, lo: 0x46, hi: 0x46}, {off: 3, lo: 0x46, hi: 0x46}, {off: 8, lo: 0x57, hi: 0x57}, {off: 9, lo: 0x41, hi: 0x41}, {off: 10, lo: 0x56, hi: 0x56}, {off: 11, lo: 0x45, hi: 0x45}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x52, hi: 0x52}, {off: 1, lo: 0x49, hi: 0x49}, {off: 2, lo: 0x46, hi: 0x46}, {off: 3, lo: 0x46, hi: 0x46}, {off: 8, lo: 0x57, hi: 0x57}, {off: 9, lo: 0x41, hi: 0x41}, {off: 10, lo: 0x56, hi: 0x56}, {off: 11, lo: 0x45, hi: 0x45}}},
+			carver: "WAV",
 		},
 		{
 			name: "OGG audio", extension: "ogg",
@@ -212,7 +221,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "MPEG-3 audio", extension: "mp3",
 			mime: "audio/mpeg", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x49, hi: 0x49}, {off: 1, lo: 0x44, hi: 0x44}, {off: 2, lo: 0x33, hi: 0x33}}, {{off: 0, lo: 0xff, hi: 0xff}, {off: 1, lo: 0xfb, hi: 0xfb}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x49, hi: 0x49}, {off: 1, lo: 0x44, hi: 0x44}, {off: 2, lo: 0x33, hi: 0x33}}, {{off: 0, lo: 0xff, hi: 0xff}, {off: 1, lo: 0xfb, hi: 0xfb}}},
+			carver: "MP3",
 		},
 		{
 			name: "MPEG-4 Part 14 audio", extension: "m4a",
@@ -254,7 +264,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Portable Document Format", extension: "pdf",
 			mime: "application/pdf", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x25, hi: 0x25}, {off: 1, lo: 0x50, hi: 0x50}, {off: 2, lo: 0x44, hi: 0x44}, {off: 3, lo: 0x46, hi: 0x46}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x25, hi: 0x25}, {off: 1, lo: 0x50, hi: 0x50}, {off: 2, lo: 0x44, hi: 0x44}, {off: 3, lo: 0x46, hi: 0x46}}},
+			carver: "PDF",
 		},
 		{
 			name: "Portable Document Format (under Base64)", extension: "B64",
@@ -279,7 +290,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Rich Text Format", extension: "rtf",
 			mime: "application/rtf", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x7b, hi: 0x7b}, {off: 1, lo: 0x5c, hi: 0x5c}, {off: 2, lo: 0x72, hi: 0x72}, {off: 3, lo: 0x74, hi: 0x74}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x7b, hi: 0x7b}, {off: 1, lo: 0x5c, hi: 0x5c}, {off: 2, lo: 0x72, hi: 0x72}, {off: 3, lo: 0x74, hi: 0x74}}},
+			carver: "RTF",
 		},
 		{
 			name: "Microsoft Office document/OLE2", extension: "ole2,doc,xls,dot,ppt,xla,ppa,pps,pot,msi,sdw,db,vsd,msg",
@@ -294,7 +306,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Microsoft Office 2007+ document", extension: "docx,xlsx,pptx",
 			mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation", description: "",
-			alts: [][]sigCheck{{{off: 38, lo: 0x5f, hi: 0x5f}, {off: 39, lo: 0x54, hi: 0x54}, {off: 40, lo: 0x79, hi: 0x79}, {off: 41, lo: 0x70, hi: 0x70}, {off: 42, lo: 0x65, hi: 0x65}, {off: 43, lo: 0x73, hi: 0x73}, {off: 44, lo: 0x5d, hi: 0x5d}, {off: 45, lo: 0x2e, hi: 0x2e}, {off: 46, lo: 0x78, hi: 0x78}, {off: 47, lo: 0x6d, hi: 0x6d}, {off: 48, lo: 0x6c, hi: 0x6c}}},
+			alts:   [][]sigCheck{{{off: 38, lo: 0x5f, hi: 0x5f}, {off: 39, lo: 0x54, hi: 0x54}, {off: 40, lo: 0x79, hi: 0x79}, {off: 41, lo: 0x70, hi: 0x70}, {off: 42, lo: 0x65, hi: 0x65}, {off: 43, lo: 0x73, hi: 0x73}, {off: 44, lo: 0x5d, hi: 0x5d}, {off: 45, lo: 0x2e, hi: 0x2e}, {off: 46, lo: 0x78, hi: 0x78}, {off: 47, lo: 0x6d, hi: 0x6d}, {off: 48, lo: 0x6c, hi: 0x6c}}},
+			carver: "ZIP",
 		},
 		{
 			name: "Microsoft Access database", extension: "mdb,mda,mde,mdt,fdb,psa",
@@ -334,29 +347,34 @@ var fileSignatures = []sigCategory{
 		{
 			name: "EPUB e-book", extension: "epub",
 			mime: "application/epub+zip", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x4b, hi: 0x4b}, {off: 2, lo: 0x3, hi: 0x3}, {off: 3, lo: 0x4, hi: 0x4}, {off: 30, lo: 0x6d, hi: 0x6d}, {off: 31, lo: 0x69, hi: 0x69}, {off: 32, lo: 0x6d, hi: 0x6d}, {off: 33, lo: 0x65, hi: 0x65}, {off: 34, lo: 0x74, hi: 0x74}, {off: 35, lo: 0x79, hi: 0x79}, {off: 36, lo: 0x70, hi: 0x70}, {off: 37, lo: 0x65, hi: 0x65}, {off: 38, lo: 0x61, hi: 0x61}, {off: 39, lo: 0x70, hi: 0x70}, {off: 40, lo: 0x70, hi: 0x70}, {off: 41, lo: 0x6c, hi: 0x6c}, {off: 42, lo: 0x69, hi: 0x69}, {off: 43, lo: 0x63, hi: 0x63}, {off: 44, lo: 0x61, hi: 0x61}, {off: 45, lo: 0x74, hi: 0x74}, {off: 46, lo: 0x69, hi: 0x69}, {off: 47, lo: 0x6f, hi: 0x6f}, {off: 48, lo: 0x6e, hi: 0x6e}, {off: 49, lo: 0x2f, hi: 0x2f}, {off: 50, lo: 0x65, hi: 0x65}, {off: 51, lo: 0x70, hi: 0x70}, {off: 52, lo: 0x75, hi: 0x75}, {off: 53, lo: 0x62, hi: 0x62}, {off: 54, lo: 0x2b, hi: 0x2b}, {off: 55, lo: 0x7a, hi: 0x7a}, {off: 56, lo: 0x69, hi: 0x69}, {off: 57, lo: 0x70, hi: 0x70}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x4b, hi: 0x4b}, {off: 2, lo: 0x3, hi: 0x3}, {off: 3, lo: 0x4, hi: 0x4}, {off: 30, lo: 0x6d, hi: 0x6d}, {off: 31, lo: 0x69, hi: 0x69}, {off: 32, lo: 0x6d, hi: 0x6d}, {off: 33, lo: 0x65, hi: 0x65}, {off: 34, lo: 0x74, hi: 0x74}, {off: 35, lo: 0x79, hi: 0x79}, {off: 36, lo: 0x70, hi: 0x70}, {off: 37, lo: 0x65, hi: 0x65}, {off: 38, lo: 0x61, hi: 0x61}, {off: 39, lo: 0x70, hi: 0x70}, {off: 40, lo: 0x70, hi: 0x70}, {off: 41, lo: 0x6c, hi: 0x6c}, {off: 42, lo: 0x69, hi: 0x69}, {off: 43, lo: 0x63, hi: 0x63}, {off: 44, lo: 0x61, hi: 0x61}, {off: 45, lo: 0x74, hi: 0x74}, {off: 46, lo: 0x69, hi: 0x69}, {off: 47, lo: 0x6f, hi: 0x6f}, {off: 48, lo: 0x6e, hi: 0x6e}, {off: 49, lo: 0x2f, hi: 0x2f}, {off: 50, lo: 0x65, hi: 0x65}, {off: 51, lo: 0x70, hi: 0x70}, {off: 52, lo: 0x75, hi: 0x75}, {off: 53, lo: 0x62, hi: 0x62}, {off: 54, lo: 0x2b, hi: 0x2b}, {off: 55, lo: 0x7a, hi: 0x7a}, {off: 56, lo: 0x69, hi: 0x69}, {off: 57, lo: 0x70, hi: 0x70}}},
+			carver: "ZIP",
 		},
 	}},
 	{name: "Applications", types: []fileSig{
 		{
 			name: "Windows Portable Executable", extension: "exe,dll,drv,vxd,sys,ocx,vbx,com,fon,scr",
 			mime: "application/vnd.microsoft.portable-executable", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x4d, hi: 0x4d}, {off: 1, lo: 0x5a, hi: 0x5a}, {off: 3, set: []byte{0x0, 0x1, 0x2}}, {off: 5, set: []byte{0x0, 0x1, 0x2}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x4d, hi: 0x4d}, {off: 1, lo: 0x5a, hi: 0x5a}, {off: 3, set: []byte{0x0, 0x1, 0x2}}, {off: 5, set: []byte{0x0, 0x1, 0x2}}}},
+			carver: "MZPE",
 		},
 		{
 			name: "Executable and Linkable Format", extension: "elf,bin,axf,o,prx,so",
 			mime: "application/x-executable", description: "Executable and Linkable Format file. No standard file extension.",
-			alts: [][]sigCheck{{{off: 0, lo: 0x7f, hi: 0x7f}, {off: 1, lo: 0x45, hi: 0x45}, {off: 2, lo: 0x4c, hi: 0x4c}, {off: 3, lo: 0x46, hi: 0x46}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x7f, hi: 0x7f}, {off: 1, lo: 0x45, hi: 0x45}, {off: 2, lo: 0x4c, hi: 0x4c}, {off: 3, lo: 0x46, hi: 0x46}}},
+			carver: "ELF",
 		},
 		{
 			name: "MacOS Mach-O object", extension: "dylib",
 			mime: "application/octet-stream", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0xca, hi: 0xca}, {off: 1, lo: 0xfe, hi: 0xfe}, {off: 2, lo: 0xba, hi: 0xba}, {off: 3, lo: 0xbe, hi: 0xbe}, {off: 4, lo: 0x0, hi: 0x0}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, lo: 0x0, hi: 0x0}, {off: 7, set: []byte{0x1, 0x2, 0x3}}}, {{off: 0, lo: 0xce, hi: 0xce}, {off: 1, lo: 0xfa, hi: 0xfa}, {off: 2, lo: 0xed, hi: 0xed}, {off: 3, lo: 0xfe, hi: 0xfe}, {off: 4, lo: 0x7, hi: 0x7}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, lo: 0x0, hi: 0x0}, {off: 7, lo: 0x0, hi: 0x0}, {off: 8, set: []byte{0x1, 0x2, 0x3}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0xca, hi: 0xca}, {off: 1, lo: 0xfe, hi: 0xfe}, {off: 2, lo: 0xba, hi: 0xba}, {off: 3, lo: 0xbe, hi: 0xbe}, {off: 4, lo: 0x0, hi: 0x0}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, lo: 0x0, hi: 0x0}, {off: 7, set: []byte{0x1, 0x2, 0x3}}}, {{off: 0, lo: 0xce, hi: 0xce}, {off: 1, lo: 0xfa, hi: 0xfa}, {off: 2, lo: 0xed, hi: 0xed}, {off: 3, lo: 0xfe, hi: 0xfe}, {off: 4, lo: 0x7, hi: 0x7}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, lo: 0x0, hi: 0x0}, {off: 7, lo: 0x0, hi: 0x0}, {off: 8, set: []byte{0x1, 0x2, 0x3}}}},
+			carver: "MACHO",
 		},
 		{
 			name: "MacOS Mach-O 64-bit object", extension: "dylib",
 			mime: "application/octet-stream", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0xcf, hi: 0xcf}, {off: 1, lo: 0xfa, hi: 0xfa}, {off: 2, lo: 0xed, hi: 0xed}, {off: 3, lo: 0xfe, hi: 0xfe}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0xcf, hi: 0xcf}, {off: 1, lo: 0xfa, hi: 0xfa}, {off: 2, lo: 0xed, hi: 0xed}, {off: 3, lo: 0xfe, hi: 0xfe}}},
+			carver: "MACHO",
 		},
 		{
 			name: "Adobe Flash", extension: "swf",
@@ -383,7 +401,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "PKZIP archive", extension: "zip",
 			mime: "application/zip", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x4b, hi: 0x4b}, {off: 2, set: []byte{0x3, 0x5, 0x7}}, {off: 3, set: []byte{0x4, 0x6, 0x8}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x4b, hi: 0x4b}, {off: 2, set: []byte{0x3, 0x5, 0x7}}, {off: 3, set: []byte{0x4, 0x6, 0x8}}}},
+			carver: "ZIP",
 		},
 		{
 			name: "PKZIP archive (under Base64)", extension: "B64",
@@ -393,7 +412,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "TAR archive", extension: "tar",
 			mime: "application/x-tar", description: "",
-			alts: [][]sigCheck{{{off: 257, lo: 0x75, hi: 0x75}, {off: 258, lo: 0x73, hi: 0x73}, {off: 259, lo: 0x74, hi: 0x74}, {off: 260, lo: 0x61, hi: 0x61}, {off: 261, lo: 0x72, hi: 0x72}}},
+			alts:   [][]sigCheck{{{off: 257, lo: 0x75, hi: 0x75}, {off: 258, lo: 0x73, hi: 0x73}, {off: 259, lo: 0x74, hi: 0x74}, {off: 260, lo: 0x61, hi: 0x61}, {off: 261, lo: 0x72, hi: 0x72}}},
+			carver: "TAR",
 		},
 		{
 			name: "Roshal Archive", extension: "rar",
@@ -403,12 +423,14 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Gzip", extension: "gz",
 			mime: "application/gzip", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x1f, hi: 0x1f}, {off: 1, lo: 0x8b, hi: 0x8b}, {off: 2, lo: 0x8, hi: 0x8}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x1f, hi: 0x1f}, {off: 1, lo: 0x8b, hi: 0x8b}, {off: 2, lo: 0x8, hi: 0x8}}},
+			carver: "GZIP",
 		},
 		{
 			name: "Bzip2", extension: "bz2",
 			mime: "application/x-bzip2", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x42, hi: 0x42}, {off: 1, lo: 0x5a, hi: 0x5a}, {off: 2, lo: 0x68, hi: 0x68}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x42, hi: 0x42}, {off: 1, lo: 0x5a, hi: 0x5a}, {off: 2, lo: 0x68, hi: 0x68}}},
+			carver: "BZIP2",
 		},
 		{
 			name: "7zip", extension: "7z",
@@ -418,12 +440,14 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Zlib Deflate", extension: "zlib",
 			mime: "application/x-deflate", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x78, hi: 0x78}, {off: 1, set: []byte{0x1, 0x9c, 0xda, 0x5e}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x78, hi: 0x78}, {off: 1, set: []byte{0x1, 0x9c, 0xda, 0x5e}}}},
+			carver: "Zlib",
 		},
 		{
 			name: "xz compression", extension: "xz",
 			mime: "application/x-xz", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0xfd, hi: 0xfd}, {off: 1, lo: 0x37, hi: 0x37}, {off: 2, lo: 0x7a, hi: 0x7a}, {off: 3, lo: 0x58, hi: 0x58}, {off: 4, lo: 0x5a, hi: 0x5a}, {off: 5, lo: 0x0, hi: 0x0}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0xfd, hi: 0xfd}, {off: 1, lo: 0x37, hi: 0x37}, {off: 2, lo: 0x7a, hi: 0x7a}, {off: 3, lo: 0x58, hi: 0x58}, {off: 4, lo: 0x5a, hi: 0x5a}, {off: 5, lo: 0x0, hi: 0x0}}},
+			carver: "XZ",
 		},
 		{
 			name: "Tarball", extension: "tar.z",
@@ -488,17 +512,20 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Jar Archive", extension: "jar",
 			mime: "application/java-archive", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x4b, hi: 0x4b}, {off: 2, lo: 0x3, hi: 0x3}, {off: 3, lo: 0x4, hi: 0x4}, {off: 4, lo: 0x14, hi: 0x14}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, lo: 0x8, hi: 0x8}, {off: 7, lo: 0x0, hi: 0x0}, {off: 8, lo: 0x8, hi: 0x8}, {off: 9, lo: 0x0, hi: 0x0}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x4b, hi: 0x4b}, {off: 2, lo: 0x3, hi: 0x3}, {off: 3, lo: 0x4, hi: 0x4}, {off: 4, lo: 0x14, hi: 0x14}, {off: 5, lo: 0x0, hi: 0x0}, {off: 6, lo: 0x8, hi: 0x8}, {off: 7, lo: 0x0, hi: 0x0}, {off: 8, lo: 0x8, hi: 0x8}, {off: 9, lo: 0x0, hi: 0x0}}},
+			carver: "ZIP",
 		},
 		{
 			name: "lzop compressed", extension: "lzop,lzo",
 			mime: "application/x-lzop", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x89, hi: 0x89}, {off: 1, lo: 0x4c, hi: 0x4c}, {off: 2, lo: 0x5a, hi: 0x5a}, {off: 3, lo: 0x4f, hi: 0x4f}, {off: 4, lo: 0x0, hi: 0x0}, {off: 5, lo: 0xd, hi: 0xd}, {off: 6, lo: 0xa, hi: 0xa}, {off: 7, lo: 0x1a, hi: 0x1a}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x89, hi: 0x89}, {off: 1, lo: 0x4c, hi: 0x4c}, {off: 2, lo: 0x5a, hi: 0x5a}, {off: 3, lo: 0x4f, hi: 0x4f}, {off: 4, lo: 0x0, hi: 0x0}, {off: 5, lo: 0xd, hi: 0xd}, {off: 6, lo: 0xa, hi: 0xa}, {off: 7, lo: 0x1a, hi: 0x1a}}},
+			carver: "LZOP",
 		},
 		{
 			name: "Linux deb package", extension: "deb",
 			mime: "application/vnd.debian.binary-package", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x21, hi: 0x21}, {off: 1, lo: 0x3c, hi: 0x3c}, {off: 2, lo: 0x61, hi: 0x61}, {off: 3, lo: 0x72, hi: 0x72}, {off: 4, lo: 0x63, hi: 0x63}, {off: 5, lo: 0x68, hi: 0x68}, {off: 6, lo: 0x3e, hi: 0x3e}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x21, hi: 0x21}, {off: 1, lo: 0x3c, hi: 0x3c}, {off: 2, lo: 0x61, hi: 0x61}, {off: 3, lo: 0x72, hi: 0x72}, {off: 4, lo: 0x63, hi: 0x63}, {off: 5, lo: 0x68, hi: 0x68}, {off: 6, lo: 0x3e, hi: 0x3e}}},
+			carver: "DEB",
 		},
 		{
 			name: "Apple Disk Image", extension: "dmg",
@@ -550,7 +577,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "SQLite", extension: "sqlite",
 			mime: "application/x-sqlite3", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x53, hi: 0x53}, {off: 1, lo: 0x51, hi: 0x51}, {off: 2, lo: 0x4c, hi: 0x4c}, {off: 3, lo: 0x69, hi: 0x69}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x53, hi: 0x53}, {off: 1, lo: 0x51, hi: 0x51}, {off: 2, lo: 0x4c, hi: 0x4c}, {off: 3, lo: 0x69, hi: 0x69}}},
+			carver: "SQLITE",
 		},
 		{
 			name: "BitTorrent link", extension: "torrent",
@@ -580,32 +608,38 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Windows Event Log", extension: "evt",
 			mime: "application/octet-stream", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x30, hi: 0x30}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x0, hi: 0x0}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, lo: 0x4c, hi: 0x4c}, {off: 5, lo: 0x66, hi: 0x66}, {off: 6, lo: 0x4c, hi: 0x4c}, {off: 7, lo: 0x65, hi: 0x65}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x30, hi: 0x30}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x0, hi: 0x0}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, lo: 0x4c, hi: 0x4c}, {off: 5, lo: 0x66, hi: 0x66}, {off: 6, lo: 0x4c, hi: 0x4c}, {off: 7, lo: 0x65, hi: 0x65}}},
+			carver: "EVT",
 		},
 		{
 			name: "Windows Event Log", extension: "evtx",
 			mime: "application/octet-stream", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x45, hi: 0x45}, {off: 1, lo: 0x6c, hi: 0x6c}, {off: 2, lo: 0x66, hi: 0x66}, {off: 3, lo: 0x46, hi: 0x46}, {off: 4, lo: 0x69, hi: 0x69}, {off: 5, lo: 0x6c, hi: 0x6c}, {off: 6, lo: 0x65, hi: 0x65}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x45, hi: 0x45}, {off: 1, lo: 0x6c, hi: 0x6c}, {off: 2, lo: 0x66, hi: 0x66}, {off: 3, lo: 0x46, hi: 0x46}, {off: 4, lo: 0x69, hi: 0x69}, {off: 5, lo: 0x6c, hi: 0x6c}, {off: 6, lo: 0x65, hi: 0x65}}},
+			carver: "EVTX",
 		},
 		{
 			name: "Windows Pagedump", extension: "dmp",
 			mime: "application/octet-stream", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x41, hi: 0x41}, {off: 2, lo: 0x47, hi: 0x47}, {off: 3, lo: 0x45, hi: 0x45}, {off: 4, lo: 0x44, hi: 0x44}, {off: 5, lo: 0x55, hi: 0x55}, {off: 6, set: []byte{0x4d, 0x36}}, {off: 7, set: []byte{0x50, 0x34}}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x50, hi: 0x50}, {off: 1, lo: 0x41, hi: 0x41}, {off: 2, lo: 0x47, hi: 0x47}, {off: 3, lo: 0x45, hi: 0x45}, {off: 4, lo: 0x44, hi: 0x44}, {off: 5, lo: 0x55, hi: 0x55}, {off: 6, set: []byte{0x4d, 0x36}}, {off: 7, set: []byte{0x50, 0x34}}}},
+			carver: "DMP",
 		},
 		{
 			name: "Windows Prefetch", extension: "pf",
 			mime: "application/x-pf", description: "",
-			alts: [][]sigCheck{{{off: 0, set: []byte{0x11, 0x17, 0x1a}}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x0, hi: 0x0}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, lo: 0x53, hi: 0x53}, {off: 5, lo: 0x43, hi: 0x43}, {off: 6, lo: 0x43, hi: 0x43}, {off: 7, lo: 0x41, hi: 0x41}}},
+			alts:   [][]sigCheck{{{off: 0, set: []byte{0x11, 0x17, 0x1a}}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x0, hi: 0x0}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, lo: 0x53, hi: 0x53}, {off: 5, lo: 0x43, hi: 0x43}, {off: 6, lo: 0x43, hi: 0x43}, {off: 7, lo: 0x41, hi: 0x41}}},
+			carver: "PF",
 		},
 		{
 			name: "Windows Prefetch (Win 10)", extension: "pf",
 			mime: "application/x-pf", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x4d, hi: 0x4d}, {off: 1, lo: 0x41, hi: 0x41}, {off: 2, lo: 0x4d, hi: 0x4d}, {off: 3, lo: 0x4, hi: 0x4}, {off: 7, lo: 0x0, hi: 0x0}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x4d, hi: 0x4d}, {off: 1, lo: 0x41, hi: 0x41}, {off: 2, lo: 0x4d, hi: 0x4d}, {off: 3, lo: 0x4, hi: 0x4}, {off: 7, lo: 0x0, hi: 0x0}}},
+			carver: "PFWin10",
 		},
 		{
 			name: "PList (XML)", extension: "plist",
 			mime: "application/xml", description: "",
-			alts: [][]sigCheck{{{off: 39, lo: 0x3c, hi: 0x3c}, {off: 40, lo: 0x21, hi: 0x21}, {off: 41, lo: 0x44, hi: 0x44}, {off: 42, lo: 0x4f, hi: 0x4f}, {off: 43, lo: 0x43, hi: 0x43}, {off: 44, lo: 0x54, hi: 0x54}, {off: 45, lo: 0x59, hi: 0x59}, {off: 46, lo: 0x50, hi: 0x50}, {off: 47, lo: 0x45, hi: 0x45}, {off: 48, lo: 0x20, hi: 0x20}, {off: 49, lo: 0x70, hi: 0x70}, {off: 50, lo: 0x6c, hi: 0x6c}, {off: 51, lo: 0x69, hi: 0x69}, {off: 52, lo: 0x73, hi: 0x73}, {off: 53, lo: 0x74, hi: 0x74}}},
+			alts:   [][]sigCheck{{{off: 39, lo: 0x3c, hi: 0x3c}, {off: 40, lo: 0x21, hi: 0x21}, {off: 41, lo: 0x44, hi: 0x44}, {off: 42, lo: 0x4f, hi: 0x4f}, {off: 43, lo: 0x43, hi: 0x43}, {off: 44, lo: 0x54, hi: 0x54}, {off: 45, lo: 0x59, hi: 0x59}, {off: 46, lo: 0x50, hi: 0x50}, {off: 47, lo: 0x45, hi: 0x45}, {off: 48, lo: 0x20, hi: 0x20}, {off: 49, lo: 0x70, hi: 0x70}, {off: 50, lo: 0x6c, hi: 0x6c}, {off: 51, lo: 0x69, hi: 0x69}, {off: 52, lo: 0x73, hi: 0x73}, {off: 53, lo: 0x74, hi: 0x74}}},
+			carver: "PListXML",
 		},
 		{
 			name: "PList (binary)", extension: "bplist,plist,ipmeta,abcdp,mdbackup,mdinfo,strings,nib,ichat,qtz,webbookmark,webhistory",
@@ -615,7 +649,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "MacOS X Keychain", extension: "keychain",
 			mime: "application/octet-stream", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x6b, hi: 0x6b}, {off: 1, lo: 0x79, hi: 0x79}, {off: 2, lo: 0x63, hi: 0x63}, {off: 3, lo: 0x68, hi: 0x68}, {off: 4, lo: 0x0, hi: 0x0}, {off: 5, lo: 0x1, hi: 0x1}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x6b, hi: 0x6b}, {off: 1, lo: 0x79, hi: 0x79}, {off: 2, lo: 0x63, hi: 0x63}, {off: 3, lo: 0x68, hi: 0x68}, {off: 4, lo: 0x0, hi: 0x0}, {off: 5, lo: 0x1, hi: 0x1}}},
+			carver: "MacOSXKeychain",
 		},
 		{
 			name: "TCP Packet", extension: "tcp",
@@ -675,7 +710,8 @@ var fileSignatures = []sigCategory{
 		{
 			name: "Windows Shortcut", extension: "lnk",
 			mime: "application/x-ms-shortcut", description: "",
-			alts: [][]sigCheck{{{off: 0, lo: 0x4c, hi: 0x4c}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x0, hi: 0x0}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, lo: 0x1, hi: 0x1}, {off: 5, lo: 0x14, hi: 0x14}, {off: 6, lo: 0x2, hi: 0x2}, {off: 7, lo: 0x0, hi: 0x0}, {off: 8, lo: 0x0, hi: 0x0}, {off: 9, lo: 0x0, hi: 0x0}, {off: 10, lo: 0x0, hi: 0x0}, {off: 11, lo: 0x0, hi: 0x0}, {off: 12, lo: 0xc0, hi: 0xc0}, {off: 13, lo: 0x0, hi: 0x0}, {off: 14, lo: 0x0, hi: 0x0}, {off: 15, lo: 0x0, hi: 0x0}, {off: 16, lo: 0x0, hi: 0x0}, {off: 17, lo: 0x0, hi: 0x0}, {off: 18, lo: 0x0, hi: 0x0}, {off: 19, lo: 0x46, hi: 0x46}}},
+			alts:   [][]sigCheck{{{off: 0, lo: 0x4c, hi: 0x4c}, {off: 1, lo: 0x0, hi: 0x0}, {off: 2, lo: 0x0, hi: 0x0}, {off: 3, lo: 0x0, hi: 0x0}, {off: 4, lo: 0x1, hi: 0x1}, {off: 5, lo: 0x14, hi: 0x14}, {off: 6, lo: 0x2, hi: 0x2}, {off: 7, lo: 0x0, hi: 0x0}, {off: 8, lo: 0x0, hi: 0x0}, {off: 9, lo: 0x0, hi: 0x0}, {off: 10, lo: 0x0, hi: 0x0}, {off: 11, lo: 0x0, hi: 0x0}, {off: 12, lo: 0xc0, hi: 0xc0}, {off: 13, lo: 0x0, hi: 0x0}, {off: 14, lo: 0x0, hi: 0x0}, {off: 15, lo: 0x0, hi: 0x0}, {off: 16, lo: 0x0, hi: 0x0}, {off: 17, lo: 0x0, hi: 0x0}, {off: 18, lo: 0x0, hi: 0x0}, {off: 19, lo: 0x46, hi: 0x46}}},
+			carver: "LNK",
 		},
 		{
 			name: "Bash", extension: "bash",

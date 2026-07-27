@@ -78,6 +78,7 @@ var opSummaries = map[string]string{
 	"Cover Image":                     "Fills a box with an image, cropping the overflow",
 	"Crop Image":                      "Crops an image to a region or auto-crops edges",
 	"Detect File Type":                "Guesses a file's MIME type from its magic bytes",
+	"Extract Files":                   "Carves embedded files out of the input",
 	"Generate Image":                  "Builds an image from the input bytes as pixel values",
 	"Image Hue/Saturation/Lightness":  "Adjusts an image's hue, saturation and lightness",
 	"Analyse UUID":                    "Reads the version and metadata out of a UUID",

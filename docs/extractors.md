@@ -14,6 +14,7 @@ Operations documented in full below are grouped here.
 | --- | --- | --- |
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
+| Extract Files | `extract-files` | [File carving](https://forensics.wiki/file_carving) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
 | JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
@@ -76,6 +77,103 @@ Output:
 
 ```
 <a href="/x" class="nav">1</a> | <a href="/y" class="nav">3</a>
+```
+
+## Extract Files
+
+Scans the input for file signatures and cuts out every embedded file it finds —
+file carving. Unlike [Detect File Type](forensics.md#detect-file-type), which
+only asks what the input *starts* with, this searches the whole buffer, so it
+recovers files appended to one another, embedded in a document, or left in slack
+space.
+
+Because it produces several files rather than one output stream, it must be the
+last step in a recipe and needs `--out-dir` to write them into. Each file is
+named `extracted_at_0x<offset>.<extension>`, where the offset is where its
+signature matched.
+
+Signatures are recognised for around 140 formats, but only some can be cut out:
+carving needs an algorithm that knows where that format ends. A recognised
+format with no carving algorithm is passed over silently.
+
+The 34 that can be carved are the same set CyberChef advertises, each listed
+under every extension it goes by:
+
+| | | |
+| --- | --- | --- |
+| `JPG,JPEG,JPE,THM,MPO` | `ZIP` | `EVT` |
+| `GIF` | `TAR` | `EVTX` |
+| `PNG` | `GZ` | `DMP` |
+| `WEBP` | `BZ2` | `PF` |
+| `BMP` | `ZLIB` | `PLIST` |
+| `ICO` | `XZ` | `KEYCHAIN` |
+| `TGA` | `JAR` | `LNK` |
+| `FLV` | `LZOP,LZO` | `DOCX,XLSX,PPTX` |
+| `WAV` | `DEB` | `EPUB` |
+| `MP3` | `SQLITE` | `DYLIB` |
+| `PDF` | `EXE,DLL,DRV,VXD,SYS,OCX,VBX,COM,FON,SCR` | |
+| `RTF` | `ELF,BIN,AXF,O,PRX,SO` | |
+
+Several of these share one algorithm — a `DOCX`, `EPUB` and `JAR` are all ZIP
+archives, and every name in the `EXE` row is a Windows portable executable — so
+the 34 entries are carved by 32 distinct algorithms.
+
+One caveat. `PF` covers two formats: the pre-Windows 10 prefetch file, which
+records its length and is carved exactly, and the Windows 10 one, which is
+compressed and records only the size its contents take once expanded. Nothing in
+the latter says how long the compressed data is, so its end cannot be found
+without decompressing it; cchef reports that rather than guessing. CyberChef
+advertises it too, but reads the file's `MAM` signature as a big-endian length
+and fails out of bounds.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Images | boolean | `true` | Search for image signatures. |
+| Video | boolean | `true` | Search for video signatures. |
+| Audio | boolean | `true` | Search for audio signatures. |
+| Documents | boolean | `true` | Search for document signatures. |
+| Applications | boolean | `true` | Search for executable signatures. |
+| Archives | boolean | `true` | Search for archive and compressed-stream signatures. |
+| Miscellaneous | boolean | `false` | Off by default: these signatures are short and match often by chance. |
+| Ignore failed extractions | boolean | `true` | When off, a signature that matches but cannot be carved is reported as an error instead of being dropped. |
+| Minimum File Size | number | `100` | Carved files smaller than this are discarded, which prunes small false positives. |
+
+Note that the same bytes can match more than one signature, and a signature can
+match inside another file's data — an archive's members are often found as
+separate streams. Both are expected: carving reports candidates, and the
+`Minimum File Size` floor is the first line of defence against noise.
+
+### Simple example
+
+Given `report.bin`, a PNG with a ZIP archive appended to it:
+
+```bash
+cchef extract-files --in-file report.bin --out-dir carved
+```
+
+Output:
+
+```
+carved/extracted_at_0x0.png
+carved/extracted_at_0x159.zip
+carved/extracted_at_0x1d5.zip
+```
+
+Both the archive and the second member's local header inside it are reported;
+the first is the whole archive.
+
+### Complex example
+
+Restrict the scan to images, so the archive is passed over:
+
+```bash
+cchef extract-files --in-file report.bin --out-dir carved --archives=false --documents=false --applications=false --audio=false --video=false
+```
+
+Output:
+
+```
+carved/extracted_at_0x0.png
 ```
 
 ## JPath expression
