@@ -266,7 +266,7 @@ func risonQuote(x string) string {
 	if risonURISafe(x) {
 		return x
 	}
-	e := risonEncodeURIComponent(x)
+	e := jsEncodeURIComponent(x)
 	for _, r := range []struct{ from, to string }{
 		{"%2C", ","}, {"%3A", ":"}, {"%40", "@"}, {"%24", "$"}, {"%2F", "/"}, {"%20", "+"},
 	} {
@@ -286,25 +286,6 @@ func risonURISafe(x string) bool {
 		return false
 	}
 	return true
-}
-
-// risonEncodeURIComponent mirrors JavaScript's encodeURIComponent (percent-encode
-// every byte except the RFC 2396 "unreserved" set and a few marks).
-func risonEncodeURIComponent(s string) string {
-	const keep = "-_.!~*'()"
-	const hexDigits = "0123456789ABCDEF"
-	var b strings.Builder
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || strings.IndexByte(keep, c) >= 0 {
-			b.WriteByte(c)
-			continue
-		}
-		b.WriteByte('%')
-		b.WriteByte(hexDigits[c>>4])
-		b.WriteByte(hexDigits[c&0x0f])
-	}
-	return b.String()
 }
 
 // --- parser (port of rison.parser) --------------------------------------------

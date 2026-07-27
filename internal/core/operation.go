@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"math"
 	"slices"
 )
 
@@ -39,6 +40,8 @@ type ArgDef struct {
 	DefaultIndex int      // for ArgOption: index of the default choice
 	Min          *float64 // optional numeric lower bound
 	Max          *float64 // optional numeric upper bound
+	Integer      bool     // for ArgNumber: the value must be a whole number
+	NonEmpty     bool     // for string arguments: the value may not be empty
 	ToggleValues []string // modes for ArgToggleString
 }
 
@@ -95,6 +98,9 @@ func CoerceArg(def ArgDef, value any) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("arg %q: expected string, got %T", def.Name, value)
 		}
+		if def.NonEmpty && s == "" {
+			return nil, fmt.Errorf("arg %q: cannot be empty", def.Name)
+		}
 		return s, nil
 
 	case ArgNumber:
@@ -123,6 +129,9 @@ func coerceNumber(def ArgDef, value any) (any, error) {
 	n, err := toFloat(value)
 	if err != nil {
 		return nil, fmt.Errorf("arg %q: %w", def.Name, err)
+	}
+	if def.Integer && n != math.Trunc(n) {
+		return nil, fmt.Errorf("arg %q: %v is not a whole number", def.Name, n)
 	}
 	if def.Min != nil && n < *def.Min {
 		return nil, fmt.Errorf("arg %q: %v below minimum %v", def.Name, n, *def.Min)

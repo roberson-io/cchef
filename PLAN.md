@@ -450,7 +450,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 431
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 435
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -463,7 +463,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **431 operations** (`internal/ops/`), each a faithful port with tests
+- **435 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -553,7 +553,7 @@ cchef list                                   # discover operations
 
 **Status: proposal — not started.** `internal/ops` is a single flat Go package
 that has grown to **615 files / 118k LOC** (322 non-test at 78k LOC, 293 test at
-40k LOC) implementing the ~431 registered operations. Nothing about it is broken;
+40k LOC) implementing the ~435 registered operations. Nothing about it is broken;
 the concern is navigability and build/test granularity. The figures below come
 from an AST-level cross-file reference analysis of the package (July 2026) and
 will drift as operations are added — re-measure before acting on them.
@@ -767,9 +767,9 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **428 unique** CyberChef operations are covered (427 directly plus
+Currently **432 unique** CyberChef operations are covered (431 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
-which is where the 431 cchef subcommands come from.
+which is where the 435 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
@@ -1400,9 +1400,9 @@ which is where the 431 cchef subcommands come from.
 - [x] Sharpen Image
 - [x] Split Colour Channels
 
-### Other (9/22)
+### Other (13/22)
 
-- [ ] Analyse UUID
+- [x] Analyse UUID
 - [ ] Automated Validation Test Op
 - [x] Chi Square
 - [x] Disassemble ARM
@@ -1410,11 +1410,11 @@ which is where the 431 cchef subcommands come from.
 - [x] Entropy
 - [x] Frequency distribution
 - [ ] Generate De Bruijn Sequence
-- [ ] Generate HOTP
+- [x] Generate HOTP
 - [ ] Generate Lorem Ipsum
 - [x] Generate QR Code
-- [ ] Generate TOTP
-- [ ] Generate UUID
+- [x] Generate TOTP
+- [x] Generate UUID
 - [ ] Haversine distance
 - [ ] HTML To Text
 - [x] Index of Coincidence

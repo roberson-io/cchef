@@ -124,6 +124,42 @@ func TestCoerceArgStringTypes(t *testing.T) {
 	}
 }
 
+// TestCoerceArgInteger covers the whole-number constraint, which CyberChef
+// declares as `integer: true` on a number ingredient.
+func TestCoerceArgInteger(t *testing.T) {
+	def := ArgDef{Name: "Code length", Type: ArgNumber, Value: 6, Integer: true}
+	if _, err := CoerceArg(def, float64(6)); err != nil {
+		t.Fatalf("whole number rejected: %v", err)
+	}
+	if _, err := CoerceArg(def, float64(-3)); err != nil {
+		t.Fatalf("negative whole number rejected: %v", err)
+	}
+	if _, err := CoerceArg(def, 6.5); err == nil {
+		t.Fatal("expected a fractional value to be rejected")
+	}
+	if _, err := CoerceArg(ArgDef{Name: "n", Type: ArgNumber}, 6.5); err != nil {
+		t.Fatalf("fractional value rejected without the constraint: %v", err)
+	}
+}
+
+// TestCoerceArgNonEmpty covers the constraint CyberChef writes as
+// `allowEmpty: false`. Leaving it off keeps a string argument permissive, which
+// is what every other operation expects.
+func TestCoerceArgNonEmpty(t *testing.T) {
+	for _, ty := range []ArgType{ArgString, ArgEditableOption} {
+		def := ArgDef{Name: "Name", Type: ty, Value: "Account", NonEmpty: true}
+		if _, err := CoerceArg(def, "Account"); err != nil {
+			t.Fatalf("%s: filled value rejected: %v", ty, err)
+		}
+		if _, err := CoerceArg(def, ""); err == nil {
+			t.Fatalf("%s: expected an empty value to be rejected", ty)
+		}
+		if _, err := CoerceArg(ArgDef{Name: "S", Type: ty, Value: ""}, ""); err != nil {
+			t.Fatalf("%s: empty value rejected without the constraint: %v", ty, err)
+		}
+	}
+}
+
 // TestCoerceArgUnknownType covers the default arm for an unrecognised ArgType.
 func TestCoerceArgUnknownType(t *testing.T) {
 	def := ArgDef{Name: "X", Type: ArgType("bogus")}

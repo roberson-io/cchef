@@ -1,21 +1,91 @@
 # Other
 
-Operations that do not fit CyberChef's other categories: the disassemblers and
-the pseudo-random generator.
+Operations that do not fit CyberChef's other categories: the disassemblers, the
+pseudo-random generator, identifiers and one-time passwords.
 
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
+| Analyse UUID | `analyse-uuid` | [Universally unique identifier](https://wikipedia.org/wiki/Universally_unique_identifier) |
 | Chi Square | `chi-square` | [Chi-squared distribution](https://wikipedia.org/wiki/Chi-squared_distribution) |
 | Disassemble ARM | `disassemble-arm` | [ARM architecture family](https://wikipedia.org/wiki/ARM_architecture_family) |
 | Disassemble x86 | `disassemble-x86` | [x86](https://wikipedia.org/wiki/X86) |
 | Entropy | `entropy` | [Entropy (information theory)](https://wikipedia.org/wiki/Entropy_(information_theory)) |
 | Frequency distribution | `frequency-distribution` | [Frequency distribution](https://wikipedia.org/wiki/Frequency_distribution) |
+| Generate HOTP | `generate-hotp` | [HMAC-based One-time Password algorithm](https://wikipedia.org/wiki/HMAC-based_One-time_Password_algorithm) |
 | Generate QR Code | `generate-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
+| Generate TOTP | `generate-totp` | [Time-based One-time Password algorithm](https://wikipedia.org/wiki/Time-based_One-time_Password_algorithm) |
+| Generate UUID | `generate-uuid` | [Universally unique identifier](https://wikipedia.org/wiki/Universally_unique_identifier) |
 | Index of Coincidence | `index-of-coincidence` | [Index of coincidence](https://wikipedia.org/wiki/Index_of_coincidence) |
 | Parse QR Code | `parse-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
 | Pseudo-Random Number Generator | `pseudo-random-number-generator` | [Cryptographically secure PRNG](https://wikipedia.org/wiki/Cryptographically-secure_pseudorandom_number_generator) |
+
+## Analyse UUID
+
+Reads a [UUID](https://wikipedia.org/wiki/Universally_unique_identifier) and
+reports what it carries: the version, the 128-bit value as a decimal integer,
+and — for the versions that embed one — the moment it was made.
+
+Versions 1 and 6 hold a timestamp, a node identifier and a clock sequence.
+Version 7 holds a timestamp and two stretches of randomness. Every other version
+holds nothing to read back.
+
+Only versions 1 to 8 with a standard variant digit are accepted, along with the
+nil and max UUIDs the standard reserves. Surrounding whitespace is ignored and
+either case is read.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--include-metadata` | boolean | `true` | Report the timestamp and the other embedded fields |
+
+**Example**
+
+```bash
+cchef analyse-uuid -i "cefa1760-28ee-11f1-9f95-1fb76af3e239"
+```
+
+Output:
+
+```
+Version:
+1
+
+Timestamp:
+1774514156502
+
+Timestamp (ISO):
+2026-03-26T08:35:56.502Z
+
+Node:
+1F:B7:6A:F3:E2:39
+
+Clock:
+8085
+
+UUID Integer:
+275119515460318071558429785403790975545
+```
+
+**Complex example**
+
+A version 7 UUID, with the metadata left out:
+
+```bash
+cchef analyse-uuid --include-metadata=false -i "019d294a-af64-7728-9524-26da08f50708"
+```
+
+Output:
+
+```
+Version:
+7
+
+UUID Integer:
+2145256098533991595556290452700595976
+```
+
+---
 
 ## Chi Square
 
@@ -256,6 +326,60 @@ Number of bytes not represented: 252
 
 ---
 
+## Generate HOTP
+
+Works out an
+[HMAC-based one-time password](https://wikipedia.org/wiki/HMAC-based_One-time_Password_algorithm)
+(RFC 4226) from a shared secret and a counter, and reports the `otpauth://` key
+URI alongside it so an authenticator app can be set up from the same output.
+
+The input is the secret, written in base32 (characters A–Z and 2–7). Case and
+spacing are ignored, and trailing padding is dropped. Leave the input empty for
+a secret to be drawn at random.
+
+The secret shown in the URI is the secret as it reads back, which is not always
+what was typed: padding is gone, case is levelled, and a group at the end too
+short to make a whole byte is dropped.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--name` | string | `Account` | The account name that appears in the URI |
+| `--code-length` | number | `6` | Digits in the password, from 6 to 8 |
+| `--counter` | number | `0` | The counter the password is worked out for |
+
+**Example**
+
+```bash
+cchef generate-hotp -i "JBSWY3DPEHPK3PXP"
+```
+
+Output:
+
+```
+URI: otpauth://hotp/Account?secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&counter=0
+
+Password: 282760
+```
+
+**Complex example**
+
+An eight-digit password at counter 42, under a name that needs escaping in the
+URI:
+
+```bash
+cchef generate-hotp --name "user@example.com" --code-length 8 --counter 42 -i "JBSWY3DPEHPK3PXP"
+```
+
+Output:
+
+```
+URI: otpauth://hotp/user%40example.com?secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=8&counter=42
+
+Password: 79090604
+```
+
+---
+
 ## Generate QR Code
 
 Generates a Quick Response (QR) code from the input text, as a raster or vector
@@ -314,6 +438,106 @@ Output (truncated):
 %%BoundingBox: 0 0 261 261
 /h { 0 rlineto } bind def
 ...
+```
+
+---
+
+## Generate TOTP
+
+Works out a
+[time-based one-time password](https://wikipedia.org/wiki/Time-based_One-time_Password_algorithm)
+(RFC 6238) from a shared secret and the current time, and reports the
+`otpauth://` key URI alongside it.
+
+The secret is given and read exactly as for [Generate HOTP](#generate-hotp); the
+counter is taken from the clock instead, as the number of whole intervals since
+the Unix epoch.
+
+> **Note:** the epoch offset (T0) is accepted but has no effect. This matches
+> CyberChef, which hands the offset to a version of its library that has no such
+> setting, and the setting is quietly dropped. The password moves with the clock,
+> so the one below will differ each time it is run.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--name` | string | `Account` | The account name that appears in the URI |
+| `--code-length` | number | `6` | Digits in the password, from 6 to 8 |
+| `--epoch-offset-t0` | number | `0` | Accepted, but has no effect |
+| `--interval-t1` | number | `30` | Seconds each password stands for |
+
+**Example**
+
+```bash
+cchef generate-totp -i "JBSWY3DPEHPK3PXP"
+```
+
+Output:
+
+```
+URI: otpauth://totp/Account?secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&period=30
+
+Password: 687643
+```
+
+**Complex example**
+
+An eight-digit password that changes every ninety seconds:
+
+```bash
+cchef generate-totp --name "user@example.com" --code-length 8 --interval-t1 90 -i "JBSWY3DPEHPK3PXP"
+```
+
+Output:
+
+```
+URI: otpauth://totp/user%40example.com?secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=8&period=90
+
+Password: 36412949
+```
+
+---
+
+## Generate UUID
+
+Generates a [UUID](https://wikipedia.org/wiki/Universally_unique_identifier)
+(RFC 9562, formerly RFC 4122), also known as a GUID.
+
+Versions 3 and 5 hash the input under the namespace given, so the same pair
+always produces the same UUID; version 3 hashes with MD5 and version 5 with
+SHA-1. The remaining versions ignore the input: 1 and 6 are timestamp-based, 4
+is random throughout, and 7 counts milliseconds since the Unix epoch and sorts
+by the order it was made in.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--version` | option | `v4` | One of `v1`, `v3`, `v4`, `v5`, `v6`, `v7` |
+| `--namespace` | string | `1b671a64-40d5-491e-99b0-da01ff1f3341` | The namespace to hash under, for `v3` and `v5` only |
+
+**Example**
+
+```bash
+cchef generate-uuid
+```
+
+Output:
+
+```
+5e67f9ac-2944-4edc-b225-f7fbb4056f75
+```
+
+**Complex example**
+
+A version 3 UUID for a host name, under the standard DNS namespace. The answer
+is the same every time:
+
+```bash
+cchef generate-uuid --version v3 --namespace "6ba7b810-9dad-11d1-80b4-00c04fd430c8" -i "www.example.com"
+```
+
+Output:
+
+```
+5df41881-3aed-3515-88a7-2f4a814cf09e
 ```
 
 ---
