@@ -143,10 +143,11 @@ func (FromBase85) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (FromBase85) Args() []core.ArgDef {
+	oneCharacter := 1
 	return []core.ArgDef{
 		{Name: "Alphabet", Type: core.ArgEditableOption, Value: base85Standard},
 		{Name: "Remove non-alphabet chars", Type: core.ArgBoolean, Value: true},
-		{Name: "All-zero group char", Type: core.ArgString, Value: "z"},
+		{Name: "All-zero group char", Type: core.ArgString, Value: "z", MaxLength: &oneCharacter},
 	}
 }
 

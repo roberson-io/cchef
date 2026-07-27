@@ -60,7 +60,7 @@ func TestExecuteErrorPaths(t *testing.T) {
 		{"missing recipe file", []string{"bake", "-r", missing, "hello"}, "no such file"},
 		{"broken JSON recipe", []string{"bake", "-e", `[{"op":`, "hello"}, "parse JSON recipe"},
 		{"unknown operation", []string{"bake", "-e", `[{"op":"Nonexistent Op","args":[]}]`, "hello"}, "unknown operation"},
-		{"bad arg type", []string{"bake", "-e", `[{"op":"To Base64","args":[123]}]`, "hello"}, "expected string"},
+		{"bad arg type", []string{"bake", "-e", `[{"op":"To Base64","args":[123]}]`, "hello"}, "Alphabet must be text."},
 		{"convert unknown target", []string{"recipe", "convert", "-e", "To_Hex()", "--to", "xml"}, "unknown target format"},
 		{"missing input file", []string{"reverse", "--in-file", missing}, "no such file"},
 	}

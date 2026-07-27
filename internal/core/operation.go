@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strings"
+
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // ArgType mirrors CyberChef's ingredient types (src/core/Ingredient.mjs). The
@@ -42,6 +45,7 @@ type ArgDef struct {
 	Max          *float64 // optional numeric upper bound
 	Integer      bool     // for ArgNumber: the value must be a whole number
 	NonEmpty     bool     // for string arguments: the value may not be empty
+	MaxLength    *int     // optional cap on the length of a string argument
 	ToggleValues []string // modes for ArgToggleString
 }
 
@@ -94,14 +98,7 @@ func DefaultArgs(defs []ArgDef) []any {
 func CoerceArg(def ArgDef, value any) (any, error) {
 	switch def.Type {
 	case ArgString, ArgEditableOption:
-		s, ok := value.(string)
-		if !ok {
-			return nil, fmt.Errorf("arg %q: expected string, got %T", def.Name, value)
-		}
-		if def.NonEmpty && s == "" {
-			return nil, fmt.Errorf("arg %q: cannot be empty", def.Name)
-		}
-		return s, nil
+		return coerceString(def, value)
 
 	case ArgNumber:
 		return coerceNumber(def, value)
@@ -109,7 +106,7 @@ func CoerceArg(def ArgDef, value any) (any, error) {
 	case ArgBoolean:
 		b, ok := value.(bool)
 		if !ok {
-			return nil, fmt.Errorf("arg %q: expected boolean, got %T", def.Name, value)
+			return nil, fmt.Errorf("%s must be true or false.", def.Name) //nolint:staticcheck,revive // reported to the user as a sentence
 		}
 		return b, nil
 
@@ -124,20 +121,41 @@ func CoerceArg(def ArgDef, value any) (any, error) {
 	}
 }
 
-// coerceNumber coerces value to a float64 and enforces the optional Min/Max.
+// coerceString checks a string argument against the limits on its length.
+func coerceString(def ArgDef, value any) (any, error) {
+	s, ok := value.(string)
+	if !ok {
+		return nil, errMustBeText(def.Name)
+	}
+	if def.NonEmpty && s == "" {
+		return nil, errCannotBeEmpty(def.Name)
+	}
+	// The limit counts characters as JavaScript does, which is UTF-16 units.
+	if def.MaxLength != nil && utf16Len(s) > *def.MaxLength {
+		//nolint:staticcheck,revive // reported to the user as a sentence
+		return nil, fmt.Errorf("%s length cannot exceed %d.", def.Name, *def.MaxLength)
+	}
+	return s, nil
+}
+
+// coerceNumber coerces value to a float64 and enforces the optional bounds.
 func coerceNumber(def ArgDef, value any) (any, error) {
 	n, err := toFloat(value)
 	if err != nil {
-		return nil, fmt.Errorf("arg %q: %w", def.Name, err)
+		//nolint:staticcheck,revive // reported to the user as a sentence
+		return nil, fmt.Errorf("%s must be a number.", def.Name)
 	}
 	if def.Integer && n != math.Trunc(n) {
-		return nil, fmt.Errorf("arg %q: %v is not a whole number", def.Name, n)
+		//nolint:staticcheck,revive // reported to the user as a sentence
+		return nil, fmt.Errorf("%s must be an integer.", def.Name)
 	}
 	if def.Min != nil && n < *def.Min {
-		return nil, fmt.Errorf("arg %q: %v below minimum %v", def.Name, n, *def.Min)
+		//nolint:staticcheck,revive // reported to the user as a sentence
+		return nil, fmt.Errorf("%s must be greater than or equal to %s.", def.Name, jsnum.Format(*def.Min))
 	}
 	if def.Max != nil && n > *def.Max {
-		return nil, fmt.Errorf("arg %q: %v above maximum %v", def.Name, n, *def.Max)
+		//nolint:staticcheck,revive // reported to the user as a sentence
+		return nil, fmt.Errorf("%s must be less than or equal to %s.", def.Name, jsnum.Format(*def.Max))
 	}
 	return n, nil
 }
@@ -146,13 +164,52 @@ func coerceNumber(def ArgDef, value any) (any, error) {
 func coerceOption(def ArgDef, value any) (any, error) {
 	s, ok := value.(string)
 	if !ok {
-		return nil, fmt.Errorf("arg %q: expected option string, got %T", def.Name, value)
+		return nil, errMustBeText(def.Name)
 	}
 	opts, _ := def.Value.([]string)
 	if slices.Contains(opts, s) {
 		return s, nil
 	}
-	return nil, fmt.Errorf("arg %q: %q is not one of %v", def.Name, s, opts)
+	// An empty choice is only a mistake where none is on offer; some operations
+	// offer one as a meaningful selection.
+	if s == "" {
+		return nil, errCannotBeEmpty(def.Name)
+	}
+	return nil, errMustBeOneOf(def.Name, opts)
+}
+
+// errMustBeText is what a value that is not text at all gets.
+//
+//nolint:staticcheck,revive // reported to the user as a sentence
+func errMustBeText(name string) error {
+	return fmt.Errorf("%s must be text.", name)
+}
+
+// errCannotBeEmpty is what an empty value gets where one is needed.
+//
+//nolint:staticcheck,revive // reported to the user as a sentence
+func errCannotBeEmpty(name string) error {
+	return fmt.Errorf("%s cannot be empty.", name)
+}
+
+// errMustBeOneOf lists what was on offer.
+//
+//nolint:staticcheck,revive // reported to the user as a sentence
+func errMustBeOneOf(name string, allowed []string) error {
+	return fmt.Errorf("%s must be one of the following: %s.", name, strings.Join(allowed, ", "))
+}
+
+// utf16Len counts the units JavaScript measures a string's length in, which is
+// two for anything beyond the basic plane.
+func utf16Len(s string) int {
+	n := 0
+	for _, r := range s {
+		n++
+		if r > 0xFFFF {
+			n++
+		}
+	}
+	return n
 }
 
 // coerceToggleString coerces value to a ToggleString and validates its mode
@@ -160,10 +217,14 @@ func coerceOption(def ArgDef, value any) (any, error) {
 func coerceToggleString(def ArgDef, value any) (any, error) {
 	ts, err := toToggleString(value)
 	if err != nil {
-		return nil, fmt.Errorf("arg %q: %w", def.Name, err)
+		return nil, errMustBeText(def.Name)
+	}
+	// It is the text that may not be empty; the mode always has a value.
+	if def.NonEmpty && ts.Value == "" {
+		return nil, errCannotBeEmpty(def.Name)
 	}
 	if len(def.ToggleValues) > 0 && !slices.Contains(def.ToggleValues, ts.Option) {
-		return nil, fmt.Errorf("arg %q: mode %q is not one of %v", def.Name, ts.Option, def.ToggleValues)
+		return nil, errMustBeOneOf(def.Name, def.ToggleValues)
 	}
 	return ts, nil
 }

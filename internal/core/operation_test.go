@@ -160,6 +160,199 @@ func TestCoerceArgNonEmpty(t *testing.T) {
 	}
 }
 
+// TestCoerceArgMaxLength covers the length limit CyberChef declares as
+// `maxLength`, which caps a string argument.
+func TestCoerceArgMaxLength(t *testing.T) {
+	five := 5
+	def := ArgDef{Name: "Non Empty String", Type: ArgString, Value: "hello", MaxLength: &five}
+
+	if _, err := CoerceArg(def, "hello"); err != nil {
+		t.Fatalf("a value of exactly the limit was rejected: %v", err)
+	}
+	if _, err := CoerceArg(def, "hi"); err != nil {
+		t.Fatalf("a shorter value was rejected: %v", err)
+	}
+	if _, err := CoerceArg(def, "helloooo"); err == nil {
+		t.Fatal("expected a value past the limit to be rejected")
+	}
+	if _, err := CoerceArg(ArgDef{Name: "S", Type: ArgString}, "helloooo"); err != nil {
+		t.Fatalf("a long value was rejected without a limit: %v", err)
+	}
+}
+
+// TestCoerceArgMaxLengthCountsAsJavaScriptDoes covers how the limit counts a
+// character beyond the basic plane. JavaScript stores one as two units and
+// reports a length of two, so a limit of two admits one such character and
+// turns away a pair.
+func TestCoerceArgMaxLengthCountsAsJavaScriptDoes(t *testing.T) {
+	two := 2
+	def := ArgDef{Name: "Marker", Type: ArgString, MaxLength: &two}
+
+	for _, tc := range []struct {
+		name  string
+		value string
+		allow bool
+	}{
+		{"two plain characters", "ab", true},
+		{"three plain characters", "abc", false},
+		{"one character from beyond the basic plane", "😀", true},
+		{"two of them", "😀😀", false},
+		{"one of them and a plain one", "😀a", false},
+		{"a character that takes three bytes but one unit", "あ", true},
+		{"two of those", "ああ", true},
+		{"three of those", "あああ", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := CoerceArg(def, tc.value)
+			if tc.allow && err != nil {
+				t.Errorf("%q was turned away: %v", tc.value, err)
+			}
+			if !tc.allow && err == nil {
+				t.Errorf("%q was accepted", tc.value)
+			}
+		})
+	}
+}
+
+// TestCoerceArgToggleStringNonEmpty covers `allowEmpty: false` on a toggle
+// string, where it is the text rather than the mode that may not be empty.
+func TestCoerceArgToggleStringNonEmpty(t *testing.T) {
+	def := ArgDef{
+		Name: "Non Empty Toggle String", Type: ArgToggleString,
+		ToggleValues: []string{"Option A", "Option B"}, NonEmpty: true,
+	}
+
+	if _, err := CoerceArg(def, ToggleString{Value: "test", Option: "Option A"}); err != nil {
+		t.Fatalf("a filled value was rejected: %v", err)
+	}
+	if _, err := CoerceArg(def, ToggleString{Value: "", Option: "Option A"}); err == nil {
+		t.Fatal("expected an empty value to be rejected")
+	}
+
+	permissive := ArgDef{Name: "Key", Type: ArgToggleString, ToggleValues: []string{"Hex"}}
+	if _, err := CoerceArg(permissive, ToggleString{Value: "", Option: "Hex"}); err != nil {
+		t.Fatalf("an empty value was rejected without the constraint: %v", err)
+	}
+}
+
+// TestCoerceArgMessages covers the wording of every complaint the argument
+// checker makes. CyberChef reports these to the user directly
+// (../CyberChef/src/core/Ingredient.mjs), and its own test fixtures assert the
+// text, so cchef says the same thing.
+func TestCoerceArgMessages(t *testing.T) {
+	five, ten := 5.0, 10.0
+	oneAndAHalf, fiveAndAHalf := 1.5, 5.5
+	maxFive := 5
+
+	for _, tc := range []struct {
+		name  string
+		def   ArgDef
+		value any
+		want  string
+	}{
+		{
+			"a number below the lowest allowed",
+			ArgDef{Name: "Integer Number", Type: ArgNumber, Min: &five, Max: &ten, Integer: true},
+			4.0,
+			"Integer Number must be greater than or equal to 5.",
+		},
+		{
+			"a number above the highest allowed",
+			ArgDef{Name: "Integer Number", Type: ArgNumber, Min: &five, Max: &ten, Integer: true},
+			11.0,
+			"Integer Number must be less than or equal to 10.",
+		},
+		{
+			"a number that is not whole",
+			ArgDef{Name: "Integer Number", Type: ArgNumber, Min: &five, Max: &ten, Integer: true},
+			5.5,
+			"Integer Number must be an integer.",
+		},
+		{
+			"a fractional bound below the lowest allowed",
+			ArgDef{Name: "Real Number", Type: ArgNumber, Min: &oneAndAHalf, Max: &fiveAndAHalf},
+			1.4,
+			"Real Number must be greater than or equal to 1.5.",
+		},
+		{
+			"a fractional bound above the highest allowed",
+			ArgDef{Name: "Real Number", Type: ArgNumber, Min: &oneAndAHalf, Max: &fiveAndAHalf},
+			5.6,
+			"Real Number must be less than or equal to 5.5.",
+		},
+		{
+			"something that is not a number at all",
+			ArgDef{Name: "Real Number", Type: ArgNumber},
+			"nope",
+			"Real Number must be a number.",
+		},
+		{
+			"a string longer than allowed",
+			ArgDef{Name: "Non Empty String", Type: ArgString, MaxLength: &maxFive},
+			"helloooo",
+			"Non Empty String length cannot exceed 5.",
+		},
+		{
+			"an empty string where one is needed",
+			ArgDef{Name: "Non Empty String", Type: ArgString, NonEmpty: true},
+			"",
+			"Non Empty String cannot be empty.",
+		},
+		{
+			"an empty toggle string where one is needed",
+			ArgDef{
+				Name: "Non Empty Toggle String", Type: ArgToggleString,
+				ToggleValues: []string{"Option A"}, NonEmpty: true,
+			},
+			ToggleString{Value: "", Option: "Option A"},
+			"Non Empty Toggle String cannot be empty.",
+		},
+		{
+			"a choice that is not on offer",
+			ArgDef{
+				Name: "Option Ingredient", Type: ArgOption,
+				Value: []string{"Option 1", "Option 2", "Option 3"},
+			},
+			"Option 4",
+			"Option Ingredient must be one of the following: Option 1, Option 2, Option 3.",
+		},
+		{
+			"no choice at all",
+			ArgDef{
+				Name: "Option Ingredient", Type: ArgOption,
+				Value: []string{"Option 1", "Option 2", "Option 3"},
+			},
+			"",
+			"Option Ingredient cannot be empty.",
+		},
+		{
+			"a mode the toggle does not offer",
+			ArgDef{Name: "Key", Type: ArgToggleString, ToggleValues: []string{"Hex", "UTF8"}},
+			ToggleString{Value: "ff", Option: "Base64"},
+			"Key must be one of the following: Hex, UTF8.",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := CoerceArg(tc.def, tc.value)
+			if err == nil {
+				t.Fatalf("accepted %v", tc.value)
+			}
+			if err.Error() != tc.want {
+				t.Errorf("got  %q\nwant %q", err.Error(), tc.want)
+			}
+		})
+	}
+}
+
+// TestCoerceArgOptionAllowsAnEmptyChoice covers an option that offers an empty
+// string among its choices, where choosing it is not a mistake.
+func TestCoerceArgOptionAllowsAnEmptyChoice(t *testing.T) {
+	def := ArgDef{Name: "Suffix", Type: ArgOption, Value: []string{"", "kb", "mb"}}
+	if _, err := CoerceArg(def, ""); err != nil {
+		t.Errorf("an offered empty choice was rejected: %v", err)
+	}
+}
+
 // TestCoerceArgUnknownType covers the default arm for an unrecognised ArgType.
 func TestCoerceArgUnknownType(t *testing.T) {
 	def := ArgDef{Name: "X", Type: ArgType("bogus")}

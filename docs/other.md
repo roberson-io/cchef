@@ -1,29 +1,34 @@
 # Other
 
 Operations that do not fit CyberChef's other categories: the disassemblers, the
-random generators, identifiers and one-time passwords, and a game show.
+random generators, identifiers and one-time passwords, and a few jokes.
 
 > Operations are listed alphabetically.
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
 | Analyse UUID | `analyse-uuid` | [Universally unique identifier](https://wikipedia.org/wiki/Universally_unique_identifier) |
+| Automated Validation Test Op | `automated-validation-test-op` | [Parameter validation](https://wikipedia.org/wiki/Data_validation) |
 | Chi Square | `chi-square` | [Chi-squared distribution](https://wikipedia.org/wiki/Chi-squared_distribution) |
 | Disassemble ARM | `disassemble-arm` | [ARM architecture family](https://wikipedia.org/wiki/ARM_architecture_family) |
 | Disassemble x86 | `disassemble-x86` | [x86](https://wikipedia.org/wiki/X86) |
 | Entropy | `entropy` | [Entropy (information theory)](https://wikipedia.org/wiki/Entropy_(information_theory)) |
 | Frequency distribution | `frequency-distribution` | [Frequency distribution](https://wikipedia.org/wiki/Frequency_distribution) |
+| Generate De Bruijn Sequence | `generate-de-bruijn-sequence` | [De Bruijn sequence](https://wikipedia.org/wiki/De_Bruijn_sequence) |
 | Generate HOTP | `generate-hotp` | [HMAC-based One-time Password algorithm](https://wikipedia.org/wiki/HMAC-based_One-time_Password_algorithm) |
 | Generate Lorem Ipsum | `generate-lorem-ipsum` | [Lorem ipsum](https://wikipedia.org/wiki/Lorem_ipsum) |
 | Generate QR Code | `generate-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
 | Generate TOTP | `generate-totp` | [Time-based One-time Password algorithm](https://wikipedia.org/wiki/Time-based_One-time_Password_algorithm) |
 | Generate UUID | `generate-uuid` | [Universally unique identifier](https://wikipedia.org/wiki/Universally_unique_identifier) |
+| Haversine distance | `haversine-distance` | [Haversine formula](https://wikipedia.org/wiki/Haversine_formula) |
+| HTML To Text | `html-to-text` | [HTML](https://wikipedia.org/wiki/HTML) |
 | Index of Coincidence | `index-of-coincidence` | [Index of coincidence](https://wikipedia.org/wiki/Index_of_coincidence) |
 | Numberwang | `numberwang` | [That Mitchell and Webb Look](https://wikipedia.org/wiki/That_Mitchell_and_Webb_Look) |
 | P-list Viewer | `p-list-viewer` | [Property list](https://wikipedia.org/wiki/Property_list) |
 | Parse QR Code | `parse-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
 | Pseudo-Random Integer Generator | `pseudo-random-integer-generator` | [Pseudorandom number generator](https://wikipedia.org/wiki/Pseudorandom_number_generator) |
 | Pseudo-Random Number Generator | `pseudo-random-number-generator` | [Cryptographically secure PRNG](https://wikipedia.org/wiki/Cryptographically-secure_pseudorandom_number_generator) |
+| XKCD Random Number | `xkcd-random-number` | [xkcd 221](https://xkcd.com/221/) |
 
 ## Analyse UUID
 
@@ -87,6 +92,50 @@ Version:
 
 UUID Integer:
 2145256098533991595556290452700595976
+```
+
+---
+
+## Automated Validation Test Op
+
+Does nothing but report `Success` once its arguments have been accepted. It
+exists so the checks made on arguments can be exercised end to end: every kind
+of limit an argument may carry is declared on it, so running it is really a test
+of the checker.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--integer-number` | number | `5` | A whole number from 5 to 10 |
+| `--real-number` | number | `1.5` | A number from 1.5 to 5.5, whole or not |
+| `--non-empty-string` | string | `hello` | At most 5 characters, and not empty |
+| `--empty-allowed-string` | string | *(empty)* | Anything, including nothing |
+| `--non-empty-toggle-string` | toggleString | `test` (Option A) | Not empty; mode `Option A` or `Option B` |
+| `--option-ingredient` | option | `Option 1` | `Option 1`, `Option 2` or `Option 3` |
+
+**Example**
+
+```bash
+cchef automated-validation-test-op -i "test"
+```
+
+Output:
+
+```
+Success
+```
+
+**Complex example**
+
+An argument outside its limits is reported rather than used:
+
+```bash
+cchef automated-validation-test-op -i "test" --integer-number 4
+```
+
+Output:
+
+```
+cchef: step 1 (Automated Validation Test Op): Integer Number must be greater than or equal to 5.
 ```
 
 ---
@@ -326,6 +375,52 @@ Number of bytes not represented: 252
 
 <table class="table table-hover table-sm">
     <tr><th>Byte</th><th>ASCII</th><th>Percentage</th><th></th></tr><tr><td>48</td><td>H</td><td>20%     </td><td>||||||||||||||||||||</td></tr>...
+```
+
+---
+
+## Generate De Bruijn Sequence
+
+Builds a [De Bruijn sequence](https://wikipedia.org/wiki/De_Bruijn_sequence):
+read round as a loop, it contains every key of the given length over the given
+alphabet exactly once, making it the shortest string that tries them all. The
+input is ignored.
+
+The alphabet is written with the digits `0` upwards, so it runs from 2 to 9
+symbols. The sequence is as long as the number of keys it covers — the alphabet
+size raised to the key length — and that is capped at 50,000.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--alphabet-size-k` | number | `2` | How many symbols, from 2 to 9 |
+| `--key-length-n` | number | `3` | How long each key is, at least 2 |
+
+**Example**
+
+Every three-bit key, in eight bits:
+
+```bash
+cchef generate-de-bruijn-sequence --alphabet-size-k 2 --key-length-n 3
+```
+
+Output:
+
+```
+00010111
+```
+
+**Complex example**
+
+Every two-symbol key over three symbols, in nine characters:
+
+```bash
+cchef generate-de-bruijn-sequence --alphabet-size-k 3 --key-length-n 2
+```
+
+Output:
+
+```
+001021122
 ```
 
 ---
@@ -592,6 +687,70 @@ Output:
 
 ---
 
+## Haversine distance
+
+Returns the distance in metres between two points given as latitude and
+longitude, using the
+[haversine formula](https://wikipedia.org/wiki/Haversine_formula) on a sphere of
+mean Earth radius.
+
+The input is four numbers separated by commas — `lat1, lng1, lat2, lng2` — each
+optionally followed by a single space. Nothing else is accepted, including space
+at either end of the input.
+
+This operation takes no options.
+
+> The last digit or two may differ from CyberChef's. Go's cosine and the one a
+> browser runs are different implementations that disagree by a unit in the last
+> place for some arguments; the difference is around 1 part in 10^15, or a few
+> nanometres across the whole globe.
+>
+> Two points that name the same place (a pole reached either way round, or the
+> two spellings of the date line) come out as a few nanometres rather than
+> nothing. The formula loses almost all its precision there, in any
+> implementation.
+
+**Example**
+
+London to Washington DC:
+
+```bash
+cchef haversine-distance -i "51.487263,-0.124323, 38.9517,-77.1467"
+```
+
+Output:
+
+```
+5902542.836307819
+```
+
+---
+
+## HTML To Text
+
+Shows HTML as raw text rather than rendered markup.
+
+In CyberChef this changes how a result is *displayed*: the interface renders a
+value it has been told is HTML, and this operation hands the same value on as
+plain text so the markup shows as it stands. Nothing renders anything at a
+command line, so here the input is passed through unchanged.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef html-to-text -i "<b>bold</b> &amp; <i>italic</i>"
+```
+
+Output:
+
+```
+<b>bold</b> &amp; <i>italic</i>
+```
+
+---
+
 ## Index of Coincidence
 
 The probability that two letters drawn from the text at random are the same.
@@ -813,4 +972,28 @@ Output:
 
 ```
 1ed9ec81
+```
+
+---
+
+## XKCD Random Number
+
+Returns a random number, as specified by [xkcd 221](https://xkcd.com/221/):
+
+> `return 4;  // chosen by fair dice roll. guaranteed to be random.`
+
+The input is ignored, and the answer is always `4`.
+
+This operation takes no options.
+
+**Example**
+
+```bash
+cchef xkcd-random-number -i ""
+```
+
+Output:
+
+```
+4
 ```

@@ -66,6 +66,31 @@ func TestBase85Errors(t *testing.T) {
 	}
 }
 
+// TestFromBase85AllZeroCharIsOneCharacter covers the length of the all-zero
+// group character, which stands for a single character and cannot be more.
+// CyberChef declares the same limit.
+func TestFromBase85AllZeroCharIsOneCharacter(t *testing.T) {
+	op, ok := core.Default.Get("From Base85")
+	if !ok {
+		t.Fatal("From Base85 is not registered")
+	}
+
+	if _, err := core.CoerceArgs(op.Args(), []any{base85Standard, true, "z"}); err != nil {
+		t.Errorf("one character was rejected: %v", err)
+	}
+	if _, err := core.CoerceArgs(op.Args(), []any{base85Standard, true, ""}); err != nil {
+		t.Errorf("no character at all was rejected: %v", err)
+	}
+
+	_, err := core.CoerceArgs(op.Args(), []any{base85Standard, true, "zz"})
+	if err == nil {
+		t.Fatal("two characters were accepted")
+	}
+	if want := "All-zero group char length cannot exceed 1."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
+}
+
 func TestBase85ValueBranches(t *testing.T) {
 	if out, err := runOp(t, "To Base85", "", base85Standard, false); err != nil || out != "" {
 		t.Fatalf("To Base85(\"\") = %q, %v; want empty", out, err)
