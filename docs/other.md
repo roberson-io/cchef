@@ -9,6 +9,8 @@ the pseudo-random generator.
 | --- | --- | --- |
 | Disassemble ARM | `disassemble-arm` | [ARM architecture family](https://wikipedia.org/wiki/ARM_architecture_family) |
 | Disassemble x86 | `disassemble-x86` | [x86](https://wikipedia.org/wiki/X86) |
+| Generate QR Code | `generate-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
+| Parse QR Code | `parse-qr-code` | [QR code](https://wikipedia.org/wiki/QR_code) |
 | Pseudo-Random Number Generator | `pseudo-random-number-generator` | [Cryptographically secure PRNG](https://wikipedia.org/wiki/Cryptographically-secure_pseudorandom_number_generator) |
 
 ## Disassemble ARM
@@ -145,6 +147,117 @@ Output:
 0016:0000 B80100                          MOV AX,0001
 0016:0003 CD21                            INT 21
 ```
+
+## Generate QR Code
+
+Generates a Quick Response (QR) code from the input text, as a raster or vector
+image.
+
+The QR matrix, the four renderers and the PNG's compression are all ported from
+the `qr-image` package CyberChef wraps, so every format is byte-for-byte what
+CyberChef produces.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--image-format` | option | `PNG` | `PNG`, `SVG`, `EPS`, or `PDF`. |
+| `--module-size-px` | number | `5` | Pixels per module. Read by `PNG` and `SVG` only; `EPS` and `PDF` scale the page instead. |
+| `--margin-num-modules` | number | `4` | Modules of quiet zone around the code. |
+| `--error-correction` | option | `Medium` | `Low`, `Medium`, `Quartile`, or `High`. More correction withstands more damage but holds less data. |
+
+The encoding mode is chosen from the input: digits alone use the numeric mode,
+uppercase text and a few punctuation marks the alphanumeric one, and anything
+else is encoded as bytes. The version is the smallest that holds the result.
+
+**Simple example**
+
+```bash
+cchef generate-qr-code -i "Hello world!" -o hello.png
+```
+
+The file written is a 145 by 145 greyscale PNG.
+
+**Complex example**
+
+An SVG at four pixels a module with a two module quiet zone:
+
+```bash
+cchef generate-qr-code --image-format SVG --module-size-px 4 \
+  --margin-num-modules 2 -i "https://github.com/roberson-io/cchef"
+```
+
+Output (truncated):
+
+```
+<svg xmlns="http://www.w3.org/2000/svg" width="132" height="132" viewBox="0 0 33 33"><path d="M2 2h7v7h-7zM11 2h5v1h1v-1h1v2h-2v1h-1v1h-3v1h1v2h1v-2h1v4h-1v1h-2v-1h1v-1h-1v1h-1v-1h-1v-6h2v-1...
+```
+
+Encapsulated PostScript at the highest error correction:
+
+```bash
+cchef generate-qr-code --image-format EPS --error-correction High -i "cchef"
+```
+
+Output (truncated):
+
+```
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 261 261
+/h { 0 rlineto } bind def
+...
+```
+
+---
+
+## Parse QR Code
+
+Reads an image and returns the text of any QR code in it. The image may be a
+PNG, JPEG, GIF, BMP or WebP.
+
+The reader is ported from `jsQR`, which CyberChef uses: it thresholds the image
+over local regions, finds the three finder patterns and the alignment pattern,
+samples the modules through the perspective those four points define, and
+corrects the result with Reed-Solomon. A code photographed at an angle reads
+correctly, as does one mirrored or damaged within its correction level.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--normalise-image` | bool | `false` | Convert to greyscale and stretch the contrast before reading, which helps with a faint or unevenly lit photograph. |
+
+> Codes in the kanji mode are refused rather than read, since the reader does
+> not carry the character table they need. Every other mode is supported.
+
+**Simple example**
+
+```bash
+cchef parse-qr-code --in-file hello.png
+```
+
+Output:
+
+```
+Hello world!
+```
+
+**Complex example**
+
+Generating a code and reading it back, with the image normalised first:
+
+```bash
+cchef generate-qr-code --error-correction High -i "cchef round trip" -o code.png
+cchef parse-qr-code --normalise-image --in-file code.png
+```
+
+Output:
+
+```
+cchef round trip
+```
+
+---
 
 ## Pseudo-Random Number Generator
 
