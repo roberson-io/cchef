@@ -328,6 +328,8 @@ var opCategories = map[string][]string{
 	"Keccak":                             {catHashing},
 	"LS47 Decrypt":                       {catEncryptionEncoding},
 	"LS47 Encrypt":                       {catEncryptionEncoding},
+	"LZ4 Compress":                       {catCompression},
+	"LZ4 Decompress":                     {catCompression},
 	"LZMA Compress":                      {catCompression},
 	"LZMA Decompress":                    {catCompression},
 	"Levenshtein Distance":               {catUtils},

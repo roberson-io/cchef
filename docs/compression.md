@@ -14,6 +14,8 @@ file with `-o` instead.
 | Bzip2 Decompress | `bzip2-decompress` | [bzip2](https://wikipedia.org/wiki/Bzip2) |
 | Gunzip | `gunzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
 | Gzip | `gzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
+| LZ4 Compress | `lz4-compress` | [LZ4](https://wikipedia.org/wiki/LZ4_(compression_algorithm)) |
+| LZ4 Decompress | `lz4-decompress` | [LZ4](https://wikipedia.org/wiki/LZ4_(compression_algorithm)) |
 | LZMA Compress | `lzma-compress` | [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) |
 | LZMA Decompress | `lzma-decompress` | [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) |
 | Raw Deflate | `raw-deflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
@@ -202,6 +204,92 @@ Output:
 
 ```
 hello
+```
+
+## LZ4 Compress
+
+Compresses the input into an
+[LZ4](https://wikipedia.org/wiki/LZ4_(compression_algorithm)) frame — a format
+built for speed above all else. It compresses far more loosely than Deflate and
+runs many times faster in both directions, which is why it turns up inside
+filesystems, databases and network protocols rather than in archives. It takes
+no options.
+
+The frame written here asks for four-megabyte blocks that may refer back to one
+another, and carries no checksum beyond the one over its own header. That is
+what CyberChef writes, and the bytes match it exactly.
+
+### Simple example
+
+```bash
+cchef lz4-compress -i "The cat sat on the mat." | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+04224d184070df170000805468652063617420736174206f6e20746865206d61742e00000000
+```
+
+There is nothing worth compressing in twenty-three bytes of English, so the
+block is stored as it stands: `04224d18` names the format, `4070df` is the
+descriptor and its checksum, `17000080` is a block of 0x17 bytes with the top
+bit saying it was left alone, and `00000000` closes the frame.
+
+### Complex example
+
+Given something that does repeat, the block earns its keep:
+
+```bash
+cchef lz4-compress -i "hello hello hello hello hello hello" | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+04224d184070df100000006f68656c6c6f200600055068656c6c6f00000000
+```
+
+Thirty-five bytes become a sixteen-byte block: six literals (`hello `), then a
+repeat of twenty-four bytes starting six back, then the five that are left.
+
+## LZ4 Decompress
+
+Reads an [LZ4](https://wikipedia.org/wiki/LZ4_(compression_algorithm)) frame
+back into the bytes it was made from. It takes no options.
+
+It reads more than CyberChef writes: a stated content size, a checksum over
+each block or over the whole content, any of the four block sizes the format
+allows, a dictionary identifier, and any number of frames written one after
+another. Where a checksum is present it is checked, so damaged data is reported
+rather than handed back quietly.
+
+### Simple example
+
+```bash
+cchef lz4-compress -i "hello hello hello" | cchef lz4-decompress
+```
+
+Output:
+
+```
+hello hello hello
+```
+
+### Complex example
+
+Frames written one after another are a normal way to hold LZ4 data, and are read
+back as one:
+
+```bash
+printf 'one' | lz4 -c > a.lz4 && printf ' and two' | lz4 -c > b.lz4
+cat a.lz4 b.lz4 | cchef lz4-decompress
+```
+
+Output:
+
+```
+one and two
 ```
 
 ## LZMA Compress
@@ -556,8 +644,9 @@ cchef zlib-deflate -i "hello" -o hello.zz
 
 ## A note on the compressed bytes
 
-Every writer here produces the same bytes CyberChef does, which is not something
-that comes for free: any number of different DEFLATE streams decode to the same
+Every writer here bar **LZMA Compress**, which says so in its own section,
+produces the same bytes CyberChef does. That is not something that comes for
+free: any number of different DEFLATE streams decode to the same
 data, and which one a compressor writes depends on how it looks for repeats and
 how it builds its codes. CyberChef uses the zlibjs library, whose choices differ
 from those of zlib — the library behind `gzip`, `pigz` and most everything else
