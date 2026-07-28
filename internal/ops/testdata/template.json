@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Template: Simple Print",
+  "input": "{}",
+  "expected": "Hello, world!",
+  "template": "Hello, world!"
+ },
+ {
+  "name": "Template: Print Basic Variables",
+  "input": "{\"one\": 1, \"two\": 2}",
+  "expected": "1 2",
+  "template": "{{ one }} {{ two }}"
+ },
+ {
+  "name": "Template: Partials",
+  "input": "{\"users\":[{\"name\":\"Someone\",\"age\":25},{\"name\":\"Someone Else\",\"age\":32}]}",
+  "expected": "Name: Someone\nAge: 25\n\nName: Someone Else\nAge: 32\n\n",
+  "template": "{{#*inline \"user\"}}\nName: {{ name }}\nAge: {{ age }}\n{{/inline}}\n{{#each users}}\n{{> user}}\n\n{{/each}}"
+ },
+ {
+  "name": "Template: Disallow XSS",
+  "input": "{\"test\": \"<script></script>\"}",
+  "expected": "<script></script>&lt;script&gt;&lt;/script&gt;",
+  "template": "<script></script>{{ test }}"
+ }
+]

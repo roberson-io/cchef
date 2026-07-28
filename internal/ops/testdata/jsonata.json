@@ -1,0 +1,272 @@
+[
+ {
+  "name": "Jsonata: Returns a JSON string (double quoted)",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"Smith\"",
+  "query": "Surname"
+ },
+ {
+  "name": "Jsonata: Returns a JSON number",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "28",
+  "query": "Age"
+ },
+ {
+  "name": "Jsonata: Field references are separated by '.'",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"Winchester\"",
+  "query": "Address.City"
+ },
+ {
+  "name": "Jsonata: Matched the path and returns the null value",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "null",
+  "query": "Other.Misc"
+ },
+ {
+  "name": "Jsonata: Path not found. Returns nothing",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"\"",
+  "query": "Other.DoesntExist"
+ },
+ {
+  "name": "Jsonata: Field references containing whitespace or reserved tokens can be enclosed in backticks",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "true",
+  "query": "Other.`Over 18 ?`"
+ },
+ {
+  "name": "Jsonata: Returns the first item (an object)",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "{\"type\":\"home\",\"number\":\"0203 544 1234\"}",
+  "query": "Phone[0]"
+ },
+ {
+  "name": "Jsonata: Returns the second item",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "{\"type\":\"office\",\"number\":\"01962 001234\"}",
+  "query": "Phone[1]"
+ },
+ {
+  "name": "Jsonata: Returns the last item",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "{\"type\":\"mobile\",\"number\":\"077 7700 1234\"}",
+  "query": "Phone[-1]"
+ },
+ {
+  "name": "Jsonata: Negative indexed count from the end",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "{\"type\":\"office\",\"number\":\"01962 001235\"}",
+  "query": "Phone[-2]"
+ },
+ {
+  "name": "Jsonata: Doesn't exist - returns nothing",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"\"",
+  "query": "Phone[8]"
+ },
+ {
+  "name": "Jsonata: Selects the number field in the first item",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"0203 544 1234\"",
+  "query": "Phone[0].number"
+ },
+ {
+  "name": "Jsonata: No index is given to Phone so it selects all of them (the whole array), then it selects all the number fields for each of them",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "[\"0203 544 1234\",\"01962 001234\",\"01962 001235\",\"077 7700 1234\"]",
+  "query": "Phone.number"
+ },
+ {
+  "name": "Jsonata: Might expect it to just return the first number, but it returns the first number of each of the items selected by Phone",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "[\"0203 544 1234\",\"01962 001234\",\"01962 001235\",\"077 7700 1234\"]",
+  "query": "Phone.number[0]"
+ },
+ {
+  "name": "Jsonata: Applies the index to the array returned by Phone.number.",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"0203 544 1234\"",
+  "query": "(Phone.number)[0]"
+ },
+ {
+  "name": "Jsonata: Returns a range of items by creating an array of indexes",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "[{\"type\":\"home\",\"number\":\"0203 544 1234\"},{\"type\":\"office\",\"number\":\"01962 001234\"}]",
+  "query": "Phone[[0..1]]"
+ },
+ {
+  "name": "Jsonata: Select the Phone items that have a type field that equals 'mobile'",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "{\"type\":\"mobile\",\"number\":\"077 7700 1234\"}",
+  "query": "Phone[type='mobile']"
+ },
+ {
+  "name": "Jsonata: Select the mobile phone number",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"077 7700 1234\"",
+  "query": "Phone[type='mobile'].number"
+ },
+ {
+  "name": "Jsonata: Select the office phone numbers - there are two of them",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "[\"01962 001234\",\"01962 001235\"]",
+  "query": "Phone[type='office'].number"
+ },
+ {
+  "name": "Jsonata: Select the values of all the fields of 'Address'",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "[\"Hursley Park\",\"Winchester\",\"SO21 2JN\"]",
+  "query": "Address.*"
+ },
+ {
+  "name": "Jsonata: Select the 'Postcode' value of any child object",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"SO21 2JN\"",
+  "query": "*.Postcode"
+ },
+ {
+  "name": "Jsonata: Select all Postcode values, regardless of how deeply nested they are in the structure",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "[\"SO21 2JN\",\"E1 6RF\"]",
+  "query": "**.Postcode"
+ },
+ {
+  "name": "Jsonata: Concatenate 'FirstName' followed by space followed by 'Surname'",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"Fred Smith\"",
+  "query": "FirstName & ' ' & Surname"
+ },
+ {
+  "name": "Jsonata: Concatenates the 'Street' and 'City' from the 'Address' object with a comma separator",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"Hursley Park, Winchester\"",
+  "query": "Address.(Street & ', ' & City)"
+ },
+ {
+  "name": "Jsonata: Casts the operands to strings, if necessary",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "\"50true\"",
+  "query": "5&0&true"
+ },
+ {
+  "name": "Jsonata: Addition",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "3.4",
+  "query": "Numbers[0] + Numbers[1]"
+ },
+ {
+  "name": "Jsonata: Subtraction",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "-19.9",
+  "query": "Numbers[0] - Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Multiplication",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "30",
+  "query": "Numbers[0] * Numbers[5]"
+ },
+ {
+  "name": "Jsonata: Division",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "0.04784688995215311",
+  "query": "Numbers[0] / Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Modulus",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "3.5",
+  "query": "Numbers[2] % Numbers[5]"
+ },
+ {
+  "name": "Jsonata: Equality",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "false",
+  "query": "Numbers[0] = Numbers[5]"
+ },
+ {
+  "name": "Jsonata: Inequality",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "true",
+  "query": "Numbers[0] != Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Less than",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "true",
+  "query": "Numbers[0] < Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Less than or equal to",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "true",
+  "query": "Numbers[0] <= Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Greater than",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "false",
+  "query": "Numbers[0] > Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Greater than or equal to",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "false",
+  "query": "Numbers[2] >= Numbers[4]"
+ },
+ {
+  "name": "Jsonata: Value is contained in",
+  "input": "{\n  \"FirstName\": \"Fred\",\n  \"Surname\": \"Smith\",\n  \"Age\": 28,\n  \"Address\": {\n    \"Street\": \"Hursley Park\",\n    \"City\": \"Winchester\",\n    \"Postcode\": \"SO21 2JN\"\n  },\n  \"Phone\": [\n    {\n      \"type\": \"home\",\n      \"number\": \"0203 544 1234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001234\"\n    },\n    {\n      \"type\": \"office\",\n      \"number\": \"01962 001235\"\n    },\n    {\n      \"type\": \"mobile\",\n      \"number\": \"077 7700 1234\"\n    }\n  ],\n  \"Email\": [\n    {\n      \"type\": \"work\",\n      \"address\": [\"fred.smith@my-work.com\", \"fsmith@my-work.com\"]\n    },\n    {\n      \"type\": \"home\",\n      \"address\": [\"freddy@my-social.com\", \"frederic.smith@very-serious.com\"]\n    }\n  ],\n  \"Other\": {\n    \"Over 18 ?\": true,\n    \"Misc\": null,\n    \"Alternative.Address\": {\n      \"Street\": \"Brick Lane\",\n      \"City\": \"London\",\n      \"Postcode\": \"E1 6RF\"\n    }\n  }\n}",
+  "expected": "true",
+  "query": "\"01962 001234\" in Phone.number"
+ },
+ {
+  "name": "Jsonata: and",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "true",
+  "query": "(Numbers[2] != 0) and (Numbers[5] != Numbers[1])"
+ },
+ {
+  "name": "Jsonata: or",
+  "input": "{\n  \"Numbers\": [1, 2.4, 3.5, 10, 20.9, 30]\n}",
+  "expected": "true",
+  "query": "(Numbers[2] != 0) or (Numbers[5] = Numbers[1])"
+ },
+ {
+  "name": "Jsonata: $ at the start of an expression refers to the entire input document, subscripting it with 0 selects the first item",
+  "input": "[\n  { \"ref\": [ 1,2 ] },\n  { \"ref\": [ 3,4 ] }\n]",
+  "expected": "{\"ref\":[1,2]}",
+  "query": "$[0]"
+ },
+ {
+  "name": "Jsonata: .ref here returns the entire internal array",
+  "input": "[\n  { \"ref\": [ 1,2 ] },\n  { \"ref\": [ 3,4 ] }\n]",
+  "expected": "[1,2]",
+  "query": "$[0].ref"
+ },
+ {
+  "name": "Jsonata: returns element on first position of the internal array",
+  "input": "[\n  { \"ref\": [ 1,2 ] },\n  { \"ref\": [ 3,4 ] }\n]",
+  "expected": "1",
+  "query": "$[0].ref[0]"
+ },
+ {
+  "name": "Jsonata: $.field_reference flattens the result into a single array",
+  "input": "[\n  { \"ref\": [ 1,2 ] },\n  { \"ref\": [ 3,4 ] }\n]",
+  "expected": "[1,2,3,4]",
+  "query": "$.ref"
+ },
+ {
+  "name": "Jsonata: $base64decode",
+  "input": "{}",
+  "expected": "\"Hello World!\"",
+  "query": "$base64decode(\"SGVsbG8gV29ybGQh\")"
+ },
+ {
+  "name": "Jsonata: $base64encode",
+  "input": "{}",
+  "expected": "\"SGVsbG8gV29ybGQh\"",
+  "query": "$base64encode(\"Hello World!\")"
+ }
+]

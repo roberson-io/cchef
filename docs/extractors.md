@@ -20,9 +20,11 @@ Operations documented in full below are grouped here.
 | Extract IP addresses | `extract-ip-addresses` | [IP address](https://wikipedia.org/wiki/IP_address) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
 | JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
+| Jsonata Query | `jsonata-query` | [JSONata](https://docs.jsonata.org/overview.html) |
 | RAKE | `rake` | [Keyword extraction](https://wikipedia.org/wiki/Keyword_extraction) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
 | Strings | `strings` | [strings (Unix)](https://wikipedia.org/wiki/Strings_(Unix)) |
+| Template | `template` | [Handlebars](https://handlebarsjs.com/) |
 | XPath expression | `xpath-expression` | [XPath](https://wikipedia.org/wiki/XPath) |
 
 ## CSS selector
@@ -454,6 +456,57 @@ Output:
 "Cheap", "Mid"
 ```
 
+## Jsonata Query
+
+Queries and reshapes a JSON document with a [JSONata](https://docs.jsonata.org)
+expression — a language for selecting, filtering, computing over and rebuilding
+JSON, in the spirit of XPath or `jq`.
+
+The result is written back out as JSON, so a selected string comes back quoted.
+An expression that selects nothing gives an empty string.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Query | string | `string` | The JSONata expression. |
+
+Input that is not a JSON document is reported as `Invalid input JSON`, and an
+expression that cannot be read or run as `Invalid Jsonata Expression`.
+
+**Fidelity.** CyberChef calls the reference JavaScript implementation; cchef uses
+[gnata](https://github.com/RecoLabs/gnata), a Go implementation of JSONata 2.x.
+Of CyberChef's 45 test cases, 37 match exactly and 6 more agree in every value
+and type but write an object's keys in a different order — gnata keeps the order
+internally but does not expose it. Two do not yet come out right: an expression
+dividing one indexed value by another (`Numbers[0] / Numbers[4]`), which gnata
+misreads the `/` in, and one case where the values of an object come back in a
+different order.
+
+### Simple example
+
+```bash
+cchef jsonata-query -i '{"FirstName":"Fred","Surname":"Smith","Age":28}' --query "Surname"
+```
+
+Output:
+
+```
+"Smith"
+```
+
+### Complex example
+
+Filter a list and select a field from what is left:
+
+```bash
+cchef jsonata-query -i '{"Phone":[{"type":"home","number":"0203 544 1234"},{"type":"office","number":"01962 001234"},{"type":"mobile","number":"077 7700 1234"}]}' --query 'Phone[type="mobile"].number'
+```
+
+Output:
+
+```
+"077 7700 1234"
+```
+
 ## RAKE
 
 Rapid Automatic Keyword Extraction: scores the phrases of a piece of text and
@@ -592,6 +645,90 @@ Output:
 
 ```
 Grüße€from€Köln
+```
+
+## Template
+
+Renders a [Handlebars](https://handlebarsjs.com/) template against JSON input.
+
+Values are written with `{{name}}`, which escapes them for HTML, or `{{{name}}}`,
+which does not. Nested values are reached with dots (`{{a.b}}`), and a list is
+indexed the same way (`{{xs.0}}`).
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Template definition (.handlebars) | string | (empty) | The template. |
+
+The block helpers, and the values each makes available:
+
+| Written | Does |
+| --- | --- |
+| `{{#if x}}…{{else}}…{{/if}}` | Renders one side or the other. Absent, `false`, `0`, `""` and an empty list all count as not present. |
+| `{{#unless x}}…{{/unless}}` | The other way round. |
+| `{{#each xs}}…{{else}}…{{/each}}` | Once per item of a list or field of an object, with `{{this}}`, `{{@index}}`, `{{@key}}`, `{{@first}}` and `{{@last}}`. The alternative renders when there is nothing to walk. |
+| `{{#with o}}…{{/with}}` | Renders the body against `o`. |
+| `{{#*inline "name"}}…{{/inline}}` then `{{> name}}` | Defines a piece of template and uses it by name. A partial written on an indented line keeps that indentation on every line it renders. |
+
+Inside a block, `{{../x}}` reads the enclosing context and `{{@root.x}}` the
+document as a whole; a value of the enclosing block is written `{{@../index}}`.
+`{{! … }}` is a comment. A block tag, comment or partial alone on its line takes
+that line with it, so a template written over several lines does not fill the
+output with blank ones.
+
+**Fidelity.** There is no maintained Go port of Handlebars, so rather than take
+an unmaintained dependency this is a from-scratch implementation of the part of
+the language a template can use against JSON input. What it does not cover is
+everything needing a host language — custom helpers, subexpressions, block
+parameters and partial parameters — none of which CyberChef gives a way to
+supply. It is also more forgiving than Handlebars about a few malformed
+templates: `{{../@index}}`, for instance, renders nothing here where Handlebars
+reports a parse error.
+
+### Simple example
+
+```bash
+cchef template -i '{"name":"world"}' --template-definition-handlebars 'Hello, {{name}}!'
+```
+
+Output:
+
+```
+Hello, world!
+```
+
+### Complex example
+
+Walk a list, and mark the last item:
+
+```bash
+cchef template --in-file users.json --template-definition-handlebars '{{#each users}}
+- {{name}} ({{age}}){{#if @last}} — last{{/if}}
+{{/each}}'
+```
+
+with `users.json`:
+
+```json
+{"users":[{"name":"Ada","age":36},{"name":"Grace","age":45}]}
+```
+
+Output:
+
+```
+- Ada (36)
+- Grace (45) — last
+```
+
+Note the escaping, which is what keeps a rendered template plain text:
+
+```bash
+cchef template -i '{"c":"<b>&</b>"}' --template-definition-handlebars '{{c}} vs {{{c}}}'
+```
+
+Output:
+
+```
+&lt;b&gt;&amp;&lt;/b&gt; vs <b>&</b>
 ```
 
 ## XPath expression

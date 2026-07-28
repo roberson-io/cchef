@@ -9,7 +9,7 @@ Knife" — built for the terminal. Every operation is a subcommand that reads in
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
 
-> **Status:** a curated, growing subset — **450 operations** so far, each a
+> **Status:** a curated, growing subset — **452 operations** so far, each a
 > faithful, test-driven port. See [PLAN.md](PLAN.md) for the full implementation
 > status against all 495 CyberChef operations (CyberChef's category config names
 > 498, but three have no implementation).
@@ -68,7 +68,7 @@ input; a file whose recipe fails is reported and skipped (non-zero exit).
 
 ## Operations
 
-The 450 operations are grouped using the same categories as CyberChef. Each page
+The 452 operations are grouped using the same categories as CyberChef. Each page
 documents options, examples, and reference links:
 
 - [Arithmetic / Logic](docs/arithmetic-logic.md) — Sum, Subtract, Multiply,
@@ -130,6 +130,8 @@ Kept deliberately small:
   hashers for Keccak-256/512.
 - [`ProtonMail/go-crypto`](https://github.com/ProtonMail/go-crypto) — OpenPGP
   library backing the PGP operations (interoperable with CyberChef's kbpgp).
+- [`RecoLabs/gnata`](https://github.com/RecoLabs/gnata) — JSONata 2.x engine
+  backing the Jsonata Query operation.
 
 The full dependency rationale, including transitive dependencies, is in
 [PLAN.md](PLAN.md).

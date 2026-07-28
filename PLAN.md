@@ -89,6 +89,28 @@ fixture cases for parity, and keeps external dependencies minimal:
   (`cssxpath.go`). This preserves byte-for-byte fidelity to CyberChef's
   `@xmldom/xmldom` + `nwmatcher` output, which the general-purpose HTML5 parser
   libraries (cascadia, goquery) could not reproduce.
+- `github.com/recolabs/gnata` — backs **Jsonata Query** (CyberChef wraps the
+  `jsonata` npm package, which has no logic to port). A pure-Go implementation of
+  JSONata 2.x, **no cgo**; its three transitive dependencies
+  (`github.com/tidwall/gjson`, `match`, `pretty`) are all pure Go. It was picked
+  over `github.com/xiatechs/jsonata-go` on measurement against CyberChef's own 45
+  test cases: gnata gets 37 exact with 2 real failures, xiatechs 34 with 5,
+  including a division that loses precision (`0.04784689` for
+  `0.04784688995215311`). gnata is also current where xiatechs is not.
+  **Reduced fidelity, by design**: 6 further cases agree in every value and type
+  but write an object's keys in a different order, because gnata keeps the order
+  internally and does not expose it; and one expression form
+  (`Numbers[0] / Numbers[4]`) does not compile, the `/` after a `]` being read as
+  the start of a regular expression. Both are pinned by name in
+  `internal/ops/jsonataquery_test.go`, which fails if either starts working.
+- **Template** takes **no dependency**: there is no maintained Go port of
+  Handlebars (`mailgun/raymond` last released 2022, `flowchartsman/handlebars`
+  2021, `aymerick/raymond` 2018), so rather than take an unmaintained one the
+  language is implemented from scratch in `internal/ops/handlebars*.go` — tags,
+  paths, the built-in block helpers, inline partials, and the whitespace rules.
+  **Reduced fidelity, by design**: custom helpers, subexpressions, block
+  parameters and partial parameters are not covered, none of which CyberChef
+  gives a way to supply.
 - `github.com/itchyny/gojq` — backs **Jq** (CyberChef wraps jq-web, jq compiled to
   WASM, which has no logic to port). gojq is a pure-Go reimplementation of jq, so
   cchef stays a single static binary with **no cgo**; its only transitive
@@ -449,7 +471,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 450
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 452
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -462,7 +484,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **450 operations** (`internal/ops/`), each a faithful port with tests
+- **452 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -552,7 +574,7 @@ cchef list                                   # discover operations
 
 **Status: proposal — not started.** `internal/ops` is a single flat Go package
 that has grown to **615 files / 118k LOC** (322 non-test at 78k LOC, 293 test at
-40k LOC) implementing the ~450 registered operations. Nothing about it is broken;
+40k LOC) implementing the ~452 registered operations. Nothing about it is broken;
 the concern is navigability and build/test granularity. The figures below come
 from an AST-level cross-file reference analysis of the package (July 2026) and
 will drift as operations are added — re-measure before acting on them.
@@ -766,9 +788,9 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **447 unique** CyberChef operations are covered (446 directly plus
+Currently **449 unique** CyberChef operations are covered (448 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
-which is where the 450 cchef subcommands come from.
+which is where the 452 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
@@ -1147,7 +1169,7 @@ which is where the 450 cchef subcommands come from.
 - [x] UNIX Timestamp to Windows Filetime
 - [x] Windows Filetime to UNIX Timestamp
 
-### Extractors (12/20)
+### Extractors (14/20)
 
 - [x] CSS selector
 - [x] Extract Audio Metadata
@@ -1163,11 +1185,11 @@ which is where the 450 cchef subcommands come from.
 - [ ] Extract MAC addresses
 - [ ] Extract URLs
 - [x] JPath expression
-- [ ] Jsonata Query
+- [x] Jsonata Query
 - [x] RAKE
 - [x] Regular expression
 - [x] Strings
-- [ ] Template
+- [x] Template
 - [x] XPath expression
 
 ### Compression (0/19)
