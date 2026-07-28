@@ -288,6 +288,8 @@ var opCategories = map[string][]string{
 	"GOST Sign":                          {catEncryptionEncoding},
 	"GOST Verify":                        {catEncryptionEncoding},
 	"Group IP addresses":                 {catNetworking},
+	"Gunzip":                             {catCompression},
+	"Gzip":                               {catCompression},
 	"HAS-160":                            {catHashing},
 	"HASSH Client Fingerprint":           {catNetworking},
 	"HASSH Server Fingerprint":           {catNetworking},
@@ -410,6 +412,8 @@ var opCategories = map[string][]string{
 	"Rail Fence Cipher Decode":           {catEncryptionEncoding},
 	"Rail Fence Cipher Encode":           {catEncryptionEncoding},
 	"RAKE":                               {catExtractors},
+	"Raw Deflate":                        {catCompression},
+	"Raw Inflate":                        {catCompression},
 	"Regular expression":                 {catUtils, catExtractors},
 	"Strings":                            {catExtractors},
 	"Template":                           {catExtractors},
@@ -566,6 +570,8 @@ var opCategories = map[string][]string{
 	"XXTEA Decrypt":                      {catEncryptionEncoding},
 	"XXTEA Encrypt":                      {catEncryptionEncoding},
 	"YAML to JSON":                       {catDataFormat},
+	"Zlib Deflate":                       {catCompression},
+	"Zlib Inflate":                       {catCompression},
 }
 
 // categoriesOf returns the categories an operation belongs to (sorted), or a

@@ -12,6 +12,12 @@ file with `-o` instead.
 | --- | --- | --- |
 | Bzip2 Compress | `bzip2-compress` | [bzip2](https://wikipedia.org/wiki/Bzip2) |
 | Bzip2 Decompress | `bzip2-decompress` | [bzip2](https://wikipedia.org/wiki/Bzip2) |
+| Gunzip | `gunzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
+| Gzip | `gzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
+| Raw Deflate | `raw-deflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
+| Raw Inflate | `raw-inflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
+| Zlib Deflate | `zlib-deflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
+| Zlib Inflate | `zlib-inflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
 
 ## Bzip2 Compress
 
@@ -112,3 +118,267 @@ Output:
 ```
 one two
 ```
+
+## Gunzip
+
+Reads a [gzip](https://wikipedia.org/wiki/Gzip) stream back into the bytes it
+was made from. It takes no options — everything it needs is in the stream.
+
+A file holding several gzip streams one after another is read whole and the
+results joined, which is what the `gzip` command does.
+
+### Simple example
+
+```bash
+cchef gzip -i "hello hello hello" | cchef gunzip
+```
+
+Output:
+
+```
+hello hello hello
+```
+
+### Complex example
+
+Reading a file written by `gzip` itself:
+
+```bash
+gzip -c notes.txt | cchef gunzip
+```
+
+## Gzip
+
+Compresses the input into a [gzip](https://wikipedia.org/wiki/Gzip) stream: a
+DEFLATE stream behind a header that can carry a filename and a comment, and a
+trailer holding a checksum and the original length.
+
+The `Compression type` option chooses how each block is encoded:
+
+| Setting | Does |
+| --- | --- |
+| `Dynamic Huffman Coding` | Works out a code fitted to this input and sends it with the data. Usually the smallest, and the default. |
+| `Fixed Huffman Coding` | Uses the code the format defines, which need not be sent. Smaller than dynamic for very short input, where sending a code costs more than it saves. |
+| `None (Store)` | Does not compress at all, writing the data behind a short block header. Always slightly larger than the input. |
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Compression type | option | `Dynamic Huffman Coding` | As above. |
+| Filename (optional) | string | (empty) | Recorded in the header. Left out when empty. |
+| Comment (optional) | string | (empty) | Likewise. |
+| Include file checksum | boolean | `false` | Adds a two-byte checksum of the header, which a reader can use to spot a damaged one. |
+
+**The output is not the same twice.** The header records the time the stream was
+written, so compressing the same input a minute later gives four different
+bytes. Everything else is fixed.
+
+### Simple example
+
+```bash
+cchef gzip -i "hello hello hello" | cchef gunzip
+```
+
+Output:
+
+```
+hello hello hello
+```
+
+### Complex example
+
+The filename and comment go into the header, where `gunzip` and other readers
+can find them:
+
+```bash
+cchef gzip -i "hello" --filename-optional "greeting.txt" --comment-optional "written by cchef" --include-file-checksum -o hello.gz
+cchef gunzip --in-file hello.gz
+```
+
+Output:
+
+```
+hello
+```
+
+## Raw Deflate
+
+Compresses the input into a [DEFLATE](https://wikipedia.org/wiki/DEFLATE)
+stream with nothing around it — no header, no checksum, no length. Use
+[Gzip](#gzip) or [Zlib Deflate](#zlib-deflate) for a stream other tools will
+recognise.
+
+The `Compression type` option chooses how each block is encoded:
+
+| Setting | Does |
+| --- | --- |
+| `Dynamic Huffman Coding` | Works out a code fitted to this input and sends it with the data. Usually the smallest, and the default. |
+| `Fixed Huffman Coding` | Uses the code the format defines, which need not be sent. Smaller than dynamic for very short input, where sending a code costs more than it saves. |
+| `None (Store)` | Does not compress at all, writing the data behind a short block header. Always slightly larger than the input. |
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Compression type | option | `Dynamic Huffman Coding` | As above. |
+
+### Simple example
+
+```bash
+cchef raw-deflate -i "The quick brown fox jumped over the slow dog" | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+0dc9dd0180200804e0556ea8262848fb3dc588c6a7e76faa8aeedb726036c68d951f76bf9a0af8aae1f97d9c0c084b02
+```
+
+### Complex example
+
+For short, repetitive input the fixed code wins, because the dynamic one has to
+be sent along with the data:
+
+```bash
+cchef raw-deflate -i "hello hello hello" --compression-type "Fixed Huffman Coding" | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+cb48cdc9c957402201
+```
+
+## Raw Inflate
+
+Reads a raw [DEFLATE](https://wikipedia.org/wiki/DEFLATE) stream back into the
+bytes it was made from.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Start index | number | `0` | Begin reading this many bytes into the input, for a stream that does not start at the beginning. |
+| Initial output buffer size | number | `0` | Accepted and ignored. |
+| Buffer expansion type | option | `Adaptive` | Accepted and ignored. |
+| Resize buffer after decompression | boolean | `false` | Accepted and ignored. |
+| Verify result | boolean | `false` | Accepted and ignored. |
+
+The last four size and grow the working buffer inside CyberChef's reader. They
+change how much memory it uses and nothing about what it produces, so cchef
+accepts them and pays them no attention.
+
+### Simple example
+
+```bash
+cchef raw-deflate -i "hello hello hello" | cchef raw-inflate
+```
+
+Output:
+
+```
+hello hello hello
+```
+
+### Complex example
+
+A DEFLATE stream buried at a known offset — here four bytes in — is read by
+saying where it starts:
+
+```bash
+cchef raw-inflate --in-file embedded.bin --start-index 4
+```
+
+## Zlib Deflate
+
+Compresses the input into a [zlib](https://wikipedia.org/wiki/Zlib) stream: a
+DEFLATE stream behind two header bytes, with an Adler-32 checksum of the
+original data after it.
+
+The `Compression type` option chooses how each block is encoded:
+
+| Setting | Does |
+| --- | --- |
+| `Dynamic Huffman Coding` | Works out a code fitted to this input and sends it with the data. Usually the smallest, and the default. |
+| `Fixed Huffman Coding` | Uses the code the format defines, which need not be sent. Smaller than dynamic for very short input, where sending a code costs more than it saves. |
+| `None (Store)` | Does not compress at all, writing the data behind a short block header. Always slightly larger than the input. |
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Compression type | option | `Dynamic Huffman Coding` | As above. |
+
+### Simple example
+
+```bash
+cchef zlib-deflate -i "The quick brown fox jumped over the slow dog" | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+789c0dc9dd0180200804e0556ea8262848fb3dc588c6a7e76faa8aeedb726036c68d951f76bf9a0af8aae1f97d9c0c084b026bcc1035
+```
+
+### Complex example
+
+Stored rather than compressed, the two header bytes and the four checksum bytes
+are easy to pick out around the data:
+
+```bash
+cchef zlib-deflate -i "hi" --compression-type "None (Store)" | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+7801010200fdff6869013b00d2
+```
+
+## Zlib Inflate
+
+Reads a [zlib](https://wikipedia.org/wiki/Zlib) stream back into the bytes it
+was made from, checking the Adler-32 trailer as it goes.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Start index | number | `0` | Begin reading this many bytes into the input. |
+| Initial output buffer size | number | `0` | Accepted and ignored. |
+| Buffer expansion type | option | `Adaptive` | Accepted and ignored. |
+| Resize buffer after decompression | boolean | `false` | Accepted and ignored. |
+| Verify result | boolean | `false` | Accepted and ignored. |
+
+As with [Raw Inflate](#raw-inflate), the last four control the reader's working
+buffer and have no bearing on the result.
+
+### Simple example
+
+```bash
+cchef zlib-deflate -i "hello hello hello" | cchef zlib-inflate
+```
+
+Output:
+
+```
+hello hello hello
+```
+
+### Complex example
+
+A stream whose checksum does not match the data is refused rather than returned:
+
+```bash
+cchef zlib-deflate -i "hello" -o hello.zz
+```
+
+
+## A note on the compressed bytes
+
+Every writer here produces the same bytes CyberChef does, which is not something
+that comes for free: any number of different DEFLATE streams decode to the same
+data, and which one a compressor writes depends on how it looks for repeats and
+how it builds its codes. CyberChef uses the zlibjs library, whose choices differ
+from those of zlib — the library behind `gzip`, `pigz` and most everything else
+— so cchef reproduces zlibjs rather than reaching for the nearest available
+compressor. Streams from either are read by any reader.
+
+The one place cchef deliberately differs is **empty input**. CyberChef writes a
+stream there that its own reader rejects: under `None (Store)` it returns a
+32768-byte working buffer that was never filled in, and under the other two a
+stream cut a couple of bits short. cchef writes the shortest well-formed stream
+instead, which reads back as empty.
+
