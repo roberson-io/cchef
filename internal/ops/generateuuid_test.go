@@ -43,7 +43,7 @@ func analyseUUID(t *testing.T, id string) string {
 // uuidField pulls one labelled value out of an analysis.
 func uuidField(t *testing.T, analysis, label string) string {
 	t.Helper()
-	for _, section := range strings.Split(analysis, "\n\n") {
+	for section := range strings.SplitSeq(analysis, "\n\n") {
 		if name, value, ok := strings.Cut(section, ":\n"); ok && name == label {
 			return value
 		}

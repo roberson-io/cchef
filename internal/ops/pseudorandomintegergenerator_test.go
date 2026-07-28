@@ -112,7 +112,7 @@ func TestPRIGWholeNumbers(t *testing.T) {
 		t.Fatalf("Run: %v", err)
 	}
 	seen := map[string]bool{}
-	for _, f := range strings.Split(out, " ") {
+	for f := range strings.SplitSeq(out, " ") {
 		seen[f] = true
 	}
 	for _, want := range []string{"1", "2", "3"} {
@@ -160,7 +160,7 @@ func TestPRIGDelimiters(t *testing.T) {
 // TestPRIGFormats covers how each integer is written.
 func TestPRIGFormats(t *testing.T) {
 	t.Run("Decimal", func(t *testing.T) {
-		for _, f := range strings.Split(makeIntegers(t, 200, -50, 50, "Space", "Decimal"), " ") {
+		for f := range strings.SplitSeq(makeIntegers(t, 200, -50, 50, "Space", "Decimal"), " ") {
 			if _, err := strconv.ParseInt(f, 10, 64); err != nil {
 				t.Fatalf("%q is not a decimal number", f)
 			}
@@ -168,7 +168,7 @@ func TestPRIGFormats(t *testing.T) {
 	})
 
 	t.Run("Hex", func(t *testing.T) {
-		for _, f := range strings.Split(makeIntegers(t, 200, -255, 255, "Space", "Hex"), " ") {
+		for f := range strings.SplitSeq(makeIntegers(t, 200, -255, 255, "Space", "Hex"), " ") {
 			v, err := strconv.ParseInt(f, 16, 64)
 			if err != nil {
 				t.Fatalf("%q is not a hexadecimal number", f)

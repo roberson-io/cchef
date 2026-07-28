@@ -75,7 +75,7 @@ func (RAKE) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // string counts as one, so that a run of delimiters does not make a phrase.
 func rakeStopWords(list string) map[string]bool {
 	stop := map[string]bool{"": true}
-	for _, w := range strings.Split(strings.ReplaceAll(strings.ToLower(list), " ", ""), ",") {
+	for w := range strings.SplitSeq(strings.ReplaceAll(strings.ToLower(list), " ", ""), ",") {
 		stop[w] = true
 	}
 	return stop

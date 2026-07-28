@@ -18,7 +18,13 @@ Operations documented in full below are grouped here.
 | Extract Files | `extract-files` | [File carving](https://forensics.wiki/file_carving) |
 | Extract ID3 | `extract-id3` | [ID3](https://wikipedia.org/wiki/ID3) |
 | Extract IP addresses | `extract-ip-addresses` | [IP address](https://wikipedia.org/wiki/IP_address) |
+| Extract MAC addresses | `extract-mac-addresses` | [MAC address](https://wikipedia.org/wiki/MAC_address) |
+| Extract URLs | `extract-urls` | [URL](https://wikipedia.org/wiki/URL) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
+| Extract domains | `extract-domains` | [Domain name](https://wikipedia.org/wiki/Domain_name) |
+| Extract email addresses | `extract-email-addresses` | [Email address](https://wikipedia.org/wiki/Email_address) |
+| Extract file paths | `extract-file-paths` | [Path (computing)](https://wikipedia.org/wiki/Path_(computing)) |
+| Extract hashes | `extract-hashes` | [Cryptographic hash functions](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions) |
 | JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
 | Jsonata Query | `jsonata-query` | [JSONata](https://docs.jsonata.org/overview.html) |
 | RAKE | `rake` | [Keyword extraction](https://wikipedia.org/wiki/Keyword_extraction) |
@@ -405,6 +411,313 @@ Output:
 Total found: 1
 
 8.8.8.8
+```
+
+## Extract MAC addresses
+
+Pulls [MAC addresses](https://wikipedia.org/wiki/MAC_address) out of the input:
+six pairs of hexadecimal digits separated throughout by colons or by hyphens.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Display total | boolean | `false` | Puts a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Orders the addresses by value rather than as text, so `0a:` comes before `ff:` and an address written with hyphens falls next to the same address written with colons. |
+| Unique | boolean | `false` | Keeps one of each. The comparison is exact, so `AA:BB:…` and `aa:bb:…` are two different results. |
+
+Separators may not be mixed within one address, and a run of more than six pairs
+is matched from its start, so `01:23:45:67:89:ab:cd` yields `01:23:45:67:89:ab`.
+
+### Simple example
+
+```bash
+cchef extract-mac-addresses -i "iface eth0 00:1B:44:11:3A:B7, iface eth1 00-1b-44-11-3a-b8"
+```
+
+Output:
+
+```
+00:1B:44:11:3A:B7
+00-1b-44-11-3a-b8
+```
+
+### Complex example
+
+```bash
+cchef extract-mac-addresses -i "ff:ff:ff:ff:ff:ff 0a:0b:0c:0d:0e:0f ff:ff:ff:ff:ff:ff" --sort --unique --display-total
+```
+
+Output:
+
+```
+Total found: 2
+
+0a:0b:0c:0d:0e:0f
+ff:ff:ff:ff:ff:ff
+```
+
+## Extract URLs
+
+Pulls [URLs](https://wikipedia.org/wiki/URL) out of the input. The protocol is
+required — without it almost any dotted word would qualify, and the results would
+be mostly noise. Use [Extract domains](#extract-domains) to find host names on
+their own.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Display total | boolean | `false` | Puts a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Orders the URLs ignoring case. |
+| Unique | boolean | `false` | Keeps one of each, comparing exactly. |
+
+A path may contain a full stop, comma, exclamation mark or question mark, but not
+as its last character, so a URL written at the end of a sentence does not take the
+sentence's punctuation with it. A closing bracket, on the other hand, is an
+ordinary path character: `(https://example.com/a)` yields `https://example.com/a)`.
+
+### Simple example
+
+```bash
+cchef extract-urls -i "Docs at https://example.com/guide?v=2, mirror ftp://files.example.org:2121/pub."
+```
+
+Output:
+
+```
+https://example.com/guide?v=2
+ftp://files.example.org:2121/pub
+```
+
+### Complex example
+
+```bash
+cchef extract-urls -i "http://b.example.com http://a.example.com/x http://b.example.com" --sort --unique --display-total
+```
+
+Output:
+
+```
+Total found: 2
+
+http://a.example.com/x
+http://b.example.com
+```
+
+## Extract domains
+
+Pulls fully qualified [domain names](https://wikipedia.org/wiki/Domain_name) out
+of the input. Paths are not included — use [Extract URLs](#extract-urls) for
+those.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Display total | boolean | `false` | Puts a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Orders the names ignoring case. |
+| Unique | boolean | `false` | Keeps one of each, comparing exactly, so `example.com` and `Example.com` both survive. |
+| Underscore (DMARC, DKIM, etc) | boolean | `false` | Allows `_` in a label, which is how the records DMARC and DKIM publish are named. |
+
+A name needs at least two labels, each no longer than 63 characters, and a
+top-level label of two or more letters — so `example.co.uk` is found and `foo.c`
+and `localhost` are not. Internationalised names are matched in their `xn--`
+form; a name written in its own script is not, since the pattern is limited to
+letters, digits and hyphens.
+
+### Simple example
+
+```bash
+cchef extract-domains -i "Visit www.example.com or example.co.uk; not foo.c or localhost."
+```
+
+Output:
+
+```
+www.example.com
+example.co.uk
+```
+
+### Complex example
+
+Without `--underscore-dmarc-dkim-etc`, a name such as `_dmarc.example.com` is
+reported as `example.com`, since the underscore ends the match:
+
+```bash
+cchef extract-domains -i "_dmarc.example.com and sel._domainkey.example.com" --underscore-dmarc-dkim-etc --sort --display-total
+```
+
+Output:
+
+```
+Total found: 2
+
+_dmarc.example.com
+sel._domainkey.example.com
+```
+
+## Extract email addresses
+
+Pulls [email addresses](https://wikipedia.org/wiki/Email_address) out of the
+input.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Display total | boolean | `false` | Puts a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Orders the addresses ignoring case. |
+| Unique | boolean | `false` | Keeps one of each, comparing exactly. |
+
+Both halves accept the whole range of characters above U+00A0, so an
+internationalised address such as `用户@例子.广告` is found as readily as an ASCII
+one. The part before the `@` may also be a quoted string, which is how an address
+holding a character that is otherwise not allowed — including a second `@` — is
+written. The part after may be a bracketed IPv4 address, checked to be in range:
+`example@[127.0.0.1]` is an address, `example@[1.2.3.]` is not.
+
+### Simple example
+
+```bash
+cchef extract-email-addresses -i 'Contact bob@example.com or "very.unusual@strange"@example.org; not a@ or @b.com.'
+```
+
+Output:
+
+```
+bob@example.com
+"very.unusual@strange"@example.org
+```
+
+### Complex example
+
+Sorting ignores case, so two spellings of one address sort together; uniquing does
+not, so both are kept:
+
+```bash
+cchef extract-email-addresses -i "Zoe@Example.com, adam@example.com, zoe@example.com" --sort --unique --display-total
+```
+
+Output:
+
+```
+Total found: 3
+
+adam@example.com
+Zoe@Example.com
+zoe@example.com
+```
+
+## Extract file paths
+
+Pulls anything shaped like a Windows or UNIX
+[path](https://wikipedia.org/wiki/Path_(computing)) out of the input.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Windows | boolean | `true` | Look for paths starting at a drive letter. |
+| UNIX | boolean | `true` | Look for slash-separated paths. |
+| Display total | boolean | `false` | Puts a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Orders the paths ignoring case. |
+| Unique | boolean | `false` | Keeps one of each, comparing exactly. |
+
+With neither shape asked for the output is empty, and the total is not shown
+either.
+
+Both shapes are deliberately loose, and the UNIX one especially so: any run of
+slash-separated words qualifies, and a Windows name may contain spaces, so a path
+mentioned mid-sentence tends to take some of the sentence with it. This is
+CyberChef's behaviour and the reason the operation warns about false positives —
+read the results against the original input rather than as a list of real paths.
+
+A Windows path ends in at most one extension of up to six characters, so
+`data.tar.gz` is reported as `data.tar`.
+
+### Simple example
+
+```bash
+cchef extract-file-paths -i "Logs in C:\Users\me\logs\app.log and /var/log/syslog"
+```
+
+Output:
+
+```
+C:\Users\me\logs\app.log
+/var/log/syslog
+```
+
+### Complex example
+
+Either shape can be looked for on its own:
+
+```bash
+cchef extract-file-paths -i "C:\Users\me\notes.txt and /var/log/syslog" --windows=false
+```
+
+Output:
+
+```
+/var/log/syslog
+```
+
+And this is what the looseness looks like — the Windows match runs on past the
+path into the following words, and the UNIX one keeps the full stop that ends the
+sentence:
+
+```bash
+cchef extract-file-paths -i "Open C:\Windows\System32\drivers\etc\hosts now, or /etc/passwd."
+```
+
+Output:
+
+```
+C:\Windows\System32\drivers\etc\hosts now
+/etc/passwd.
+```
+
+## Extract hashes
+
+Pulls runs of lowercase hexadecimal of a given length out of the input — the
+shape a [hash](https://wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions)
+is usually written in. Nothing is verified: a run of the right length and the
+right characters is reported whatever it actually is.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Hash character length | number | `40` | How many characters a run must have. Ignored when `All hashes` is on. |
+| All hashes | boolean | `false` | Look for every length in common use instead: 1, 2, 4, 8, 16, 32, 40, 48, 56, 64, 80, 96, 128 and 256 characters, shortest first. |
+| Display Total | boolean | `false` | Puts a `Total Results: N` line before the results. |
+
+Only lowercase hexadecimal is matched, so an uppercase digest is not found. Each
+run must stand on its own — part of a longer run is not reported as a shorter
+hash — which is also why a length that finds nothing under `All hashes` costs
+nothing: the results simply come out grouped by length.
+
+**Fidelity.** A hash character length below 1 finds nothing here. CyberChef
+accepts 0, which turns the pattern into one matching the empty string and fills
+the output with blank lines; every other unusable length already finds nothing
+there, so this brings 0 into line with them. Negative and fractional lengths find
+nothing in both.
+
+### Simple example
+
+```bash
+cchef extract-hashes -i "MD5: 9e107d9d372bb6826bd81d3542a419d6" --hash-character-length 32
+```
+
+Output:
+
+```
+9e107d9d372bb6826bd81d3542a419d6
+```
+
+### Complex example
+
+```bash
+cchef extract-hashes -i "crc 1a2b md5 9e107d9d372bb6826bd81d3542a419d6 sha1 2fd4e1c67a2d28fced849ee1bb76e7391b93eb12" --all-hashes --display-total
+```
+
+Output:
+
+```
+Total Results: 3
+
+1a2b
+9e107d9d372bb6826bd81d3542a419d6
+2fd4e1c67a2d28fced849ee1bb76e7391b93eb12
 ```
 
 ## JPath expression

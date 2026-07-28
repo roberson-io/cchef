@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -90,10 +91,5 @@ func TestFrequencyDistributionEmptyInput(t *testing.T) {
 
 // containsLine reports whether the text holds the given line.
 func containsLine(text, line string) bool {
-	for _, l := range strings.Split(text, "\n") {
-		if l == line {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(strings.Split(text, "\n"), line)
 }

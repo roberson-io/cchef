@@ -100,7 +100,7 @@ func (c *hbContext) lookupLocal(path string) any {
 
 // hbWalk follows a dotted path into a value.
 func hbWalk(value any, path string) any {
-	for _, part := range strings.Split(path, ".") {
+	for part := range strings.SplitSeq(path, ".") {
 		if part == "" || part == "this" {
 			continue
 		}

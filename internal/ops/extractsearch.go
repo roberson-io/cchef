@@ -14,6 +14,24 @@ import (
 // CyberChef's src/core/lib/Extract.mjs and the comparators in lib/Sort.mjs that
 // it uses.
 
+// jsRegex compiles a pattern the way JavaScript would read it. The engine's own
+// defaults follow .NET, where \w, \d and \s cover the whole of Unicode; the
+// patterns these operations are ported from were written against JavaScript's,
+// which cover ASCII alone.
+func jsRegex(pattern string, opts regexp2.RegexOptions) *regexp2.Regexp {
+	return regexp2.MustCompile(pattern, opts|regexp2.ECMAScript)
+}
+
+// The two halves of a word boundary, written out. \b is the one piece of a
+// JavaScript pattern that the compatibility mode above does not cover: it stays
+// Unicode-aware, so `\bde\b` would find nothing in "münchen.de". Every pattern
+// here puts its boundaries next to a word character, which makes each one a test
+// of the character on the other side alone.
+const (
+	jsWordBefore = `(?<![A-Za-z0-9_])`
+	jsWordAfter  = `(?![A-Za-z0-9_])`
+)
+
 // extractSearch returns every match of re in input, in the order they occur.
 // Matches that remove also matches are left out; less, when given, orders what
 // is left; unique reduces it to one of each. The pattern is run under regexp2

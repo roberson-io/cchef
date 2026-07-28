@@ -26,7 +26,7 @@ func loremFields(text string) []string { return strings.Fields(text) }
 // the final full stop.
 func loremSplitSentences(text string) []string {
 	var out []string
-	for _, s := range strings.Split(strings.ReplaceAll(text, "\n", " "), ".") {
+	for s := range strings.SplitSeq(strings.ReplaceAll(text, "\n", " "), ".") {
 		if strings.TrimSpace(s) != "" {
 			out = append(out, strings.TrimSpace(s))
 		}
@@ -37,7 +37,7 @@ func loremSplitSentences(text string) []string {
 // loremParagraphs splits text into its paragraphs.
 func loremSplitParagraphs(text string) []string {
 	var out []string
-	for _, p := range strings.Split(text, "\n\n") {
+	for p := range strings.SplitSeq(text, "\n\n") {
 		if strings.TrimSpace(p) != "" {
 			out = append(out, p)
 		}
