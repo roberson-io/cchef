@@ -85,6 +85,7 @@ func lastWord(s string) string {
 const (
 	catArithmeticLogic    = "Arithmetic / Logic"
 	catCodeTidy           = "Code tidy"
+	catCompression        = "Compression"
 	catDataFormat         = "Data format"
 	catDateTime           = "Date / Time"
 	catEncryptionEncoding = "Encryption / Encoding"
@@ -148,6 +149,8 @@ var opCategories = map[string][]string{
 	"Bombe":                              {catEncryptionEncoding},
 	"BSON deserialise":                   {catCodeTidy},
 	"BSON serialise":                     {catCodeTidy},
+	"Bzip2 Compress":                     {catCompression},
+	"Bzip2 Decompress":                   {catCompression},
 	"Caesar Box Cipher":                  {catEncryptionEncoding},
 	"Caret/M-decode":                     {catDataFormat},
 	"Cartesian Product":                  {catArithmeticLogic},

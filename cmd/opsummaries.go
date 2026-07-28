@@ -81,6 +81,7 @@ var opSummaries = map[string]string{
 	"Extract Audio Metadata":          "Reads the metadata of an audio file as JSON",
 	"Extract Files":                   "Carves embedded files out of the input",
 	"Extract IP addresses":            "Extracts all IPv4 and IPv6 addresses",
+	"Bzip2 Compress":                  "Compresses the input into a bzip2 stream",
 	"Extract MAC addresses":           "Extracts all MAC addresses from the input",
 	"RAKE":                            "Ranks the key phrases of a document",
 	"Extract domains":                 "Extracts fully qualified domain names",

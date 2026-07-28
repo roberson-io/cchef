@@ -13,6 +13,7 @@ import (
 var knownCategories = map[string]bool{
 	catArithmeticLogic:    true,
 	catCodeTidy:           true,
+	catCompression:        true,
 	catDataFormat:         true,
 	catDateTime:           true,
 	catEncryptionEncoding: true,
