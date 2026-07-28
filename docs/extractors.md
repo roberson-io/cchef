@@ -17,9 +17,12 @@ Operations documented in full below are grouped here.
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract Files | `extract-files` | [File carving](https://forensics.wiki/file_carving) |
 | Extract ID3 | `extract-id3` | [ID3](https://wikipedia.org/wiki/ID3) |
+| Extract IP addresses | `extract-ip-addresses` | [IP address](https://wikipedia.org/wiki/IP_address) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
 | JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
+| RAKE | `rake` | [Keyword extraction](https://wikipedia.org/wiki/Keyword_extraction) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
+| Strings | `strings` | [strings (Unix)](https://wikipedia.org/wiki/Strings_(Unix)) |
 | XPath expression | `xpath-expression` | [XPath](https://wikipedia.org/wiki/XPath) |
 
 ## CSS selector
@@ -342,6 +345,66 @@ Output:
 }
 ```
 
+## Extract IP addresses
+
+Finds the IPv4 and IPv6 addresses in the input, one per line.
+
+IPv4 is matched in decimal (four groups of 0–255) and in octal (four groups
+written with a leading zero); an address is one form or the other, not a mixture.
+Digits either side of a match are excluded, so `1.2.3.4.5.6.7.8` gives two
+addresses rather than several overlapping ones — but as the operation's own
+warning says, that means the reading may not be the one you intended, so check
+the original.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| IPv4 | boolean | `true` | Match IPv4 addresses. |
+| IPv6 | boolean | `false` | Match IPv6 addresses. |
+| Remove local IPv4 addresses | boolean | `false` | Leave out the private ranges (`10.`, `172.16–31.`, `192.168.`) and the loopback range (`127.`). |
+| Display total | boolean | `false` | Put a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Order by the number the four parts make, so `9.0.0.1` comes before `10.0.0.1`. |
+| Unique | boolean | `false` | Keep one of each. |
+
+With neither version selected the output is empty.
+
+Two things to know about the IPv6 pattern, both inherited from CyberChef and
+confirmed against it. The check that an address shortens its run of zeros only
+once looks ahead through the rest of the input rather than just the address, so
+in `fe80::1 and ::1` only the second is found. And matching is done with a
+back-tracking engine rather than Go's default one, because the pattern needs
+look-behind and back-references that the default engine cannot express.
+
+### Simple example
+
+```bash
+cchef extract-ip-addresses -i "Server 8.8.8.8 talked to 10.0.0.5 and 2001:db8::1"
+```
+
+Output:
+
+```
+8.8.8.8
+10.0.0.5
+```
+
+IPv6 is off by default, which is why `2001:db8::1` is not listed.
+
+### Complex example
+
+Drop the private addresses, keep one of each, and count what is left:
+
+```bash
+cchef extract-ip-addresses -i "8.8.8.8 10.0.0.5 192.168.1.1 8.8.8.8" --remove-local-ipv4-addresses --unique --display-total
+```
+
+Output:
+
+```
+Total found: 1
+
+8.8.8.8
+```
+
 ## JPath expression
 
 Extracts values from a JSON document using a [JSONPath](http://goessner.net/articles/JsonPath/)
@@ -389,6 +452,146 @@ Output:
 
 ```
 "Cheap", "Mid"
+```
+
+## RAKE
+
+Rapid Automatic Keyword Extraction: scores the phrases of a piece of text and
+lists them, highest first.
+
+The text is split into sentences, and each sentence into the runs of words
+between its stop words — those runs are the candidate phrases. A word scores by
+how many words it shares a phrase with, divided by how often it occurs, which
+favours words appearing in longer phrases over words that merely appear often. A
+phrase scores as the sum of its words.
+
+The output has two columns, a score and a phrase, under a heading row, so it can
+be fed straight to [To Table](utils.md#to-table).
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Word Delimiter (Regex) | string | `\s` | Splits a sentence into words. |
+| Sentence Delimiter (Regex) | string | `\.\s\|\n` | Splits the text into sentences. |
+| Stop Words | string | the NLTK list | Comma-separated. Spaces are ignored, and matching is case-insensitive. A stop word ends the phrase it appears in. |
+
+Note that the words are not stripped of punctuation, so a phrase at the end of a
+sentence keeps the full stop that ended it.
+
+### Simple example
+
+```bash
+cchef rake -i "Compatibility of systems of linear constraints over the set of natural numbers."
+```
+
+Output (first rows):
+
+```
+Scores: , Keywords:
+4, linear constraints
+4, natural numbers.
+1, compatibility
+1, systems
+1, set
+```
+
+### Complex example
+
+Split on commas rather than spaces, with a stop-word list of your own:
+
+```bash
+cchef rake -i "alpha,beta,the,gamma" --word-delimiter-regex "," --sentence-delimiter-regex "\n" --stop-words "the"
+```
+
+Output:
+
+```
+Scores: , Keywords:
+4, alpha beta
+1, gamma
+```
+
+## Strings
+
+Finds the runs of readable characters in binary data — the same idea as the Unix
+`strings` command, with more control over what counts as readable.
+
+A run has to be at least **Minimum length** characters long to be reported. What
+counts as a character is set by **Match**, and how those characters are laid out
+in the bytes is set by **Encoding**.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Encoding | option | `Single byte` | `Single byte`, `16-bit littleendian`, `16-bit bigendian`, or `All`. The wide encodings look for text stored two bytes to the character by allowing a null byte on the appropriate side of each one; `All` allows one on either side, so it finds both kinds — and will run a one-byte and a two-byte region together into a single result. |
+| Minimum length | number | `4` | Shorter runs are passed over. |
+| Match | option | `Alphanumeric + punctuation (A)` | See below. |
+| Display total | boolean | `false` | Put a `Total found: N` line before the results. |
+| Sort | boolean | `false` | Order the results, ignoring case. |
+| Unique | boolean | `false` | Keep one of each. |
+
+The six kinds of run, three defined over ASCII and three over Unicode:
+
+| Match | Takes |
+| --- | --- |
+| `Alphanumeric + punctuation (A)` | Letters, digits and the common punctuation. |
+| `All printable chars (A)` | Everything from space to `~`. |
+| `Null-terminated strings (A)` | As above, and the run must end with a null byte, which is included. |
+| `Alphanumeric + punctuation (U)` | Any Unicode letter, number, punctuation or separator. |
+| `All printable chars (U)` | Also marks and symbols, so currency signs and the like are kept. |
+| `Null-terminated strings (U)` | As above, ending with a null byte. |
+
+CyberChef's Match list also carries `[ASCII]` and `[Unicode]` headings naming the
+two groups. They are not choices — picking one leaves the pattern with no
+characters to repeat — so cchef offers only the six, as it does elsewhere for
+grouped options.
+
+One thing to know about how the input is read. The bytes are taken as UTF-8 when
+the whole input is valid UTF-8, and as one character per byte when it is not.
+Which of the two applies changes what counts as a letter, so adding a single
+stray byte anywhere can change the reading of accented characters throughout.
+This is CyberChef's behaviour and cchef matches it.
+
+### Simple example
+
+Given `demo.bin`, which holds `Hello`, a null, `wor`, a null, then `Testing123!`:
+
+```bash
+cchef strings --in-file demo.bin
+```
+
+Output:
+
+```
+Hello
+Testing123!
+```
+
+`wor` is left out because it is shorter than the default minimum of four.
+
+### Complex example
+
+The Unicode kinds differ over what is punctuation and what is a symbol. A
+currency sign is a symbol, so it breaks a run under one and not the other:
+
+```bash
+cchef strings -i "Grüße€from€Köln" --match "Alphanumeric + punctuation (U)" --minimum-length 4
+```
+
+Output:
+
+```
+Grüße
+from
+Köln
+```
+
+```bash
+cchef strings -i "Grüße€from€Köln" --match "All printable chars (U)" --minimum-length 4
+```
+
+Output:
+
+```
+Grüße€from€Köln
 ```
 
 ## XPath expression

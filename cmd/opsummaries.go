@@ -80,6 +80,7 @@ var opSummaries = map[string]string{
 	"Detect File Type":                "Guesses a file's MIME type from its magic bytes",
 	"Extract Audio Metadata":          "Reads the metadata of an audio file as JSON",
 	"Extract Files":                   "Carves embedded files out of the input",
+	"Extract IP addresses":            "Extracts all IPv4 and IPv6 addresses",
 	"Extract ID3":                     "Reads the ID3 metadata tag of an MP3 file",
 	"Generate Image":                  "Builds an image from the input bytes as pixel values",
 	"Image Hue/Saturation/Lightness":  "Adjusts an image's hue, saturation and lightness",
