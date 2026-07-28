@@ -18,8 +18,13 @@ file with `-o` instead.
 | LZ4 Decompress | `lz4-decompress` | [LZ4](https://wikipedia.org/wiki/LZ4_(compression_algorithm)) |
 | LZMA Compress | `lzma-compress` | [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) |
 | LZMA Decompress | `lzma-decompress` | [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) |
+| LZNT1 Decompress | `lznt1-decompress` | [MS-XCA](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/5655f4a3-6ba4-489b-959f-e1f407c52f15) |
+| LZString Compress | `lzstring-compress` | [lz-string](https://pieroxy.net/blog/pages/lz-string/index.html) |
+| LZString Decompress | `lzstring-decompress` | [lz-string](https://pieroxy.net/blog/pages/lz-string/index.html) |
 | Raw Deflate | `raw-deflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
 | Raw Inflate | `raw-inflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
+| Tar | `tar` | [tar](https://wikipedia.org/wiki/Tar_(computing)) |
+| Untar | `untar` | [tar](https://wikipedia.org/wiki/Tar_(computing)) |
 | Unzip | `unzip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
 | Zip | `zip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
 | Zlib Deflate | `zlib-deflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
@@ -385,6 +390,150 @@ Output:
 The cat sat on the mat.
 ```
 
+## LZNT1 Decompress
+
+Reads an [LZNT1](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/5655f4a3-6ba4-489b-959f-e1f407c52f15)
+stream back into the bytes it was made from — the compression NTFS applies to a
+file marked compressed, and what the Windows call `RtlDecompressBuffer` reads.
+It takes no options, and there is no operation to write one, here or in
+CyberChef.
+
+A stream is a run of chunks holding up to four kilobytes each. A chunk either
+keeps its bytes as they stand or encodes them as flag groups: a byte of flags
+and then eight items, each a literal byte or a reference back over what the
+chunk has produced. How a reference divides its sixteen bits between distance
+and length changes as the chunk fills, so reaching further back costs a shorter
+run.
+
+**Fidelity.** Two deliberate differences from CyberChef, both matching the
+specification above:
+
+- A chunk holding exactly one byte is read. Its length field records the length
+  less one, so it holds zero — which CyberChef takes for the end of the stream,
+  dropping that byte and everything after it. A stream ends on a chunk header of
+  `0x0000`, not on a length of zero.
+- A stream a byte short of its last chunk is refused rather than handed back
+  with a byte missing.
+
+### Simple example
+
+```bash
+cchef from-hex --delimiter None -i "1ab000636f6d70726573730065647465737464610474610788616c6f74" | cchef lznt1-decompress
+```
+
+Output:
+
+```
+compressedtestdatacompressedalot
+```
+
+### Complex example
+
+Reading a compressed stream out of one file and into another:
+
+```bash
+cchef lznt1-decompress --in-file compressed.bin -o recovered.bin
+```
+
+## LZString Compress
+
+Compresses text with [lz-string](https://pieroxy.net/blog/pages/lz-string/index.html),
+a library written to fit more into browser local storage — which is why it works
+in characters rather than bytes and offers several shapes of output.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Compression Format | option | `default` | Which shape to write. See below. |
+
+| Format | Writes | Good for |
+| --- | --- | --- |
+| `default` | Characters carrying sixteen bits each, the densest of the three | Keeping in memory, or anywhere sixteen-bit values survive |
+| `UTF16` | Characters carrying fifteen bits, all lifted clear of the control range | Storing as text, which it was designed for |
+| `Base64` | Ordinary Base64, six bits a character | URLs, JSON, anything that expects ASCII |
+
+**A warning about the `default` format.** Filling all sixteen bits of a character
+means about half of all inputs produce at least one *lone surrogate* — a value in
+the range reserved for pairs, with no character behind it. Those have no spelling
+in UTF-8. cchef writes them as three bytes holding the number itself and reads
+them back the same way, so the round trip below always works; the output is not
+valid UTF-8, and a terminal will show it as rubbish. Where no such value comes
+up, the bytes are the same as CyberChef's. **For anything you mean to store or
+send, use `UTF16` or `Base64`** — that is what they are there for, and lz-string
+says the same.
+
+### Simple example
+
+```bash
+cchef lzstring-compress -i "hello world" --compression-format Base64
+```
+
+Output:
+
+```
+BYUwNmD2AEDukCcwBMg=
+```
+
+### Complex example
+
+The three formats over the same input, showing what each costs:
+
+```bash
+for f in default UTF16 Base64; do printf '%-8s %s bytes\n' "$f" "$(cchef lzstring-compress -i "the quick brown fox jumps over the lazy dog" --compression-format $f | wc -c | tr -d ' ')"; done
+```
+
+Output:
+
+```
+default  73 bytes
+UTF16    80 bytes
+Base64   76 bytes
+```
+
+Those are bytes, not characters. The plain format writes the fewest characters
+of the three but spends up to three bytes on each of them, so on text like this
+it is no smaller than Base64 once written out.
+
+## LZString Decompress
+
+Reads text back out of an [lz-string](https://pieroxy.net/blog/pages/lz-string/index.html)
+stream. The format has to be the one it was written with — nothing in the stream
+says which.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Compression Format | option | `default` | The shape the stream is in, as above. |
+
+A stream that stops before the mark that ends it, or that names a dictionary
+entry that was never built, is refused. CyberChef hands back what it had, or
+nothing at all, without saying so.
+
+### Simple example
+
+```bash
+cchef lzstring-compress -i "hello world" --compression-format Base64 | cchef lzstring-decompress --compression-format Base64
+```
+
+Output:
+
+```
+hello world
+```
+
+### Complex example
+
+Reading a stream made somewhere else — this one came from lz-string in a
+browser:
+
+```bash
+cchef lzstring-decompress -i "BYUwNmD2AEDukCcwBMg=" --compression-format Base64
+```
+
+Output:
+
+```
+hello world
+```
+
 ## Raw Deflate
 
 Compresses the input into a [DEFLATE](https://wikipedia.org/wiki/DEFLATE)
@@ -467,6 +616,108 @@ saying where it starts:
 
 ```bash
 cchef raw-inflate --in-file embedded.bin --start-index 4
+```
+
+## Tar
+
+Packs the input into a [tar](https://wikipedia.org/wiki/Tar_(computing)) archive
+under one name. Tar does not compress — it puts files end to end behind a header
+each — so this is usually followed by Gzip or Bzip2 Compress.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Filename | string | `file.txt` | The name the file is stored under. Up to 100 bytes, which is all the header keeps for it. |
+
+The archive is the ustar form: a 512-byte header, the data padded out to whole
+blocks, and two blocks of nothing to close it. Only one file goes in, as in
+CyberChef.
+
+**The output is not the same twice.** The header records the time the archive
+was written, and the checksum over the header changes with it. Everything else
+is fixed.
+
+**Fidelity.** Three deliberate differences from CyberChef:
+
+- The data is padded to whole 512-byte blocks. CyberChef pads to one block and
+  no further, so anything over 512 bytes that is not a multiple of it leaves the
+  archive ending mid-block — which Go's tar reader refuses outright.
+- A filename longer than the 100 bytes the header holds is refused. CyberChef
+  writes it anyway, pushing every field after it out of place.
+- A filename outside ASCII is written as UTF-8, which is what a tar reader
+  expects. CyberChef narrows each character to a single byte, turning `café.txt`
+  into Latin-1 and losing anything above the basic plane outright.
+
+### Simple example
+
+```bash
+cchef tar -i "hello world" --filename greeting.txt | cchef untar --out-dir ./unpacked
+cat ./unpacked/greeting.txt
+```
+
+Output:
+
+```
+hello world
+```
+
+### Complex example
+
+An archive the `tar` command reads:
+
+```bash
+cchef tar -i "hello world" --filename greeting.txt -o hello.tar
+tar tf hello.tar
+```
+
+Output:
+
+```
+greeting.txt
+```
+
+Tar first, then compress, which is what a `.tar.gz` is:
+
+```bash
+cchef tar -i "hello world" --filename greeting.txt | cchef gzip -o hello.tar.gz
+```
+
+## Untar
+
+Unpacks a [tar](https://wikipedia.org/wiki/Tar_(computing)) archive into the
+files it holds. It takes no options.
+
+Because it produces several files, it needs `--out-dir` to write them:
+
+```bash
+cchef untar --in-file archive.tar --out-dir ./unpacked
+```
+
+Only regular files come out. Directories and links carry no contents of their
+own and are passed over; the directories a file sits in are created as needed.
+
+It reads more than CyberChef writes: archives from the `tar` command, including
+the extensions it reaches for when a name will not fit in the header, and the
+short-ending archives CyberChef itself produces.
+
+### Simple example
+
+```bash
+cchef tar -i "hello world" --filename greeting.txt | cchef untar --out-dir ./unpacked
+cat ./unpacked/greeting.txt
+```
+
+Output:
+
+```
+hello world
+```
+
+### Complex example
+
+Unpacking a compressed archive made elsewhere:
+
+```bash
+cchef gunzip --in-file archive.tar.gz | cchef untar --out-dir ./unpacked
 ```
 
 ## Unzip
@@ -644,8 +895,8 @@ cchef zlib-deflate -i "hello" -o hello.zz
 
 ## A note on the compressed bytes
 
-Every writer here bar **LZMA Compress**, which says so in its own section,
-produces the same bytes CyberChef does. That is not something that comes for
+Every writer here bar **LZMA Compress** and **Tar**, which say so in their own
+sections, produces the same bytes CyberChef does. That is not something that comes for
 free: any number of different DEFLATE streams decode to the same
 data, and which one a compressor writes depends on how it looks for repeats and
 how it builds its codes. CyberChef uses the zlibjs library, whose choices differ
