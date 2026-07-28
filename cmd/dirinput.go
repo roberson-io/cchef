@@ -85,15 +85,37 @@ func writeFileList(dir string, files []core.NamedFile) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil { // #nosec G301 -- 0755 is conventional for an output directory created on the user's behalf
 		return err
 	}
+	root := filepath.Clean(dir)
 	for _, f := range files {
-		// Names come from the operation itself (never from user input), so they
-		// are plain file names confined to dir.
-		dest := filepath.Join(dir, f.Name)
+		dest, err := safeOutputPath(root, f.Name)
+		if err != nil {
+			return err
+		}
+		// A name may carry a path — an archive's entries usually do — so the
+		// directories it names have to exist first.
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil { // #nosec G301 -- 0755 is conventional for an output directory created on the user's behalf
+			return err
+		}
 		if err := os.WriteFile(dest, f.Data, 0o644); err != nil { // #nosec G306 -- 0644 is conventional for CLI output files
 			return err
 		}
 	}
 	return nil
+}
+
+// safeOutputPath resolves a file's name under root, refusing any name that
+// would put it somewhere else. Names reach here from the data being read — the
+// entries of an archive, say — so one may well be trying to climb out.
+func safeOutputPath(root, name string) (string, error) {
+	clean := filepath.Clean(filepath.FromSlash(name))
+	dest := filepath.Join(root, clean)
+	escapes := filepath.IsAbs(clean) ||
+		clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) ||
+		!strings.HasPrefix(dest, root+string(filepath.Separator))
+	if escapes {
+		return "", fmt.Errorf("refusing to write %q outside the output directory", name)
+	}
+	return dest, nil
 }
 
 // dirFile is one input file discovered under --in-dir: path is where to read it,

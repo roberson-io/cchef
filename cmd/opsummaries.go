@@ -82,6 +82,8 @@ var opSummaries = map[string]string{
 	"Extract Files":                   "Carves embedded files out of the input",
 	"Extract IP addresses":            "Extracts all IPv4 and IPv6 addresses",
 	"Bzip2 Compress":                  "Compresses the input into a bzip2 stream",
+	"Unzip":                           "Unpacks the files from a ZIP archive",
+	"Zip":                             "Packs the input into a ZIP archive",
 	"Gunzip":                          "Reads a gzip stream back to the original bytes",
 	"Gzip":                            "Compresses the input into a gzip stream",
 	"Raw Inflate":                     "Reads a raw DEFLATE stream back to the bytes",

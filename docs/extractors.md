@@ -864,6 +864,9 @@ Scores: , Keywords:
 
 Split on commas rather than spaces, with a stop-word list of your own:
 
+The heading line ends with a space, which CyberChef puts there and cchef keeps;
+take care not to strip it when editing this page.
+
 ```bash
 cchef rake -i "alpha,beta,the,gamma" --word-delimiter-regex "," --sentence-delimiter-regex "\n" --stop-words "the"
 ```
@@ -871,7 +874,7 @@ cchef rake -i "alpha,beta,the,gamma" --word-delimiter-regex "," --sentence-delim
 Output:
 
 ```
-Scores: , Keywords:
+Scores: , Keywords: 
 4, alpha beta
 1, gamma
 ```

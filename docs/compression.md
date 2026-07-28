@@ -16,6 +16,8 @@ file with `-o` instead.
 | Gzip | `gzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
 | Raw Deflate | `raw-deflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
 | Raw Inflate | `raw-inflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
+| Unzip | `unzip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
+| Zip | `zip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
 | Zlib Deflate | `zlib-deflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
 | Zlib Inflate | `zlib-inflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
 
@@ -283,6 +285,97 @@ saying where it starts:
 ```bash
 cchef raw-inflate --in-file embedded.bin --start-index 4
 ```
+
+## Unzip
+
+Unpacks the files from a [ZIP](https://wikipedia.org/wiki/Zip_(file_format))
+archive. Because it produces several files rather than one stream, it needs
+`--out-dir` to say where they should go.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Password | string | (empty) | Needed for an archive whose entries are encrypted. |
+| Verify result | boolean | `false` | Check every file against the checksum recorded for it, and refuse the archive if one does not match. |
+
+Entries stored either way are read, the directories inside an archive are
+recreated, and entries for the directories themselves are skipped. An entry
+naming a path that would climb out of the output directory is refused rather
+than written.
+
+A wrong password is always reported, whether or not `Verify result` is on: an
+encrypted file is checked against its checksum regardless, since without that
+there is nothing to tell a wrong password from a right one.
+
+### Simple example
+
+```bash
+cchef zip -i "hello" --filename a.txt | cchef unzip --out-dir ./unpacked
+cat ./unpacked/a.txt
+```
+
+Output:
+
+```
+hello
+```
+
+### Complex example
+
+Unpacking an encrypted archive, checking each file as it goes:
+
+```bash
+cchef unzip --in-file secrets.zip --password hunter2 --verify-result --out-dir ./secrets
+```
+
+## Zip
+
+Packs the input into a [ZIP](https://wikipedia.org/wiki/Zip_(file_format))
+archive holding one file. Use [Unzip](#unzip) to read one back.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Filename | string | `file.txt` | The name the file is given inside the archive. |
+| Comment | string | (empty) | Recorded against the file in the archive's directory. |
+| Password | string | (empty) | Encrypts the file. Leave empty for an archive anyone can open. |
+| Compression method | option | `Deflate` | `Deflate` compresses the file; `None (Store)` puts it in as it is. |
+| Operating system | option | `MSDOS` | Recorded in the directory and nothing depends on it. |
+| Compression type | option | `Dynamic Huffman Coding` | How each DEFLATE block is encoded, as for [Raw Deflate](#raw-deflate). Ignored when the method is `None (Store)`. |
+
+**The output is not the same twice.** The archive records the time it was
+written, in two places. With a password it varies further, because encryption
+begins from twelve random bytes.
+
+### Simple example
+
+```bash
+cchef zip -i "hello" --filename a.txt | cchef unzip --out-dir ./unpacked
+cat ./unpacked/a.txt
+```
+
+Output:
+
+```
+hello
+```
+
+### Complex example
+
+An encrypted archive, which `unzip` and other tools will open given the
+password:
+
+```bash
+cchef zip --in-file report.pdf --filename report.pdf --password hunter2 -o report.zip
+unzip -P hunter2 report.zip
+```
+
+**Fidelity.** Archives without a password are byte-identical to CyberChef's,
+apart from the recorded time. Encrypted ones deliberately are not: CyberChef
+fills all twelve bytes of the encryption header at random, where the last is
+supposed to carry the top byte of the file's checksum so that a reader can tell
+a wrong password from a right one. Its archives are therefore rejected by
+`unzip`, 7-Zip and every other tool. cchef writes that byte correctly, so its
+encrypted archives open anywhere — and its reader identifies a password by the
+file's checksum rather than by that byte, so it still opens CyberChef's.
 
 ## Zlib Deflate
 

@@ -422,3 +422,64 @@ func TestWriteFileListErrors(t *testing.T) {
 		t.Error("expected an error when a directory occupies the file name")
 	}
 }
+
+// TestWriteFileListNestedNames covers names that carry a path, which an archive
+// read by Unzip routinely holds. The directories they name have to be made
+// before the file can be written into them.
+func TestWriteFileListNestedNames(t *testing.T) {
+	dir := t.TempDir()
+	files := []core.NamedFile{
+		{Name: "top.txt", Data: []byte("top")},
+		{Name: "sub/nested.txt", Data: []byte("nested")},
+		{Name: "sub/deeper/still.txt", Data: []byte("still")},
+	}
+	if err := writeFileList(dir, files); err != nil {
+		t.Fatalf("writeFileList: %v", err)
+	}
+	for _, f := range files {
+		got, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(f.Name)))
+		if err != nil {
+			t.Errorf("%s: %v", f.Name, err)
+			continue
+		}
+		if string(got) != string(f.Data) {
+			t.Errorf("%s holds %q, want %q", f.Name, got, f.Data)
+		}
+	}
+}
+
+// TestWriteFileListRejectsEscapingNames covers a name that tries to climb out of
+// the output directory. Names now come from the archive being read, so they are
+// input like any other and cannot be trusted.
+func TestWriteFileListRejectsEscapingNames(t *testing.T) {
+	for _, name := range []string{
+		"../escaped.txt",
+		"sub/../../escaped.txt",
+		"/absolute.txt",
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			err := writeFileList(dir, []core.NamedFile{{Name: name, Data: []byte("x")}})
+			if err == nil {
+				t.Fatal("expected an error")
+			}
+			outside := filepath.Join(filepath.Dir(dir), "escaped.txt")
+			if _, statErr := os.Stat(outside); statErr == nil {
+				t.Errorf("wrote %s, outside the output directory", outside)
+			}
+		})
+	}
+}
+
+// TestWriteFileListNestedNameBlocked covers a name whose directory cannot be
+// made because something else is already there under that name.
+func TestWriteFileListNestedNameBlocked(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "sub"), []byte("in the way"), 0o644); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	err := writeFileList(dir, []core.NamedFile{{Name: "sub/nested.txt", Data: []byte("x")}})
+	if err == nil {
+		t.Error("expected an error when the directory cannot be made")
+	}
+}

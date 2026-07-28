@@ -537,6 +537,7 @@ var opCategories = map[string][]string{
 	"Generate De Bruijn Sequence":        {catOther},
 	"Haversine distance":                 {catOther},
 	"HTML To Text":                       {catOther},
+	"Unzip":                              {catCompression},
 	"XKCD Random Number":                 {catOther},
 	"Generate Lorem Ipsum":               {catOther},
 	"Numberwang":                         {catOther},
@@ -570,6 +571,7 @@ var opCategories = map[string][]string{
 	"XXTEA Decrypt":                      {catEncryptionEncoding},
 	"XXTEA Encrypt":                      {catEncryptionEncoding},
 	"YAML to JSON":                       {catDataFormat},
+	"Zip":                                {catCompression},
 	"Zlib Deflate":                       {catCompression},
 	"Zlib Inflate":                       {catCompression},
 }
