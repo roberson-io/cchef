@@ -13,8 +13,10 @@ Operations documented in full below are grouped here.
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
 | CSS selector | `css-selector` | [CSS selectors](https://wikipedia.org/wiki/Cascading_Style_Sheets#Selector) |
+| Extract Audio Metadata | `extract-audio-metadata` | [Audio file format](https://wikipedia.org/wiki/Audio_file_format) |
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract Files | `extract-files` | [File carving](https://forensics.wiki/file_carving) |
+| Extract ID3 | `extract-id3` | [ID3](https://wikipedia.org/wiki/ID3) |
 | Extract dates | `extract-dates` | [Date / Time](date-time.md#extract-dates) |
 | JPath expression | `jpath-expression` | [JSONPath](http://goessner.net/articles/JsonPath/) |
 | Regular expression | `regular-expression` | [Utils](utils.md#regular-expression) |
@@ -77,6 +79,98 @@ Output:
 
 ```
 <a href="/x" class="nav">1</a> | <a href="/y" class="nav">3</a>
+```
+
+## Extract Audio Metadata
+
+Reads the metadata out of an audio file and reports it as one JSON document,
+whatever the container. Ten formats are recognised from their opening bytes —
+MP3, WAV (including BWF and BW64), FLAC, OGG, Opus, AAC, AC3, WMA, MP4/M4A and
+AIFF — and each is read with the systems that format carries.
+
+The report always has the same shape, so the same fields can be read whatever
+the file was:
+
+| Section | Holds |
+| --- | --- |
+| `artifact` | The filename given, the length in bytes, and the container detected. |
+| `detections` | Which metadata systems were found, such as `id3v2`, `vorbis_comments` or `asf_content_desc`. |
+| `tags.common` | Ten tags every format is boiled down to: title, artist, album, date, track, genre, comment, composer, copyright, language. |
+| `tags.raw` | Everything as the format itself records it, under a key per system. |
+| `embedded` | Payloads carried inside the file — cover art, encapsulated objects, XML chunks. |
+| `provenance` | Content credentials (C2PA), when a carrier for them is present. |
+| `errors` | Anything that could not be read. |
+
+A tag in `tags.common` is filled in by the first system that names it, so a file
+carrying both an ID3v2 and an ID3v1 tag takes the ID3v2 value and keeps it.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Filename (optional) | string | (empty) | Recorded in the report. It plays no part in reading the file — the container is detected from the bytes. Surrounding spaces are trimmed, and an empty name is reported as `null`. |
+| Max embedded text bytes (iXML/axml/etc) | number | `524288` | How much of an embedded text payload is kept. Payloads longer than this are cut and marked `truncated`. Values below 1024 are raised to it. |
+
+Input that is not audio is not an error: the container is reported as `unknown`
+and the reason is recorded under `errors`.
+
+### Simple example
+
+```bash
+cchef extract-audio-metadata --in-file galway.flac --filename-optional "galway.flac" | cchef json-beautify
+```
+
+Output (abridged):
+
+```
+{
+    "schema_version": "audio-meta-1.0",
+    "artifact": {
+        "filename": "galway.flac",
+        "byte_length": 132,
+        "container": {
+            "type": "flac",
+            "brand": null,
+            "mime": "audio/flac"
+        }
+    },
+    "detections": {
+        "metadata_systems": [
+            "flac_metablocks",
+            "vorbis_comments"
+        ],
+        "provenance_systems": []
+    },
+    "tags": {
+        "common": {
+            "title": "Galway",
+            "artist": "Kevin MacLeod",
+            ...
+        }
+    }
+}
+```
+
+### Complex example
+
+The common tags are the quickest way to read a file, whatever it is. Pull them
+out with [JPath expression](#jpath-expression):
+
+```bash
+cchef bake --in-file galway.flac -r recipe.json
+```
+
+where `recipe.json` chains the two operations:
+
+```json
+[
+  { "op": "Extract Audio Metadata", "args": ["galway.flac", 524288] },
+  { "op": "JPath expression", "args": ["$.tags.common", "\n"] }
+]
+```
+
+Output:
+
+```
+{"title":"Galway","artist":"Kevin MacLeod","album":null,"date":null,"track":null,"genre":null,"comment":null,"composer":null,"copyright":null,"language":null}
 ```
 
 ## Extract Files
@@ -174,6 +268,78 @@ Output:
 
 ```
 carved/extracted_at_0x0.png
+```
+
+## Extract ID3
+
+Reads the ID3 metadata tag an MP3 file can carry — title, artist, album, track
+number and so on — and reports it as JSON.
+
+The output names the tag version, its flags and its length, then each frame it
+holds under the four-character (or, in ID3v2.2, three-character) identifier the
+format uses, with the identifier's meaning and the frame's contents.
+
+A frame's `Data` is the frame's bytes with the first left out, since that byte
+says how the rest is encoded rather than being part of it, and the remaining
+bytes are reported as written rather than decoded. Text frames are terminated
+with a null byte, which is why most values end in `\u0000`.
+
+All three tag versions are read. Note that the lengths are stored differently
+between them: the tag's own length is always written as seven-bit groups, and so
+are frame lengths from ID3v2.4, but ID3v2.2 and ID3v2.3 write frame lengths as
+ordinary integers. CyberChef reads every length as seven-bit groups, so it
+cannot read an ID3v2.3 frame of 128 bytes or more, nor any tag over 16 KB;
+cchef reads each as the format specifies.
+
+This operation takes no options.
+
+### Simple example
+
+```bash
+cchef extract-id3 --in-file tagged.mp3
+```
+
+Output:
+
+```
+{"Type":"ID3","Version":"4.0","Flags":"0","Size":"130","Tags":{"TIT2":{"Size":"12","Description":"Title/songname/content description","Data":"Test Title\u0000"},"TPE1":{"Size":"13","Description":"Lead performer(s)/Soloist(s)","Data":"Test Artist\u0000"},"TALB":{"Size":"12","Description":"Album/Movie/Show title","Data":"Test Album\u0000"},"TDRC":{"Size":"6","Description":"Recording time","Data":"2026\u0000"},"TRCK":{"Size":"3","Description":"Track number/Position in set","Data":"3\u0000"},"TSSE":{"Size":"14","Description":"Software/Hardware and settings used for encoding","Data":"Lavf61.1.100\u0000"}}}
+```
+
+### Complex example
+
+The output is compact JSON, so pipe it through
+[JSON Beautify](code-tidy.md#json-beautify) to read it:
+
+```bash
+cchef extract-id3 --in-file tagged.mp3 | cchef json-beautify
+```
+
+Output:
+
+```
+{
+    "Type": "ID3",
+    "Version": "3.0",
+    "Flags": "0",
+    "Size": "66",
+    "Tags": {
+        "TIT2": {
+            "Size": "7",
+            "Description": "Title/songname/content description",
+            "Data": "Small\u0000"
+        },
+        "TPE1": {
+            "Size": "5",
+            "Description": "Lead performer(s)/Soloist(s)",
+            "Data": "Ann\u0000"
+        },
+        "TSSE": {
+            "Size": "14",
+            "Description": "Software/Hardware and settings used for encoding",
+            "Data": "Lavf61.1.100\u0000"
+        }
+    }
+}
 ```
 
 ## JPath expression

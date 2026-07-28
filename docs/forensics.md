@@ -5,7 +5,8 @@ category, where their detailed description, options and examples live:
 [Extract EXIF](multimedia.md#extract-exif) and
 [Remove EXIF](multimedia.md#remove-exif) are documented under
 [Multimedia](multimedia.md), and
-[Extract Files](extractors.md#extract-files) under
+[Extract Files](extractors.md#extract-files) and
+[Extract Audio Metadata](extractors.md#extract-audio-metadata) under
 [Extractors](extractors.md).
 
 > Operations are listed alphabetically.
@@ -13,6 +14,7 @@ category, where their detailed description, options and examples live:
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
 | Detect File Type | `detect-file-type` | [List of file signatures](https://wikipedia.org/wiki/List_of_file_signatures) |
+| Extract Audio Metadata | `extract-audio-metadata` | [Extractors](extractors.md#extract-audio-metadata) |
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract Files | `extract-files` | [Extractors](extractors.md#extract-files) |
 | Remove EXIF | `remove-exif` | [Multimedia](multimedia.md#remove-exif) |
