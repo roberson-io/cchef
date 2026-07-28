@@ -89,6 +89,26 @@ fixture cases for parity, and keeps external dependencies minimal:
   (`cssxpath.go`). This preserves byte-for-byte fidelity to CyberChef's
   `@xmldom/xmldom` + `nwmatcher` output, which the general-purpose HTML5 parser
   libraries (cascadia, goquery) could not reproduce.
+- `github.com/ulikunitz/xz` — backs **LZMA Compress** and **LZMA Decompress**
+  (CyberChef wraps the `@blu3r4y/lzma` npm package, itself a GWT compilation of
+  the Java LZMA SDK, so there is no readable logic to port). Pure Go, **no cgo**,
+  and **no transitive dependencies at all** — its `go.mod` requires nothing.
+  There is no alternative worth weighing: `xi2/xz` decompresses only and stopped
+  in 2017, `jamespfennell/xz` wraps the C library through cgo, and
+  `bodgit/sevenzip` depends on this package for its own LZMA.
+  **Taken with reservations, measured rather than assumed.** Its README says
+  "the package is currently under development. There might be bugs and APIs are
+  not considered stable", and issue 71 (open, May 2026) reports the LZMA writer
+  producing a stream its own reader rejects. That bug was reproduced here: it
+  needs `SizeInHeader` with a size of zero, which these operations never ask
+  for, and `TestLZMACompressStatesNoSizeInHeader` fails if that ever changes.
+  Interoperability was checked in all four directions before committing to it —
+  cchef reads CyberChef's streams and the `lzma` command's, and both read
+  cchef's — over a 136-case sweep with no failures.
+  **Reduced fidelity, by design**: decompression is exact, since a stream has
+  one meaning; compressed bytes are not, because the encoders differ. cchef's
+  output is the same size to within 0.1% on repetitive or random input, and 2.6%
+  to 6.3% larger on text and source code.
 - `github.com/recolabs/gnata` — backs **Jsonata Query** (CyberChef wraps the
   `jsonata` npm package, which has no logic to port). A pure-Go implementation of
   JSONata 2.x, **no cgo**; its three transitive dependencies
@@ -471,7 +491,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 468
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 470
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -484,7 +504,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **468 operations** (`internal/ops/`), each a faithful port with tests
+- **470 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -574,7 +594,7 @@ cchef list                                   # discover operations
 
 **Status: proposal — not started.** `internal/ops` is a single flat Go package
 that has grown to **615 files / 118k LOC** (322 non-test at 78k LOC, 293 test at
-40k LOC) implementing the ~468 registered operations. Nothing about it is broken;
+40k LOC) implementing the ~470 registered operations. Nothing about it is broken;
 the concern is navigability and build/test granularity. The figures below come
 from an AST-level cross-file reference analysis of the package (July 2026) and
 will drift as operations are added — re-measure before acting on them.
@@ -788,9 +808,9 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **465 unique** CyberChef operations are covered (464 directly plus
+Currently **467 unique** CyberChef operations are covered (466 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
-which is where the 468 cchef subcommands come from.
+which is where the 470 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
@@ -1192,7 +1212,7 @@ which is where the 468 cchef subcommands come from.
 - [x] Template
 - [x] XPath expression
 
-### Compression (10/19)
+### Compression (12/19)
 
 - [x] Bzip2 Compress
 - [x] Bzip2 Decompress
@@ -1200,8 +1220,8 @@ which is where the 468 cchef subcommands come from.
 - [x] Gzip
 - [ ] LZ4 Compress
 - [ ] LZ4 Decompress
-- [ ] LZMA Compress
-- [ ] LZMA Decompress
+- [x] LZMA Compress
+- [x] LZMA Decompress
 - [ ] LZNT1 Decompress
 - [ ] LZString Compress
 - [ ] LZString Decompress

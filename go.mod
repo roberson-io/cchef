@@ -18,6 +18,7 @@ require (
 	github.com/recolabs/gnata v0.2.3
 	github.com/sergi/go-diff v1.4.0
 	github.com/spf13/cobra v1.10.2
+	github.com/ulikunitz/xz v0.5.16
 	github.com/wroge/wgs84 v1.1.7
 	github.com/yuin/goldmark v1.8.4
 	go.yaml.in/yaml/v3 v3.0.4

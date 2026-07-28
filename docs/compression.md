@@ -14,6 +14,8 @@ file with `-o` instead.
 | Bzip2 Decompress | `bzip2-decompress` | [bzip2](https://wikipedia.org/wiki/Bzip2) |
 | Gunzip | `gunzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
 | Gzip | `gzip` | [gzip](https://wikipedia.org/wiki/Gzip) |
+| LZMA Compress | `lzma-compress` | [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) |
+| LZMA Decompress | `lzma-decompress` | [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) |
 | Raw Deflate | `raw-deflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
 | Raw Inflate | `raw-inflate` | [DEFLATE](https://wikipedia.org/wiki/DEFLATE) |
 | Unzip | `unzip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
@@ -200,6 +202,99 @@ Output:
 
 ```
 hello
+```
+
+## LZMA Compress
+
+Compresses the input into an
+[LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm) stream —
+the format behind `.lzma` files and, in another wrapper, `.xz` and 7-Zip. It
+compresses more tightly than Deflate or bzip2 and takes longer to do it.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Compression Mode | option | `7` | How far back a repeat may reach, from 1 to 9. Larger costs memory and time and usually compresses better. The size chosen is recorded in the stream, so a reader needs no telling. |
+
+The nine modes, as window sizes:
+
+| Mode | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Window | 64 KB | 1 MB | 512 KB | 1 MB | 2 MB | 4 MB | 8 MB | 16 MB | 32 MB |
+
+Modes 2 and 4 ask for the same window; the difference between them in CyberChef
+is a setting that never reaches the stream. That ordering is not a typo, it is
+what the mode table says.
+
+**Fidelity.** The stream is valid LZMA that CyberChef, the `lzma` command and
+7-Zip all read, but it is **not byte-identical to CyberChef's** — the two use
+different encoders, and any number of streams decode to the same data. cchef's
+output is the same size to within 0.1% on repetitive or random input, and 2.6%
+to 6.3% larger on text and source code. The header also leaves the length
+unstated and closes with an end marker, where CyberChef writes the length
+outright; both forms are ordinary and every reader takes either.
+
+### Simple example
+
+```bash
+cchef lzma-compress -i "The cat sat on the mat." | cchef lzma-decompress
+```
+
+Output:
+
+```
+The cat sat on the mat.
+```
+
+### Complex example
+
+The window size is recorded in bytes 2 to 5 of the header, so the mode can be
+read straight back out — `00000100` is 64 KB at mode 1, `00000002` is 32 MB at
+mode 9:
+
+```bash
+cchef lzma-compress -i "hello" --compression-mode 1 | cchef to-hex --delimiter None
+```
+
+Output:
+
+```
+5d00000100ffffffffffffffff00341949ee8e6821ffffffb9e00000
+```
+
+## LZMA Decompress
+
+Reads an [LZMA](https://wikipedia.org/wiki/Lempel-Ziv-Markov_chain_algorithm)
+stream back into the bytes it was made from. It takes no options — everything
+it needs is in the stream.
+
+Both header forms are read: the length stated outright, as CyberChef writes it,
+and the length left unknown with an end marker closing the stream, as the `lzma`
+command writes it.
+
+### Simple example
+
+```bash
+cchef lzma-compress -i "hello hello hello" | cchef lzma-decompress
+```
+
+Output:
+
+```
+hello hello hello
+```
+
+### Complex example
+
+Reading a file written by `lzma` itself:
+
+```bash
+printf 'The cat sat on the mat.' | lzma -c | cchef lzma-decompress
+```
+
+Output:
+
+```
+The cat sat on the mat.
 ```
 
 ## Raw Deflate
