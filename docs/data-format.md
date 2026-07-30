@@ -2212,6 +2212,7 @@ Converts the input to hexadecimal bytes separated by the chosen delimiter.
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--delimiter` | option | `Space` | One of: `Space`, `Percent`, `Comma`, `Semi-colon`, `Colon`, `Line feed`, `CRLF`, `0x`, `0x with comma`, `\x`, `None`. |
+| `--bytes-per-line` | number | `0` | Break the output into lines of this many bytes. `0` writes one long line. |
 
 **Simple example**
 
@@ -2245,6 +2246,22 @@ Output:
 
 ```
 0x61,0x62,0x63
+```
+
+**Wrapping to a fixed width**
+
+The break comes after the delimiter, so each line but the last ends with one:
+
+```bash
+cchef to-hex --bytes-per-line 4 -i 'Hello World!'
+```
+
+Output:
+
+```
+48 65 6c 6c 
+6f 20 57 6f 
+72 6c 64 21
 ```
 
 ## To Hex Content

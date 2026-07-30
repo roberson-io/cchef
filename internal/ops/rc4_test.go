@@ -71,10 +71,11 @@ func TestRC4Vectors(t *testing.T) {
 	})
 }
 
-// TestRC4LatinOutput checks the Latin1 output encodes each ciphertext byte as a
-// code point (bytes bb f3 16 e8 d9 40 af 0a d3).
+// TestRC4LatinOutput checks that Latin1 output is the ciphertext's own bytes.
+// The expected value is CyberChef's, recorded through its Node API: each byte
+// stands for itself rather than being re-encoded as a code point.
 func TestRC4LatinOutput(t *testing.T) {
-	want := string([]rune{0xbb, 0xf3, 0x16, 0xe8, 0xd9, 0x40, 0xaf, 0x0a, 0xd3})
+	want := string([]byte{0xbb, 0xf3, 0x16, 0xe8, 0xd9, 0x40, 0xaf, 0x0a, 0xd3})
 	out, err := runOp(t, "RC4", "Plaintext",
 		core.ToggleString{Value: "Key", Option: "Latin1"}, "Latin1", "Latin1")
 	if err != nil {
@@ -187,4 +188,33 @@ func TestRC4ParseErrors(t *testing.T) {
 		core.ToggleString{Value: "k", Option: "Latin1"}, "Base64", "Hex"); err == nil {
 		t.Fatal("bad base64 input should error")
 	}
+}
+
+// TestRC4Latin1IsBytesNotCodePoints pins the difference between the two places
+// a Latin1 format is read. The data's bytes stand for themselves, so a byte
+// above 0x7f is one byte; the passphrase is text the user typed, so its
+// characters are read as code points, as CyberChef reads them. Both expected
+// values are recorded from CyberChef's Node API.
+func TestRC4Latin1IsBytesNotCodePoints(t *testing.T) {
+	t.Run("data bytes stand for themselves", func(t *testing.T) {
+		got, err := runOp(t, "RC4", string([]byte{0xe9, 0x41, 0x00, 0xff}),
+			core.ToggleString{Value: "k", Option: "UTF8"}, "Latin1", "Hex")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != "86a3a0ae" {
+			t.Errorf("got %s, want 86a3a0ae", got)
+		}
+	})
+	t.Run("passphrase characters are code points", func(t *testing.T) {
+		got, err := runOp(t, "RC4", "AAAA",
+			core.ToggleString{Value: "é", Option: "Latin1"}, "Latin1", "Hex")
+		if err != nil {
+			t.Fatal(err)
+		}
+		// A one-byte key of 0xe9, not the two bytes é occupies as text.
+		if got != "6ccb1017" {
+			t.Errorf("got %s, want 6ccb1017", got)
+		}
+	})
 }

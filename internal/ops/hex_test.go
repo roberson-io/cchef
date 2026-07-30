@@ -87,3 +87,53 @@ func TestFromHexRejectsInvalidByte(t *testing.T) {
 		t.Fatal("expected an error for an invalid hex byte")
 	}
 }
+
+// TestToHexBytesPerLine covers the "Bytes per line" argument. The expected
+// values are CyberChef's, recorded through its Node API. Note that the
+// delimiter before a line break is kept — only the very last one is dropped —
+// which is what upstream produces.
+func TestToHexBytesPerLine(t *testing.T) {
+	const input = "Hello World!" // twelve bytes
+	cases := []struct {
+		name  string
+		delim string
+		per   float64
+		want  string
+	}{
+		{"four per line", "Space", 4, "48 65 6c 6c \n6f 20 57 6f \n72 6c 64 21"},
+		{"one per line", "Space", 1, "48 \n65 \n6c \n6c \n6f \n20 \n57 \n6f \n72 \n6c \n64 \n21"},
+		{"zero means no breaks", "Space", 0, "48 65 6c 6c 6f 20 57 6f 72 6c 64 21"},
+		{"no delimiter", "None", 4, "48656c6c\n6f20576f\n726c6421"},
+		{"comma", "Comma", 3, "48,65,6c,\n6c,6f,20,\n57,6f,72,\n6c,64,21"},
+		{"prepended delimiter", "0x", 4, "0x480x650x6c0x6c\n0x6f0x200x570x6f\n0x720x6c0x640x21"},
+		{
+			"prepended with extra", "0x with comma", 4,
+			"0x48,0x65,0x6c,0x6c,\n0x6f,0x20,0x57,0x6f,\n0x72,0x6c,0x64,0x21",
+		},
+		{"line size divides exactly", "Space", 8, "48 65 6c 6c 6f 20 57 6f \n72 6c 64 21"},
+		{"line size beyond the data", "Space", 16, "48 65 6c 6c 6f 20 57 6f 72 6c 64 21"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := runOp(t, "To Hex", input, c.delim, c.per)
+			if err != nil {
+				t.Fatalf("Run: %v", err)
+			}
+			if got != c.want {
+				t.Errorf("got %q\nwant %q", got, c.want)
+			}
+		})
+	}
+}
+
+// TestToHexDefaultsToNoLineBreaks checks that leaving the argument off behaves
+// as it always has, so existing recipes are unaffected.
+func TestToHexDefaultsToNoLineBreaks(t *testing.T) {
+	got, err := runOp(t, "To Hex", "Hello World!", "Space")
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if got != "48 65 6c 6c 6f 20 57 6f 72 6c 64 21" {
+		t.Errorf("got %q", got)
+	}
+}

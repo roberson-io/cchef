@@ -71,15 +71,23 @@ func splitHexToBytes(s string) []byte {
 }
 
 // toHex encodes bytes to hex with the given delimiter and optional extra
-// delimiter (for "0x with comma"). Ported from lib/Hex.mjs toHex.
+// delimiter (for "0x with comma"), all on one line.
 func toHex(data []byte, delim, extraDelim string) string {
+	return toHexLines(data, delim, extraDelim, 0)
+}
+
+// toHexLines is toHex with a line break after every lineSize bytes, or none at
+// all when lineSize is zero. Ported from lib/Hex.mjs toHex. The break comes
+// after the delimiter, so a delimiter is left at the end of each line; only the
+// one closing the last line is dropped.
+func toHexLines(data []byte, delim, extraDelim string, lineSize int) string {
 	if len(data) == 0 {
 		return ""
 	}
 	prepend := delim == "0x" || delim == "\\x" || delim == "%"
 
 	var sb strings.Builder
-	for _, b := range data {
+	for i, b := range data {
 		h := fmt.Sprintf("%02x", b)
 		if prepend {
 			sb.WriteString(delim + h)
@@ -88,6 +96,9 @@ func toHex(data []byte, delim, extraDelim string) string {
 		}
 		if extraDelim != "" {
 			sb.WriteString(extraDelim)
+		}
+		if lineSize > 0 && i != len(data)-1 && (i+1)%lineSize == 0 {
+			sb.WriteString("\n")
 		}
 	}
 
@@ -121,6 +132,7 @@ func (ToHex) Meta() core.OpMeta {
 func (ToHex) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: toHexDelims},
+		{Name: "Bytes per line", Type: core.ArgNumber, Value: 0},
 	}
 }
 
@@ -131,7 +143,8 @@ func (ToHex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if opt == "0x with comma" {
 		delim, extra = "0x", ","
 	}
-	return core.NewDish([]byte(toHex(in.Bytes(), delim, extra)), core.TypeString), nil
+	perLine := int(args[1].(float64))
+	return core.NewDish([]byte(toHexLines(in.Bytes(), delim, extra, perLine)), core.TypeString), nil
 }
 
 // FromHex converts a hexadecimal byte string back to its raw value.

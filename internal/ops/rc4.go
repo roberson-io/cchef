@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	"strings"
 	"unicode/utf16"
 	"unicode/utf8"
 
@@ -55,7 +54,19 @@ func rc4Process(key, data []byte, dropWords int) []byte {
 //nolint:staticcheck,revive // CryptoJS's verbatim error text
 var rc4ErrMalformedUTF8 = errors.New("Malformed UTF-8 data")
 
-// rc4Parse decodes s from the given CryptoJS format into bytes.
+// rc4ParseData reads the data to be enciphered. Latin1 keeps the low byte of
+// each character, and what counts as a character depends on the data: CyberChef
+// reads the dish as text before the cipher sees it, decoding UTF-8 where it can
+// and falling back to one character per byte where it cannot. Ciphertext is
+// rarely valid UTF-8, so that fallback is what lets Latin1 round-trip.
+func rc4ParseData(s, format string) ([]byte, error) {
+	if format == "Latin1" && !utf8.ValidString(s) {
+		return []byte(s), nil
+	}
+	return rc4Parse(s, format)
+}
+
+// rc4Parse reads a passphrase written in the given format.
 func rc4Parse(s, format string) ([]byte, error) {
 	switch format {
 	case "UTF16", "UTF16BE":
@@ -84,11 +95,10 @@ func rc4Stringify(b []byte, format string) (string, error) {
 	case "UTF16LE":
 		return rc4DecodeUTF16(b, false), nil
 	default: // Latin1
-		var sb strings.Builder
-		for _, c := range b {
-			sb.WriteRune(rune(c))
-		}
-		return sb.String(), nil
+		// One byte per character, so the ciphertext's bytes stand for
+		// themselves. Writing them as code points instead would re-encode
+		// everything above 0x7f as two bytes.
+		return string(b), nil
 	}
 }
 
@@ -165,7 +175,7 @@ func rc4Run(in *core.Dish, keyArg core.ToggleString, inFmt, outFmt string, dropW
 	if err != nil {
 		return nil, err
 	}
-	data, err := rc4Parse(in.String(), inFmt)
+	data, err := rc4ParseData(in.String(), inFmt)
 	if err != nil {
 		return nil, err
 	}

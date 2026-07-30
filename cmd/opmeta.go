@@ -90,6 +90,7 @@ const (
 	catDateTime           = "Date / Time"
 	catEncryptionEncoding = "Encryption / Encoding"
 	catExtractors         = "Extractors"
+	catFlowControl        = "Flow control"
 	catForensics          = "Forensics"
 	catHashing            = "Hashing"
 	catLanguage           = "Language"
@@ -165,6 +166,8 @@ var opCategories = map[string][]string{
 	"Citrix CTX1 Decode":                 {catEncryptionEncoding},
 	"Citrix CTX1 Encode":                 {catEncryptionEncoding},
 	"CMAC":                               {catHashing},
+	"Comment":                            {catFlowControl},
+	"Conditional Jump":                   {catFlowControl},
 	"Colossus":                           {catEncryptionEncoding},
 	"Compare CTPH hashes":                {catHashing},
 	"Compare SSDEEP hashes":              {catHashing},
@@ -242,6 +245,7 @@ var opCategories = map[string][]string{
 	"Flask Session Decode":               {catEncryptionEncoding},
 	"Flask Session Sign":                 {catEncryptionEncoding},
 	"Flask Session Verify":               {catEncryptionEncoding},
+	"Fork":                               {catFlowControl},
 	"Fletcher-16 Checksum":               {catHashing},
 	"Fletcher-32 Checksum":               {catHashing},
 	"Fletcher-64 Checksum":               {catHashing},
@@ -326,6 +330,8 @@ var opCategories = map[string][]string{
 	"JWT Decode":                         {catEncryptionEncoding},
 	"JWT Sign":                           {catEncryptionEncoding},
 	"JWT Verify":                         {catEncryptionEncoding},
+	"Jump":                               {catFlowControl},
+	"Label":                              {catFlowControl},
 	"JavaScript Beautify":                {catCodeTidy},
 	"JavaScript Minify":                  {catCodeTidy},
 	"JavaScript Parser":                  {catCodeTidy},
@@ -350,6 +356,7 @@ var opCategories = map[string][]string{
 	"MD6":                                {catHashing},
 	"Mean":                               {catArithmeticLogic},
 	"Median":                             {catArithmeticLogic},
+	"Merge":                              {catFlowControl},
 	"MIME Decoding":                      {catDataFormat},
 	"Microsoft Script Decoder":           {catCodeTidy},
 	"Multiple Bombe":                     {catEncryptionEncoding},
@@ -428,6 +435,8 @@ var opCategories = map[string][]string{
 	"Raw Deflate":                        {catCompression},
 	"Raw Inflate":                        {catCompression},
 	"Regular expression":                 {catUtils, catExtractors},
+	"Register":                           {catFlowControl},
+	"Return":                             {catFlowControl},
 	"Strings":                            {catExtractors},
 	"Template":                           {catExtractors},
 	"Remove EXIF":                        {catForensics, catMultimedia},
@@ -489,6 +498,7 @@ var opCategories = map[string][]string{
 	"Strip TCP header":                   {catNetworking},
 	"Strip UDP header":                   {catNetworking},
 	"Substitute":                         {catEncryptionEncoding},
+	"Subsection":                         {catFlowControl},
 	"Subtract":                           {catArithmeticLogic},
 	"Sum":                                {catArithmeticLogic},
 	"Swap case":                          {catUtils},
