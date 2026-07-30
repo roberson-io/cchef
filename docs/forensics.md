@@ -14,6 +14,7 @@ category, where their detailed description, options and examples live:
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
 | Detect File Type | `detect-file-type` | [List of file signatures](https://wikipedia.org/wiki/List_of_file_signatures) |
+| ELF Info | `elf-info` | [Executable and Linkable Format](https://wikipedia.org/wiki/Executable_and_Linkable_Format) |
 | Extract Audio Metadata | `extract-audio-metadata` | [Extractors](extractors.md#extract-audio-metadata) |
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract Files | `extract-files` | [Extractors](extractors.md#extract-files) |
@@ -73,6 +74,140 @@ Output:
 ```
 Unknown file type. Have you tried checking the entropy of this data to determine whether it might be encrypted or compressed?
 ```
+
+## ELF Info
+
+Implements
+[readelf](https://wikipedia.org/wiki/Executable_and_Linkable_Format)-like
+functionality: reports the ELF header, the program headers, the section headers
+and the symbol table of an ELF executable, shared object or object file, in
+both 32-bit and 64-bit formats and either byte order. The operation takes no
+options.
+
+The input is the raw bytes of the file, so it pairs naturally with the global
+`--in-file` flag (`cchef elf-info --in-file ./program`) or a preceding decode
+step such as `from-hex`.
+
+Two departures from CyberChef, both fixing faults in its version (also logged
+upstream): every field is read as an unsigned 64-bit integer, where CyberChef
+coerces through a 32-bit signed one (a 64-bit entry point such as
+`0x123456789abcdef0` prints as itself rather than `0x-65432110`, and
+application-specific sections are named rather than dropped); and a read past
+the end of the file is refused with an error, where CyberChef invents values
+for the missing bytes.
+
+### Simple example
+
+A file that is nothing but a header:
+
+```bash
+cchef from-hex -i "7f454c4602010100000000000000000002003e00010000000010400000000000000000000000000000000000000000000000000040003800000040000000000000" | cchef elf-info
+```
+
+Output:
+
+```
+============================== ELF Header ==============================
+Magic:                        ELF
+Format:                       64-bit
+Endianness:                   Little
+Version:                      1
+ABI:                          System V
+ABI Version:                  0
+Type:                         Executable File
+Instruction Set Architecture: AMD x86-64
+ELF Version:                  1
+Entry Point:                  0x401000
+Entry PHOFF:                  0x00
+Entry SHOFF:                  0x00
+Flags:                        00000000
+ELF Header Size:              64 bytes
+Program Header Size:          56 bytes
+Program Header Entries:       0
+Section Header Size:          64 bytes
+Section Header Entries:       0
+Section Header Names:         0
+
+============================== Program Header ==============================
+============================== Section Header ==============================
+============================== Symbol Table ==============================
+```
+
+### Complex example
+
+A complete 32-bit file — CyberChef's own test sample — with a program header,
+three sections and a symbol:
+
+```bash
+cchef from-hex -i "7f454c46010101000000000000000000020003000100000050210608340000005400000000000000340020000100280003000000060000003400000034800408348004080001000000010000050000000400000000000000030000000000000000000000cc0000001c0000000000000000000000000000000000000009000000020000000000000000000000e6000000100000000000000000000000000000001000000011000000030000000000000000000000f500000004000000000000000000000000000000000000002e73687374726162002e73796d746162002e737472746162000000000000000000000000000000000074657374" | cchef elf-info
+```
+
+Output:
+
+```
+============================== ELF Header ==============================
+Magic:                        ELF
+Format:                       32-bit
+Endianness:                   Little
+Version:                      1
+ABI:                          System V
+ABI Version:                  0
+Type:                         Executable File
+Instruction Set Architecture: x86
+ELF Version:                  1
+Entry Point:                  0x8062150
+Entry PHOFF:                  0x34
+Entry SHOFF:                  0x54
+Flags:                        00000000
+ELF Header Size:              52 bytes
+Program Header Size:          32 bytes
+Program Header Entries:       1
+Section Header Size:          40 bytes
+Section Header Entries:       3
+Section Header Names:         0
+
+============================== Program Header ==============================
+Program Header Type:          Program Header Table
+Offset Of Segment:            52
+Virtual Address of Segment:   134512692
+Physical Address of Segment:  134512692
+Size of Segment:              256 bytes
+Size of Segment in Memory:    256 bytes
+Flags:                        Execute,Read
+
+============================== Section Header ==============================
+Type:                         String Table
+Section Name:                 .shstrab
+Flags:                        
+Section Vaddr in memory:      0
+Offset of the section:        204
+Section Size:                 28
+Associated Section:           0
+Section Extra Information:    0
+
+Type:                         Symbol Table
+Section Name:                 .symtab
+Flags:                        
+Section Vaddr in memory:      0
+Offset of the section:        230
+Section Size:                 16
+Associated Section:           0
+Section Extra Information:    0
+
+Type:                         String Table
+Section Name:                 .strtab
+Flags:                        
+Section Vaddr in memory:      0
+Offset of the section:        245
+Section Size:                 4
+Associated Section:           0
+Section Extra Information:    0
+
+============================== Symbol Table ==============================
+Symbol Name:                  test
+```
+
+(The misspelt `.shstrab` name is in the sample file itself.)
 
 ## YARA Rules
 

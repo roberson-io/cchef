@@ -209,6 +209,7 @@ var opCategories = map[string][]string{
 	"ECDSA Sign":                         {catPublicKey},
 	"ECDSA Signature Conversion":         {catPublicKey},
 	"ECDSA Verify":                       {catPublicKey},
+	"ELF Info":                           {catForensics},
 	"Encode NetBIOS Name":                {catNetworking},
 	"Encode text":                        {catDataFormat, catLanguage},
 	"Enigma":                             {catEncryptionEncoding},
