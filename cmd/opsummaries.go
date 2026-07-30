@@ -88,6 +88,7 @@ var opSummaries = map[string]string{
 	"LZString Decompress":             "Reads text back out of an lz-string stream",
 	"Tar":                             "Packs the input into a tar archive",
 	"Untar":                           "Unpacks the files from a tar archive",
+	"Extract LSB":                     "Extracts least-significant-bit data from an image",
 	"Scan for Embedded Files":         "Looks for file magic bytes at every offset",
 	"YARA Rules":                      "Matches the input against a set of YARA rules",
 	"LZ4 Decompress":                  "Reads an LZ4 frame back to the original bytes",

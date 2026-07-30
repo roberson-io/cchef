@@ -18,8 +18,12 @@ category, where their detailed description, options and examples live:
 | Extract Audio Metadata | `extract-audio-metadata` | [Extractors](extractors.md#extract-audio-metadata) |
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract Files | `extract-files` | [Extractors](extractors.md#extract-files) |
+| Extract LSB | `extract-lsb` | [Least significant bit](https://wikipedia.org/wiki/Bit_numbering#Least_significant_bit_in_digital_steganography) |
+| Extract RGBA | `extract-rgba` | [RGBA color space](https://wikipedia.org/wiki/RGBA_color_space) |
+| Randomize Colour Palette | `randomize-colour-palette` | [Indexed color](https://wikipedia.org/wiki/Indexed_color) |
 | Remove EXIF | `remove-exif` | [Multimedia](multimedia.md#remove-exif) |
 | Scan for Embedded Files | `scan-for-embedded-files` | [List of file signatures](https://wikipedia.org/wiki/List_of_file_signatures) |
+| View Bit Plane | `view-bit-plane` | [Bit plane](https://wikipedia.org/wiki/Bit_plane) |
 | YARA Rules | `yara-rules` | [YARA](https://wikipedia.org/wiki/YARA) |
 
 ## Detect File Type
@@ -210,6 +214,120 @@ Symbol Name:                  test
 
 (The misspelt `.shstrab` name is in the sample file itself.)
 
+## Extract LSB
+
+Extracts the
+[least significant bit](https://wikipedia.org/wiki/Bit_numbering#Least_significant_bit_in_digital_steganography)
+data from each pixel of an image — a common way of hiding data in
+Steganography. Up to four colour patterns choose which channels are read from
+each pixel (in the order given, duplicates allowed); the chosen bit of each is
+collected pixel by pixel and the bit stream packed into bytes, eight to a byte,
+first bit most significant.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Colour Pattern #1 | option | `R` | One of `R`, `G`, `B`, `A`. |
+| Colour Pattern #2 | option | (empty) | Optional second channel. |
+| Colour Pattern #3 | option | (empty) | Optional third channel. |
+| Colour Pattern #4 | option | (empty) | Optional fourth channel. |
+| Pixel Order | option | `Row` | `Row` scans left-to-right, top-to-bottom; `Column` top-to-bottom, left-to-right. |
+| Bit | number | 0 | Which bit to read, 0 (least significant) to 7. |
+
+One departure from CyberChef, fixing a fault in its version (also logged
+upstream): its `Column` order miscomputes each sample's position, reading
+bytes from unrelated pixels and crashing outright on narrow images. cchef's
+`Column` order walks whole pixels top to bottom, one column at a time, as the
+option intends. `Row` order matches CyberChef byte for byte.
+
+### Simple example
+
+A 16×1 image whose red channel's low bits spell a message:
+
+```bash
+cchef from-hex -i "89504e470d0a1a0a0000000d4948445200000010000000010806000000d7792e5f0000001f49444154789c634c9976e23f230303c37f06084066c300480c0440e2e86a012fc606c443aafb870000000049454e44ae426082" | cchef extract-lsb --colour-pattern-1 R
+```
+
+Output:
+
+```
+Hi
+```
+
+### Complex example
+
+Reading bit 3 of two channels in column order, as hex:
+
+```bash
+cchef from-hex -i "89504e470d0a1a0a0000000d4948445200000010000000010806000000d7792e5f0000001f49444154789c634c9976e23f230303c37f06084066c300480c0440e2e86a012fc606c443aafb870000000049454e44ae426082" | cchef extract-lsb --colour-pattern-1 G --colour-pattern-2 B --pixel-order Column --bit 3 | cchef to-hex
+```
+
+Output:
+
+```
+55 55 55 55
+```
+
+## Extract RGBA
+
+Extracts each pixel's
+[RGBA](https://wikipedia.org/wiki/RGBA_color_space) channel values from an
+image, as decimal numbers joined by a delimiter — sometimes used in
+Steganography to hide text or data.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Delimiter | editable option | `,` | Any string; placed between values verbatim. |
+| Include Alpha | boolean | true | Include each pixel's alpha value. |
+
+### Simple example
+
+A single pixel with the RGBA value (1, 2, 3, 4):
+
+```bash
+cchef from-hex -i "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c636064626601000019000be75a46a40000000049454e44ae426082" | cchef extract-rgba
+```
+
+Output:
+
+```
+1,2,3,4
+```
+
+### Complex example
+
+Two pixels, space-separated, without the alpha channel:
+
+```bash
+cchef from-hex -i "89504e470d0a1a0a0000000d4948445200000002000000010806000000f4227f8a0000001149444154789c63f8cfd0f09fe1bfc37f00147804bd49994a4e0000000049454e44ae426082" | cchef extract-rgba --delimiter " " --include-alpha=false
+```
+
+Output:
+
+```
+255 0 128 0 255 64
+```
+
+## Randomize Colour Palette
+
+Gives every distinct colour in an image a new one derived from a seed — each
+pixel becomes the first three bytes of `MD5(seed + "R.G.B")`, fully opaque —
+so shapes drawn in nearly identical colours become plainly visible, a
+technique sometimes used to reveal hidden
+[indexed-colour](https://wikipedia.org/wiki/Indexed_color) Steganography.
+The same source colour always maps to the same new colour, so the image's
+structure is kept while its palette is shuffled. Pixel-identical to CyberChef
+for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Seed | string | (empty) | The palette follows the seed; empty draws a random one. |
+
+### Simple example
+
+```bash
+cchef randomize-colour-palette --in-file subtle.png --seed 1 -o revealed.png
+```
+
 ## Scan for Embedded Files
 
 Scans the data for potential embedded files by looking for
@@ -268,6 +386,25 @@ Offset 0 (0x00):
   Extension:   txt
   MIME type:   text/plain
   Description: UTF-8 encoded Unicode byte order mark, commonly but not exclusively seen in text files.
+```
+
+## View Bit Plane
+
+Extracts and displays one
+[bit plane](https://wikipedia.org/wiki/Bit_plane) of an image: each pixel is
+painted black where the chosen bit of the chosen channel is set and white
+where it is clear, which can expose messages hidden in a single bit in
+Steganography. Pixel-identical to CyberChef for lossless formats.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Colour | option | `Red` | One of `Red`, `Green`, `Blue`, `Alpha`. |
+| Bit | number | 0 | Which bit to show, 0 (least significant) to 7. |
+
+### Simple example
+
+```bash
+cchef view-bit-plane --in-file photo.png --colour Green --bit 2 -o plane.png
 ```
 
 ## YARA Rules
