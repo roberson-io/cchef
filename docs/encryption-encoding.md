@@ -70,6 +70,7 @@ Classic ciphers and bitwise operations.
 | RC2 Decrypt | `rc2-decrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
 | RC2 Encrypt | `rc2-encrypt` | [RC2](https://wikipedia.org/wiki/RC2) |
 | RC4 | `rc4` | [RC4](https://wikipedia.org/wiki/RC4) |
+| Pseudo-Random Prime Generator | `pseudo-random-prime-generator` | [Miller-Rabin primality test](https://wikipedia.org/wiki/Miller-Rabin_primality_test) |
 | RC4 Drop | `rc4-drop` | [RC4](https://wikipedia.org/wiki/RC4) |
 | RC6 Decrypt | `rc6-decrypt` | [RC6](https://wikipedia.org/wiki/RC6) |
 | RC6 Encrypt | `rc6-encrypt` | [RC6](https://wikipedia.org/wiki/RC6) |
@@ -2627,6 +2628,36 @@ Attack at dawn
 ```
 
 ---
+
+## Pseudo-Random Prime Generator
+
+Generates a random probable prime of a given size, tested with
+[Miller-Rabin](https://wikipedia.org/wiki/Miller-Rabin_primality_test). The
+input is ignored.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Bit length | number | 512 | From 2 to 4096. |
+| Crypto grade | boolean | false | Test more thoroughly: forty rounds rather than seven. |
+| Output format | option | `Decimal` | Or `Hexadecimal`, written with an `0x` prefix. |
+
+One departure from CyberChef, fixing a fault in its version (also logged
+upstream): it sets a bit to stop the number being too short but never clears
+the ones above it, so it only returns the length asked for when that length is
+a whole number of bytes — ask it for 17 bits and you may get 24. cchef returns
+exactly the number of bits asked for.
+
+### Simple example
+
+```bash
+cchef pseudo-random-prime-generator --bit-length 64
+```
+
+Output (a different number each time):
+
+```
+10307556471115595143
+```
 
 ## RC4 Drop
 

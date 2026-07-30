@@ -201,3 +201,61 @@ func TestParseDecimalEquivalence(t *testing.T) {
 		agree(string(b))
 	}
 }
+
+// TestBigNumMod covers the modulo, whose result takes the sign of the dividend
+// rather than the divisor, and which works on decimals as well as whole
+// numbers. The values follow bignumber.js's own mod.
+func TestBigNumMod(t *testing.T) {
+	num := func(s string) bigNum {
+		n, ok := parseBigNum(s)
+		if !ok {
+			t.Fatalf("cannot read %q", s)
+		}
+		return n
+	}
+	cases := []struct{ a, b, want string }{
+		{"15", "3", "0"},
+		{"4", "3", "1"},
+		{"7", "3", "1"},
+		{"10", "9", "1"},
+		// The sign follows the dividend.
+		{"-15", "3", "0"},
+		{"-8", "3", "-2"},
+		{"25", "3", "1"},
+		{"-10", "3", "-1"},
+		{"8", "-3", "2"},
+		// Decimals keep their fractional part.
+		{"10.5", "3", "1.5"},
+		{"15.7", "3", "0.7"},
+		{"8.2", "3", "2.2"},
+		// A dividend smaller than the divisor is returned unchanged.
+		{"123456789012345", "987654321098765432", "123456789012345"},
+	}
+	for _, c := range cases {
+		if got := num(c.a).mod(num(c.b)).String(); got != c.want {
+			t.Errorf("%s mod %s = %s, want %s", c.a, c.b, got, c.want)
+		}
+	}
+}
+
+// TestBigNumModSpecials covers the values that are not ordinary numbers.
+func TestBigNumModSpecials(t *testing.T) {
+	one, _ := parseBigNum("1")
+	zero, _ := parseBigNum("0")
+	if got := one.mod(zero); !got.nan {
+		t.Errorf("anything mod zero should not be a number, got %s", got)
+	}
+	if got := bnNaN.mod(one); !got.nan {
+		t.Errorf("not-a-number mod one should not be a number, got %s", got)
+	}
+	if got := one.mod(bnNaN); !got.nan {
+		t.Errorf("one mod not-a-number should not be a number, got %s", got)
+	}
+	if got := (bigNum{inf: 1}).mod(one); !got.nan {
+		t.Errorf("infinity mod one should not be a number, got %s", got)
+	}
+	// A finite number modulo infinity is the number itself.
+	if got := one.mod(bigNum{inf: 1}).String(); got != "1" {
+		t.Errorf("one mod infinity = %s, want 1", got)
+	}
+}

@@ -9,7 +9,10 @@ Reductions over lists of numbers, and operations over sets.
 | Cartesian Product | `cartesian-product` | [Cartesian product](https://wikipedia.org/wiki/Cartesian_product) |
 | Divide | `divide` | [Division](https://wikipedia.org/wiki/Division_(mathematics)) |
 | Mean | `mean` | [Arithmetic mean](https://wikipedia.org/wiki/Arithmetic_mean) |
+| Extended GCD | `extended-gcd` | [Extended Euclidean algorithm](https://wikipedia.org/wiki/Extended_Euclidean_algorithm) |
 | Median | `median` | [Median](https://wikipedia.org/wiki/Median) |
+| MOD | `mod` | [Modulo](https://wikipedia.org/wiki/Modulo) |
+| Modular Inverse | `modular-inverse` | [Modular multiplicative inverse](https://wikipedia.org/wiki/Modular_multiplicative_inverse) |
 | Multiply | `multiply` | [Multiplication](https://wikipedia.org/wiki/Multiplication) |
 | Power Set | `power-set` | [Power set](https://wikipedia.org/wiki/Power_set) |
 | Set Difference | `set-difference` | [Relative complement](https://wikipedia.org/wiki/Complement_(set_theory)#Relative_complement) |
@@ -143,6 +146,57 @@ Output:
 
 ---
 
+## Extended GCD
+
+Runs the
+[extended Euclidean algorithm](https://wikipedia.org/wiki/Extended_Euclidean_algorithm)
+on two whole numbers, reporting their greatest common divisor together with the
+Bezout coefficients — the `x` and `y` for which `a*x + b*y = gcd(a, b)`.
+
+Either value may be written in decimal or in hexadecimal with an `0x` prefix,
+and there is no limit on their size. Leaving one blank takes that value from
+the input instead, so a number can be piped in.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Value a | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+| Value b | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+
+### Simple example
+
+```bash
+cchef extended-gcd --value-a 3 --value-b 11
+```
+
+Output:
+
+```
+gcd: 1
+
+Bezout coefficients:
+x = 4
+y = -1
+```
+
+### Complex example
+
+The value left blank comes from the input, so this asks for the divisor of 42
+and 35:
+
+```bash
+cchef extended-gcd --value-b 35 -i 42
+```
+
+Output:
+
+```
+gcd: 7
+
+Bezout coefficients:
+x = 1
+y = -1
+```
+
 ## Median
 
 Computes the median of the list, sorting it first and averaging the two middle
@@ -184,6 +238,72 @@ Output:
 ```
 
 ---
+
+## MOD
+
+Reduces every number in a list by a modulus. Numbers are taken from the input
+using the delimiter, anything that is not a number is ignored, and the results
+are always reported separated by spaces whatever the input used.
+
+The remainder takes the sign of the number being reduced, not of the modulus,
+and a number with a fractional part keeps one.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Modulus | number | 2 | Cannot be zero. |
+| Delimiter | option | `Line feed` | Also `Space`, `Comma`, `Semi-colon`, `Colon`, `CRLF`. |
+
+### Simple example
+
+```bash
+cchef mod --modulus 3 --delimiter Space -i "15 4 7"
+```
+
+Output:
+
+```
+0 1 1
+```
+
+### Complex example
+
+A different delimiter, with values that are not numbers ignored:
+
+```bash
+cchef mod --modulus 5 --delimiter Comma -i "15,8,23"
+```
+
+Output:
+
+```
+0 3 3
+```
+
+## Modular Inverse
+
+Finds the number that multiplies with `a` to give one, modulo `m` — the `x` for
+which `a*x = 1 (mod m)`. There is one only when `a` and `m` share no factor;
+otherwise the operation says so.
+
+As with [Extended GCD](#extended-gcd), either value may be decimal or `0x` hex,
+and leaving one blank takes it from the input.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Value (a) | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+| Modulus (m) | string | (empty) | Must be greater than zero. |
+
+### Simple example
+
+```bash
+cchef modular-inverse --value-a 3 --modulus-m 11
+```
+
+Output:
+
+```
+4
+```
 
 ## Multiply
 

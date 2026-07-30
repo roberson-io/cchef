@@ -232,6 +232,28 @@ func (a bigNum) div(b bigNum) bigNum {
 	return bigNum{val: round20(new(big.Rat).Quo(a.val, b.val)), neg: resNeg}
 }
 
+// mod returns what is left of a after taking away whole multiples of b. The
+// division truncates towards zero, so the result carries the sign of a rather
+// than of b, and a fractional part survives — both as bignumber.js's mod does.
+func (a bigNum) mod(b bigNum) bigNum {
+	switch {
+	case a.nan || b.nan, a.inf != 0, b.isZero():
+		// Nothing is left of an endless number, and nothing can be taken away
+		// in whole multiples of nothing.
+		return bnNaN
+	case b.inf != 0:
+		// Not one whole multiple of an endless number fits, so all of a is left.
+		return a
+	}
+	// quotient truncated towards zero, then a - quotient*b.
+	q := new(big.Rat).Quo(a.val, b.val)
+	whole := new(big.Int).Quo(q.Num(), q.Denom())
+	rest := new(big.Rat).Sub(a.val, new(big.Rat).Mul(new(big.Rat).SetInt(whole), b.val))
+	// The remainder carries its own sign, so nothing is left to record
+	// separately; a remainder of nothing is plain zero rather than a signed one.
+	return bigNum{val: rest}
+}
+
 // infWithSign returns -Infinity when neg is true, otherwise +Infinity.
 func infWithSign(neg bool) bigNum {
 	if neg {

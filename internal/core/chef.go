@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -88,6 +89,9 @@ func ParseRecipeConfig(recipe string) (Recipe, error) {
 	}
 
 	recipe = strings.ReplaceAll(recipe, "\n", "")
+	if err := validatePrettyRecipe(recipe); err != nil {
+		return nil, err
+	}
 	out := Recipe{}
 	for _, m := range reRecipeOp.FindAllStringSubmatch(recipe, -1) {
 		args := m[2]
@@ -112,4 +116,51 @@ func ParseRecipeConfig(recipe string) (Recipe, error) {
 		out = append(out, step)
 	}
 	return out, nil
+}
+
+// validatePrettyRecipe walks a recipe in the compact "Chef" format once,
+// checking that it is built of `Name(arguments)` and nothing else, so that a
+// mistyped recipe is refused rather than quietly matching nothing and doing
+// nothing. CyberChef gained the same pass in 11.3.0, where it also guards its
+// parser against a hostile recipe; Go's regexp cannot be made to backtrack that
+// way, so here it is only about saying no clearly.
+func validatePrettyRecipe(recipe string) error {
+	for i := 0; i < len(recipe); {
+		open := strings.IndexByte(recipe[i:], '(')
+		if open <= 0 {
+			// Either there is no bracket left, or one turned up with no
+			// operation name in front of it.
+			return errInvalidRecipe
+		}
+		end, err := endOfArguments(recipe, i+open+1)
+		if err != nil {
+			return err
+		}
+		i = end
+	}
+	return nil
+}
+
+// errInvalidRecipe is what a recipe that does not parse is refused with.
+var errInvalidRecipe = errors.New("invalid recipe")
+
+// endOfArguments finds where the argument list starting at from closes,
+// stepping over quoted text and the escapes inside it. It returns the index
+// just past the closing bracket.
+func endOfArguments(recipe string, from int) (int, error) {
+	inString, escaped := false, false
+	for i := from; i < len(recipe); i++ {
+		switch c := recipe[i]; {
+		case escaped:
+			escaped = false
+		case inString && c == '\\':
+			escaped = true
+		case c == '\'':
+			inString = !inString
+		case c == ')' && !inString:
+			return i + 1, nil
+		}
+	}
+	// The arguments never closed, or ended inside a quote or an escape.
+	return 0, errInvalidRecipe
 }

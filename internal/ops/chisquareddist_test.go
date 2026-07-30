@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+// chiSquaredTolerance is how far a computed probability may sit from the true
+// one. The bound is set by what the algorithm can promise, not by what any one
+// machine happens to produce: the value comes from a series or continued
+// fraction of well over a hundred float64 terms, each built on math.Exp,
+// math.Log and math.Lgamma, whose last bit differs between architectures
+// because some have assembly implementations and some do not. Those last bits
+// accumulate. A part in a trillion is far tighter than the operation needs —
+// the probability is only ever asked whether it is above zero — and loose
+// enough to hold anywhere.
+const chiSquaredTolerance = 1e-12
+
 // The expected values are the distribution's true ones, computed to forty
 // significant figures and rounded to a float64. They are deliberately not the
 // values CyberChef gets: the chi-squared package it uses is inaccurate from
@@ -32,12 +43,9 @@ func TestChiSquaredCDF(t *testing.T) {
 		{12.5, 10, 0.74701467669070176},
 		{0.5, 0.5, 0.74367794473146109},
 	}
-	// A hundred-odd terms of a series in float64 loses the last digit or two at
-	// the larger degrees of freedom, so the comparison allows for that and no
-	// more.
 	for _, c := range cases {
 		got := chiSquaredCDF(c.x, c.k)
-		if math.Abs(got-c.want) > 1e-14 {
+		if math.Abs(got-c.want) > chiSquaredTolerance {
 			t.Errorf("cdf(%v, %v) = %.17g, want %.17g", c.x, c.k, got, c.want)
 		}
 	}
@@ -49,11 +57,11 @@ func TestChiSquaredCDF(t *testing.T) {
 func TestChiSquaredCDFAgainstClosedForms(t *testing.T) {
 	for _, x := range []float64{0.25, 1, 2, 5, 20} {
 		// Two degrees of freedom is the exponential distribution.
-		if got, want := chiSquaredCDF(x, 2), 1-math.Exp(-x/2); math.Abs(got-want) > 1e-15 {
+		if got, want := chiSquaredCDF(x, 2), 1-math.Exp(-x/2); math.Abs(got-want) > chiSquaredTolerance {
 			t.Errorf("cdf(%v, 2) = %.17g, want %.17g", x, got, want)
 		}
 		// One degree of freedom is the error function.
-		if got, want := chiSquaredCDF(x, 1), math.Erf(math.Sqrt(x/2)); math.Abs(got-want) > 1e-15 {
+		if got, want := chiSquaredCDF(x, 1), math.Erf(math.Sqrt(x/2)); math.Abs(got-want) > chiSquaredTolerance {
 			t.Errorf("cdf(%v, 1) = %.17g, want %.17g", x, got, want)
 		}
 	}

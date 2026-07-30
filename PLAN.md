@@ -491,7 +491,7 @@ cannot replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (full
 
 ## Current status
 
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 498
+The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 504
 operations** are implemented, tested, and documented. The remaining CyberChef
 operations are added incrementally against the same interfaces (see the
 [Operation implementation status](#operation-implementation-status) checklist
@@ -504,7 +504,7 @@ below).
   `Registry`, sequential `Recipe.Execute`, faithful ports of
   `GeneratePrettyRecipe`/`ParseRecipeConfig` (Chef format) and
   `EncodeURIFragment`/`BuildURL` (share URLs), each with byte-exact tests.
-- **498 operations** (`internal/ops/`), each a faithful port with tests
+- **504 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's `tests/operations/tests/*.mjs` fixtures.
 - **CLI** (`cmd/`): auto-generated per-op subcommands (flags derived from arg
   defs, names sanitised), plus `bake`, `url`, `recipe convert`, `list`. Input
@@ -594,7 +594,7 @@ cchef list                                   # discover operations
 
 **Status: proposal — not started.** `internal/ops` is a single flat Go package
 that has grown to **615 files / 118k LOC** (322 non-test at 78k LOC, 293 test at
-40k LOC) implementing the ~498 registered operations. Nothing about it is broken;
+40k LOC) implementing the ~504 registered operations. Nothing about it is broken;
 the concern is navigability and build/test granularity. The figures below come
 from an AST-level cross-file reference analysis of the package (July 2026) and
 will drift as operations are added — re-measure before acting on them.
@@ -808,9 +808,9 @@ alphabetically. `[x]` = implemented in cchef, `[ ]` = not yet, `[—]` = phantom
 (named in CyberChef's config but never implemented upstream — see note below).
 The per-category count is `implemented/total`; some operations appear in more
 than one category.
-Currently **495 unique** CyberChef operations are covered (494 directly plus
+Currently **501 unique** CyberChef operations are covered (500 directly plus
 `SHA2`, exposed as the `sha224`, `sha256`, `sha384` and `sha512` subcommands),
-which is where the 498 cchef subcommands come from.
+which is where the 504 cchef subcommands come from.
 
 > **495 real operations, not 498.** CyberChef's `Categories.json` names **498**
 > operations, but only **495** have a backing `Operation` class. Three names —
@@ -820,7 +820,7 @@ which is where the 498 cchef subcommands come from.
 > CyberChef operations. They are marked `[—]` below and excluded from the
 > category totals; there is nothing to port until GCHQ ships them.
 
-### Data format (78/78)
+### Data format (80/80)
 
 - [x] AMF Decode
 - [x] AMF Encode
@@ -846,6 +846,7 @@ which is where the 498 cchef subcommands come from.
 - [x] From Bech32
 - [x] From Binary
 - [x] From Braille
+- [x] From COBS
 - [x] From Charcode
 - [x] From Decimal
 - [x] From Float
@@ -884,6 +885,7 @@ which is where the 498 cchef subcommands come from.
 - [x] To Bech32
 - [x] To Binary
 - [x] To Braille
+- [x] To COBS
 - [x] To Charcode
 - [x] To Decimal
 - [x] To Float
@@ -901,7 +903,7 @@ which is where the 498 cchef subcommands come from.
 - [x] URL Encode
 - [x] YAML to JSON
 
-### Encryption / Encoding (94/94)
+### Encryption / Encoding (95/95)
 
 - [x] A1Z26 Cipher Decode
 - [x] A1Z26 Cipher Encode
@@ -958,6 +960,7 @@ which is where the 498 cchef subcommands come from.
 - [x] Multiple Bombe
 - [x] PRESENT Decrypt
 - [x] PRESENT Encrypt
+- [x] Pseudo-Random Prime Generator
 - [x] Pseudo-Random Number Generator
 - [x] Rabbit
 - [x] Rail Fence Cipher Decode
@@ -1032,12 +1035,12 @@ which is where the 498 cchef subcommands come from.
 - [x] SM2 Decrypt
 - [x] SM2 Encrypt
 
-### Arithmetic / Logic (27/27)
+### Arithmetic / Logic (30/30)
 
-> Complete. The category names 30 ops, but three — Extended GCD, Modular
-> Exponentiation, Modular Inverse — are phantom `Categories.json` entries with no
-> CyberChef implementation (see the section note above), so they are excluded
-> from the total.
+> Complete. Extended GCD and Modular Inverse were phantom `Categories.json`
+> entries until CyberChef 11.3.0 gave them implementations; MOD arrived in the
+> same release. Modular Exponentiation was dropped from `Categories.json`
+> altogether, so it is no longer counted.
 
 - [x] ADD
 - [x] AND
@@ -1045,11 +1048,11 @@ which is where the 498 cchef subcommands come from.
 - [x] Bit shift right
 - [x] Cartesian Product
 - [x] Divide
-- [—] Extended GCD — phantom Categories.json entry, no CyberChef operation
+- [x] Extended GCD
 - [x] Mean
 - [x] Median
-- [—] Modular Exponentiation — phantom Categories.json entry, no CyberChef operation
-- [—] Modular Inverse — phantom Categories.json entry, no CyberChef operation
+- [x] MOD
+- [x] Modular Inverse
 - [x] Multiply
 - [x] NOT
 - [x] OR

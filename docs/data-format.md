@@ -29,6 +29,7 @@ Operations for encoding and decoding data between common textual representations
 | From Bech32 | `from-bech32` | [Bech32](https://wikipedia.org/wiki/Bech32) |
 | From Binary | `from-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
 | From Braille | `from-braille` | [Braille](https://wikipedia.org/wiki/Braille) |
+| From COBS | `from-cobs` | [Consistent Overhead Byte Stuffing](https://wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing) |
 | From Charcode | `from-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | From Decimal | `from-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | From Float | `from-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
@@ -67,6 +68,7 @@ Operations for encoding and decoding data between common textual representations
 | To Bech32 | `to-bech32` | [Bech32](https://wikipedia.org/wiki/Bech32) |
 | To Binary | `to-binary` | [Binary](https://wikipedia.org/wiki/Binary_number) |
 | To Braille | `to-braille` | [Braille](https://wikipedia.org/wiki/Braille) |
+| To COBS | `to-cobs` | [Consistent Overhead Byte Stuffing](https://wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing) |
 | To Charcode | `to-charcode` | [Character encoding](https://wikipedia.org/wiki/Character_encoding) |
 | To Decimal | `to-decimal` | [Decimal](https://wikipedia.org/wiki/Decimal) |
 | To Float | `to-float` | [IEEE 754](https://wikipedia.org/wiki/IEEE_754) |
@@ -816,6 +818,24 @@ Output:
 
 ```
 HELLO
+```
+
+## From COBS
+
+Reverses [To COBS](#to-cobs), putting the zero bytes back. Takes no options.
+
+Data containing a zero byte is not COBS and is refused.
+
+### Simple example
+
+```bash
+cchef from-hex -i "01 03 11 22 02 33" | cchef from-cobs | cchef to-hex
+```
+
+Output:
+
+```
+00 11 22 00 33
 ```
 
 ## From Charcode
@@ -2104,6 +2124,30 @@ Output:
 
 ```
 ⠓⠑⠇⠇⠕
+```
+
+## To COBS
+
+Encodes bytes with
+[Consistent Overhead Byte Stuffing](https://wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing),
+which removes every zero byte from the data by replacing it with a count of how
+far away the next one is. The result never contains a zero, so a zero can then
+be used to mark where one message ends and the next begins — which is what the
+encoding is for. It costs at least one byte, and one more for every 254 bytes
+without a zero.
+
+Takes no options.
+
+### Simple example
+
+```bash
+cchef from-hex -i "00 11 22 00 33" | cchef to-cobs | cchef to-hex
+```
+
+Output:
+
+```
+01 03 11 22 02 33
 ```
 
 ## To Charcode

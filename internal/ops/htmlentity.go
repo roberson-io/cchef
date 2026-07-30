@@ -9,6 +9,8 @@ import (
 	"github.com/roberson-io/cchef/internal/core"
 )
 
+//go:generate go run ../../tools/htmlentgen/gen.go
+
 func init() {
 	core.Register(ToHTMLEntity{})
 	core.Register(FromHTMLEntity{})
@@ -63,7 +65,10 @@ const latin1Max = 255
 // honouring the convert-all flag and the numeric/hex mode selection.
 func htmlEncodeRune(r rune, convertAll, numeric, hexa bool) string {
 	c := int(r)
-	entity, named := htmlByteToEntity[c]
+	name, named := htmlByteToEntity[c]
+	// The table holds bare names, so the delimiters are added here rather than
+	// stored; a name cannot then carry stray punctuation of its own.
+	entity := "&" + name + ";"
 	switch {
 	case convertAll && numeric:
 		return fmt.Sprintf("&#%d;", c)

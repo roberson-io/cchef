@@ -28,7 +28,12 @@ func TestFromHTMLEntity(t *testing.T) {
 	runCases(t, []opCase{
 		{"named entities", "a &amp; b &lt;c&gt; &quot;d&quot; &eacute;", "a & b <c> \"d\" é", from},
 		{"numeric, hex, and invalid", "&#65;&#x42;&#8364; plain &notreal; end", "AB€ plain &notreal; end", from},
-		{"epsi quirk decodes cleanly", "&epsi;,", "ϵ,", from},
+		// The spec puts &epsi; at U+03B5, the ordinary epsilon; the lunate
+		// U+03F5 is &epsiv;. CyberChef's old hand-written table had them
+		// confused and wrote a stray comma into the name besides, which cchef
+		// reproduced for parity until both were fixed upstream.
+		{"epsi is the ordinary epsilon", "&epsi;,", "ε,", from},
+		{"epsiv is the lunate epsilon", "&epsiv;", "ϵ", from},
 	})
 }
 

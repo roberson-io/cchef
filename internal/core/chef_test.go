@@ -2,7 +2,9 @@ package core
 
 import (
 	"reflect"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestGeneratePrettyRecipe(t *testing.T) {
@@ -104,5 +106,74 @@ func TestChefEdgeCases(t *testing.T) {
 func TestParseRecipeConfigBadJSON(t *testing.T) {
 	if _, err := ParseRecipeConfig("[{"); err == nil {
 		t.Fatal("expected an error for an invalid JSON recipe")
+	}
+}
+
+// TestParseRecipeConfigRejectsMalformed covers the structural check CyberChef
+// added in 11.3.0. A recipe that does not parse is refused rather than quietly
+// doing nothing, so a mistyped one is not mistaken for a working one.
+func TestParseRecipeConfigRejectsMalformed(t *testing.T) {
+	cases := []struct{ name, recipe string }{
+		{"no arguments at all", "A("},
+		{"unmatched quotes", "A(" + strings.Repeat("'", 100)},
+		{"a trailing escape", "A('" + strings.Repeat("\\", 100)},
+		{"no closing bracket", "To_Upper_case('All'"},
+		{"no bracket anywhere", "garbage"},
+		{"an operation with no name", "()"},
+		{"text after the last operation", "To_Upper_case('All')rubbish"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if _, err := ParseRecipeConfig(c.recipe); err == nil {
+				t.Errorf("%q was accepted", c.recipe)
+			}
+		})
+	}
+}
+
+// TestParseRecipeConfigAcceptsValid checks the shapes that must keep working,
+// including the ones CyberChef's own regression tests cover.
+func TestParseRecipeConfigAcceptsValid(t *testing.T) {
+	cases := []struct {
+		name, recipe string
+		want         int
+	}{
+		{"two operations", "From_Base64('A-Za-z0-9+/=',true)To_Hex('Space')", 2},
+		{"no arguments", "To_Base64()", 1},
+		{"the disabled and breakpoint flags", "A(/disabled/breakpoint)", 1},
+		{"escaped quotes and backslashes", `A('\'\\')`, 1},
+		{"a long quoted argument", "A('" + strings.Repeat("x", 10000) + "')", 1},
+		{"newlines between operations", "To_Upper_case('All')\nTo_Base64('A-Za-z0-9+/=')", 2},
+		{"a bracket inside a quoted argument", "Find_/_Replace('a)b','c')", 1},
+		// Structurally sound, so it is accepted here and refused later when
+		// no operation of that name is found — which is what upstream does.
+		{"a stray closing bracket in the name", ")A()", 1},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := ParseRecipeConfig(c.recipe)
+			if err != nil {
+				t.Fatalf("%q was refused: %v", c.recipe, err)
+			}
+			if len(got) != c.want {
+				t.Errorf("got %d operations, want %d", len(got), c.want)
+			}
+		})
+	}
+}
+
+// TestParseRecipeConfigIsLinear checks that a hostile recipe is refused quickly.
+// The equivalent parser in CyberChef needed a structural pre-pass to avoid
+// catastrophic backtracking; Go's regexp cannot backtrack that way, and this
+// keeps it honest.
+func TestParseRecipeConfigIsLinear(t *testing.T) {
+	for _, n := range []int{1000, 100000} {
+		start := time.Now()
+		if _, err := ParseRecipeConfig("A('" + strings.Repeat("\\", n)); err == nil {
+			t.Errorf("n=%d: a malformed recipe was accepted", n)
+		}
+		if elapsed := time.Since(start); elapsed > 2*time.Second {
+			t.Errorf("n=%d took %v", n, elapsed)
+		}
 	}
 }
