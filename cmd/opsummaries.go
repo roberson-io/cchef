@@ -92,6 +92,7 @@ var opSummaries = map[string]string{
 	"Convert to NATO alphabet":        "Spells characters out in the NATO phonetic alphabet",
 	"Fork":                            "Splits the data and runs the rest on each piece",
 	"Label":                           "Marks a place in a recipe for a jump to reach",
+	"Magic":                           "Works out what data is and how to decode it",
 	"Register":                        "Captures data for later steps to use as arguments",
 	"Subsection":                      "Runs the rest of the recipe on the parts that match",
 	"Extract LSB":                     "Extracts least-significant-bit data from an image",

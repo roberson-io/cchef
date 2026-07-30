@@ -24,6 +24,7 @@ available.
 | Fork | `fork` | — |
 | Jump | `jump` | — |
 | Label | `label` | — |
+| Magic | `magic` | [Automatic detection of encoded data](https://github.com/gchq/CyberChef/wiki/Automatic-detection-of-encoded-data-using-CyberChef-Magic) |
 | Merge | `merge` | — |
 | Register | `register` | [Regular expression syntax](https://github.com/google/re2/wiki/Syntax) |
 | Return | `return` | — |
@@ -121,6 +122,77 @@ Marks a place a jump can reach. Has no effect on the data.
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
 | Name | string | (empty) | The name jumps refer to. |
+
+## Magic
+
+Works out what data might be and suggests recipes to make sense of it. Every
+operation that claims it can decode data of this shape is run, the result is
+looked at the same way, and so on to the given depth; the recipes that led
+somewhere are reported best first.
+
+Each suggestion is judged on what its result became: whether it reads as a
+known language, whether it is a recognisable file, whether it is valid UTF-8,
+how much entropy it carries, and how few operations it took. Suggested recipes
+are printed one operation per line, in the form
+[`cchef bake -e`](recipes-and-urls.md) accepts, so a promising one can be run
+by copying it.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Depth | number | 3 | How many operations may be chained. |
+| Intensive mode | boolean | false | Also brute-force every single-byte exclusive-or, bit rotation and character encoding, over the first 100 bytes. |
+| Extensive language support | boolean | false | Weigh the data against 285 languages rather than the 39 most used on the Internet. |
+| Crib (known plaintext string or regex) | string | (empty) | Keep only the suggestions whose result contains this. |
+
+Results are ranked, so piping through `head` shows the most promising few.
+
+### Simple example
+
+```bash
+cchef magic -i "41 42 43 44 45"
+```
+
+Output:
+
+```
+Recipe:
+From_Hex('Space')
+  Data:     ABCDE
+  Matching ops: From Hexdump
+  Valid UTF8
+  Entropy: 2.32
+
+Recipe:
+From_Decimal('Space',false)
+  Data:     )*+,-
+  Valid UTF8
+  Entropy: 2.32
+```
+
+### Complex example
+
+Three rounds of Base64, with a crib to keep only the suggestions that reach the
+expected text:
+
+```bash
+cchef magic -i "WkVkV2VtUkRRbnBrU0Vwd1ltMWpQUT09" --crib-known-plaintext-string-or-regex "test string" | head -8
+```
+
+Output:
+
+```
+Recipe:
+From_Base64('A-Za-z0-9+/=',true,false)
+From_Base64('A-Za-z0-9+/=',true,false)
+From_Base64('A-Za-z0-9+/=',true,false)
+  Data:     test string
+  Possible languages: Norwegian (Bokmål), Norwegian (Nynorsk), Danish, English, Swedish, German, Estonian, Hungarian, Dutch, Italian, French, Catalan, Indonesian, Latvian, Lithuanian, Portuguese, Spanish, Croatian, Slovenian, Romanian, Polish, Finnish, Turkish
+  Valid UTF8
+  Entropy: 2.85
+```
+
+The alphabets that follow in the full output are the other Base64 variants that
+decode the same data, which CyberChef lists too.
 
 ## Merge
 
