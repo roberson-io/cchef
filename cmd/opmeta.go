@@ -547,6 +547,7 @@ var opCategories = map[string][]string{
 	"HTML To Text":                       {catOther},
 	"Unzip":                              {catCompression},
 	"Untar":                              {catCompression},
+	"YARA Rules":                         {catForensics},
 	"XKCD Random Number":                 {catOther},
 	"Generate Lorem Ipsum":               {catOther},
 	"Numberwang":                         {catOther},
