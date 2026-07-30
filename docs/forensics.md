@@ -19,6 +19,7 @@ category, where their detailed description, options and examples live:
 | Extract EXIF | `extract-exif` | [Multimedia](multimedia.md#extract-exif) |
 | Extract Files | `extract-files` | [Extractors](extractors.md#extract-files) |
 | Remove EXIF | `remove-exif` | [Multimedia](multimedia.md#remove-exif) |
+| Scan for Embedded Files | `scan-for-embedded-files` | [List of file signatures](https://wikipedia.org/wiki/List_of_file_signatures) |
 | YARA Rules | `yara-rules` | [YARA](https://wikipedia.org/wiki/YARA) |
 
 ## Detect File Type
@@ -208,6 +209,66 @@ Symbol Name:                  test
 ```
 
 (The misspelt `.shstrab` name is in the sample file itself.)
+
+## Scan for Embedded Files
+
+Scans the data for potential embedded files by looking for
+[magic bytes](https://wikipedia.org/wiki/List_of_file_signatures) at **every**
+offset, not just the start — the same signature table
+[Detect File Type](#detect-file-type) matches against, and the same scan
+[Extract Files](extractors.md#extract-files) carves from. As CyberChef's own
+description warns, the operation is prone to false positives: any sufficiently
+long input will contain some magic bytes by coincidence.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| Images | boolean | true | Include image signatures in the scan. |
+| Video | boolean | true | Include video signatures. |
+| Audio | boolean | true | Include audio signatures. |
+| Documents | boolean | true | Include document signatures. |
+| Applications | boolean | true | Include application/executable signatures. |
+| Archives | boolean | true | Include archive/compression signatures. |
+| Miscellaneous | boolean | **false** | Off by default: these signatures (text byte order marks and the like) match far too easily. |
+
+### Simple example
+
+A PNG header hidden five bytes into the input:
+
+```bash
+cchef from-hex -i "48656c6c6f89504e470d0a1a0a0000000d49484452" | cchef scan-for-embedded-files
+```
+
+Output:
+
+```
+Scanning data for 'magic bytes' which may indicate embedded files. The following results may be false positives and should not be treated as reliable. Any sufficiently long file is likely to contain these magic bytes coincidentally.
+
+Offset 5 (0x05):
+  File type:   Portable Network Graphics image
+  Extension:   png
+  MIME type:   image/png
+```
+
+### Complex example
+
+A UTF-8 byte order mark is only reported once the Miscellaneous category is
+switched on; types that carry a description print it as an extra line:
+
+```bash
+cchef from-hex -i "efbbbf68656c6c6f" | cchef scan-for-embedded-files --miscellaneous
+```
+
+Output:
+
+```
+Scanning data for 'magic bytes' which may indicate embedded files. The following results may be false positives and should not be treated as reliable. Any sufficiently long file is likely to contain these magic bytes coincidentally.
+
+Offset 0 (0x00):
+  File type:   UTF-8 text
+  Extension:   txt
+  MIME type:   text/plain
+  Description: UTF-8 encoded Unicode byte order mark, commonly but not exclusively seen in text files.
+```
 
 ## YARA Rules
 

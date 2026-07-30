@@ -440,6 +440,7 @@ var opCategories = map[string][]string{
 	"Rison Encode":                       {catDataFormat},
 	"Rotate left":                        {catEncryptionEncoding},
 	"Rotate right":                       {catEncryptionEncoding},
+	"Scan for Embedded Files":            {catForensics},
 	"SHA0":                               {catHashing},
 	"SHA1":                               {catHashing},
 	"SHA224":                             {catHashing},
