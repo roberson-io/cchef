@@ -1,0 +1,42 @@
+cchef
+Copyright 2026 Michael Roberson
+
+This product includes software developed for CyberChef
+(https://github.com/gchq/CyberChef), Copyright Crown Copyright, licensed under
+the Apache License, Version 2.0.
+
+cchef is an independent reimplementation of CyberChef in Go. Its operation
+semantics, argument definitions, output formats and test vectors are derived
+from that project.
+
+--------------------------------------------------------------------------------
+
+The following third-party material is included in this repository:
+
+1. Bitmap font atlases — internal/ops/bmfonts/
+
+   Taken unmodified from CyberChef, which generated them from the Roboto
+   typeface by Christian Robertson (https://github.com/googlefonts/roboto).
+   Licensed under the Apache License, Version 2.0. Used so that text rendered
+   by the "Add Text To Image" operation is pixel-identical to CyberChef's.
+
+2. x86-64 opcode tables — internal/ops/x86tables/
+
+   Extracted from CyberChef's vendored X86-64-Disassembler-JS by Damian
+   Recoskie (https://github.com/Recoskie/X86-64-Disassembler-JS), Copyright
+   (c) 2019 Damian Recoskie, licensed under the MIT License. The full license
+   text is in internal/ops/x86tables/LICENSE.
+
+3. WHATWG named character reference set — tools/htmlentgen/entity.json
+
+   Retrieved verbatim from https://html.spec.whatwg.org/entities.json.
+   Copyright (C) WHATWG (Apple, Google, Mozilla, Microsoft). Licensed under a
+   Creative Commons Attribution 4.0 International License; to the extent
+   portions are incorporated into source code, those portions are licensed
+   under the BSD 3-Clause License. See tools/htmlentgen/entity.txt.
+
+4. User agent detection rules — internal/ops/useragent_rules.go
+
+   Transcribed from the detection tables in ua-parser-js by Faisal Salman
+   (https://github.com/faisalman/ua-parser-js), version 2.0.10, which is
+   licensed AGPL-3.0-or-later. See tools/uagen/README.md.

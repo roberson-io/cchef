@@ -5,9 +5,8 @@ the "Cyber Swiss Army Knife". Every operation is a subcommand that reads input a
 writes output, so operations chain together through Unix pipes or as a single
 recipe.
 
-> **Scope:** 504 operations are currently ported, covering the whole architecture.
-> More operations are added over time against the same interfaces. Run `cchef list`
-> to see everything currently available.
+> **Scope:** 504 operations, covering every CyberChef operation. Run `cchef list`
+> to see them grouped by category, each with a one-line summary.
 
 ## Installing / building
 

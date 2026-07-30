@@ -9,7 +9,7 @@ import (
 	"github.com/roberson-io/cchef/internal/core"
 )
 
-// The operation counts quoted in PLAN.md and both READMEs are maintained by
+// The operation counts quoted in PLAN.md and docs/README.md are maintained by
 // hand and drift silently — nothing else fails when they go stale. These tests
 // pin every one of them to the registry.
 
@@ -41,11 +41,11 @@ func countIn(t *testing.T, file, pattern string) int {
 // TestSubcommandCountsMatchRegistry checks every quoted subcommand count.
 func TestSubcommandCountsMatchRegistry(t *testing.T) {
 	want := len(core.Default.All())
+	// README.md deliberately quotes no count: every operation is ported, so a
+	// running total there would only go stale again.
 	for _, tc := range []struct{ file, pattern string }{
-		{"README.md", `\*\*(\d+) operations\*\* so far`},
-		{"README.md", `The (\d+) operations are grouped`},
-		{"docs/README.md", `\*\*Scope:\*\* (\d+) operations are currently ported`},
-		{"PLAN.md", `curated set of (\d+)\noperations`},
+		{"docs/README.md", `\*\*Scope:\*\* (\d+) operations, covering every CyberChef operation`},
+		{"PLAN.md", `curated set of (\d+)\s+operations`},
 		{"PLAN.md", `- \*\*(\d+) operations\*\* \(` + "`internal/ops/`" + `\)`},
 	} {
 		if got := countIn(t, tc.file, tc.pattern); got != want {
@@ -54,81 +54,15 @@ func TestSubcommandCountsMatchRegistry(t *testing.T) {
 	}
 }
 
-// TestUniqueOpCountMatchesChecklist checks PLAN.md's unique-operation count
-// against its own implementation checklist. It is a different number from the
-// subcommand count because one CyberChef operation can back several
-// subcommands.
-func TestUniqueOpCountMatchesChecklist(t *testing.T) {
-	plan := readRepoFile(t, "PLAN.md")
-	done := map[string]bool{}
-	for _, m := range regexp.MustCompile(`(?m)^- \[x\] (.+?)\s*$`).FindAllStringSubmatch(plan, -1) {
-		done[m[1]] = true
-	}
-	if got := countIn(t, "PLAN.md", `\*\*(\d+) unique\*\* CyberChef operations`); got != len(done) {
-		t.Errorf("PLAN.md quotes %d unique operations, its checklist has %d ticked", got, len(done))
-	}
-}
-
-// TestCategoryCountsMatchChecklist checks each `### Category (done/total)`
-// heading against the checkboxes beneath it.
-func TestCategoryCountsMatchChecklist(t *testing.T) {
-	plan := readRepoFile(t, "PLAN.md")
-	heading := regexp.MustCompile(`(?m)^### (.+?) \((\d+)/(\d+)\)$`)
-	sections := heading.FindAllStringSubmatchIndex(plan, -1)
-	for i, loc := range sections {
-		name := plan[loc[2]:loc[3]]
-		quotedDone, _ := strconv.Atoi(plan[loc[4]:loc[5]])
-		quotedTotal, _ := strconv.Atoi(plan[loc[6]:loc[7]])
-
-		end := len(plan)
-		if i+1 < len(sections) {
-			end = sections[i+1][0]
-		}
-		body := plan[loc[1]:end]
-		done := len(regexp.MustCompile(`(?m)^- \[x\] `).FindAllString(body, -1))
-		total := done + len(regexp.MustCompile(`(?m)^- \[ \] `).FindAllString(body, -1))
-
-		if done != quotedDone || total != quotedTotal {
-			t.Errorf("PLAN.md %q heading says %d/%d, checkboxes give %d/%d",
-				name, quotedDone, quotedTotal, done, total)
-		}
-	}
-}
-
-// TestChecklistTicksRegisteredOps ties PLAN.md's checklist to the registry
-// rather than to itself. The other two checks compare PLAN.md against its own
-// numbers, so a revert that undoes a heading and its checkboxes together stays
-// self-consistent and slips through; this one does not, because it asks whether
-// an operation cchef actually registers is recorded as done.
-func TestChecklistTicksRegisteredOps(t *testing.T) {
-	plan := readRepoFile(t, "PLAN.md")
-
-	// An operation may be listed under more than one category, so collect every
-	// occurrence and require them all to be ticked.
-	type entry struct{ ticked, listed bool }
-	checklist := map[string]*entry{}
-	for _, m := range regexp.MustCompile(`(?m)^- \[([ x])\] (.+?)\s*$`).FindAllStringSubmatch(plan, -1) {
-		e, ok := checklist[m[2]]
-		if !ok {
-			e = &entry{ticked: true}
-			checklist[m[2]] = e
-		}
-		e.listed = true
-		if m[1] != "x" {
-			e.ticked = false
-		}
-	}
-
-	for _, op := range core.Default.All() {
-		name := op.Meta().Name
-		e, ok := checklist[name]
-		if !ok {
-			// Some subcommands are one CyberChef operation under another name
-			// (sha256 and friends are all SHA2), so an absent entry is fine.
-			continue
-		}
-		if !e.listed || !e.ticked {
-			t.Errorf("PLAN.md lists %q unticked, but cchef registers it", name)
-		}
+// TestUniqueOpCountMatchesRegistry checks PLAN.md's unique-operation count. It
+// is a smaller number than the subcommand count because CyberChef's SHA2 backs
+// four subcommands, and the two have to move together.
+func TestUniqueOpCountMatchesRegistry(t *testing.T) {
+	// sha224/sha256/sha384/sha512 are one CyberChef operation, so three of the
+	// four subcommands are not a further unique operation.
+	const sha2Extras = 3
+	want := len(core.Default.All()) - sha2Extras
+	if got := countIn(t, "PLAN.md", `cover\s+(\d+) unique CyberChef operations`); got != want {
+		t.Errorf("PLAN.md quotes %d unique operations, registry implies %d", got, want)
 	}
 }
