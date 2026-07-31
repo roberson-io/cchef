@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 
 	"github.com/roberson-io/cchef/internal/termimage"
 )
@@ -57,9 +58,28 @@ func resolveInput(cmd *cobra.Command, args []string) ([]byte, error) {
 			return nil, err
 		}
 		return []byte(strings.Join(args, " ")), nil
+	case inputIsInteractive(cmd.InOrStdin()):
+		// Reading stdin here would wait for someone to type and press Ctrl-D,
+		// with nothing on screen to say so. Say what to do instead.
+		return nil, errNoInput(cmd)
 	default:
 		return io.ReadAll(cmd.InOrStdin())
 	}
+}
+
+// inputIsInteractive reports whether reading r would wait on a person. The test
+// is a real terminal rather than a character device, because /dev/null is a
+// character device and redirecting from it means empty input.
+func inputIsInteractive(r io.Reader) bool {
+	f, ok := r.(*os.File)
+	return ok && term.IsTerminal(int(f.Fd()))
+}
+
+// errNoInput reports that no input was given and none can be read.
+func errNoInput(cmd *cobra.Command) error {
+	return fmt.Errorf("no input given, and stdin is a terminal.\n"+
+		"Give text with -i, a file with --in-file, a directory with --in-dir, or pipe data in:\n"+
+		"  echo -n hello | cchef %s", cmd.Name())
 }
 
 // writeOutput writes result bytes to the -o file or to stdout. When stdout is a
@@ -85,17 +105,10 @@ func writeOutput(cmd *cobra.Command, data []byte) error {
 	return nil
 }
 
-// isTerminal reports whether w is a character device (an interactive terminal).
+// isTerminal reports whether w is an interactive terminal.
 func isTerminal(w io.Writer) bool {
 	f, ok := w.(*os.File)
-	if !ok {
-		return false
-	}
-	info, err := f.Stat()
-	if err != nil {
-		return false
-	}
-	return info.Mode()&os.ModeCharDevice != 0
+	return ok && term.IsTerminal(int(f.Fd()))
 }
 
 // presentOutput applies the presentation flags to an operation's output. Both

@@ -17,6 +17,7 @@ require (
 	github.com/recolabs/gnata v0.2.3
 	github.com/sergi/go-diff v1.4.0
 	github.com/spf13/cobra v1.10.2
+	github.com/spf13/pflag v1.0.9
 	github.com/ulikunitz/xz v0.5.16
 	github.com/wroge/wgs84 v1.1.7
 	github.com/yuin/goldmark v1.8.4
@@ -24,6 +25,7 @@ require (
 	golang.org/x/arch v0.29.0
 	golang.org/x/crypto v0.53.0
 	golang.org/x/image v0.44.0
+	golang.org/x/term v0.44.0
 	golang.org/x/text v0.40.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -34,7 +36,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
 	github.com/jcoene/gologger v0.0.0-20150511233422-6bdddb86fa18 // indirect
-	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

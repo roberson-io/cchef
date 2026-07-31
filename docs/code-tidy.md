@@ -801,8 +801,8 @@ going rather than of the recipe, so it is the global `--ansi` flag rather than a
 operation option:
 
 - `auto` (the default) colors an interactive terminal and leaves the HTML alone
-  whenever the output is piped, redirected, or written with `-o`. It also honors
-  [`NO_COLOR`](https://no-color.org).
+  whenever the output is piped, redirected, or written with `-o`. It also stands
+  down for [`NO_COLOR`](https://no-color.org) and for `TERM=dumb`.
 - `always` forces the ANSI rendering, which is what `| less -R` needs.
 - `never` always gives the HTML, even at a terminal.
 

@@ -93,6 +93,20 @@ func TestAutoANSI(t *testing.T) {
 	}
 }
 
+// TestAutoANSIDumbTerminal covers the other environment opt-out: a terminal
+// that says it cannot render anything but plain text.
+func TestAutoANSIDumbTerminal(t *testing.T) {
+	t.Setenv("NO_COLOR", "")
+	t.Setenv("TERM", "dumb")
+	if autoANSI(false, true) {
+		t.Error("TERM=dumb should turn auto off")
+	}
+	t.Setenv("TERM", "xterm-256color")
+	if !autoANSI(false, true) {
+		t.Error("a capable terminal should keep auto on")
+	}
+}
+
 // TestANSIFlagLeavesColourArgumentsAlone checks that --ansi takes no name an
 // operation argument uses: View Bit Plane's Colour argument keeps both its
 // spellings, and --ansi is a separate flag alongside them.

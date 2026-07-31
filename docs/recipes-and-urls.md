@@ -258,3 +258,11 @@ Lists every available operation and its subcommand name, grouped by module.
 ```bash
 cchef list
 ```
+
+`--json` gives the same listing in a form a script can read: one object per
+subcommand, sorted by name, carrying the subcommand, the CyberChef operation
+name, the one-line summary and the categories it is filed under.
+
+```bash
+cchef list --json | jq -r '.[] | select(.categories[] == "Hashing") | .command'
+```

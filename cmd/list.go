@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"sort"
@@ -12,11 +13,46 @@ import (
 	"github.com/roberson-io/cchef/internal/core"
 )
 
+// listEntry is one operation in the machine-readable listing: what a completion
+// script or a wrapper needs to know about a subcommand.
+type listEntry struct {
+	Command    string   `json:"command"`
+	Name       string   `json:"name"`
+	Summary    string   `json:"summary"`
+	Categories []string `json:"categories"`
+}
+
+// listJSON writes every operation as JSON, sorted by subcommand so the output
+// is stable between runs.
+func listJSON(w io.Writer) error {
+	ops := core.Default.All()
+	entries := make([]listEntry, 0, len(ops))
+	for _, op := range ops {
+		meta := op.Meta()
+		entries = append(entries, listEntry{
+			Command:    core.Kebab(meta.Name),
+			Name:       meta.Name,
+			Summary:    summaryOf(meta),
+			Categories: categoriesOf(meta.Name),
+		})
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Command < entries[j].Command })
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(entries)
+}
+
+// flagListJSON selects the machine-readable listing.
+var flagListJSON bool
+
 func init() {
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List available operations grouped by category",
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if flagListJSON {
+				return listJSON(cmd.OutOrStdout())
+			}
 			// Group operations by category. Operations in more than one category
 			// (e.g. URL Decode) appear under each.
 			byCategory := map[string][]core.Operation{}
@@ -50,5 +86,6 @@ func init() {
 			return err
 		},
 	}
+	listCmd.Flags().BoolVar(&flagListJSON, "json", false, "list operations as JSON, for scripts and completions")
 	rootCmd.AddCommand(listCmd)
 }

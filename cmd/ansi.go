@@ -46,10 +46,12 @@ func wantANSI(cmd *cobra.Command) (bool, error) {
 }
 
 // autoANSI decides the "auto" mode: color only where the result is going to an
-// interactive stdout and the environment has not opted out of color
-// (https://no-color.org).
+// interactive stdout and the environment has not opted out. NO_COLOR is the
+// explicit opt-out (https://no-color.org); TERM=dumb is a terminal saying it
+// renders nothing but plain text.
 func autoANSI(toFile, terminal bool) bool {
-	return !toFile && terminal && os.Getenv("NO_COLOR") == ""
+	return !toFile && terminal &&
+		os.Getenv("NO_COLOR") == "" && os.Getenv("TERM") != "dumb"
 }
 
 // recipeHighlights reports whether the recipe's last enabled step produces

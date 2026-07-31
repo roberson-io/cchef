@@ -23,6 +23,18 @@ Each operation resolves its input from the first source available, in this order
 3. **positional argument** — `cchef rot13 "Have a nice day."`
 4. **stdin** — `echo hello | cchef rot13` (this is what makes pipes work)
 
+Run with none of those at an interactive terminal and cchef says so rather than
+waiting silently for you to type and press Ctrl-D:
+
+```bash
+cchef rot13
+# cchef: no input given, and stdin is a terminal.
+# Give text with -i, a file with --in-file, a directory with --in-dir, or pipe data in:
+#   echo -n hello | cchef rot13
+```
+
+Redirecting from `/dev/null` still means empty input, not an error.
+
 A positional argument is *text*, not a filename, which differs from tools like
 `cat` and `grep`. Naming a file that exists is refused rather than silently
 encoding the path:
@@ -144,4 +156,5 @@ Within each category, operations are listed alphabetically.
 | `cchef url -e/-r <recipe>` | Print a CyberChef share URL for a recipe |
 | `cchef recipe convert` | Convert a recipe between JSON and Chef formats |
 | `cchef list` | List available operations grouped by category, each with a one-line summary |
+| `cchef list --json` | The same listing as JSON, for scripts and shell completions |
 | `cchef --version` | Print the cchef version |

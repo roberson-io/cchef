@@ -344,3 +344,59 @@ func TestPositionalFileGuardAfterDash(t *testing.T) {
 		t.Errorf("after -- = %q, want the literal path", got)
 	}
 }
+
+// TestInputIsInteractive covers the test that decides whether reading stdin
+// would block on a person. A character device is not enough: /dev/null is one,
+// and `< /dev/null` has to keep meaning empty input rather than an error.
+func TestInputIsInteractive(t *testing.T) {
+	if inputIsInteractive(&bytes.Buffer{}) {
+		t.Error("a buffer is not interactive")
+	}
+	devNull, err := os.Open(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = devNull.Close() }()
+	if inputIsInteractive(devNull) {
+		t.Error("/dev/null is a character device but not a terminal")
+	}
+	f, err := os.CreateTemp(t.TempDir(), "in")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = f.Close() }()
+	if inputIsInteractive(f) {
+		t.Error("a regular file is not interactive")
+	}
+}
+
+// TestResolveInputFromDevNull checks the case the character-device test would
+// have broken: redirecting from /dev/null is empty input, not a failure.
+func TestResolveInputFromDevNull(t *testing.T) {
+	c := newIOCmd()
+	devNull, err := os.Open(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = devNull.Close() }()
+	c.SetIn(devNull)
+	got, err := resolveInput(c, nil)
+	if err != nil {
+		t.Fatalf("reading from /dev/null should succeed: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("got %q, want empty", got)
+	}
+}
+
+// TestNoInputError checks that the message tells the user every way to supply
+// input, since the alternative is a prompt-less wait they cannot interpret.
+func TestNoInputError(t *testing.T) {
+	c := &cobra.Command{Use: "rot13"}
+	err := errNoInput(c)
+	for _, want := range []string{"-i", "--in-file", "--in-dir", "rot13"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("message should mention %q: %v", want, err)
+		}
+	}
+}

@@ -16,6 +16,7 @@ func execRoot(t *testing.T, args ...string) string {
 	t.Helper()
 	resetIOFlags()
 	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+	flagListJSON = false
 
 	var buf bytes.Buffer
 	rootCmd.SetOut(&buf)
@@ -34,6 +35,7 @@ func execRootErr(t *testing.T, args ...string) error {
 	t.Helper()
 	resetIOFlags()
 	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+	flagListJSON = false
 
 	var buf bytes.Buffer
 	rootCmd.SetOut(&buf)

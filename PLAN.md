@@ -116,9 +116,40 @@ only the ordering *within* a stage reflects a real dependency.
   error naming it. `base-url` is the only key, and the rule for adding more is
   that a setting belongs to the machine, never to a recipe — a recipe has to
   mean the same thing wherever it is run.
-- [ ] **Revisit [clig.dev](https://clig.dev/) end to end.** It shaped the
-  interface early in development and has not been re-checked since. Do this
-  before the docs pass, since it may produce more surface changes.
+- [x] **Revisit [clig.dev](https://clig.dev/) end to end.** Audited against the
+  whole checklist. Most of it already held: exit codes, stdout for results and
+  stderr for everything else, `-h`/`--help`/`help`, help on no arguments,
+  examples and a support link in the help, typo suggestions, `-` for
+  stdin/stdout, XDG config with flag > environment > file precedence,
+  `CCHEF_`-prefixed environment variables, a single static binary, and no
+  telemetry of any kind. Three gaps were closed:
+
+  - **cchef no longer hangs on an interactive terminal.** With no `-i`,
+    `--in-file`, `--in-dir` or positional argument, it used to block on stdin
+    with nothing on screen to say so. It now says what to do. The check is
+    `term.IsTerminal` rather than the character-device test used before,
+    because `/dev/null` is a character device and `< /dev/null` has to keep
+    meaning empty input. `golang.org/x/term` was already in the module graph.
+  - **`--ansi auto` stands down for `TERM=dumb`**, alongside `NO_COLOR`.
+  - **`cchef list --json`** gives the listing as data — subcommand, operation
+    name, summary, categories — for completions and wrappers.
+
+  Left open, with reasons:
+
+  - **Secrets are passed as flag values** (`--key`, `--passphrase`), which
+    clig.dev tells you never to do: they land in shell history and in `ps`.
+    This is the one real violation. Fixing it means a way to read an argument
+    from a file or the environment, across every operation that takes a key —
+    a general convention rather than a per-operation change, and worth its own
+    item.
+  - **No pager for long output.** `cchef list` is 561 lines. `| less` works,
+    and spawning a pager is a behaviour change worth deciding separately.
+  - **No progress indication** for the operations that take real time (Argon2
+    and Bcrypt at high cost, YARA over large input). Nothing writes anything
+    until it finishes.
+  - **No `-q`/`--quiet`.** There is no non-essential output to suppress: the
+    result is the output. The one candidate is the `==> name <==` header under
+    `--in-dir`.
 - [ ] **Decide how far to loosen JavaScript parity.** Strict parity was
   scaffolding: it made the oracle and the sweeps possible. Some of what it
   preserved is JavaScript rather than CyberChef — `internal/jsnum` exists solely
