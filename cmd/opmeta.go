@@ -464,6 +464,7 @@ var opCategories = map[string][]string{
 	"Scan for Embedded Files":            {catForensics},
 	"SHA0":                               {catHashing},
 	"SHA1":                               {catHashing},
+	"SHA2":                               {catHashing},
 	"SHA224":                             {catHashing},
 	"SHA256":                             {catHashing},
 	"SHA3":                               {catHashing},

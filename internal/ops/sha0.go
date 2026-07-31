@@ -6,39 +6,51 @@ import (
 	"math/bits"
 )
 
-// SHA0 (the withdrawn 1993 SHA) is SHA-1 without the one-bit rotation in the
-// message schedule. Ported from crypto-api's sha0 hasher.
+// sha01 is the SHA-0/SHA-1 construction. The two differ in one place: SHA-1
+// rotates each derived message-schedule word left by one bit, which is the
+// change that fixed SHA-0's withdrawn design.
 
-type sha0 struct {
+type sha01 struct {
 	md64
 	h      [5]uint32
 	rounds int
+	rotate bool // set for SHA-1
 }
 
-func newSHA0() hash.Hash { return newSHA0Rounds(80) }
+func newSHA0() hash.Hash { return newSHA0Rounds(shaLegacyRounds) }
+
+// shaLegacyRounds is the standard round count for both SHA-0 and SHA-1.
+const shaLegacyRounds = 80
 
 // newSHA0Rounds builds SHA0 with a configurable round count (the standalone SHA0
 // operation exposes this; HKDF uses the default 80).
 func newSHA0Rounds(rounds int) hash.Hash {
-	d := &sha0{rounds: rounds}
+	d := &sha01{rounds: rounds}
 	d.Reset()
 	return d
 }
 
-func (d *sha0) Reset() {
+// newSHA1Rounds builds SHA1 with a configurable round count.
+func newSHA1Rounds(rounds int) hash.Hash {
+	d := &sha01{rounds: rounds, rotate: true}
+	d.Reset()
+	return d
+}
+
+func (d *sha01) Reset() {
 	d.md64 = md64{}
 	d.h = [5]uint32{0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0}
 }
 
-func (d *sha0) Size() int      { return 20 }
-func (d *sha0) BlockSize() int { return 64 }
+func (d *sha01) Size() int      { return 20 }
+func (d *sha01) BlockSize() int { return 64 }
 
-func (d *sha0) Write(p []byte) (int, error) {
+func (d *sha01) Write(p []byte) (int, error) {
 	d.write(p, d.block)
 	return len(p), nil
 }
 
-func (d *sha0) Sum(in []byte) []byte {
+func (d *sha01) Sum(in []byte) []byte {
 	e := *d
 	e.pad(e.block, false)
 	var out [20]byte
@@ -48,14 +60,16 @@ func (d *sha0) Sum(in []byte) []byte {
 	return append(in, out[:]...)
 }
 
-func (d *sha0) block(p []byte) {
+func (d *sha01) block(p []byte) {
 	w := make([]uint32, d.rounds)
 	for i := 0; i < 16 && i < d.rounds; i++ {
 		w[i] = binary.BigEndian.Uint32(p[i*4:])
 	}
 	for i := 16; i < d.rounds; i++ {
-		// SHA-0 omits SHA-1's rotateLeft(..., 1) here.
 		w[i] = w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16]
+		if d.rotate {
+			w[i] = bits.RotateLeft32(w[i], 1)
+		}
 	}
 
 	a, b, c, dd, e := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4]

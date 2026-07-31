@@ -56,11 +56,11 @@ func TestSubcommandCountsMatchRegistry(t *testing.T) {
 
 // TestUniqueOpCountMatchesRegistry checks PLAN.md's unique-operation count. It
 // is a smaller number than the subcommand count because CyberChef's SHA2 backs
-// four subcommands, and the two have to move together.
+// five subcommands, and the two have to move together.
 func TestUniqueOpCountMatchesRegistry(t *testing.T) {
-	// sha224/sha256/sha384/sha512 are one CyberChef operation, so three of the
-	// four subcommands are not a further unique operation.
-	const sha2Extras = 3
+	// sha2 and sha224/sha256/sha384/sha512 are one CyberChef operation, so four
+	// of the five subcommands are not a further unique operation.
+	const sha2Extras = 4
 	want := len(core.Default.All()) - sha2Extras
 	if got := countIn(t, "PLAN.md", `cover\s+(\d+)\s+unique\s+CyberChef\s+operations`); got != want {
 		t.Errorf("PLAN.md quotes %d unique operations, registry implies %d", got, want)

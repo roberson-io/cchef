@@ -49,3 +49,44 @@ func (d *md64) pad(block func([]byte), littleEndian bool) {
 	}
 	d.write(buf, block)
 }
+
+// md128 buffers input into 128-byte blocks, as the SHA-512 family needs. The
+// length it appends is 128 bits wide; cchef never hashes anything near 2^64
+// bytes, so the high half is always zero.
+type md128 struct {
+	x   [128]byte
+	nx  int
+	len uint64
+}
+
+// write feeds p into the buffer, invoking block for each complete 128-byte block.
+func (d *md128) write(p []byte, block func([]byte)) {
+	d.len += uint64(len(p))
+	if d.nx > 0 {
+		n := copy(d.x[d.nx:], p)
+		d.nx += n
+		if d.nx == 128 {
+			block(d.x[:])
+			d.nx = 0
+		}
+		p = p[n:]
+	}
+	for len(p) >= 128 {
+		block(p[:128])
+		p = p[128:]
+	}
+	d.nx = copy(d.x[:], p)
+}
+
+// pad appends the final padding and flushes the last block(s), big-endian.
+func (d *md128) pad(block func([]byte)) {
+	bitLen := d.len << 3
+	padLen := 112 - d.nx
+	if padLen <= 0 {
+		padLen += 128
+	}
+	buf := make([]byte, padLen+16)
+	buf[0] = 0x80
+	binary.BigEndian.PutUint64(buf[padLen+8:], bitLen)
+	d.write(buf, block)
+}

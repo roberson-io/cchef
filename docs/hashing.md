@@ -48,6 +48,7 @@ emit their own text format, and several operations take options.
 | Scrypt | `scrypt` | [Scrypt](https://wikipedia.org/wiki/Scrypt) |
 | SHA0 | `sha0` | [SHA-0](https://wikipedia.org/wiki/SHA-1#SHA-0) |
 | SHA1 | `sha1` | [SHA-1](https://wikipedia.org/wiki/SHA-1) |
+| SHA2 | `sha2` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA224 | `sha224` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA256 | `sha256` | [SHA-2](https://wikipedia.org/wiki/SHA-2) |
 | SHA3 | `sha3` | [SHA-3](https://wikipedia.org/wiki/SHA-3) |
@@ -1106,6 +1107,17 @@ d7f56f62cde2a044d0259adf01953bbb8f971a33
 
 ## SHA1
 
+The message digest consists, by default, of 80 rounds. Fewer rounds give a
+weakened digest used for cryptanalysis rather than anything you would rely on.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--rounds` | number | `80` | Number of rounds (16 to 80). |
+
+**Simple example**
+
 ```bash
 cchef sha1 -i 'Hello, World!'
 ```
@@ -1114,6 +1126,62 @@ Output:
 
 ```
 0a0a9f2a6772942557ab5355d76af442f8f65e01
+```
+
+**Complex example**
+
+Reduced to 20 rounds:
+
+```bash
+cchef sha1 -i 'Hello, World!' --rounds 20
+```
+
+Output:
+
+```
+461b368dbf1811ed7a027aeae94d4557755fb30f
+```
+
+## SHA2
+
+Every SHA-2 digest size behind one operation, which is the name CyberChef uses
+in a recipe or share URL. `sha224`, `sha256`, `sha384` and `sha512` are the same
+algorithm at their standard round counts, kept as separate subcommands because
+they are what you usually want; `sha2` is the way to reach the `512/224` and
+`512/256` sizes and to vary the round count.
+
+**Options**
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | option | `512` | One of `512`, `384`, `256`, `224`, `512/256`, `512/224`. |
+| `--rounds-256` | number | `64` | Rounds for the 256-bit family, `256` and `224` (16 to 64). |
+| `--rounds-512` | number | `160` | Rounds for the 512-bit family, `512`, `384`, `512/256` and `512/224` (32 to 160). Counted in the half-steps CyberChef counts, so the standard 80 rounds is 160 here. |
+
+**Simple example**
+
+```bash
+cchef sha2 --size 512/256 -i 'Hello, World!'
+```
+
+Output:
+
+```
+0686f0a605973dc1bf035d1e2b9bad1985a0bff712ddd88abd8d2593e5f99030
+```
+
+**Complex example**
+
+SHA-256 cut to 48 of its 64 rounds:
+
+```bash
+cchef sha2 --size 256 --rounds-256 48 -i 'Hello, World!'
+```
+
+Output:
+
+```
+9b97a1011e82585c3d2260d71aba8ef66f1e8cdf002f8292d4f2b7f0283da998
 ```
 
 ## SHA224

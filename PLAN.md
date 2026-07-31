@@ -7,13 +7,12 @@ what the tool is, and `docs/` documents every operation.
 
 ## Status
 
-A **curated set of 504 operations** is implemented, tested and documented,
+A **curated set of 505 operations** is implemented, tested and documented,
 tracked against CyberChef 11.3.0. Those subcommands cover 501 unique CyberChef
-operations; the difference is `SHA2`, which cchef exposes as
-`sha224`/`sha256`/`sha384`/`sha512` — four of its six sizes, and without the
-round count (see stage 1).
+operations; the difference is `SHA2`, which cchef also exposes as the
+no-argument `sha224`/`sha256`/`sha384`/`sha512`.
 
-- **504 operations** (`internal/ops/`), each a faithful port.
+- **505 operations** (`internal/ops/`), each a faithful port.
 - **Core engine** (`internal/core/`), CLI (`cmd/`), docs (`docs/`), and
   generators for the large tables (`tools/`).
 - `make all` (fmt, fix, vet, test, build, lint, sec) and `make fuzz` are clean.
@@ -59,23 +58,16 @@ only the ordering *within* a stage reflects a real dependency.
   conventional `--color` because operation arguments keep CyberChef's spellings
   and two operations have a `Colour` argument, which already answers to
   `--color`; a global flag of that name would have taken it from them.
-- [ ] **Close the SHA1 and SHA2 argument gap.** CyberChef's `SHA1` takes a
-  `Rounds` argument (default 80, minimum 16) and its `SHA2` takes a `Size`
-  selector over six digest sizes plus a `Rounds` per family (SHA-256 variants
-  default 64, minimum 16; SHA-512 variants default 160, minimum 32). cchef's
-  `sha1`/`sha224`/`sha256`/`sha384`/`sha512` take no arguments at all, and the
-  `512/224` and `512/256` sizes are absent. So a reduced-round digest cannot be
-  computed, and a recipe CyberChef writes is rejected outright:
-
-  ```
-  $ cchef bake -e "SHA1(80)" -i hello
-  cchef: step 1 (SHA1): too many arguments: got 1, operation takes 0
-  ```
-
-  The two missing sizes are `crypto/sha512.New512_224`/`New512_256` and are
-  nearly free. Rounds is not: Go's `crypto/sha1` and `crypto/sha256` fix the
-  round count, so honouring it means implementing the compression functions
-  in-repo. Decide whether reduced-round SHA earns that before starting.
+- [x] **Close the SHA1 and SHA2 argument gap.** `SHA1` now takes CyberChef's
+  `Rounds` argument, and a new `SHA2` operation carries the `Size` selector over
+  all six digest sizes plus the round count per family, so `SHA2('512/256',…)`
+  in a recipe or share URL works in both directions. The no-argument
+  `sha224`/`sha256`/`sha384`/`sha512` subcommands stay as the ergonomic way to
+  ask, and a test pins them to `SHA2` at its defaults so the two cannot drift.
+  Go's `crypto/sha1` and `crypto/sha256` fix the round count, so the compression
+  functions are in-repo: SHA-1 reuses the SHA-0 core (the two differ by one
+  rotation) and SHA-2 is written out in `sha2.go`. The 512 family counts rounds
+  in the half-steps CyberChef counts, so its default of 160 is the standard 80.
 - [x] **Match every bound CyberChef declares.** `ArgDef` carries
   `Min`/`Max`/`Integer`, enforced by `coerceNumber` before the operation runs.
   Of 218 numeric arguments, nine declared a bound upstream that cchef did not
@@ -186,7 +178,7 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
   internal breaks every importer. What is known is that `cmd/` — the only
   consumer so far, and a demanding one — never names a concrete operation
   type: a blank import registers them and `core.Default.Get`/`All` does the
-  rest, so 504 subcommands, `list`, `bake` and the staging commands are all
+  rest, so 505 subcommands, `list`, `bake` and the staging commands are all
   built without one. What is not known is whether a caller would want a
   compile-time reference to a specific operation (`ops.ToBase64{}` type-checks
   where `Get("To Base64")` cannot). Export them when someone asks and can say
@@ -197,7 +189,7 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
   [pkg.go.dev](https://pkg.go.dev) badge to the README and write package-level
   doc comments for whatever becomes public.
 - [ ] **Split `internal/ops`.** It is one flat package of ~782 files / 165k LOC
-  implementing the 504 operations. Nothing is broken; the concern is
+  implementing the 505 operations. Nothing is broken; the concern is
   navigability and build granularity. Re-measure before acting — these figures
   drift. What the measurements showed:
 
@@ -214,7 +206,7 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
 
   Three problems worth fixing: one compilation unit and one test binary, so a
   one-line edit recompiles everything and every unexported helper is visible to
-  every file; category is a side table (`opCategories` hand-maintains 504
+  every file; category is a side table (`opCategories` hand-maintains 505
   entries) rather than structure; and engines carry the same visual weight as
   operations in a directory listing.
 
@@ -297,7 +289,7 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
   attestation via `actions/attest-build-provenance`). Document how to verify a
   download in the README, since an unverifiable signature helps nobody.
 - [ ] **Man pages.** cobra can generate a full man tree (`cobra/doc`), but with
-  504 subcommands that is a large tree: hand-write a quality `cchef(1)`
+  505 subcommands that is a large tree: hand-write a quality `cchef(1)`
   following man-page best practice, then decide whether generated
   per-subcommand pages earn their bulk.
 
