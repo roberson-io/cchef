@@ -6,7 +6,6 @@ import (
 	"slices"
 	"sort"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
@@ -227,23 +226,6 @@ func inEntropyRange(entropy float64, r []float64) bool {
 	return len(r) != 2 || (entropy >= r[0] && entropy <= r[1])
 }
 
-// magicText reads the data as CyberChef does before testing patterns against
-// it: as UTF-8 where that works, and otherwise one character per byte. The
-// difference matters, because the checks describe binary signatures with
-// escapes like \xff, which mean the character of that value — so a JPEG is only
-// recognised when its bytes have been read this second way.
-func magicText(data []byte) string {
-	if utf8.Valid(data) {
-		return string(data)
-	}
-	var sb strings.Builder
-	sb.Grow(len(data))
-	for _, b := range data {
-		sb.WriteRune(rune(b))
-	}
-	return sb.String()
-}
-
 // magicPatternMatches tests one of the generated patterns against the data. A
 // pattern that will not compile simply does not match, so one bad entry in the
 // table cannot stop the whole analysis.
@@ -252,7 +234,7 @@ func magicPatternMatches(pattern string, data []byte) bool {
 	if err != nil {
 		return false
 	}
-	return re.MatchString(magicText(data))
+	return re.MatchString(bytesAsText(data))
 }
 
 // magicOutputPasses reports whether an operation's result looks like what its
@@ -287,7 +269,7 @@ func magicIsMime(prefix string, data []byte) bool {
 // magicSnippet is the first hundred characters of a result, quoted back in the
 // report, reading the data the same way the patterns do.
 func magicSnippet(data []byte) string {
-	runes := []rune(magicText(data))
+	runes := []rune(bytesAsText(data))
 	if len(runes) > magicSnippetLen {
 		return string(runes[:magicSnippetLen])
 	}
@@ -306,7 +288,7 @@ func (m *magicRun) describe(data []byte, recipe core.Recipe, useful bool) magicO
 		Entropy:     entropy,
 		MatchingOps: magicMatchingChecks(data, entropy),
 		Useful:      useful,
-		MatchesCrib: m.crib != nil && m.crib.MatchString(magicText(data)),
+		MatchesCrib: m.crib != nil && m.crib.MatchString(bytesAsText(data)),
 	}
 }
 

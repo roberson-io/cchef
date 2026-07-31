@@ -106,7 +106,7 @@ func (LZStringCompress) Args() []core.ArgDef {
 // Run compresses the input.
 func (LZStringCompress) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	format, _ := args[0].(string)
-	values := lzsCompress(lzsStringToUnits(in.String()), lzsBitsFor(format))
+	values := lzsCompress(lzsTextToUnits(dishText(in)), lzsBitsFor(format))
 	return core.NewDish([]byte(lzsWriteOutput(values, format)), core.TypeString), nil
 }
 
@@ -294,7 +294,7 @@ func (LZStringDecompress) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish([]byte(lzsUnitsToString(units)), core.TypeString), nil
+	return core.NewDish(textAsBytes(lzsUnitsToString(units)), core.TypeString), nil
 }
 
 // lzsReadInput turns the characters a format writes back into packed values.
@@ -511,6 +511,14 @@ func lzsStringToUnits(s string) []uint16 {
 		i += size
 	}
 	return units
+}
+
+// lzsTextToUnits turns the input text into code units. Unlike
+// lzsStringToUnits, which reads a compressed stream and has to recover the
+// partnerless surrogates written into one, this reads ordinary text: the
+// characters are already whatever dishText made of the input bytes.
+func lzsTextToUnits(s string) []uint16 {
+	return utf16.Encode([]rune(s))
 }
 
 // lzsLoneSurrogateAt reads the three bytes lzsUnitsToString writes a partnerless

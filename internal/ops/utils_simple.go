@@ -34,7 +34,7 @@ func (SwapCase) Args() []core.ArgDef { return nil }
 // Run swaps case. Ported from CyberChef SwapCase.mjs.
 func (SwapCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		if r == unicode.ToUpper(r) {
 			sb.WriteRune(unicode.ToLower(r))
 		} else {

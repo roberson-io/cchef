@@ -100,7 +100,10 @@ func (ToBase85) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			block |= uint32(input[i+3])
 		}
 
-		if encoding != "Standard" || block > 0 {
+		// "z" abbreviates a whole four-byte zero group. A shorter run of zeros
+		// at the end of the input is not that, and writing "z" for it would
+		// lose the length: every such run would decode back to four zeros.
+		if encoding != "Standard" || block > 0 || n < 4 {
 			digits := make([]int, 5)
 			b := block
 			for j := 4; j >= 0; j-- {

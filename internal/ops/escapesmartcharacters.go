@@ -38,7 +38,7 @@ func (EscapeSmartCharacters) Args() []core.ArgDef {
 func (EscapeSmartCharacters) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	unmappable := args[0].(string)
 	var sb strings.Builder
-	for _, ch := range in.String() {
+	for _, ch := range dishText(in) {
 		switch {
 		case ch < 128:
 			sb.WriteRune(ch)

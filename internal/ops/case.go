@@ -44,7 +44,7 @@ func (ToUpperCase) Args() []core.ArgDef {
 // Run upper-cases the input within the chosen scope.
 func (ToUpperCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	scope := args[0].(string)
-	s := in.String()
+	s := dishText(in)
 
 	var re *regexp.Regexp
 	switch scope {
@@ -83,5 +83,5 @@ func (ToLowerCase) Args() []core.ArgDef { return nil }
 
 // Run lower-cases the input.
 func (ToLowerCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	return core.NewDish([]byte(strings.ToLower(in.String())), core.TypeString), nil
+	return core.NewDish([]byte(strings.ToLower(dishText(in))), core.TypeString), nil
 }

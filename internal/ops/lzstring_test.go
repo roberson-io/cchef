@@ -16,6 +16,12 @@ import (
 // units rather than as text: under the plain format about a quarter of these
 // cases come out holding a surrogate with no partner, which has no character to
 // be written as.
+//
+// Most cases were recorded from lz-string itself. The two whose input holds a
+// lone surrogate were recorded from CyberChef instead, because an operation is
+// handed bytes rather than a JavaScript string: a lone surrogate cannot reach
+// it as one character, so those bytes are read one per character and compress
+// to something the bare library never sees.
 type lzsGolden struct {
 	Name     string `json:"name"`
 	InputHex string `json:"inputHex"`
@@ -130,7 +136,12 @@ func TestLZStringDecompressGoldens(t *testing.T) {
 				if err != nil {
 					t.Fatalf("LZString Decompress: %v", err)
 				}
-				if want := string(unhex(t, g.InputHex)); out != want {
+				// The fixture records the input as the UTF-8 text lz-string was
+				// given. What comes back out of an operation is bytes, and
+				// CyberChef writes a string of characters that all fit in a
+				// byte as one byte each, so the expectation is converted the
+				// same way before comparing.
+				if want := string(textAsBytes(string(unhex(t, g.InputHex)))); out != want {
 					t.Errorf("got %q, want %q", out, want)
 				}
 			})
@@ -147,8 +158,8 @@ func TestLZStringRoundTrips(t *testing.T) {
 		}
 		for _, format := range lzsFormats {
 			t.Run(g.Name+" ("+format+")", func(t *testing.T) {
-				want := string(unhex(t, g.InputHex))
-				stream, err := runOp(t, "LZString Compress", want, format)
+				in := string(unhex(t, g.InputHex))
+				stream, err := runOp(t, "LZString Compress", in, format)
 				if err != nil {
 					t.Fatalf("LZString Compress: %v", err)
 				}
@@ -156,6 +167,9 @@ func TestLZStringRoundTrips(t *testing.T) {
 				if err != nil {
 					t.Fatalf("LZString Decompress: %v", err)
 				}
+				// Text whose characters all fit in a byte comes back one byte
+				// each, as CyberChef writes it, so that is what to compare to.
+				want := string(textAsBytes(in))
 				if back != want {
 					t.Errorf("round trip changed the text (%d bytes in, %d out)",
 						len(want), len(back))
@@ -178,8 +192,8 @@ func TestLZStringDefaultKeepsLoneSurrogates(t *testing.T) {
 		}
 		seen++
 		t.Run(g.Name, func(t *testing.T) {
-			want := string(unhex(t, g.InputHex))
-			stream, err := runOp(t, "LZString Compress", want, "default")
+			in := string(unhex(t, g.InputHex))
+			stream, err := runOp(t, "LZString Compress", in, "default")
 			if err != nil {
 				t.Fatalf("LZString Compress: %v", err)
 			}
@@ -194,7 +208,7 @@ func TestLZStringDefaultKeepsLoneSurrogates(t *testing.T) {
 			if err != nil {
 				t.Fatalf("LZString Decompress: %v", err)
 			}
-			if back != want {
+			if want := string(textAsBytes(in)); back != want {
 				t.Errorf("round trip changed the text")
 			}
 		})

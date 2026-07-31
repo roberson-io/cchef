@@ -26,7 +26,10 @@ func TestToHTMLEntity(t *testing.T) {
 func TestFromHTMLEntity(t *testing.T) {
 	from := core.Recipe{{Op: "From HTML Entity", Args: []any{}}}
 	runCases(t, []opCase{
-		{"named entities", "a &amp; b &lt;c&gt; &quot;d&quot; &eacute;", "a & b <c> \"d\" é", from},
+		// &eacute; is U+00E9, which fits in a byte, so it comes out as the one
+		// byte 0xE9 rather than its two-byte UTF-8 form — the same bytes
+		// CyberChef writes. Reading those bytes back as text gives "é" again.
+		{"named entities", "a &amp; b &lt;c&gt; &quot;d&quot; &eacute;", "a & b <c> \"d\" \xe9", from},
 		{"numeric, hex, and invalid", "&#65;&#x42;&#8364; plain &notreal; end", "AB€ plain &notreal; end", from},
 		// The spec puts &epsi; at U+03B5, the ordinary epsilon; the lunate
 		// U+03F5 is &epsiv;. CyberChef's old hand-written table had them

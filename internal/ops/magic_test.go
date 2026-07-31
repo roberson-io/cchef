@@ -96,10 +96,10 @@ func TestMagicUTF8Kind(t *testing.T) {
 // UTF-8 where it is valid, and one character per byte where it is not, which is
 // what lets a binary signature written \xff match the byte 0xff.
 func TestMagicText(t *testing.T) {
-	if got := magicText([]byte("héllo")); got != "héllo" {
+	if got := bytesAsText([]byte("héllo")); got != "héllo" {
 		t.Errorf("valid UTF-8 changed: %q", got)
 	}
-	got := magicText([]byte{0xff, 0xd8, 0xff})
+	got := bytesAsText([]byte{0xff, 0xd8, 0xff})
 	if want := "ÿØÿ"; got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}

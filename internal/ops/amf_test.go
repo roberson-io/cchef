@@ -96,3 +96,18 @@ func TestAMFDecodeUnmarshalableValue(t *testing.T) {
 		t.Fatal("expected a JSON-marshal error decoding a NaN double")
 	}
 }
+
+// TestAMFDecodeMalformed covers input the decoder cannot read. The AMF library
+// panics on some truncated values rather than returning an error, so the
+// operation contains that and reports it; without this a malformed file would
+// take the whole process down.
+func TestAMFDecodeMalformed(t *testing.T) {
+	for _, in := range []string{
+		"\x0b0", "\x0b", "\x09\xff", "\x0a\x0b\x01", "\x03\xff\xff\xff",
+		"\x11", "\x0c\x80\x80\x80", "\x08\xff\xff\xff\xff",
+	} {
+		if _, err := runOp(t, "AMF Decode", in, "AMF3"); err == nil {
+			t.Logf("decoded %q without error", in)
+		}
+	}
+}

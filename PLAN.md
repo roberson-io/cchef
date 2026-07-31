@@ -76,6 +76,11 @@ Each is removed once its Go replacement is oracle-verified over the same inputs.
 
 - [ ] `github.com/elobuff/goamf` (**AMF Encode/Decode**) — highest priority:
   unmaintained since 2014, and removing it also drops an indirect dependency.
+  Fuzzing found two defects in it. It indexes into its buffers without checking
+  the length, so truncated input panicked; `amfDecode` now contains that and
+  reports an error, where CyberChef decodes the same bytes into a partial
+  structure. It also spends about a second and a large allocation on a
+  four-byte length prefix, which a reimplementation should bound.
 - [ ] `github.com/sergi/go-diff` (**Diff**) — reimplement the Myers diff.
 - [ ] `github.com/mmcloughlin/geohash` (**Convert co-ordinate format**) —
   bit-interleaving; small.
@@ -107,10 +112,17 @@ as `sha224`/`sha256`/`sha384`/`sha512`.
 - **504 operations** (`internal/ops/`), each a faithful port with tests
   transcribed from CyberChef's fixtures.
 - **CLI** (`cmd/`): auto-generated per-operation subcommands with flags derived
-  from the argument definitions, plus `bake`, `url`, `recipe convert` and
-  `list`. Input resolves `--in-file` > `-i/--input` > positional > stdin; output
-  is byte-exact when piped and adds a trailing newline only on a terminal.
-  `--in-dir`/`--out-dir` run a recipe over a directory.
+  from the argument definitions (or from `ArgDef.Flag`, where a web-form label
+  made an unreasonable flag name), plus `bake`, `url`, `recipe convert` and
+  `list`. Input resolves `--in-file` > `-i/--input` > positional > stdin, and a
+  positional naming a file is refused rather than encoded as its own text;
+  output is byte-exact when piped and adds a trailing newline only on a
+  terminal. `--in-dir`/`--out-dir` run a recipe over a directory, `--preview`
+  and `--data-uri` present byte output, and every name keeping CyberChef's UK
+  spelling also answers to its US one.
+- **Staged recipes**: `cchef recipe add/rm/move/toggle/show/clear` builds a
+  recipe a step at a time in `.cchef-recipe.json`, which `bake`, `url` and
+  `recipe convert` fall back to when given no recipe of their own.
 - **Docs** (`docs/`): a page per category with options tables, simple and
   complex examples, and reference links.
 - **Tooling**: `make all` runs fmt, fix, vet, test, build, lint and sec; plus
@@ -128,6 +140,8 @@ cchef/
     io.go                    input resolution and output, --in-dir/--out-dir,
                              --preview/--data-uri presentation
     bake.go url.go recipe.go list.go
+    stage.go                 the staged recipe and its `recipe add` commands
+    spelling.go              UK/US spelling aliases for names, flags and values
     opmeta.go                op -> category, plus the derived-summary machinery
     opsummaries.go           curated one-line summaries
     opaliases.go             short aliases for high-traffic ops
@@ -256,15 +270,19 @@ above is also open.
 
 ### Before going public
 
-- **Fuzz the from-scratch parsers.** Go's native fuzzing (`go test -fuzz`),
-  applied per package rather than to the built binary, which would only add
-  process overhead around the same code. The high-value targets are the parsers
-  that take untrusted input: the recipe/Chef-format parser, the file-format
-  parsers, the JavaScript parser, the XML DOM, the YARA rule compiler and the
-  disassemblers. Reciprocal operations also give cheap round-trip properties
-  (decode of encode returns the input).
-- **Make the breaking CLI changes** below — renamed flags and stricter
-  validation are free only while nobody else is using the tool.
+Nothing outstanding. Fuzzing is in place (`make fuzz`, seven targets across
+`internal/core`, `internal/ops` and `internal/yara`) and found eight defects,
+all fixed: two out-of-range slices in the protobuf parser, a panic in the AMF
+library, a negative index in XML Beautify, `To Base85` writing a partial zero
+group as `z`, an unbounded `Get All Casings`, a panic in the SSDEEP
+comparison, and a class of operations that read a byte which is not valid
+UTF-8 as U+FFFD instead of falling back to one character per byte as CyberChef
+does. Four of those were CyberChef defects as well and are in the bug log.
+
+The breaking CLI changes are done: flags renamed off their web-form labels,
+US spellings accepted, integer arguments validated, output presentation moved
+off the operations, and the positional-argument guard added. Anything else that
+would change the CLI surface should land before the repository goes public.
 
 ### Distribution
 
@@ -281,30 +299,13 @@ above is also open.
 
 - **Revisit [clig.dev](https://clig.dev/) end to end.** It shaped the interface
   early in development and has not been re-checked since.
-- **Rename the web-form flags.** Flags are auto-derived from CyberChef's
-  ingredient labels, which were written for a browser UI —
-  `magic --crib-known-plaintext-string-or-regex` should be `--crib`, with the
-  detail moved into the flag's help text. A curated rename table in `cmd/`
-  (following the `opSummaries`/`opAliases` precedent) covers this without
-  touching the operations; likewise option *values* that only make sense as
-  web-app dropdown labels.
-- **US-spelling aliases.** Operation names keep CyberChef's original spellings,
-  many of them UK English (`Split Colour Channels`, `Analyse hash`), and the
-  derived subcommands, flags and option values inherit them. Alongside those
-  originals, accept US-spelled aliases (`split-color-channels`, `--color`,
-  `Center`) through the same alias machinery, so a US-English user never has to
-  remember which variant an option wants.
-- **Tighten input validation.** Every `ArgNumber` is a float64 because
-  CyberChef's `number` type is; most are semantically integers.
-  `core.CoerceArgs` already enforces declared `Min`/`Max`, so the audit is
-  largely about declaring: which arguments are integers, where zero or negative
-  values are meaningless, and rejecting rather than truncating or accepting
-  nonsense.
-- **Input convention — settled.** A positional argument stays *text* rather
-  than a filename: it is what makes `cchef rot13 "Have a nice day."` work, and
-  files already have `--in-file`/`--in-dir`. The failure it used to allow — a
-  path silently encoded as its own text — is now refused, naming the three ways
-  to say what was meant. Revisit only if a real use case argues otherwise.
+- **Finish the numeric bounds.** Integer-ness is now declared on the 130
+  arguments that are semantically whole numbers, and the eight where the
+  operation itself rejects fractions with CyberChef's own message were left to
+  it. `Min`/`Max` is a separate question: 56 arguments declare bounds, and the
+  unbounded crypto and generator parameters were spot-checked against the
+  oracle (CyberChef accepts zero PBKDF2 iterations, so cchef does too). A full
+  sweep of the rest would still be worth doing.
 - **Syntax highlighter’s output format is still an operation argument.** All 44
   upstream `presentType: "html"` operations were audited and made consistent,
   but this one keeps a cchef-added `Output format` (`HTML`/`Terminal`) argument,
@@ -312,12 +313,6 @@ above is also open.
   forms are both text, so `--preview`/`--data-uri` do not apply. Options:
   default to `Terminal` when stdout is a terminal and `HTML` otherwise (matching
   how the trailing newline already works), or move it to a global flag.
-- **Interactive recipe building — settled as a staged model.** `cchef recipe
-  add/rm/move/toggle/show/clear` builds a recipe up a step at a time in
-  `.cchef-recipe.json`, which `bake`, `url` and `recipe convert` fall back to.
-  It adds no dependency, stays scriptable, and reuses the existing recipe
-  parser. A full TUI was rejected: it would need a heavy dependency for a
-  feature nobody has asked for.
 
 ### Loosening JavaScript parity
 

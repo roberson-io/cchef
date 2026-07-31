@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -42,4 +43,27 @@ func TestXMLBeautifyFixtures(t *testing.T) {
 		{"tag inside comment stays inline", "<a><!-- <b>x</b> --></a>", "<a>\n  <!-- <b>x</b> -->\n</a>", xmbRecipe("  ")},
 		{"DOCTYPE", "<!DOCTYPE html><html><body>hi</body></html>", "<!DOCTYPE html>\n<html>\n  <body>hi</body>\n</html>", xmbRecipe("  ")},
 	})
+}
+
+// TestXMLBeautifyUnbalanced covers closing tags with no matching open tag.
+// The indent depth cannot go below zero, so these are laid out flat rather
+// than indexing off the front of the indent table.
+func TestXMLBeautifyUnbalanced(t *testing.T) {
+	for _, tc := range []struct{ in, want string }{
+		{"</0", "</0"},
+		{"</a>", "</a>"},
+		{"</a></b>", "</a>\n</b>"},
+	} {
+		got, err := runOp(t, "XML Beautify", tc.in, "\t")
+		if err != nil {
+			t.Errorf("%q: %v", tc.in, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("XML Beautify(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+		if strings.Contains(got, "undefined") {
+			t.Errorf("XML Beautify(%q) leaked %q into the output", tc.in, "undefined")
+		}
+	}
 }

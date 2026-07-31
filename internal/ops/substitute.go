@@ -78,7 +78,7 @@ func (Substitute) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		dict[string(plaintext[i])] = string(ciphertext[i])
 	}
 
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		out.WriteString(substituteChar(string(r), dict, ignoreCase))
 	}
 	return core.NewDish([]byte(out.String()), core.TypeString), nil

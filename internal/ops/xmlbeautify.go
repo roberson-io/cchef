@@ -132,7 +132,9 @@ func (f *xmlFormatter) stepTag(cur string) {
 			f.deep++
 		}
 	case hasClose: // </elm>
-		if !f.inComment {
+		if !f.inComment && f.deep > 0 {
+			// A closing tag with nothing open leaves the depth at zero rather
+			// than going negative, so unbalanced input is laid out flat.
 			f.deep--
 		}
 		f.write(f.deep, cur)

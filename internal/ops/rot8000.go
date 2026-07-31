@@ -95,7 +95,7 @@ func (ROT8000) Args() []core.ArgDef { return nil }
 func (ROT8000) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	table := rot8000Table()
 	var b strings.Builder
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		if to, ok := table[r]; ok {
 			b.WriteRune(to)
 		} else {

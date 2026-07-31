@@ -51,7 +51,7 @@ func (ToHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	hexa := mode == "Hex entities"
 
 	var sb strings.Builder
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		sb.WriteString(htmlEncodeRune(r, convertAll, numeric, hexa))
 	}
 	return core.NewDish([]byte(sb.String()), core.TypeString), nil
@@ -151,5 +151,5 @@ func (FromHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		last = loc[1]
 	}
 	sb.WriteString(input[last:])
-	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+	return core.NewDish(textAsBytes(sb.String()), core.TypeString), nil
 }

@@ -1,4 +1,5 @@
 GO      ?= go
+FUZZTIME ?= 30s
 GOBIN   ?= $(shell $(GO) env GOPATH)/bin
 BINARY  := cchef
 DIST    := dist
@@ -14,7 +15,7 @@ GOCYCLO_VERSION := v0.6.0
 GOCYCLO_OVER := 15
 
 .DEFAULT_GOAL := all
-.PHONY: all build clean complexity cover fix fix-check fmt fmt-check install-tools lint sast sbom sbom-audit sbom-scan sec test vet vuln
+.PHONY: all build clean complexity cover fix fix-check fmt fmt-check fuzz install-tools lint sast sbom sbom-audit sbom-scan sec test vet vuln
 
 ## all: check formatting/modernization, vet, test, build, lint, and security (mirrors CI)
 all: fmt-check fix-check vet test build lint sec
@@ -114,6 +115,15 @@ sec: sast vuln
 ## test: run all unit tests
 test:
 	$(GO) test ./...
+
+## fuzz: run every fuzz target for FUZZTIME each (default 30s)
+fuzz:
+	@for pkg in ./internal/core ./internal/ops ./internal/yara; do \
+	  for target in $$($(GO) test $$pkg -list 'Fuzz.*' | grep '^Fuzz'); do \
+	    echo "==> $$pkg $$target"; \
+	    $(GO) test $$pkg -run "$$target" -fuzz "^$$target$$" -fuzztime $(FUZZTIME) || exit 1; \
+	  done; \
+	done
 
 ## vet: run go vet static checks
 vet:

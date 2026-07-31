@@ -47,7 +47,7 @@ func (ConvertToNATOAlphabet) Args() []core.ArgDef { return nil }
 // spacing between words follows the input's own.
 func (ConvertToNATOAlphabet) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var out strings.Builder
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		if word, there := natoWords[unicode.ToUpper(r)]; there && r < 0x80 {
 			out.WriteString(word)
 		} else {

@@ -85,6 +85,14 @@ func ParseRecipeConfig(recipe string) (Recipe, error) {
 		if err := json.Unmarshal([]byte(recipe), &r); err != nil {
 			return nil, fmt.Errorf("parse JSON recipe: %w", err)
 		}
+		for i, step := range r {
+			// A step has to name an operation. Without this the recipe would
+			// be accepted here and fail only when run, and it has no valid
+			// written form, so sharing it would silently change it.
+			if step.Op == "" {
+				return nil, fmt.Errorf("step %d names no operation", i+1)
+			}
+		}
 		return r, nil
 	}
 

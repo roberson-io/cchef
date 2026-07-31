@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -32,12 +33,22 @@ func (GetAllCasings) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (GetAllCasings) Args() []core.ArgDef { return nil }
 
+// maxCasingLength is the longest input Get All Casings will work through. The
+// result doubles with every character, so twenty already gives over a million
+// lines; past that the answer is too large to be of use, and producing it
+// would cost the machine's memory rather than the caller's patience.
+const maxCasingLength = 20
+
 // Run produces all casings. Ported from CyberChef GetAllCasings.mjs.
 func (GetAllCasings) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	lower := []rune(strings.ToLower(in.String()))
 	n := len(lower)
 	if n == 0 {
 		return core.NewDish(nil, core.TypeString), nil
+	}
+	if n > maxCasingLength {
+		return nil, fmt.Errorf("input is %d characters, which asks for 2^%d casings; %d characters is the most this can produce",
+			n, n, maxCasingLength)
 	}
 	var lines []string
 	for i := 0; i < (1 << n); i++ {

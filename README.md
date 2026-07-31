@@ -120,7 +120,14 @@ make lint     # golangci-lint (make install-tools to install it)
 make sec      # gosec SAST + govulncheck (dependency & stdlib CVEs)
 make complexity   # report functions over the cyclomatic threshold
 make sbom-audit   # generate + scan a CycloneDX SBOM
+make fuzz         # run every fuzz target (FUZZTIME=5m for a longer run)
 ```
+
+Fuzzing covers the parsers that read data cchef did not write — the recipe
+parser, the file-format and rule parsers, the decoders — and checks that the
+reciprocal operations round-trip. `make fuzz` gives each target 30 seconds;
+a failing input is written under `testdata/fuzz/` and becomes a regression
+test from then on.
 
 CI runs on linux/amd64 while development is typically on arm64, so anything
 touching floating-point maths is worth checking on both:

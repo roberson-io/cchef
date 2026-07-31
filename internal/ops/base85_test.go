@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -141,5 +142,45 @@ func TestFilterBase85(t *testing.T) {
 	got := filterBase85([]rune("9j qo^"), stdB85Idx(), -1)
 	if string(got) != "9jqo^" {
 		t.Fatalf("filterBase85 = %q, want %q", string(got), "9jqo^")
+	}
+}
+
+// TestToBase85PartialZeroGroup covers zero bytes at the end of the input. The
+// "z" shorthand stands for a whole four-byte zero group, so a shorter run of
+// zeros must be written out in full; using "z" for it loses the length, and
+// decoding gives back four zeros however many there were. Expected values are
+// the Ascii85 standard, which Python's base64.a85encode also produces.
+func TestToBase85PartialZeroGroup(t *testing.T) {
+	for _, tc := range []struct {
+		zeros int
+		want  string
+	}{
+		{1, "!!"},
+		{2, "!!!"},
+		{3, "!!!!"},
+		{4, "z"},
+		{5, "z!!"},
+		{6, "z!!!"},
+		{7, "z!!!!"},
+		{8, "zz"},
+	} {
+		in := strings.Repeat("\x00", tc.zeros)
+		got, err := runOp(t, "To Base85", in, base85Standard, false)
+		if err != nil {
+			t.Errorf("%d zeros: %v", tc.zeros, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("To Base85(%d zero bytes) = %q, want %q", tc.zeros, got, tc.want)
+		}
+		// And the round trip must return exactly what went in.
+		back, err := runOp(t, "From Base85", got, base85Standard, false)
+		if err != nil {
+			t.Errorf("%d zeros: decoding %q: %v", tc.zeros, got, err)
+			continue
+		}
+		if back != in {
+			t.Errorf("%d zero bytes round-tripped to %d", tc.zeros, len(back))
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/roberson-io/cchef/internal/core"
@@ -94,4 +95,23 @@ func TestCaseInsensitiveRegex(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestGetAllCasingsBounded covers the length limit. The result doubles with
+// every character, so a long input asks for more output than can be produced;
+// saying so beats spending the machine's memory on it. (CyberChef has no
+// limit, and its 32-bit shift silently returns one casing, or none, past 30
+// characters.)
+func TestGetAllCasingsBounded(t *testing.T) {
+	longest := strings.Repeat("a", maxCasingLength)
+	out, err := runOp(t, "Get All Casings", longest)
+	if err != nil {
+		t.Fatalf("%d characters should still work: %v", maxCasingLength, err)
+	}
+	if got := strings.Count(out, "\n") + 1; got != 1<<maxCasingLength {
+		t.Errorf("gave %d casings, want %d", got, 1<<maxCasingLength)
+	}
+	if _, err := runOp(t, "Get All Casings", longest+"a"); err == nil {
+		t.Errorf("expected %d characters to be refused", maxCasingLength+1)
+	}
 }

@@ -3,6 +3,7 @@ package ops
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	amf "github.com/elobuff/goamf"
@@ -73,8 +74,7 @@ func (AMFDecode) Args() []core.ArgDef {
 
 // Run decodes AMF bytes into a JSON string.
 func (AMFDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	dec := &amf.Decoder{}
-	val, err := dec.Decode(bytes.NewReader(in.Bytes()), amfVersion(args[0].(string)))
+	val, err := amfDecode(in.Bytes(), amfVersion(args[0].(string)))
 	if err != nil {
 		return nil, fmt.Errorf("AMF decode: %w", err)
 	}
@@ -83,6 +83,19 @@ func (AMFDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, fmt.Errorf("AMF decode: marshal JSON: %w", err)
 	}
 	return core.NewDish(out, core.TypeJSON), nil
+}
+
+// amfDecode reads one AMF value. The decoder indexes into its buffers without
+// checking the length, so a truncated value panics rather than failing; that
+// is turned into an error here so malformed input cannot end the process.
+func amfDecode(data []byte, version amf.Version) (val any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			val, err = nil, errors.New("malformed AMF data")
+		}
+	}()
+	dec := &amf.Decoder{}
+	return dec.Decode(bytes.NewReader(data), version)
 }
 
 // AMFEncode serializes JSON into Action Message Format binary data.

@@ -162,10 +162,20 @@ func (p *protobufParser) uint32() float64 {
 // lenDelim reads a length-delimited field: a nested message when it parses
 // cleanly, otherwise the raw bytes as a latin1 string. Ported from _lenDelim.
 func (p *protobufParser) lenDelim(fieldNum string) (any, error) {
-	length := int(p.varInt())
-	end := p.offset + length
-	sliceEnd := min(end, len(p.data))
-	fieldBytes := p.data[p.offset:sliceEnd]
+	// The length comes off the wire and can name more bytes than exist, or more
+	// than an int can hold. JavaScript keeps it as a float and simply runs off
+	// the end, so any length the buffer cannot satisfy is treated as exactly
+	// that: an overrun, reported when parsing finishes.
+	length := p.varInt()
+	end := len(p.data) + 1
+	if length >= 0 && length <= float64(len(p.data)) {
+		end = p.offset + int(length)
+	}
+	// Reading the length can already have run the offset past the data, and
+	// slicing from beyond the end yields nothing rather than failing.
+	start := min(p.offset, len(p.data))
+	sliceEnd := min(max(end, start), len(p.data))
+	fieldBytes := p.data[start:sliceEnd]
 
 	var field any
 	sub := newProtobufParser(fieldBytes)

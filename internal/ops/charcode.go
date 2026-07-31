@@ -45,7 +45,7 @@ func (ToCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 
 	var parts []string
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		ordinal := int64(r)
 		if base == 16 {
 			parts = append(parts, leftPad(strconv.FormatInt(ordinal, 16), charcodeHexPad(ordinal)))
@@ -130,5 +130,5 @@ func (FromCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		sb.WriteRune(rune(v))
 	}
-	return core.NewDish([]byte(sb.String()), core.TypeByteArray), nil
+	return core.NewDish(textAsBytes(sb.String()), core.TypeByteArray), nil
 }

@@ -36,7 +36,7 @@ func (CetaceanCipherEncode) Args() []core.ArgDef { return nil }
 // code unit's 16-bit binary becomes 'e' (1) / 'E' (0).
 func (CetaceanCipherEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var b strings.Builder
-	for _, u := range utf16.Encode([]rune(in.String())) {
+	for _, u := range utf16.Encode([]rune(dishText(in))) {
 		if u == ' ' {
 			b.WriteByte(' ')
 			continue
