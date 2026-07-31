@@ -37,7 +37,7 @@ func (ToBinary) Args() []core.ArgDef {
 	minLen := 1.0
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: binDelims},
-		{Name: "Byte Length", Type: core.ArgNumber, Value: 8, Min: &minLen},
+		{Name: "Byte Length", Type: core.ArgNumber, Integer: true, Value: 8, Min: &minLen},
 	}
 }
 
@@ -76,7 +76,7 @@ func (FromBinary) Args() []core.ArgDef {
 	minLen := 1.0
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: binDelims},
-		{Name: "Byte Length", Type: core.ArgNumber, Value: 8, Min: &minLen},
+		{Name: "Byte Length", Type: core.ArgNumber, Integer: true, Value: 8, Min: &minLen},
 	}
 }
 

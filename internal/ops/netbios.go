@@ -26,7 +26,7 @@ func (EncodeNetBIOSName) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (EncodeNetBIOSName) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Offset", Type: core.ArgNumber, Value: 65}}
+	return []core.ArgDef{{Name: "Offset", Type: core.ArgNumber, Integer: true, Value: 65}}
 }
 
 // Run encodes the name. Ported from CyberChef EncodeNetBIOSName.mjs.
@@ -67,7 +67,7 @@ func (DecodeNetBIOSName) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (DecodeNetBIOSName) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Offset", Type: core.ArgNumber, Value: 65}}
+	return []core.ArgDef{{Name: "Offset", Type: core.ArgNumber, Integer: true, Value: 65}}
 }
 
 // Run decodes the name. Ported from CyberChef DecodeNetBIOSName.mjs.

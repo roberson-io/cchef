@@ -39,7 +39,7 @@ func (JavaScriptParser) Args() []core.ArgDef {
 		{Name: "Range info", Type: core.ArgBoolean, Value: false},
 		{Name: "Include tokens array", Type: core.ArgBoolean, Value: false},
 		{Name: "Include comments array", Type: core.ArgBoolean, Value: false},
-		{Name: "Report errors and try to continue", Type: core.ArgBoolean, Value: false},
+		{Name: "Report errors and try to continue", Flag: "report-errors", Type: core.ArgBoolean, Value: false},
 	}
 }
 

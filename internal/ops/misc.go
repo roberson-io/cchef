@@ -212,7 +212,7 @@ func (PRNG) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (PRNG) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Number of bytes", Type: core.ArgNumber, Value: 32},
+		{Name: "Number of bytes", Type: core.ArgNumber, Integer: true, Value: 32},
 		{Name: "Output as", Type: core.ArgOption, Value: []string{"Hex", "Integer", "Byte array", "Raw"}},
 	}
 }

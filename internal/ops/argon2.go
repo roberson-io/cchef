@@ -48,10 +48,10 @@ func (Argon2) Meta() core.OpMeta {
 func (Argon2) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Salt", Type: core.ArgToggleString, Value: "somesalt", ToggleValues: []string{"UTF8", "Hex", "Base64", "Latin1"}},
-		{Name: "Iterations", Type: core.ArgNumber, Value: 3},
-		{Name: "Memory (KiB)", Type: core.ArgNumber, Value: 4096},
-		{Name: "Parallelism", Type: core.ArgNumber, Value: 1},
-		{Name: "Hash length (bytes)", Type: core.ArgNumber, Value: 32},
+		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: 3},
+		{Name: "Memory (KiB)", Type: core.ArgNumber, Integer: true, Value: 4096},
+		{Name: "Parallelism", Type: core.ArgNumber, Integer: true, Value: 1},
+		{Name: "Hash length (bytes)", Type: core.ArgNumber, Integer: true, Value: 32},
 		{Name: "Type", Type: core.ArgOption, Value: []string{"Argon2i", "Argon2d", "Argon2id"}},
 		{Name: "Output format", Type: core.ArgOption, Value: []string{"Encoded hash", "Hex hash", "Raw hash"}},
 	}

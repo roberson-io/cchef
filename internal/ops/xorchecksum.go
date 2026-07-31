@@ -30,7 +30,7 @@ func (XORChecksum) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (XORChecksum) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Blocksize", Type: core.ArgNumber, Value: 4}}
+	return []core.ArgDef{{Name: "Blocksize", Type: core.ArgNumber, Integer: true, Value: 4}}
 }
 
 // Run computes the block-wise XOR checksum.

@@ -58,7 +58,7 @@ func (DisassembleARM) Args() []core.ArgDef {
 		{Name: "Architecture", Type: core.ArgOption, Value: armArchitectures},
 		{Name: "Mode", Type: core.ArgOption, Value: armModes},
 		{Name: "Endianness", Type: core.ArgOption, Value: armEndianness},
-		{Name: "Starting address (hex)", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Starting address (hex)", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 		{Name: "Show instruction hex", Type: core.ArgBoolean, Value: true},
 		{Name: "Show instruction position", Type: core.ArgBoolean, Value: true},
 	}

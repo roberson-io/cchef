@@ -45,7 +45,7 @@ func (GenerateImage) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Mode", Type: core.ArgOption, Value: []string{"Greyscale", "RG", "RGB", "RGBA", "Bits"}},
 		{Name: "Pixel Scale Factor", Type: core.ArgNumber, Value: float64(8), Min: &genScaleMin, Max: &genScaleMax},
-		{Name: "Pixels per row", Type: core.ArgNumber, Value: float64(64), Min: &genRowMin, Max: &genRowMax},
+		{Name: "Pixels per row", Type: core.ArgNumber, Integer: true, Value: float64(64), Min: &genRowMin, Max: &genRowMax},
 	}
 }
 

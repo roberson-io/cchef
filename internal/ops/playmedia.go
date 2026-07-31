@@ -34,14 +34,12 @@ func (PlayMedia) Meta() core.OpMeta {
 func (PlayMedia) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Input format", Type: core.ArgOption, Value: []string{"Raw", "Base64", "Hex"}},
-		{Name: "Output", Type: core.ArgOption, Value: []string{"Raw", "Base64"}},
 	}
 }
 
-// Run validates the media and renders it in the requested output form.
+// Run validates the media and passes its bytes through.
 func (PlayMedia) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[0].(string)
-	outputFormat := args[1].(string)
 
 	if len(in.Bytes()) == 0 {
 		return core.NewDish(nil, core.TypeByteArray), nil
@@ -49,11 +47,10 @@ func (PlayMedia) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	data := decodeImageInput(in, inputFormat)
 
-	mime := isTypeMatch(reAudioVideo, data)
-	if mime == "" {
+	if isTypeMatch(reAudioVideo, data) == "" {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return nil, errors.New("Invalid or unrecognised file type")
 	}
 
-	return renderMedia(data, mime, outputFormat)
+	return core.NewDish(data, core.TypeByteArray), nil
 }

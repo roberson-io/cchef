@@ -36,15 +36,15 @@ var (
 // Args returns the argument definitions.
 func (CropImage) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "X Position", Type: core.ArgNumber, Value: float64(0), Min: &cropZeroMin},
-		{Name: "Y Position", Type: core.ArgNumber, Value: float64(0), Min: &cropZeroMin},
-		{Name: "Width", Type: core.ArgNumber, Value: float64(10), Min: &cropOneMin},
-		{Name: "Height", Type: core.ArgNumber, Value: float64(10), Min: &cropOneMin},
+		{Name: "X Position", Type: core.ArgNumber, Integer: true, Value: float64(0), Min: &cropZeroMin},
+		{Name: "Y Position", Type: core.ArgNumber, Integer: true, Value: float64(0), Min: &cropZeroMin},
+		{Name: "Width", Type: core.ArgNumber, Integer: true, Value: float64(10), Min: &cropOneMin},
+		{Name: "Height", Type: core.ArgNumber, Integer: true, Value: float64(10), Min: &cropOneMin},
 		{Name: "Autocrop", Type: core.ArgBoolean, Value: false},
 		{Name: "Autocrop tolerance (%)", Type: core.ArgNumber, Value: float64(0.02), Min: &cropZeroMin, Max: &cropTolMax},
 		{Name: "Only autocrop frames", Type: core.ArgBoolean, Value: true},
 		{Name: "Symmetric autocrop", Type: core.ArgBoolean, Value: false},
-		{Name: "Autocrop keep border (px)", Type: core.ArgNumber, Value: float64(0), Min: &cropZeroMin},
+		{Name: "Autocrop keep border (px)", Type: core.ArgNumber, Integer: true, Value: float64(0), Min: &cropZeroMin},
 	}
 }
 

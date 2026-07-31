@@ -11,3 +11,6 @@
 
 # Editor / IDE
 /.vscode/
+
+# Staged recipes (cchef recipe add)
+.cchef-recipe.json

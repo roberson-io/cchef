@@ -812,10 +812,10 @@ func (RawInflate) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RawInflate) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Start index", Type: core.ArgNumber, Value: float64(0)},
-		{Name: "Initial output buffer size", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Start index", Type: core.ArgNumber, Integer: true, Value: float64(0)},
+		{Name: "Initial output buffer size", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 		{Name: "Buffer expansion type", Type: core.ArgOption, Value: deflateBufferTypes},
-		{Name: "Resize buffer after decompression", Type: core.ArgBoolean, Value: false},
+		{Name: "Resize buffer after decompression", Flag: "resize-buffer", Type: core.ArgBoolean, Value: false},
 		{Name: "Verify result", Type: core.ArgBoolean, Value: false},
 	}
 }

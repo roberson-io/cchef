@@ -30,8 +30,8 @@ var resizeDimMin = float64(1)
 // Args returns the argument definitions.
 func (ResizeImage) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Width", Type: core.ArgNumber, Value: float64(100), Min: &resizeDimMin},
-		{Name: "Height", Type: core.ArgNumber, Value: float64(100), Min: &resizeDimMin},
+		{Name: "Width", Type: core.ArgNumber, Integer: true, Value: float64(100), Min: &resizeDimMin},
+		{Name: "Height", Type: core.ArgNumber, Integer: true, Value: float64(100), Min: &resizeDimMin},
 		{Name: "Unit type", Type: core.ArgOption, Value: []string{"Pixels", "Percent"}},
 		{Name: "Maintain aspect ratio", Type: core.ArgBoolean, Value: false},
 		{Name: "Resizing algorithm", Type: core.ArgOption, Value: []string{

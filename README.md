@@ -92,6 +92,11 @@ documents every operation's options, examples and reference links:
 | [Public Key](docs/public-key.md) | RSA, ECDSA and PGP; X.509 certificates and CSRs; key generation, signing and verification |
 | [Utils](docs/utils.md) | Sorting, filtering, unique, find and replace, padding, escaping, unit and coordinate conversion, diff, file trees |
 
+Names keep the spellings CyberChef uses, which are often British, and every
+one of them also answers to its American spelling — `analyze-hash` runs
+`analyse-hash`, `--color` sets `--colour`, and `Grayscale` selects `Greyscale`.
+See [British and American spellings](docs/README.md#british-and-american-spellings).
+
 See [docs/](docs/README.md) for the full documentation index, and
 [docs/recipes-and-urls.md](docs/recipes-and-urls.md) for `bake`, `url`, and
 `recipe convert`.

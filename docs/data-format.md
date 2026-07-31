@@ -1415,7 +1415,7 @@ This operation is also listed under [Public Key](public-key.md).
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--starting-index` | number | `0` | Offset, in **hex characters**, at which to start parsing. |
-| `--truncate-octet-strings-longer-than` | number | `32` | Values longer than this many bytes are shown as their first and last *N* hex characters, where *N* is this value. |
+| `--truncate-octet-strings` | number | `32` | Values longer than this many bytes are shown as their first and last *N* hex characters, where *N* is this value. |
 
 **Simple example**
 
@@ -1440,7 +1440,7 @@ text, with octet strings truncated to their first and last 8 hex characters:
 
 ```bash
 cchef parse-asn1-hex-string -i '30100603551d11040930078205612e636f6d' \
-    --truncate-octet-strings-longer-than 8
+    --truncate-octet-strings 8
 ```
 
 Output:

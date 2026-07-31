@@ -35,7 +35,7 @@ func (ViewBitPlane) Meta() core.OpMeta {
 func (ViewBitPlane) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Colour", Type: core.ArgOption, Value: viewBitPlaneColours},
-		{Name: "Bit", Type: core.ArgNumber, Value: 0},
+		{Name: "Bit", Type: core.ArgNumber, Integer: true, Value: 0},
 	}
 }
 

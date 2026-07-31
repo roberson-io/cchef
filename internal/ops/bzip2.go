@@ -57,7 +57,7 @@ func (Bzip2Compress) Args() []core.ArgDef {
 			Name: "Block size (100s of kb)", Type: core.ArgNumber, Value: float64(9),
 			Min: &bzip2BlockSizeMin, Max: &bzip2BlockSizeMax,
 		},
-		{Name: "Work factor", Type: core.ArgNumber, Value: float64(30)},
+		{Name: "Work factor", Type: core.ArgNumber, Integer: true, Value: float64(30)},
 	}
 }
 
@@ -97,7 +97,7 @@ func (Bzip2Decompress) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (Bzip2Decompress) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Use low-memory, slower decompression algorithm", Type: core.ArgBoolean, Value: false},
+		{Name: "Use low-memory, slower decompression algorithm", Flag: "low-memory", Type: core.ArgBoolean, Value: false},
 	}
 }
 

@@ -109,10 +109,10 @@ func (Magic) Meta() core.OpMeta {
 // wider set of languages, and a string the answer is expected to contain.
 func (Magic) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Depth", Type: core.ArgNumber, Value: 3},
+		{Name: "Depth", Type: core.ArgNumber, Integer: true, Value: 3},
 		{Name: "Intensive mode", Type: core.ArgBoolean, Value: false},
 		{Name: "Extensive language support", Type: core.ArgBoolean, Value: false},
-		{Name: "Crib (known plaintext string or regex)", Type: core.ArgString, Value: ""},
+		{Name: "Crib (known plaintext string or regex)", Flag: "crib", Type: core.ArgString, Value: ""},
 	}
 }
 

@@ -42,14 +42,14 @@ func (AddTextToImage) Args() []core.ArgDef {
 		{Name: "Text", Type: core.ArgString, Value: ""},
 		{Name: "Horizontal align", Type: core.ArgOption, Value: []string{"None", "Left", "Center", "Right"}},
 		{Name: "Vertical align", Type: core.ArgOption, Value: []string{"None", "Top", "Middle", "Bottom"}},
-		{Name: "X position", Type: core.ArgNumber, Value: float64(0)},
-		{Name: "Y position", Type: core.ArgNumber, Value: float64(0)},
-		{Name: "Size", Type: core.ArgNumber, Value: float64(32), Min: &addTextSizeMin},
+		{Name: "X position", Type: core.ArgNumber, Integer: true, Value: float64(0)},
+		{Name: "Y position", Type: core.ArgNumber, Integer: true, Value: float64(0)},
+		{Name: "Size", Type: core.ArgNumber, Integer: true, Value: float64(32), Min: &addTextSizeMin},
 		{Name: "Font face", Type: core.ArgOption, Value: addTextFontFaceOptionNames},
-		{Name: "Red", Type: core.ArgNumber, Value: float64(255), Min: &channelMin, Max: &channelMax},
-		{Name: "Green", Type: core.ArgNumber, Value: float64(255), Min: &channelMin, Max: &channelMax},
-		{Name: "Blue", Type: core.ArgNumber, Value: float64(255), Min: &channelMin, Max: &channelMax},
-		{Name: "Alpha", Type: core.ArgNumber, Value: float64(255), Min: &channelMin, Max: &channelMax},
+		{Name: "Red", Type: core.ArgNumber, Integer: true, Value: float64(255), Min: &channelMin, Max: &channelMax},
+		{Name: "Green", Type: core.ArgNumber, Integer: true, Value: float64(255), Min: &channelMin, Max: &channelMax},
+		{Name: "Blue", Type: core.ArgNumber, Integer: true, Value: float64(255), Min: &channelMin, Max: &channelMax},
+		{Name: "Alpha", Type: core.ArgNumber, Integer: true, Value: float64(255), Min: &channelMin, Max: &channelMax},
 	}
 }
 

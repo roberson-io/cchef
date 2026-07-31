@@ -86,7 +86,7 @@ func (GenerateLoremIpsum) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (GenerateLoremIpsum) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Length", Type: core.ArgNumber, Value: 3.0},
+		{Name: "Length", Type: core.ArgNumber, Integer: true, Value: 3.0},
 		{
 			Name: "Length in", Type: core.ArgOption,
 			Value: []string{loremParagraphs, loremSentences, loremWords, loremBytes},

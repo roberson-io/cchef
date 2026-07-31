@@ -33,7 +33,7 @@ func (Shake) Meta() core.OpMeta {
 func (Shake) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Capacity", Type: core.ArgOption, Value: []string{"256", "128"}},
-		{Name: "Size", Type: core.ArgNumber, Value: 512},
+		{Name: "Size", Type: core.ArgNumber, Integer: true, Value: 512},
 	}
 }
 

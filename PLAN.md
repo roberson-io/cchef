@@ -125,7 +125,8 @@ cchef/
   cmd/
     root.go                  root cobra command
     register_ops.go          one subcommand per registered op (flags from ArgDefs)
-    io.go                    input resolution and output, --in-dir/--out-dir
+    io.go                    input resolution and output, --in-dir/--out-dir,
+                             --preview/--data-uri presentation
     bake.go url.go recipe.go list.go
     opmeta.go                op -> category, plus the derived-summary machinery
     opsummaries.go           curated one-line summaries
@@ -140,6 +141,7 @@ cchef/
   internal/ops/              one file per operation, plus the shared engines
   internal/yara/             the YARA rule engine
   internal/jsnum/            JavaScript number formatting
+  internal/termimage/        inline image previews for --preview
   tools/                     generators for the large tables (see the READMEs)
   docs/                      one page per category
 ```
@@ -175,10 +177,12 @@ These are choices, not bug fixes — the bug fixes live in `../CYBERCHEF-BUGS.md
 - **No browser, so no HTML previews.** CyberChef's `presentType: "html"`
   operations render in the page. The byte-emitting ones (Render Image, Play
   Media, Render PDF) validate their input and pass the bytes through, to be
-  saved with `-o`, and add a cchef-specific `--output-format`: `Raw`, `Base64`
-  (a `data:` URI), and for Render Image `Terminal` (an inline preview via the
-  iTerm2 or kitty protocol). Report-style ones (Magic, YARA Rules, ELF Info)
-  print text instead of a table.
+  saved with `-o`. Presentation is an IO-layer concern rather than an operation
+  argument, so two global flags serve every operation that emits bytes:
+  `--preview` renders an image inline (iTerm2/WezTerm or kitty), and
+  `--data-uri` writes a `data:<mime>;base64,…` URI. Report-style operations
+  (Magic, YARA Rules, ELF Info) print text instead of a table, and the
+  `List<File>` ones write into `--out-dir`.
 - **Imaging reproduces Jimp's pixel maths from scratch** on an `image.NRGBA`,
   decoding with the standard library plus `golang.org/x/image`. Lossless formats
   are pixel-identical; JPEG output is a lossy re-encode, and Rotate by
@@ -296,26 +300,24 @@ above is also open.
   largely about declaring: which arguments are integers, where zero or negative
   values are meaningless, and rejecting rather than truncating or accepting
   nonsense.
-- **Evaluate the input convention.** cchef uses explicit flags (`-i` for a
-  literal string, `--in-file`, `--in-dir`, stdin as fallback) and — unlike most
-  Unix tools — treats a positional argument as a *string* rather than a
-  filename. Worth reviewing against the `cat`/`grep` mainstream, curl's `@file`
-  sigil, and openssl's `-in`/`-out`, without breaking existing usage.
-- **Audit the non-text outputs.** CyberChef operations that present as HTML
-  landed in cchef case by case: some byte-emitting ones grew `--output-format`
-  (`Raw`, `Base64`, a `Terminal` preview), report-style ones print text, and
-  others were handled ad hoc. Sweep every operation whose upstream output or
-  presentation is not plain text and make the treatment consistent — the same
-  flag name and value set wherever bytes come out, a terminal preview wherever
-  one makes sense (any image-producing operation, not just Render Image), and a
-  text rendering for every report-style operation.
-  [Deliberate differences](#deliberate-differences-from-cyberchef) records the
-  intended model; the audit brings every operation up to it.
-- **Interactive recipe building — open question.** Something between nothing
-  and the web app: a full TUI would pull in a heavy dependency (against
-  policy), while a git-style staged model (`recipe add`/`rm`/`toggle`/`reorder`
-  against a working recipe file) is small and sits on machinery that already
-  exists. Decide the shape before building anything.
+- **Input convention — settled.** A positional argument stays *text* rather
+  than a filename: it is what makes `cchef rot13 "Have a nice day."` work, and
+  files already have `--in-file`/`--in-dir`. The failure it used to allow — a
+  path silently encoded as its own text — is now refused, naming the three ways
+  to say what was meant. Revisit only if a real use case argues otherwise.
+- **Syntax highlighter’s output format is still an operation argument.** All 44
+  upstream `presentType: "html"` operations were audited and made consistent,
+  but this one keeps a cchef-added `Output format` (`HTML`/`Terminal`) argument,
+  so a generated share URL carries an argument CyberChef does not know. Its two
+  forms are both text, so `--preview`/`--data-uri` do not apply. Options:
+  default to `Terminal` when stdout is a terminal and `HTML` otherwise (matching
+  how the trailing newline already works), or move it to a global flag.
+- **Interactive recipe building — settled as a staged model.** `cchef recipe
+  add/rm/move/toggle/show/clear` builds a recipe up a step at a time in
+  `.cchef-recipe.json`, which `bake`, `url` and `recipe convert` fall back to.
+  It adds no dependency, stays scriptable, and reuses the existing recipe
+  parser. A full TUI was rejected: it would need a heavy dependency for a
+  feature nobody has asked for.
 
 ### Loosening JavaScript parity
 

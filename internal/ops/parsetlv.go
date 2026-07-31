@@ -25,8 +25,8 @@ func (ParseTLV) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseTLV) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Type/Key size", Type: core.ArgNumber, Value: 1},
-		{Name: "Length size", Type: core.ArgNumber, Value: 1},
+		{Name: "Type/Key size", Type: core.ArgNumber, Integer: true, Value: 1},
+		{Name: "Length size", Type: core.ArgNumber, Integer: true, Value: 1},
 		{Name: "Use BER", Type: core.ArgBoolean, Value: false},
 	}
 }

@@ -15,7 +15,11 @@ var flagConvertTo string
 func init() {
 	recipeCmd := &cobra.Command{
 		Use:   "recipe",
-		Short: "Work with recipes (convert between formats)",
+		Short: "Build up a recipe step by step, and convert between formats",
+		Long: "Stage a recipe one operation at a time, then run it with `cchef bake`.\n" +
+			"The staged recipe lives in " + stageFileName + " in the working directory\n" +
+			"(override with the " + stageEnvVar + " environment variable), so bake, url and\n" +
+			"recipe convert all use it when given no recipe of their own.",
 	}
 
 	convertCmd := &cobra.Command{
@@ -32,6 +36,7 @@ func init() {
 	convertCmd.Flags().StringVar(&flagConvertTo, "to", "", "target format: json or chef (default: the other format)")
 
 	recipeCmd.AddCommand(convertCmd)
+	addStageCommands(recipeCmd)
 	rootCmd.AddCommand(recipeCmd)
 }
 

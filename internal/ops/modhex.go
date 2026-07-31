@@ -31,7 +31,7 @@ func (ToModhex) Meta() core.OpMeta {
 func (ToModhex) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: toModhexDelims},
-		{Name: "Bytes per line", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Bytes per line", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 	}
 }
 

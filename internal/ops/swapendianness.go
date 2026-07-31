@@ -29,7 +29,7 @@ func (SwapEndianness) Meta() core.OpMeta {
 func (SwapEndianness) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Data format", Type: core.ArgOption, Value: []string{"Hex", "Raw"}},
-		{Name: "Word length (bytes)", Type: core.ArgNumber, Value: 4},
+		{Name: "Word length (bytes)", Type: core.ArgNumber, Integer: true, Value: 4},
 		{Name: "Pad incomplete words", Type: core.ArgBoolean, Value: true},
 	}
 }

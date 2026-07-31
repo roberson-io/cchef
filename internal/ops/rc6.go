@@ -413,8 +413,8 @@ func rc6Args(inFmt, outFmt []string) []core.ArgDef {
 		{Name: "Input", Type: core.ArgOption, Value: inFmt},
 		{Name: "Output", Type: core.ArgOption, Value: outFmt},
 		{Name: "Padding", Type: core.ArgOption, Value: presentPaddings},
-		{Name: "Word Size", Type: core.ArgNumber, Value: float64(32)},
-		{Name: "Rounds", Type: core.ArgNumber, Value: float64(20)},
+		{Name: "Word Size", Type: core.ArgNumber, Integer: true, Value: float64(32)},
+		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: float64(20)},
 	}
 }
 

@@ -38,10 +38,10 @@ func (Scrypt) Meta() core.OpMeta {
 func (Scrypt) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Salt", Type: core.ArgToggleString, Value: "", ToggleValues: scryptToggleValues},
-		{Name: "Iterations (N)", Type: core.ArgNumber, Value: float64(16384)},
-		{Name: "Memory factor (r)", Type: core.ArgNumber, Value: float64(8)},
-		{Name: "Parallelization factor (p)", Type: core.ArgNumber, Value: float64(1)},
-		{Name: "Key length", Type: core.ArgNumber, Value: float64(64)},
+		{Name: "Iterations (N)", Type: core.ArgNumber, Integer: true, Value: float64(16384)},
+		{Name: "Memory factor (r)", Type: core.ArgNumber, Integer: true, Value: float64(8)},
+		{Name: "Parallelization factor (p)", Type: core.ArgNumber, Integer: true, Value: float64(1)},
+		{Name: "Key length", Type: core.ArgNumber, Integer: true, Value: float64(64)},
 	}
 }
 

@@ -144,6 +144,61 @@ To_Base64('A-Za-z0-9+/=')
 
 ---
 
+## `cchef recipe add` and friends — build a recipe step by step
+
+Rather than writing a whole recipe in one go, you can stage it an operation at a
+time, the way a commit is built up with `git add`, then run it. The staged
+recipe lives in `.cchef-recipe.json` in the working directory, so different
+projects keep different recipes; set `CCHEF_RECIPE` to put it somewhere else.
+
+| Command | Does |
+| --- | --- |
+| `cchef recipe add <operation>` | Stage an operation with its default arguments |
+| `cchef recipe add "<recipe>"` | Stage a recipe expression exactly (JSON or Chef) |
+| `cchef recipe add <op> --at N` | Insert at position *N* instead of appending |
+| `cchef recipe show` | Print the staged recipe, numbered |
+| `cchef recipe rm <N>...` | Remove steps by number |
+| `cchef recipe move <from> <to>` | Reorder a step |
+| `cchef recipe toggle <N>...` | Turn steps off (and back on) without removing them |
+| `cchef recipe clear` | Discard the staged recipe |
+
+`bake`, `url`, and `recipe convert` all use the staged recipe when given no
+`-e` or `-r` of their own.
+
+**Example**
+
+```bash
+cchef recipe add rot13
+cchef recipe add to-base64
+cchef recipe add "To_Hex('Colon')"
+cchef recipe show
+```
+
+Output:
+
+```
+0  ROT13 (true, true, false, 13)
+1  To Base64 ("A-Za-z0-9+/=")
+2  To Hex ("Colon")
+```
+
+Turn a step off to see what changes, then run what is left:
+
+```bash
+cchef recipe toggle 1
+echo -n hello | cchef bake
+```
+
+Output:
+
+```
+75:72:79:79:62
+```
+
+The numbers in `recipe show` are the ones every other command takes, and each
+number refers to the recipe as it was before the command — so `cchef recipe rm 0 2`
+removes the steps shown as 0 and 2, not whatever shifts into those positions.
+
 ## `cchef list` — discover operations
 
 Lists every available operation and its subcommand name, grouped by module.

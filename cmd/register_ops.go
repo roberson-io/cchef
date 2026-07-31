@@ -33,9 +33,14 @@ type flagGetter func(*cobra.Command) (any, error)
 // -i / --in-file), runs a one-operation recipe, and writes the result.
 func buildOpCommand(op core.Operation) *cobra.Command {
 	meta := op.Meta()
+	use := core.Kebab(meta.Name)
+	aliases := opAliases[meta.Name]
+	if us := usSpelling(use); us != use {
+		aliases = append(aliases, us)
+	}
 	cmd := &cobra.Command{
-		Use:     core.Kebab(meta.Name),
-		Aliases: opAliases[meta.Name],
+		Use:     use,
+		Aliases: aliases,
 		Short:   summaryOf(meta),
 		Long:    fmt.Sprintf("%s\n\nCyberChef operation: %q (module %s)", meta.Description, meta.Name, meta.Module),
 	}
@@ -48,14 +53,18 @@ func buildOpCommand(op core.Operation) *cobra.Command {
 	used := map[string]bool{"input": true, "in-file": true, "output": true}
 	getters := make([]flagGetter, len(op.Args()))
 	for i, def := range op.Args() {
-		name := flagName(def.Name)
-		if alt, ok := reservedFlagRenames[name]; ok {
-			name = alt
+		name := def.Flag
+		if name == "" {
+			name = flagName(def.Name)
+			if alt, ok := reservedFlagRenames[name]; ok {
+				name = alt
+			}
 		}
 		getters[i] = addArgFlag(cmd, def, uniqueFlagName(name, used))
 	}
 
 	addIOFlags(cmd)
+	addSpellingAliases(cmd)
 
 	cmd.RunE = func(c *cobra.Command, posArgs []string) error {
 		args := make([]any, len(getters))
@@ -138,7 +147,10 @@ func addArgFlag(cmd *cobra.Command, def core.ArgDef, name string) flagGetter {
 			dflt = opts[def.DefaultIndex]
 		}
 		f.String(name, dflt, fmt.Sprintf("%s (one of %v)", def.Name, opts))
-		return func(c *cobra.Command) (any, error) { return c.Flags().GetString(name) }
+		return func(c *cobra.Command) (any, error) {
+			s, err := c.Flags().GetString(name)
+			return canonicalOption(s, opts), err
+		}
 
 	case core.ArgToggleString:
 		modeName := name + "-type"
@@ -158,7 +170,7 @@ func addArgFlag(cmd *cobra.Command, def core.ArgDef, name string) flagGetter {
 			if err != nil {
 				return nil, err
 			}
-			return core.ToggleString{Value: val, Option: mode}, nil
+			return core.ToggleString{Value: val, Option: canonicalOption(mode, def.ToggleValues)}, nil
 		}
 
 	default: // ArgString, ArgEditableOption

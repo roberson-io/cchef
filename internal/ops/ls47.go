@@ -210,7 +210,7 @@ func (LS47Encrypt) Meta() core.OpMeta {
 func (LS47Encrypt) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Password", Type: core.ArgString, Value: ""},
-		{Name: "Padding", Type: core.ArgNumber, Value: float64(10)},
+		{Name: "Padding", Type: core.ArgNumber, Integer: true, Value: float64(10)},
 		{Name: "Signature", Type: core.ArgString, Value: ""},
 	}
 }
@@ -249,7 +249,7 @@ func (LS47Decrypt) Meta() core.OpMeta {
 func (LS47Decrypt) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Password", Type: core.ArgString, Value: ""},
-		{Name: "Padding", Type: core.ArgNumber, Value: float64(10)},
+		{Name: "Padding", Type: core.ArgNumber, Integer: true, Value: float64(10)},
 	}
 }
 

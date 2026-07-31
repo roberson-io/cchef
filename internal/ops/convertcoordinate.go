@@ -42,7 +42,7 @@ func (ConvertCoordinateFormat) Args() []core.ArgDef {
 			"Space", "\\n", "Comma", "Semi-colon", "Colon",
 		}},
 		{Name: "Include Compass Directions", Type: core.ArgOption, Value: []string{"None", "Before", "After"}},
-		{Name: "Precision", Type: core.ArgNumber, Value: 3},
+		{Name: "Precision", Type: core.ArgNumber, Integer: true, Value: 3},
 	}
 }
 

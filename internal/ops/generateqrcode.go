@@ -45,8 +45,8 @@ var (
 func (GenerateQRCode) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Image Format", Type: core.ArgOption, Value: []string{"PNG", "SVG", "EPS", "PDF"}},
-		{Name: "Module size (px)", Type: core.ArgNumber, Value: float64(5), Min: &qrModuleSizeMin},
-		{Name: "Margin (num modules)", Type: core.ArgNumber, Value: float64(4), Min: &qrMarginMin},
+		{Name: "Module size (px)", Type: core.ArgNumber, Integer: true, Value: float64(5), Min: &qrModuleSizeMin},
+		{Name: "Margin (num modules)", Type: core.ArgNumber, Integer: true, Value: float64(4), Min: &qrMarginMin},
 		{
 			Name: "Error correction", Type: core.ArgOption,
 			Value:        []string{"Low", "Medium", "Quartile", "High"},

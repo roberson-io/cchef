@@ -47,9 +47,9 @@ var (
 func (ConvertImageFormat) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Output Format", Type: core.ArgOption, Value: []string{"JPEG", "PNG", "BMP", "TIFF"}},
-		{Name: "JPEG Quality", Type: core.ArgNumber, Value: float64(80), Min: &jpegQualityMin, Max: &jpegQualityMax},
+		{Name: "JPEG Quality", Type: core.ArgNumber, Integer: true, Value: float64(80), Min: &jpegQualityMin, Max: &jpegQualityMax},
 		{Name: "PNG Filter Type", Type: core.ArgOption, Value: []string{"Auto", "None", "Sub", "Up", "Average", "Paeth"}},
-		{Name: "PNG Deflate Level", Type: core.ArgNumber, Value: float64(9), Min: &deflateMin, Max: &deflateMax},
+		{Name: "PNG Deflate Level", Type: core.ArgNumber, Integer: true, Value: float64(9), Min: &deflateMin, Max: &deflateMax},
 	}
 }
 

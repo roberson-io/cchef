@@ -37,7 +37,7 @@ func (EscapeUnicodeCharacters) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Prefix", Type: core.ArgOption, Value: unicodeEscapePrefixes},
 		{Name: "Encode all chars", Type: core.ArgBoolean, Value: false},
-		{Name: "Padding", Type: core.ArgNumber, Value: float64(4)},
+		{Name: "Padding", Type: core.ArgNumber, Integer: true, Value: float64(4)},
 		{Name: "Uppercase hex", Type: core.ArgBoolean, Value: true},
 	}
 }

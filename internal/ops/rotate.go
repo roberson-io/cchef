@@ -81,7 +81,7 @@ func (RotateLeft) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RotateLeft) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Amount", Type: core.ArgNumber, Value: 1},
+		{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 1},
 		{Name: "Carry through", Type: core.ArgBoolean, Value: false},
 	}
 }
@@ -114,7 +114,7 @@ func (RotateRight) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RotateRight) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Amount", Type: core.ArgNumber, Value: 1},
+		{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 1},
 		{Name: "Carry through", Type: core.ArgBoolean, Value: false},
 	}
 }

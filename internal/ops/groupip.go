@@ -169,7 +169,7 @@ func (GroupIPAddresses) Meta() core.OpMeta {
 func (GroupIPAddresses) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: ipDelimOptions},
-		{Name: "Subnet (CIDR)", Type: core.ArgNumber, Value: 24},
+		{Name: "Subnet (CIDR)", Type: core.ArgNumber, Integer: true, Value: 24},
 		{Name: "Only show the subnets", Type: core.ArgBoolean, Value: false},
 	}
 }

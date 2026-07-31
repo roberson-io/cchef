@@ -182,8 +182,8 @@ var sm3MinRounds = 16.0
 // Args returns the argument definitions.
 func (SM3) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Length", Type: core.ArgNumber, Value: sm3DefaultLength},
-		{Name: "Rounds", Type: core.ArgNumber, Value: sm3DefaultRounds, Min: &sm3MinRounds},
+		{Name: "Length", Type: core.ArgNumber, Integer: true, Value: sm3DefaultLength},
+		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: sm3DefaultRounds, Min: &sm3MinRounds},
 	}
 }
 

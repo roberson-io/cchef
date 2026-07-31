@@ -63,7 +63,7 @@ func (Jump) Meta() core.OpMeta {
 func (Jump) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Label name", Type: core.ArgString, Value: ""},
-		{Name: "Maximum jumps (if jumping backwards)", Type: core.ArgNumber, Value: 10},
+		{Name: "Maximum jumps (if jumping backwards)", Flag: "max-jumps", Type: core.ArgNumber, Integer: true, Value: 10},
 	}
 }
 
@@ -98,7 +98,7 @@ func (ConditionalJump) Args() []core.ArgDef {
 		{Name: "Match (regex)", Type: core.ArgString, Value: ""},
 		{Name: "Invert match", Type: core.ArgBoolean, Value: false},
 		{Name: "Label name", Type: core.ArgString, Value: ""},
-		{Name: "Maximum jumps (if jumping backwards)", Type: core.ArgNumber, Value: 10},
+		{Name: "Maximum jumps (if jumping backwards)", Flag: "max-jumps", Type: core.ArgNumber, Integer: true, Value: 10},
 	}
 }
 

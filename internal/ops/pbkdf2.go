@@ -53,8 +53,8 @@ func (DerivePBKDF2Key) Meta() core.OpMeta {
 func (DerivePBKDF2Key) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Passphrase", Type: core.ArgToggleString, Value: "", ToggleValues: []string{"UTF8", "Latin1", "Hex", "Base64"}},
-		{Name: "Key size", Type: core.ArgNumber, Value: float64(128)},
-		{Name: "Iterations", Type: core.ArgNumber, Value: float64(1)},
+		{Name: "Key size", Type: core.ArgNumber, Integer: true, Value: float64(128)},
+		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: float64(1)},
 		{Name: "Hashing function", Type: core.ArgOption, Value: pbkdf2HashOptions},
 		{Name: "Salt", Type: core.ArgToggleString, Value: "", ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64"}},
 	}

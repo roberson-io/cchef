@@ -30,7 +30,7 @@ func (CaesarBoxCipher) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (CaesarBoxCipher) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Box Height", Type: core.ArgNumber, Value: 1},
+		{Name: "Box Height", Type: core.ArgNumber, Integer: true, Value: 1},
 	}
 }
 

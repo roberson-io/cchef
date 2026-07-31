@@ -111,7 +111,7 @@ func (AddLineNumbers) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (AddLineNumbers) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Offset", Type: core.ArgNumber, Value: 0},
+		{Name: "Offset", Type: core.ArgNumber, Integer: true, Value: 0},
 	}
 }
 

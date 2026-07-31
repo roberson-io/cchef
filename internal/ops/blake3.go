@@ -41,7 +41,7 @@ func (BLAKE3) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (BLAKE3) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Size (bytes)", Type: core.ArgNumber, Value: 16, Min: &blake3SizeMin, Max: &blake3SizeMax},
+		{Name: "Size (bytes)", Type: core.ArgNumber, Integer: true, Value: 16, Min: &blake3SizeMin, Max: &blake3SizeMax},
 		{Name: "Key", Type: core.ArgString, Value: ""},
 	}
 }

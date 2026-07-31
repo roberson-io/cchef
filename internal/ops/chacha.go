@@ -38,7 +38,7 @@ func (ChaCha) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Key", Type: core.ArgToggleString, ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64"}},
 		{Name: "Nonce", Type: core.ArgToggleString, ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64", "Integer"}},
-		{Name: "Counter", Type: core.ArgNumber, Value: 0, Min: &chachaCounterMin},
+		{Name: "Counter", Type: core.ArgNumber, Integer: true, Value: 0, Min: &chachaCounterMin},
 		{Name: "Rounds", Type: core.ArgOption, Value: []string{"20", "12", "8"}},
 		{Name: "Input", Type: core.ArgOption, Value: []string{"Hex", "Raw"}},
 		{Name: "Output", Type: core.ArgOption, Value: []string{"Raw", "Hex"}},

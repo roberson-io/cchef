@@ -132,7 +132,7 @@ func (ToHex) Meta() core.OpMeta {
 func (ToHex) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: toHexDelims},
-		{Name: "Bytes per line", Type: core.ArgNumber, Value: 0},
+		{Name: "Bytes per line", Type: core.ArgNumber, Integer: true, Value: 0},
 	}
 }
 

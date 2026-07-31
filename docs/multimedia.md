@@ -6,9 +6,23 @@ In CyberChef these operations preview their result in the browser (an `<img>`,
 `<audio>`, `<video>` or `<iframe>` element). cchef is a command-line tool, so
 there is no browser preview: the operations below **validate** the input and
 pass the bytes through unchanged, which you save with the global `-o/--output`
-flag or a shell redirect. Each also offers an **Output** option
-(`--output-format`) to choose how the result is presented — raw bytes, a base64
-`data:` URI, or an inline terminal preview.
+flag or a shell redirect.
+
+To see the result instead of saving it, two global flags present byte output —
+and because they are global they work for **every** operation that emits bytes,
+not just the three whose CyberChef counterparts draw a preview:
+
+- `--preview` renders an image inline, in terminals that support it: iTerm2
+  (and WezTerm) via the iTerm2 protocol for any format, and kitty via the kitty
+  graphics protocol for PNG. On any other terminal, or for output that is not an
+  image, it reports an error rather than filling the screen with bytes.
+- `--data-uri` writes the output as a `data:<mime>;base64,…` URI.
+
+```bash
+cchef generate-qr-code -i "https://example.com" --preview
+cchef blur-image --in-file photo.png --amount 8 --preview
+cchef render-image --in-file photo.png --data-uri
+```
 
 The image-transform operations (Blur, Crop, Resize, colour adjustments, …) decode
 the image, apply the pixel operation, and re-encode to the source format (GIF is
@@ -423,7 +437,7 @@ Tighter packing, outlined hexagons, and the empty cells filled in:
 printf %s "$(cat points.csv)" |
   cchef hex-density-chart --field-delimiter Comma \
     --pack-radius 15 --draw-radius 12 --draw-hexagon-edges \
-    --draw-empty-hexagons-within-data-boundaries \
+    --draw-empty-hexagons \
     --min-colour-value white --max-colour-value blue -o hex.svg
 ```
 
@@ -575,13 +589,13 @@ SGVsbG8gV29ybGQK
 ## Play Media
 
 Validates that the input is an audio or video file (by magic bytes) and outputs
-it. Ported from CyberChef's Play Media; the browser `<audio>`/`<video>` preview
-is replaced by the Output option below. A non-media input is rejected.
+it. Ported from CyberChef's Play Media; there is no browser `<audio>`/`<video>`
+preview, so the validated bytes are passed through. A non-media input is
+rejected.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
 | Input format | option | `Raw` | How to read the input: `Raw`, `Base64` or `Hex`. |
-| Output | option | `Raw` | `Raw` emits the media bytes; `Base64` emits a `data:<mime>;base64,…` URI. |
 
 ### Simple example
 
@@ -596,7 +610,7 @@ cchef play-media --in-file sound.wav -o recovered.wav
 Emit a base64 `data:` URI for the detected media type:
 
 ```bash
-cchef from-hex -i "524946460000000057415645" | cchef play-media --output-format Base64
+cchef from-hex -i "524946460000000057415645" | cchef play-media --data-uri
 ```
 
 Output:
@@ -633,17 +647,15 @@ Found 0 tags.
 
 Validates that the input is an image (jpg/jpeg, png, gif, webp, bmp, ico) and
 outputs it. Ported from CyberChef's Render Image; the browser `<img>` preview is
-replaced by the Output option below. A non-image input is rejected with
+passed through unchanged. A non-image input is rejected with
 `Invalid file type`.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
 | Input format | option | `Raw` | How to read the input: `Raw`, `Base64` or `Hex`. |
-| Output | option | `Raw` | `Raw` emits the image bytes; `Base64` emits a `data:<mime>;base64,…` URI; `Terminal` renders an inline preview. |
 
-The `Terminal` output renders the image in terminals that support inline images:
-iTerm2 (and WezTerm) via the iTerm2 protocol for any format, and kitty via the
-kitty graphics protocol for PNG. On an unsupported terminal it reports an error.
+Use the global `--preview` flag to see the image inline, or `--data-uri` for a
+`data:` URI.
 
 ### Simple example
 
@@ -658,7 +670,7 @@ cchef render-image --in-file photo.png -o out.png
 Emit a base64 `data:` URI (here from a 1×1 GIF):
 
 ```bash
-cchef from-hex -i "47494638396101000100" | cchef render-image --output-format Base64
+cchef from-hex -i "47494638396101000100" | cchef render-image --data-uri
 ```
 
 Output:
@@ -670,14 +682,13 @@ data:image/gif;base64,R0lGODlhAQABAA==
 ## Render PDF
 
 Validates that the input begins with the `%PDF` signature and outputs it. Ported
-from CyberChef's Render PDF; the browser `<iframe>` preview is replaced by the
-Output option below. Input that is not a PDF is rejected with
+from CyberChef's Render PDF; there is no browser `<iframe>` preview, so the
+validated bytes are passed through. Input that is not a PDF is rejected with
 `Input does not appear to be a PDF file.`
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
 | Input format | option | `Base64` | How to read the input: `Base64` or `Raw`. |
-| Output | option | `Raw` | `Raw` emits the PDF bytes; `Base64` emits a `data:application/pdf;base64,…` URI. |
 
 ### Simple example
 
@@ -692,7 +703,7 @@ cchef render-pdf --input-format Raw --in-file report.pdf -o out.pdf
 Emit a base64 `data:` URI:
 
 ```bash
-cchef render-pdf --input-format Raw --output-format Base64 -i "%PDF-1.7 hi"
+cchef render-pdf --input-format Raw --data-uri -i "%PDF-1.7 hi"
 ```
 
 Output:

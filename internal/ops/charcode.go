@@ -32,7 +32,7 @@ func (ToCharcode) Meta() core.OpMeta {
 func (ToCharcode) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: decimalDelims},
-		{Name: "Base", Type: core.ArgNumber, Value: 16},
+		{Name: "Base", Type: core.ArgNumber, Integer: true, Value: 16},
 	}
 }
 
@@ -92,7 +92,7 @@ func (FromCharcode) Meta() core.OpMeta {
 func (FromCharcode) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: decimalDelims},
-		{Name: "Base", Type: core.ArgNumber, Value: 16},
+		{Name: "Base", Type: core.ArgNumber, Integer: true, Value: 16},
 	}
 }
 

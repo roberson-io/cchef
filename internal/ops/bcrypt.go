@@ -53,7 +53,7 @@ func (Bcrypt) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (Bcrypt) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Value: 10}}
+	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: 10}}
 }
 
 // Run generates a bcrypt hash. Ported from CyberChef Bcrypt.mjs (bcryptjs).

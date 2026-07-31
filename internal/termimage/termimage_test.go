@@ -1,4 +1,4 @@
-package ops
+package termimage
 
 import (
 	"encoding/base64"
@@ -9,18 +9,18 @@ import (
 func TestTermProtocolFrom(t *testing.T) {
 	cases := []struct {
 		name, termProgram, term, kittyWindowID string
-		want                                   termProtocol
+		want                                   Protocol
 	}{
-		{"iterm", "iTerm.app", "xterm-256color", "", termITerm},
-		{"wezterm", "WezTerm", "xterm-256color", "", termITerm},
-		{"kitty via TERM", "", "xterm-kitty", "", termKitty},
-		{"kitty via window id", "", "xterm-256color", "1", termKitty},
-		{"unknown", "", "xterm-256color", "", termNone},
+		{"iterm", "iTerm.app", "xterm-256color", "", ITerm},
+		{"wezterm", "WezTerm", "xterm-256color", "", ITerm},
+		{"kitty via TERM", "", "xterm-kitty", "", Kitty},
+		{"kitty via window id", "", "xterm-256color", "1", Kitty},
+		{"unknown", "", "xterm-256color", "", None},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := termProtocolFrom(c.termProgram, c.term, c.kittyWindowID); got != c.want {
-				t.Errorf("termProtocolFrom(%q,%q,%q) = %v, want %v", c.termProgram, c.term, c.kittyWindowID, got, c.want)
+			if got := ProtocolFrom(c.termProgram, c.term, c.kittyWindowID); got != c.want {
+				t.Errorf("ProtocolFrom(%q,%q,%q) = %v, want %v", c.termProgram, c.term, c.kittyWindowID, got, c.want)
 			}
 		})
 	}
@@ -28,7 +28,7 @@ func TestTermProtocolFrom(t *testing.T) {
 
 func TestEncodeTerminalImageITerm(t *testing.T) {
 	data := []byte("\x89PNGfake")
-	out, err := encodeTerminalImage(termITerm, "image/png", data)
+	out, err := Encode(ITerm, "image/png", data)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -41,7 +41,7 @@ func TestEncodeTerminalImageITerm(t *testing.T) {
 
 func TestEncodeTerminalImageKittyPNG(t *testing.T) {
 	data := []byte("\x89PNG\r\n\x1a\nsmall")
-	out, err := encodeTerminalImage(termKitty, "image/png", data)
+	out, err := Encode(Kitty, "image/png", data)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestEncodeTerminalImageKittyChunked(t *testing.T) {
 	for i := range data {
 		data[i] = byte(i)
 	}
-	out, err := encodeTerminalImage(termKitty, "image/png", data)
+	out, err := Encode(Kitty, "image/png", data)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -75,10 +75,10 @@ func TestEncodeTerminalImageKittyChunked(t *testing.T) {
 }
 
 func TestEncodeTerminalImageErrors(t *testing.T) {
-	if _, err := encodeTerminalImage(termNone, "image/png", []byte("x")); err == nil {
+	if _, err := Encode(None, "image/png", []byte("x")); err == nil {
 		t.Error("expected error for undetected terminal")
 	}
-	if _, err := encodeTerminalImage(termKitty, "image/jpeg", []byte("x")); err == nil {
+	if _, err := Encode(Kitty, "image/jpeg", []byte("x")); err == nil {
 		t.Error("expected error: kitty transmission requires PNG")
 	}
 }

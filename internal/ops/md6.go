@@ -36,8 +36,8 @@ func (MD6) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (MD6) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Size", Type: core.ArgNumber, Value: 256},
-		{Name: "Levels", Type: core.ArgNumber, Value: 64},
+		{Name: "Size", Type: core.ArgNumber, Integer: true, Value: 256},
+		{Name: "Levels", Type: core.ArgNumber, Integer: true, Value: 64},
 		{Name: "Key", Type: core.ArgString, Value: ""},
 	}
 }

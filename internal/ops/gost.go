@@ -1730,7 +1730,7 @@ func gostSignArgs() []core.ArgDef {
 		{Name: "Output type", Type: core.ArgOption, Value: []string{"Hex", "Raw"}},
 		{Name: "Algorithm", Type: core.ArgOption, Value: gostAlgorithms},
 		{Name: "sBox", Type: core.ArgOption, Value: gostSBoxNames},
-		{Name: "MAC length", Type: core.ArgNumber, Value: 32, Min: &gostMACMin, Max: &gostMACMax},
+		{Name: "MAC length", Type: core.ArgNumber, Integer: true, Value: 32, Min: &gostMACMin, Max: &gostMACMax},
 	}
 }
 

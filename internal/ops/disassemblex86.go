@@ -66,8 +66,8 @@ func (DisassembleX86) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Bit mode", Type: core.ArgOption, Value: x86BitModes},
 		{Name: "Compatibility", Type: core.ArgOption, Value: x86CompatibilityModes},
-		{Name: "Code Segment (CS)", Type: core.ArgNumber, Value: float64(x86DefaultCodeSegment)},
-		{Name: "Offset (IP)", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Code Segment (CS)", Type: core.ArgNumber, Integer: true, Value: float64(x86DefaultCodeSegment)},
+		{Name: "Offset (IP)", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 		{Name: "Show instruction hex", Type: core.ArgBoolean, Value: true},
 		{Name: "Show instruction position", Type: core.ArgBoolean, Value: true},
 	}

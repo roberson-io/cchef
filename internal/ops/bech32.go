@@ -369,7 +369,7 @@ func (ToBech32) Args() []core.ArgDef {
 		{Name: "Encoding", Type: core.ArgOption, Value: []string{"Bech32", "Bech32m"}},
 		{Name: "Input Format", Type: core.ArgOption, Value: []string{"Raw bytes", "Hex"}},
 		{Name: "Mode", Type: core.ArgOption, Value: []string{"Generic", "Bitcoin SegWit"}},
-		{Name: "Witness Version", Type: core.ArgNumber, Value: 0},
+		{Name: "Witness Version", Type: core.ArgNumber, Integer: true, Value: 0},
 	}
 }
 

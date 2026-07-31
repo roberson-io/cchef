@@ -175,7 +175,7 @@ Three rounds of Base64, with a crib to keep only the suggestions that reach the
 expected text:
 
 ```bash
-cchef magic -i "WkVkV2VtUkRRbnBrU0Vwd1ltMWpQUT09" --crib-known-plaintext-string-or-regex "test string" | head -8
+cchef magic -i "WkVkV2VtUkRRbnBrU0Vwd1ltMWpQUT09" --crib "test string" | head -8
 ```
 
 Output:

@@ -178,7 +178,7 @@ func (BitShiftLeft) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (BitShiftLeft) Args() []core.ArgDef {
 	minAmt, maxAmt := 0.0, 7.0
-	return []core.ArgDef{{Name: "Amount", Type: core.ArgNumber, Value: 1, Min: &minAmt, Max: &maxAmt}}
+	return []core.ArgDef{{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 1, Min: &minAmt, Max: &maxAmt}}
 }
 
 // Run shifts each byte left. Ported from CyberChef BitShiftLeft.mjs.
@@ -210,7 +210,7 @@ func (BitShiftRight) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (BitShiftRight) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Amount", Type: core.ArgNumber, Value: 1},
+		{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 1},
 		{Name: "Type", Type: core.ArgOption, Value: []string{"Logical shift", "Arithmetic shift"}},
 	}
 }

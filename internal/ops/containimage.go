@@ -30,8 +30,8 @@ var containDimMin = float64(1)
 // Args returns the argument definitions.
 func (ContainImage) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Width", Type: core.ArgNumber, Value: float64(100), Min: &containDimMin},
-		{Name: "Height", Type: core.ArgNumber, Value: float64(100), Min: &containDimMin},
+		{Name: "Width", Type: core.ArgNumber, Integer: true, Value: float64(100), Min: &containDimMin},
+		{Name: "Height", Type: core.ArgNumber, Integer: true, Value: float64(100), Min: &containDimMin},
 		{Name: "Horizontal align", Type: core.ArgOption, Value: []string{"Left", "Center", "Right"}, DefaultIndex: 1},
 		{Name: "Vertical align", Type: core.ArgOption, Value: []string{"Top", "Middle", "Bottom"}, DefaultIndex: 1},
 		{Name: "Resizing algorithm", Type: core.ArgOption, Value: []string{

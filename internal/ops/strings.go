@@ -62,7 +62,7 @@ func (Strings) Args() []core.ArgDef {
 		{Name: "Encoding", Type: core.ArgOption, Value: []string{
 			stringsSingleByte, stringsUTF16LE, stringsUTF16BE, stringsAnyWidth,
 		}},
-		{Name: "Minimum length", Type: core.ArgNumber, Value: 4.0},
+		{Name: "Minimum length", Type: core.ArgNumber, Integer: true, Value: 4.0},
 		{Name: "Match", Type: core.ArgOption, Value: []string{
 			stringsAlnumASCII, stringsPrintASCII, stringsNullASCII,
 			stringsAlnumUnicode, stringsPrintUnicode, stringsNullUnicode,

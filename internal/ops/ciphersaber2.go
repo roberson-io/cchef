@@ -81,7 +81,7 @@ func (CipherSaber2Encrypt) Meta() core.OpMeta {
 func (CipherSaber2Encrypt) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Key", Type: core.ArgToggleString, ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64"}},
-		{Name: "Rounds", Type: core.ArgNumber, Value: 20},
+		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: 20},
 	}
 }
 
@@ -127,7 +127,7 @@ func (CipherSaber2Decrypt) Meta() core.OpMeta {
 func (CipherSaber2Decrypt) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Key", Type: core.ArgToggleString, ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64"}},
-		{Name: "Rounds", Type: core.ArgNumber, Value: 20},
+		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: 20},
 	}
 }
 

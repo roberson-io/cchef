@@ -33,7 +33,7 @@ func (MurmurHash3) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (MurmurHash3) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Seed", Type: core.ArgNumber, Value: 0},
+		{Name: "Seed", Type: core.ArgNumber, Integer: true, Value: 0},
 		{Name: "Convert to Signed", Type: core.ArgBoolean, Value: false},
 	}
 }

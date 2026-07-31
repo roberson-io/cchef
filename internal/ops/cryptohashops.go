@@ -54,7 +54,7 @@ func (MD2) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (MD2) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Value: float64(18), Min: &md2RoundsMin}}
+	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: float64(18), Min: &md2RoundsMin}}
 }
 
 // Run computes the MD2 hash.
@@ -92,7 +92,7 @@ func (SHA0) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (SHA0) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Value: float64(80), Min: &sha0RoundsMin}}
+	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: float64(80), Min: &sha0RoundsMin}}
 }
 
 // Run computes the SHA-0 hash.
@@ -111,7 +111,7 @@ func (HAS160) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (HAS160) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Value: float64(80), Min: &has160RoundsMin, Max: &has160RoundsMax}}
+	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: float64(80), Min: &has160RoundsMin, Max: &has160RoundsMax}}
 }
 
 // Run computes the HAS-160 hash.
@@ -164,7 +164,7 @@ var snefruRoundsOpts = []string{"8", "4", "2"}
 // Args returns the argument definitions.
 func (Snefru) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Size", Type: core.ArgNumber, Value: float64(128), Min: &snefruSizeMin, Max: &snefruSizeMax},
+		{Name: "Size", Type: core.ArgNumber, Integer: true, Value: float64(128), Min: &snefruSizeMin, Max: &snefruSizeMax},
 		{Name: "Rounds", Type: core.ArgOption, Value: snefruRoundsOpts},
 	}
 }
@@ -190,7 +190,7 @@ var whirlpoolVariants = []string{"Whirlpool", "Whirlpool-T", "Whirlpool-0"}
 func (Whirlpool) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Variant", Type: core.ArgOption, Value: whirlpoolVariants},
-		{Name: "Rounds", Type: core.ArgNumber, Value: float64(10), Min: &whirlRoundsMin, Max: &whirlRoundsMax},
+		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: float64(10), Min: &whirlRoundsMin, Max: &whirlRoundsMax},
 	}
 }
 

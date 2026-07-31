@@ -85,7 +85,7 @@ func (Colossus) Args() []core.ArgDef {
 		core.ArgDef{Name: "Add Negate All", Type: core.ArgBoolean, Value: false},
 		switchDef("Total Motor"),
 		core.ArgDef{Name: "Master Control Panel", Type: core.ArgString, Value: ""}, // 41 label
-		core.ArgDef{Name: "Set Total", Type: core.ArgNumber, Value: float64(0)},
+		core.ArgDef{Name: "Set Total", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 		core.ArgDef{Name: "Fast Step", Type: core.ArgOption, Value: colStep},
 		core.ArgDef{Name: "Slow Step", Type: core.ArgOption, Value: colStep})
 	// Start positions Χ1-5, M61, M37, Ψ1-5.

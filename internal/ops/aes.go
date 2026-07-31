@@ -325,7 +325,7 @@ func (AESEncrypt) Args() []core.ArgDef {
 		{Name: "Mode", Type: core.ArgOption, Value: aesModes},
 		{Name: "Input", Type: core.ArgOption, Value: []string{"Raw", "Hex"}},
 		{Name: "Output", Type: core.ArgOption, Value: []string{"Hex", "Raw"}},
-		{Name: "Additional Authenticated Data", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
+		{Name: "Additional Authenticated Data", Flag: "aad", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
 		{Name: "Include IV in output", Type: core.ArgOption, Value: []string{"Off", "Prepend", "Append"}},
 	}
 }
@@ -455,12 +455,12 @@ func (AESDecrypt) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
 		{Name: "IV", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
-		{Name: "IV Length", Type: core.ArgNumber, Value: 16.0, Min: &ivLenMin},
+		{Name: "IV Length", Type: core.ArgNumber, Integer: true, Value: 16.0, Min: &ivLenMin},
 		{Name: "Mode", Type: core.ArgOption, Value: aesModes},
 		{Name: "Input", Type: core.ArgOption, Value: []string{"Hex", "Raw"}},
 		{Name: "Output", Type: core.ArgOption, Value: []string{"Raw", "Hex"}},
 		{Name: "GCM Tag", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
-		{Name: "Additional Authenticated Data", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
+		{Name: "Additional Authenticated Data", Flag: "aad", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
 		{Name: "IV from input", Type: core.ArgOption, Value: []string{"Off", "From start", "From end"}},
 	}
 }

@@ -23,6 +23,16 @@ Each operation resolves its input from the first source available, in this order
 3. **positional argument** — `cchef rot13 "Have a nice day."`
 4. **stdin** — `echo hello | cchef rot13` (this is what makes pipes work)
 
+A positional argument is *text*, not a filename, which differs from tools like
+`cat` and `grep`. Naming a file that exists is refused rather than silently
+encoding the path:
+
+```bash
+cchef to-base64 notes.txt
+# cchef: "notes.txt" names a file, but positional input is used as literal text.
+# Read the file with --in-file notes.txt, keep the text with -i "notes.txt", or pass -- first
+```
+
 Output goes to stdout, or to a file with `-o, --output <path>`. When writing to a
 terminal, a trailing newline is added for readability; when piped or redirected,
 output stays byte-exact so operations chain cleanly. A `-` given to `--in-file`
@@ -71,6 +81,29 @@ echo -n hello | cchef to-base64 | cchef to-hex
 # 2. A recipe — multiple operations in one command (see Recipes & URLs)
 echo -n hello | cchef bake -e "To_Base64()To_Hex()"
 ```
+
+## British and American spellings
+
+Operation, flag, and option names keep the spellings CyberChef uses, which are
+often British. Every one of them also answers to its American spelling, so you
+never have to remember which variant a name uses:
+
+```bash
+cchef analyse-hash -i 0800fc577294c34e0b28ad2839435945
+cchef analyze-hash -i 0800fc577294c34e0b28ad2839435945   # same command
+
+cchef view-bit-plane --in-file in.png --colour Red --bit 0 -o out.png
+cchef view-bit-plane --in-file in.png --color  Red --bit 0 -o out.png
+
+cchef generate-image -i 41424344 --mode Greyscale -o out.png
+cchef generate-image -i 41424344 --mode Grayscale -o out.png
+```
+
+Help text and this documentation show the CyberChef spelling; the American
+spelling works everywhere but is not listed. The words covered are *analyse*,
+*colour*, *centre*, *grey*, *metre*, *normalise*, *randomise*, and *serialise*.
+Recipes, URLs, and `bake` are unaffected — they take operation and argument
+names exactly as CyberChef writes them.
 
 ## Operation categories
 

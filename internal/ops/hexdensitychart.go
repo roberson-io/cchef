@@ -36,7 +36,7 @@ func (HexDensityChart) Args() []core.ArgDef {
 		{Name: "Draw hexagon edges", Type: core.ArgBoolean, Value: false},
 		{Name: "Min colour value", Type: core.ArgString, Value: colourMin},
 		{Name: "Max colour value", Type: core.ArgString, Value: colourMax},
-		{Name: "Draw empty hexagons within data boundaries", Type: core.ArgBoolean, Value: false},
+		{Name: "Draw empty hexagons within data boundaries", Flag: "draw-empty-hexagons", Type: core.ArgBoolean, Value: false},
 	}
 }
 

@@ -36,8 +36,8 @@ func (ParseASN1HexString) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseASN1HexString) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Starting index", Type: core.ArgNumber, Value: 0},
-		{Name: "Truncate octet strings longer than", Type: core.ArgNumber, Value: 32},
+		{Name: "Starting index", Type: core.ArgNumber, Integer: true, Value: 0},
+		{Name: "Truncate octet strings longer than", Flag: "truncate-octet-strings", Type: core.ArgNumber, Integer: true, Value: 32},
 	}
 }
 

@@ -69,7 +69,7 @@ func (ExtractFiles) Args() []core.ArgDef {
 	}
 	return append(args,
 		core.ArgDef{Name: "Ignore failed extractions", Type: core.ArgBoolean, Value: true},
-		core.ArgDef{Name: "Minimum File Size", Type: core.ArgNumber, Value: extractFilesMinSize},
+		core.ArgDef{Name: "Minimum File Size", Type: core.ArgNumber, Integer: true, Value: extractFilesMinSize},
 	)
 }
 

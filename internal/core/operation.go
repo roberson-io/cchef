@@ -38,6 +38,7 @@ type ToggleString struct {
 // ArgDef describes a single operation argument.
 type ArgDef struct {
 	Name         string
+	Flag         string // CLI flag name; when empty it is derived from Name
 	Type         ArgType
 	Value        any      // default value; for ArgOption this is the []string of choices
 	DefaultIndex int      // for ArgOption: index of the default choice

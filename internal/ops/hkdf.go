@@ -49,7 +49,7 @@ func (DeriveHKDFKey) Args() []core.ArgDef {
 		{Name: "Info", Type: core.ArgToggleString, Value: "", ToggleValues: toggle},
 		{Name: "Hashing function", Type: core.ArgOption, Value: hkdfHashOptions, DefaultIndex: 6},
 		{Name: "Extract mode", Type: core.ArgOption, Value: hkdfExtractModes},
-		{Name: "L (number of output octets)", Type: core.ArgNumber, Value: float64(16)},
+		{Name: "L (number of output octets)", Type: core.ArgNumber, Integer: true, Value: float64(16)},
 	}
 }
 

@@ -212,7 +212,7 @@ func (RC4Drop) Args() []core.ArgDef {
 		{Name: "Passphrase", Type: core.ArgToggleString, Value: "", ToggleValues: rc4KeyFormats},
 		{Name: "Input format", Type: core.ArgOption, Value: rc4DataFormats},
 		{Name: "Output format", Type: core.ArgOption, Value: rc4DataFormats},
-		{Name: "Number of dwords to drop", Type: core.ArgNumber, Value: float64(192)},
+		{Name: "Number of dwords to drop", Type: core.ArgNumber, Integer: true, Value: float64(192)},
 	}
 }
 

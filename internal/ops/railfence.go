@@ -36,8 +36,8 @@ func railFenceValidate(key, offset, length int, lenName string) error {
 // railFenceArgs are the shared Key/Offset argument definitions.
 func railFenceArgs() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Key", Type: core.ArgNumber, Value: float64(2)},
-		{Name: "Offset", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Key", Type: core.ArgNumber, Integer: true, Value: float64(2)},
+		{Name: "Offset", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 	}
 }
 

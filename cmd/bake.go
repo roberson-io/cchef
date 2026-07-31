@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -43,7 +44,20 @@ func rawRecipeText() (string, error) {
 		}
 		return string(b), nil
 	default:
-		return "", fmt.Errorf("no recipe given: use -e <expr> or -r <file>")
+		// Fall back to the staged recipe, so a recipe built up with
+		// `cchef recipe add` runs without naming it again.
+		staged, err := loadStagedRecipe()
+		if err != nil {
+			return "", err
+		}
+		if len(staged) == 0 {
+			return "", fmt.Errorf("no recipe given: use -e <expr>, -r <file>, or stage one with `cchef recipe add`")
+		}
+		b, err := json.Marshal(staged)
+		if err != nil {
+			return "", err
+		}
+		return string(b), nil
 	}
 }
 

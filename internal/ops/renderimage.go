@@ -33,14 +33,12 @@ func (RenderImage) Meta() core.OpMeta {
 func (RenderImage) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Input format", Type: core.ArgOption, Value: []string{"Raw", "Base64", "Hex"}},
-		{Name: "Output", Type: core.ArgOption, Value: []string{"Raw", "Base64", "Terminal"}},
 	}
 }
 
-// Run validates the image and renders it in the requested output form.
+// Run validates the image and passes its bytes through.
 func (RenderImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[0].(string)
-	outputFormat := args[1].(string)
 
 	if len(in.Bytes()) == 0 {
 		return core.NewDish(nil, core.TypeByteArray), nil
@@ -48,13 +46,12 @@ func (RenderImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	data := decodeImageInput(in, inputFormat)
 
-	mime := isImage(data)
-	if mime == "" {
+	if isImage(data) == "" {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return nil, errors.New("Invalid file type")
 	}
 
-	return renderMedia(data, mime, outputFormat)
+	return core.NewDish(data, core.TypeByteArray), nil
 }
 
 // decodeImageInput converts the recipe input to raw bytes per the input format.
@@ -67,23 +64,5 @@ func decodeImageInput(in *core.Dish, inputFormat string) []byte {
 		return b
 	default: // Raw
 		return in.Bytes()
-	}
-}
-
-// renderMedia emits validated media bytes in the requested output form. Shared
-// by Render Image and Play Media (Raw/Base64); Terminal is image-only.
-func renderMedia(data []byte, mime, outputFormat string) (*core.Dish, error) {
-	switch outputFormat {
-	case "Base64":
-		uri := "data:" + mime + ";base64," + toBase64(data, stdBase64Alphabet)
-		return core.NewDish([]byte(uri), core.TypeString), nil
-	case "Terminal":
-		out, err := encodeTerminalImage(detectTermProtocol(), mime, data)
-		if err != nil {
-			return nil, err
-		}
-		return core.NewDish(out, core.TypeString), nil
-	default: // Raw
-		return core.NewDish(data, core.TypeByteArray), nil
 	}
 }

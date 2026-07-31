@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+
+	"github.com/roberson-io/cchef/internal/termimage"
 )
 
 // resetIOFlags clears the shared input/output flag globals between cases.
@@ -196,5 +199,147 @@ func TestWriteOutputError(t *testing.T) {
 	_ = f.Close()
 	if isTerminal(f) {
 		t.Fatal("isTerminal(closed file) should be false")
+	}
+}
+
+// TestPresentOutputDataURI checks --data-uri wraps output with its sniffed
+// media type, for any operation's bytes rather than only the three whose
+// CyberChef counterparts render in the browser.
+func TestPresentOutputDataURI(t *testing.T) {
+	t.Cleanup(func() { flagDataURI = false })
+	flagDataURI = true
+	png := []byte("\x89PNG\r\n\x1a\n" + strings.Repeat("\x00", 16))
+	got, err := presentOutput(png)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "data:image/png;base64," + base64.StdEncoding.EncodeToString(png)
+	if string(got) != want {
+		t.Errorf("data URI = %q, want %q", got, want)
+	}
+
+	got, err = presentOutput([]byte("plain text"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(string(got), "data:text/plain;base64,") {
+		t.Errorf("text data URI = %q", got)
+	}
+}
+
+// TestPresentOutputPreview checks --preview against each terminal protocol,
+// and that it refuses politely when it cannot help.
+func TestPresentOutputPreview(t *testing.T) {
+	t.Cleanup(func() { flagPreview = false })
+	flagPreview = true
+	png := []byte("\x89PNG\r\n\x1a\n" + strings.Repeat("\x00", 16))
+
+	t.Run("iterm", func(t *testing.T) {
+		t.Setenv("TERM_PROGRAM", "iTerm.app")
+		t.Setenv("KITTY_WINDOW_ID", "")
+		got, err := presentOutput(png)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, _ := termimage.Encode(termimage.ITerm, "image/png", png)
+		if string(got) != string(want) {
+			t.Error("iterm preview mismatch")
+		}
+	})
+
+	t.Run("kitty", func(t *testing.T) {
+		t.Setenv("TERM_PROGRAM", "")
+		t.Setenv("TERM", "xterm-kitty")
+		got, err := presentOutput(png)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, _ := termimage.Encode(termimage.Kitty, "image/png", png)
+		if string(got) != string(want) {
+			t.Error("kitty preview mismatch")
+		}
+	})
+
+	t.Run("unsupported terminal", func(t *testing.T) {
+		t.Setenv("TERM_PROGRAM", "")
+		t.Setenv("TERM", "dumb")
+		t.Setenv("KITTY_WINDOW_ID", "")
+		if _, err := presentOutput(png); err == nil {
+			t.Error("expected an error on a terminal with no image support")
+		}
+	})
+
+	t.Run("not an image", func(t *testing.T) {
+		t.Setenv("TERM_PROGRAM", "iTerm.app")
+		if _, err := presentOutput([]byte("just text")); err == nil {
+			t.Error("expected an error previewing non-image output")
+		}
+	})
+}
+
+// TestPositionalFileGuard covers the guard on a positional argument that names
+// an existing file: cchef treats positionals as literal text, so silently
+// encoding the path instead of the file's contents would be a wrong answer
+// rather than an error.
+func TestPositionalFileGuard(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "msg.txt")
+	if err := os.WriteFile(path, []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c := &cobra.Command{}
+	addIOFlags(c)
+
+	_, err := resolveInput(c, []string{path})
+	if err == nil {
+		t.Fatal("expected an error for a positional naming an existing file")
+	}
+	for _, want := range []string{path, "--in-file", "-i", "--"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error %q does not mention %q", err, want)
+		}
+	}
+
+	// Text that merely looks path-like but names nothing is still text.
+	if got, err := resolveInput(c, []string{filepath.Join(dir, "absent.txt")}); err != nil {
+		t.Errorf("non-existent path: %v", err)
+	} else if string(got) != filepath.Join(dir, "absent.txt") {
+		t.Errorf("non-existent path = %q", got)
+	}
+
+	// A directory is not readable as input either, so it gets the same guard.
+	if _, err := resolveInput(c, []string{dir}); err == nil {
+		t.Error("expected an error for a positional naming a directory")
+	}
+
+	// Several positionals join into one string; the guard checks each.
+	if _, err := resolveInput(c, []string{"hello", path}); err == nil {
+		t.Error("expected an error when any positional names a file")
+	}
+	if got, err := resolveInput(c, []string{"hello", "world"}); err != nil || string(got) != "hello world" {
+		t.Errorf("plain positionals = %q, %v", got, err)
+	}
+}
+
+// TestPositionalFileGuardAfterDash checks that `--` opts out of the guard: the
+// user has said explicitly that what follows is text.
+func TestPositionalFileGuardAfterDash(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "msg.txt")
+	if err := os.WriteFile(path, []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c := &cobra.Command{RunE: func(*cobra.Command, []string) error { return nil }}
+	addIOFlags(c)
+	c.SetArgs([]string{"--", path})
+	if err := c.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	got, err := resolveInput(c, []string{path})
+	if err != nil {
+		t.Fatalf("after --: %v", err)
+	}
+	if string(got) != path {
+		t.Errorf("after -- = %q, want the literal path", got)
 	}
 }

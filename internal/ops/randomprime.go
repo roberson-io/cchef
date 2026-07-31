@@ -48,7 +48,7 @@ func (RandomPrime) Meta() core.OpMeta {
 func (RandomPrime) Args() []core.ArgDef {
 	minBits := float64(randomPrimeMinBits)
 	return []core.ArgDef{
-		{Name: "Bit length", Type: core.ArgNumber, Value: 512, Min: &minBits},
+		{Name: "Bit length", Type: core.ArgNumber, Integer: true, Value: 512, Min: &minBits},
 		{Name: "Crypto grade", Type: core.ArgBoolean, Value: false},
 		{Name: "Output format", Type: core.ArgOption, Value: []string{"Decimal", "Hexadecimal"}},
 	}

@@ -42,7 +42,7 @@ func (ExtractLSB) Args() []core.ArgDef {
 		{Name: "Colour Pattern #3", Type: core.ArgOption, Value: withBlank},
 		{Name: "Colour Pattern #4", Type: core.ArgOption, Value: withBlank},
 		{Name: "Pixel Order", Type: core.ArgOption, Value: []string{"Row", "Column"}},
-		{Name: "Bit", Type: core.ArgNumber, Value: 0},
+		{Name: "Bit", Type: core.ArgNumber, Integer: true, Value: 0},
 	}
 }
 

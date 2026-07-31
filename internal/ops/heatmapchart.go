@@ -33,8 +33,8 @@ func (HeatmapChart) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Record delimiter", Type: core.ArgOption, Value: recordDelimiterOptions},
 		{Name: "Field delimiter", Type: core.ArgOption, Value: fieldDelimiterOptions},
-		{Name: "Number of vertical bins", Type: core.ArgNumber, Value: float64(25)},
-		{Name: "Number of horizontal bins", Type: core.ArgNumber, Value: float64(25)},
+		{Name: "Number of vertical bins", Type: core.ArgNumber, Integer: true, Value: float64(25)},
+		{Name: "Number of horizontal bins", Type: core.ArgNumber, Integer: true, Value: float64(25)},
 		{Name: "Use column headers as labels", Type: core.ArgBoolean, Value: true},
 		{Name: "X label", Type: core.ArgString, Value: ""},
 		{Name: "Y label", Type: core.ArgString, Value: ""},

@@ -134,7 +134,7 @@ func (PadLines) Meta() core.OpMeta {
 func (PadLines) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Position", Type: core.ArgOption, Value: []string{"Start", "End"}},
-		{Name: "Length", Type: core.ArgNumber, Value: 5},
+		{Name: "Length", Type: core.ArgNumber, Integer: true, Value: 5},
 		{Name: "Character", Type: core.ArgString, Value: " "},
 	}
 }

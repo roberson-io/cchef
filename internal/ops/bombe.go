@@ -614,7 +614,7 @@ func (Bombe) Args() []core.ArgDef {
 		{Name: "Right-hand rotor", Type: core.ArgEditableOption, Value: enigmaRotorDefs[2].value},
 		{Name: "Reflector", Type: core.ArgEditableOption, Value: enigmaReflectorDefs[0].value},
 		{Name: "Crib", Type: core.ArgString, Value: ""},
-		{Name: "Crib offset", Type: core.ArgNumber, Value: 0},
+		{Name: "Crib offset", Type: core.ArgNumber, Integer: true, Value: 0},
 		{Name: "Use checking machine", Type: core.ArgBoolean, Value: true},
 	}
 }
@@ -701,7 +701,7 @@ func (MultipleBombe) Args() []core.ArgDef {
 		{Name: "4th rotor", Type: core.ArgString, Value: ""},
 		{Name: "Reflectors", Type: core.ArgString, Value: ""},
 		{Name: "Crib", Type: core.ArgString, Value: ""},
-		{Name: "Crib offset", Type: core.ArgNumber, Value: 0},
+		{Name: "Crib offset", Type: core.ArgNumber, Integer: true, Value: 0},
 		{Name: "Use checking machine", Type: core.ArgBoolean, Value: true},
 	}
 }

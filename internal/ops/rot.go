@@ -61,7 +61,7 @@ func (ROT13) Args() []core.ArgDef {
 		{Name: "Rotate lower case chars", Type: core.ArgBoolean, Value: true},
 		{Name: "Rotate upper case chars", Type: core.ArgBoolean, Value: true},
 		{Name: "Rotate numbers", Type: core.ArgBoolean, Value: false},
-		{Name: "Amount", Type: core.ArgNumber, Value: 13},
+		{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 13},
 	}
 }
 
@@ -106,7 +106,7 @@ func (ROT47) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ROT47) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Amount", Type: core.ArgNumber, Value: 47},
+		{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 47},
 	}
 }
 
@@ -177,10 +177,10 @@ func (ROT13BruteForce) Args() []core.ArgDef {
 		{Name: "Rotate lower case chars", Type: core.ArgBoolean, Value: true},
 		{Name: "Rotate upper case chars", Type: core.ArgBoolean, Value: true},
 		{Name: "Rotate numbers", Type: core.ArgBoolean, Value: false},
-		{Name: "Sample length", Type: core.ArgNumber, Value: float64(100)},
-		{Name: "Sample offset", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Sample length", Type: core.ArgNumber, Integer: true, Value: float64(100)},
+		{Name: "Sample offset", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 		{Name: "Print amount", Type: core.ArgBoolean, Value: true},
-		{Name: "Crib (known plaintext string)", Type: core.ArgString, Value: ""},
+		{Name: "Crib (known plaintext string)", Flag: "crib", Type: core.ArgString, Value: ""},
 	}
 }
 
@@ -217,10 +217,10 @@ func (ROT47BruteForce) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ROT47BruteForce) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Sample length", Type: core.ArgNumber, Value: float64(100)},
-		{Name: "Sample offset", Type: core.ArgNumber, Value: float64(0)},
+		{Name: "Sample length", Type: core.ArgNumber, Integer: true, Value: float64(100)},
+		{Name: "Sample offset", Type: core.ArgNumber, Integer: true, Value: float64(0)},
 		{Name: "Print amount", Type: core.ArgBoolean, Value: true},
-		{Name: "Crib (known plaintext string)", Type: core.ArgString, Value: ""},
+		{Name: "Crib (known plaintext string)", Flag: "crib", Type: core.ArgString, Value: ""},
 	}
 }
 

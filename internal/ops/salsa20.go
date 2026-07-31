@@ -167,7 +167,7 @@ func salsaArgs() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
 		{Name: "Nonce", Type: core.ArgToggleString, Value: "", ToggleValues: salsaNonceToggles},
-		{Name: "Counter", Type: core.ArgNumber, Value: float64(0), Min: &minCtr},
+		{Name: "Counter", Type: core.ArgNumber, Integer: true, Value: float64(0), Min: &minCtr},
 		{Name: "Rounds", Type: core.ArgOption, Value: []string{"20", "12", "8"}},
 		{Name: "Input", Type: core.ArgOption, Value: []string{"Hex", "Raw"}},
 		{Name: "Output", Type: core.ArgOption, Value: []string{"Raw", "Hex"}},

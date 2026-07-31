@@ -32,14 +32,14 @@ func (XORBruteForce) Meta() core.OpMeta {
 func (XORBruteForce) Args() []core.ArgDef {
 	keyMin, keyMax := 1.0, 2.0
 	return []core.ArgDef{
-		{Name: "Key length", Type: core.ArgNumber, Value: 1, Min: &keyMin, Max: &keyMax},
-		{Name: "Sample length", Type: core.ArgNumber, Value: 100},
-		{Name: "Sample offset", Type: core.ArgNumber, Value: 0},
+		{Name: "Key length", Type: core.ArgNumber, Integer: true, Value: 1, Min: &keyMin, Max: &keyMax},
+		{Name: "Sample length", Type: core.ArgNumber, Integer: true, Value: 100},
+		{Name: "Sample offset", Type: core.ArgNumber, Integer: true, Value: 0},
 		{Name: "Scheme", Type: core.ArgOption, Value: []string{"Standard", "Input differential", "Output differential"}},
 		{Name: "Null preserving", Type: core.ArgBoolean, Value: false},
 		{Name: "Print key", Type: core.ArgBoolean, Value: true},
 		{Name: "Output as hex", Type: core.ArgBoolean, Value: false},
-		{Name: "Crib (known plaintext string)", Type: core.ArgString, Value: ""},
+		{Name: "Crib (known plaintext string)", Flag: "crib", Type: core.ArgString, Value: ""},
 	}
 }
 

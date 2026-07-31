@@ -255,8 +255,8 @@ verified and decryption fails if it does not authenticate.
 | `--output-format` | option | `Raw` | How to render the output: `Raw` bytes or `Hex`. |
 | `--gcm-tag` | string | (empty) | Authentication tag (GCM mode only). |
 | `--gcm-tag-type` | option | `Hex` | Tag encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
-| `--additional-authenticated-data` | string | (empty) | AAD (GCM mode only). |
-| `--additional-authenticated-data-type` | option | `Hex` | AAD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--aad` | string | (empty) | AAD (GCM mode only). |
+| `--aad-type` | option | `Hex` | AAD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
 | `--iv-from-input` | option | `Off` | Take the IV from the input: `Off`, `From start`, `From end`. |
 
 **Simple example**
@@ -293,8 +293,8 @@ bytes.
 | `--mode` | option | `CBC` | Mode: `CBC`, `CFB`, `OFB`, `CTR`, `GCM`, `ECB`, `CBC/NoPadding`, `ECB/NoPadding`. |
 | `--input-format` | option | `Raw` | How to read the input: `Raw` bytes or `Hex`. |
 | `--output-format` | option | `Hex` | How to render the output: `Hex` or `Raw` bytes. |
-| `--additional-authenticated-data` | string | (empty) | AAD (GCM mode only). |
-| `--additional-authenticated-data-type` | option | `Hex` | AAD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
+| `--aad` | string | (empty) | AAD (GCM mode only). |
+| `--aad-type` | option | `Hex` | AAD encoding: `Hex`, `UTF8`, `Latin1`, `Base64`. |
 | `--include-iv-in-output` | option | `Off` | Add the IV to the output: `Off`, `Prepend`, `Append`. |
 
 **Simple example**
@@ -314,7 +314,7 @@ Output:
 In GCM mode the authentication tag is appended after the ciphertext.
 
 ```bash
-cchef aes-encrypt -i 'The quick brown fox jumps over the lazy dog.' --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --additional-authenticated-data 'additional data' --additional-authenticated-data-type UTF8
+cchef aes-encrypt -i 'The quick brown fox jumps over the lazy dog.' --key 00112233445566778899aabbccddeeff --iv ffeeddccbbaa99887766554433221100 --mode GCM --aad 'additional data' --aad-type UTF8
 ```
 
 Output:
@@ -2855,12 +2855,12 @@ character classes rotate (lower/upper/digits), and can sample a slice of the inp
 | `--sample-length` | number | `100` | Bytes of input to try. |
 | `--sample-offset` | number | `0` | Offset into the input to sample from. |
 | `--print-amount` | boolean | `true` | Prefix each line with `Amount = NN:`. |
-| `--crib-known-plaintext-string` | string | (empty) | Only show results containing this text. |
+| `--crib` | string | (empty) | Only show results containing this text. |
 
 **Simple example**
 
 ```bash
-cchef rot13-brute-force -i "Uryyb Jbeyq" --crib-known-plaintext-string hello
+cchef rot13-brute-force -i "Uryyb Jbeyq" --crib hello
 ```
 
 Output:
@@ -2911,12 +2911,12 @@ prints each result, optionally filtered to those containing a known-plaintext
 | `--sample-length` | number | `100` | Bytes of input to try. |
 | `--sample-offset` | number | `0` | Offset into the input to sample from. |
 | `--print-amount` | boolean | `true` | Prefix each line with `Amount = NN:`. |
-| `--crib-known-plaintext-string` | string | (empty) | Only show results containing this text. |
+| `--crib` | string | (empty) | Only show results containing this text. |
 
 **Simple example** — the crib `test` matches two rotations:
 
 ```bash
-cchef rot47-brute-force -i "E6DE >6DD286" --crib-known-plaintext-string test
+cchef rot47-brute-force -i "E6DE >6DD286" --crib test
 ```
 
 Output:
@@ -3866,7 +3866,7 @@ ciphertext in via `from-hex` (or a file).
 | `--null-preserving` | bool | `false` | Skip bytes that are `0x00` or equal to the key. |
 | `--print-key` | bool | `true` | Prefix each line with the key that produced it. |
 | `--output-as-hex` | bool | `false` | Print candidates as hex instead of text. |
-| `--crib-known-plaintext-string` | string | (empty) | Only show candidates containing this string. |
+| `--crib` | string | (empty) | Only show candidates containing this string. |
 
 **Simple example**
 
@@ -3875,7 +3875,7 @@ Recover the key for `Hello` XORed with `0x42`, filtering on the crib `hello`
 
 ```bash
 printf '0a272e2e2d' | cchef from-hex --delimiter None \
-    | cchef xor-brute-force --crib-known-plaintext-string hello
+    | cchef xor-brute-force --crib hello
 ```
 
 Output:
@@ -3889,7 +3889,7 @@ Key = 62: hELLO
 
 ```bash
 printf '0a272e2e2d' | cchef from-hex --delimiter None \
-    | cchef xor-brute-force --crib-known-plaintext-string hello --output-as-hex
+    | cchef xor-brute-force --crib hello --output-as-hex
 ```
 
 Output:

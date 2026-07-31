@@ -45,7 +45,7 @@ func (ExtractAudioMetadata) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Filename (optional)", Type: core.ArgString, Value: ""},
 		{
-			Name:  "Max embedded text bytes (iXML/axml/etc)",
+			Name: "Max embedded text bytes (iXML/axml/etc)", Flag: "max-embedded-text-bytes",
 			Type:  core.ArgNumber,
 			Value: float64(audioMaxTextDefault),
 		},

@@ -30,7 +30,7 @@ func (LuhnChecksum) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (LuhnChecksum) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Radix", Type: core.ArgNumber, Value: 10}}
+	return []core.ArgDef{{Name: "Radix", Type: core.ArgNumber, Integer: true, Value: 10}}
 }
 
 // Run computes the Luhn checksum report.

@@ -34,7 +34,7 @@ func (Head) Meta() core.OpMeta {
 func (Head) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: inputDelims},
-		{Name: "Number", Type: core.ArgNumber, Value: 10},
+		{Name: "Number", Type: core.ArgNumber, Integer: true, Value: 10},
 	}
 }
 
@@ -74,7 +74,7 @@ func (Tail) Meta() core.OpMeta {
 func (Tail) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: inputDelims},
-		{Name: "Number", Type: core.ArgNumber, Value: 10},
+		{Name: "Number", Type: core.ArgNumber, Integer: true, Value: 10},
 	}
 }
 
@@ -99,8 +99,8 @@ func (Tail) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // byteRangeArgs are the shared Start/Length/Apply-to-each-line definitions.
 func byteRangeArgs() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Start", Type: core.ArgNumber, Value: 0},
-		{Name: "Length", Type: core.ArgNumber, Value: 5},
+		{Name: "Start", Type: core.ArgNumber, Integer: true, Value: 0},
+		{Name: "Length", Type: core.ArgNumber, Integer: true, Value: 5},
 		{Name: "Apply to each line", Type: core.ArgBoolean, Value: false},
 	}
 }
@@ -223,7 +223,7 @@ func (TakeBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 func nthArgs(everyName string) []core.ArgDef {
 	return []core.ArgDef{
 		{Name: everyName, Type: core.ArgNumber, Value: 4},
-		{Name: "Starting at", Type: core.ArgNumber, Value: 0},
+		{Name: "Starting at", Type: core.ArgNumber, Integer: true, Value: 0},
 		{Name: "Apply to each line", Type: core.ArgBoolean, Value: false},
 	}
 }

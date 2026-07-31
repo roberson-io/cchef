@@ -36,7 +36,7 @@ func (ShowOnMap) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ShowOnMap) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Zoom Level", Type: core.ArgNumber, Value: 13},
+		{Name: "Zoom Level", Type: core.ArgNumber, Integer: true, Value: 13},
 		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, coordFormats...)},
 		{Name: "Input Delimiter", Type: core.ArgOption, Value: []string{
 			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon",
