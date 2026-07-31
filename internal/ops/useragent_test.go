@@ -3,8 +3,6 @@ package ops
 import (
 	"testing"
 
-	"github.com/dlclark/regexp2"
-
 	"github.com/roberson-io/cchef/internal/core"
 )
 
@@ -1018,126 +1016,549 @@ CPU
 // TestUAStrMapperEngineBranches exercises the strMapper semantics the current
 // ruleset doesn't use: an undef entry is skipped, a "?" key means UNKNOWN, and a
 // "*" fallback mapped to undefined also reports not-found.
-func TestUAStrMapperEngineBranches(t *testing.T) {
-	skip := &uaLookup{entries: []uaLookupEntry{
-		{undef: true, vals: []string{"a"}},
-		{key: "Match", vals: []string{"a"}},
-	}}
-	if got, ok := uaStrMapper("a", skip); !ok || got != "Match" {
-		t.Fatalf("undef skip: got %q, %v; want Match, true", got, ok)
-	}
-	unknown := &uaLookup{entries: []uaLookupEntry{{key: "?", vals: []string{"a"}}}}
-	if got, ok := uaStrMapper("a", unknown); ok || got != "" {
-		t.Fatalf(`"?" key: got %q, %v; want "", false`, got, ok)
-	}
-	starUndef := &uaLookup{hasStar: true, star: "ignored", starUndef: true}
-	if got, ok := uaStrMapper("no-match", starUndef); ok || got != "" {
-		t.Fatalf("starUndef: got %q, %v; want \"\", false", got, ok)
-	}
-}
 
-// TestUAApplyPropsEngineBranches exercises the property-processing arms the ruleset
-// doesn't reach: empty-capture deletes (strTest/strMapper/replace), a strMapper
-// "unknown" result deleting the property, and the replace "trim" processor.
-func TestUAApplyPropsEngineBranches(t *testing.T) {
-	rx := func(p string) *regexp2.Regexp { return regexp2.MustCompile(p, regexp2.None) }
-	unknownMap := &uaLookup{entries: []uaLookupEntry{{key: "?", vals: []string{"x"}}}}
-
-	cases := []struct {
-		name      string
-		props     []uaProp
-		matched   []string
-		wantValue string // "" => the property must be deleted
-	}{
+// TestParseUserAgentCorpus pins the parser against a broad corpus of real
+// user-agent strings — every rule in the detection tables is exercised here
+// or in TestParseUserAgentVectors. Expected outputs were generated with the
+// previous, ua-parser-js-derived implementation, which was itself verified
+// against CyberChef, so behaviour is unchanged across the table rewrite.
+func TestParseUserAgentCorpus(t *testing.T) {
+	for i, tc := range []struct{ ua, want string }{
 		{
-			"strTest empty capture deletes",
-			[]uaProp{{prop: "p", kind: "fn", fn: "strTest", testRe: rx("t"), ifTrue: "a", ifFalse: "b"}},
-			[]string{"full"},
-			"",
+			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 109.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 109.0.0.0\nOS\n    Name: Windows\n    Version: 7\nCPU\n    Architecture: amd64",
 		},
 		{
-			"strMapper empty capture deletes",
-			[]uaProp{{prop: "p", kind: "fn", fn: "strMapper", fnMap: unknownMap}},
-			[]string{"full"},
-			"",
+			"Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 49.0.2623.112\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 49.0.2623.112\nOS\n    Name: Windows\n    Version: XP\nCPU\n    Architecture: unknown",
 		},
 		{
-			"strMapper unknown value deletes",
-			[]uaProp{{prop: "p", kind: "fn", fn: "strMapper", fnMap: unknownMap}},
-			[]string{"full", "x"},
-			"",
+			"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
+			"Browser\n    Name: IE\n    Version: 9.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Trident\n    Version: 5.0\nOS\n    Name: Windows\n    Version: 7\nCPU\n    Architecture: unknown",
 		},
 		{
-			"replace trim",
-			[]uaProp{{prop: "p", kind: "replace", replRe: rx("Z"), repl: "", replFn: "trim"}},
-			[]string{"full", "  abc"},
-			"abc",
+			"Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)",
+			"Browser\n    Name: IE\n    Version: 8.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Trident\n    Version: 4.0\nOS\n    Name: Windows\n    Version: XP\nCPU\n    Architecture: unknown",
 		},
 		{
-			"replace strMapper unknown value deletes",
-			[]uaProp{{prop: "p", kind: "replace", replRe: rx("Z"), repl: "", replFn: "strMapper", replMap: unknownMap}},
-			[]string{"full", "x"},
-			"",
+			"Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; Touch)",
+			"Browser\n    Name: IE\n    Version: 10.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Trident\n    Version: 6.0\nOS\n    Name: Windows\n    Version: 8\nCPU\n    Architecture: unknown",
 		},
 		{
-			"replace empty capture deletes",
-			[]uaProp{{prop: "p", kind: "replace", replRe: rx("Z"), repl: ""}},
-			[]string{"full"},
-			"",
+			"Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko",
+			"Browser\n    Name: IE\n    Version: 11.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Trident\n    Version: 7.0\nOS\n    Name: Windows\n    Version: 8.1\nCPU\n    Architecture: unknown",
 		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			res := map[string]string{"p": "preset"}
-			uaApplyProps(res, c.props, c.matched)
-			got, ok := res["p"]
-			if c.wantValue == "" {
-				if ok {
-					t.Fatalf("expected property deleted, got %q", got)
-				}
-			} else if got != c.wantValue {
-				t.Fatalf("got %q, want %q", got, c.wantValue)
-			}
-		})
-	}
-}
-
-// --- direct tests for the helpers extracted from uaApplyProps ---
-
-// TestApplyUAProp documents the kind dispatch (static sets a literal; cap sets
-// the capture).
-func TestApplyUAProp(t *testing.T) {
-	res := map[string]string{}
-	applyUAProp(res, uaProp{kind: "static", prop: "os", static: "Linux"}, "")
-	if res["os"] != "Linux" {
-		t.Fatalf("static: %v", res)
-	}
-	applyUAProp(res, uaProp{kind: "cap", prop: "name"}, "Chrome")
-	if res["name"] != "Chrome" {
-		t.Fatalf("cap: %v", res)
-	}
-}
-
-// TestApplyUAFn documents the fn dispatch: lowerize, and strTest deleting on an
-// empty match.
-func TestApplyUAFn(t *testing.T) {
-	res := map[string]string{}
-	applyUAFn(res, uaProp{fn: "lowerize", prop: "name"}, "CHROME")
-	if res["name"] != "chrome" {
-		t.Fatalf("lowerize: %v", res)
-	}
-	res["v"] = "x"
-	applyUAFn(res, uaProp{fn: "strTest", prop: "v"}, "")
-	if _, ok := res["v"]; ok {
-		t.Fatalf("strTest with empty match should delete: %v", res)
-	}
-}
-
-// TestApplyUAReplace documents that an empty match deletes the property.
-func TestApplyUAReplace(t *testing.T) {
-	res := map[string]string{"v": "x"}
-	applyUAReplace(res, uaProp{prop: "v"}, "")
-	if _, ok := res["v"]; ok {
-		t.Fatalf("replace with empty match should delete: %v", res)
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.2210.91",
+			"Browser\n    Name: Edge\n    Version: 120.0.2210.91\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 OPR/105.0.0.0",
+			"Browser\n    Name: Opera\n    Version: 105.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.18",
+			"Browser\n    Name: Opera\n    Version: 12.18\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Presto\n    Version: 2.12.388\nOS\n    Name: Windows\n    Version: 7\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; U; en) Presto/2.5.25 Version/10.54",
+			"Browser\n    Name: Opera Mini\n    Version: 9.80\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Presto\n    Version: 2.5.25\nOS\n    Name: iOS\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 10; VOG-L29) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Mobile Safari/537.36 OPR/76.2.4027.73374",
+			"Browser\n    Name: Opera\n    Version: 76.2.4027.73374\nDevice\n    Model: VOG-L29\n    Type: mobile\n    Vendor: Huawei\nEngine\n    Name: Blink\n    Version: 117.0.0.0\nOS\n    Name: Android\n    Version: 10\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) OPiOS/16.0.0.409629 Mobile/15E148 Safari/9537.53",
+			"Browser\n    Name: Opera Mini\n    Version: 16.0.0.409629\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 16.6\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
+			"Browser\n    Name: Firefox\n    Version: 115.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: Ubuntu\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+			"Browser\n    Name: Firefox\n    Version: 121.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 121.0\nOS\n    Name: Fedora\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Android 13; Mobile; rv:121.0) Gecko/121.0 Firefox/121.0",
+			"Browser\n    Name: Mobile Firefox\n    Version: 121.0\nDevice\n    Model: unknown\n    Type: mobile\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 121.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/120.0 Mobile/15E148 Safari/605.1.15",
+			"Browser\n    Name: Mobile Firefox\n    Version: 120.0\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 17.1.2\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/119.0",
+			"Browser\n    Name: Firefox\n    Version: 119.0\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: macOS\n    Version: 10.15\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
+			"Browser\n    Name: Mobile Safari\n    Version: 16.6\nDevice\n    Model: iPad\n    Type: tablet\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 16.6\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPod touch; CPU iPhone OS 15_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1",
+			"Browser\n    Name: Mobile Safari\n    Version: 15.6\nDevice\n    Model: iPod touch\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 15.7\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Samsung Internet\n    Version: 23.0\nDevice\n    Model: SM-S918B\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 115.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 12; SM-X906C) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/19.0 Chrome/102.0.0.0 Safari/537.36",
+			"Browser\n    Name: Samsung Internet\n    Version: 19.0\nDevice\n    Model: SM-X906C\n    Type: tablet\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 102.0.0.0\nOS\n    Name: Android\n    Version: 12\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 12; zh-CN; 2201123C Build/SKQ1.211006.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 UCBrowser/15.5.4.1288 Mobile Safari/537.36",
+			"Browser\n    Name: UCBrowser\n    Version: 15.5.4.1288\nDevice\n    Model: 2201123C\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 100.0.4896.58\nOS\n    Name: Android\n    Version: 12\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 12; Redmi Note 11 Build/SKQ1.211103.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/107.0.5304.141 Mobile Safari/537.36 XWEB/5075 MMWEBSDK/20230504 MMWEBID/1330 MicroMessenger/8.0.37.2380(0x2800253D) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64",
+			"Browser\n    Name: WeChat\n    Version: 8.0.37.2380\nDevice\n    Model: Redmi Note 11\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 107.0.5304.141\nOS\n    Name: Android\n    Version: 12\nCPU\n    Architecture: arm64",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 13; zh-cn; 2211133C Build/TKQ1.220905.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/89.0.4389.116 MiuiBrowser/17.6.80531 swan-mibrowser",
+			"Browser\n    Name: MIUI Browser\n    Version: 17.6.80531\nDevice\n    Model: 2211133C\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 89.0.4389.116\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; V2183A) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 VivoBrowser/17.4.10.5",
+			"Browser\n    Name: Vivo Browser\n    Version: 17.4.10.5\nDevice\n    Model: V2183A\n    Type: mobile\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 108.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 QQBrowser/12.5.5654.400",
+			"Browser\n    Name: QQBrowser\n    Version: 12.5.5654.400\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 116.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; 22081212C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 HeyTapBrowser/45.10.7.1",
+			"Browser\n    Name: HeyTap\n    Version: 45.10.7.1\nDevice\n    Model: 22081212C\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 108.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; OpenBSD amd64; rv:109.0) Gecko/20100101 Firefox/112.0",
+			"Browser\n    Name: Firefox\n    Version: 112.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: OpenBSD\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; FreeBSD amd64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 119.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 119.0\nOS\n    Name: FreeBSD\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; NetBSD armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 93.0.4577.63\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 93.0.4577.63\nOS\n    Name: NetBSD\n    Version: armv7l\nCPU\n    Architecture: arm",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 110.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 110.0.0.0\nOS\n    Name: Linux\n    Version: i686\nCPU\n    Architecture: ia32",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 116.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 116.0.0.0\nOS\n    Name: Linux\n    Version: aarch64\nCPU\n    Architecture: arm64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux ppc64le; rv:109.0) Gecko/20100101 Firefox/115.0",
+			"Browser\n    Name: Firefox\n    Version: 115.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux sparc64; rv:52.0) Gecko/20100101 Firefox/52.0",
+			"Browser\n    Name: Firefox\n    Version: 52.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 52.0\nOS\n    Name: Linux\n    Version: sparc64\nCPU\n    Architecture: sparc64",
+		},
+		{
+			"Mozilla/5.0 (X11; U; Linux mips64; en-US; rv:1.9.2.13) Gecko/20101206 Firefox/3.6.13",
+			"Browser\n    Name: Firefox\n    Version: 3.6.13\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 1.9.2.13\nOS\n    Name: Linux\n    Version: mips64\nCPU\n    Architecture: mips64",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; PPC Mac OS X 10_4_11) AppleWebKit/533.19.4 (KHTML, like Gecko) Version/4.1.3 Safari/533.19.4",
+			"Browser\n    Name: Safari\n    Version: 4.1.3\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 533.19.4\nOS\n    Name: macOS\n    Version: 10.4.11\nCPU\n    Architecture: ppc",
+		},
+		{
+			"Mozilla/5.0 (PlayStation; PlayStation 5/2.26) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0 Safari/605.1.15",
+			"Browser\n    Name: Safari\n    Version: 13.0\nDevice\n    Model: PlayStation 5\n    Type: console\n    Vendor: Sony\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: PlayStation\n    Version: 5\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (PlayStation 4 3.11) AppleWebKit/537.73 (KHTML, like Gecko)",
+			"Browser\n    Name: WebKit\n    Version: 537.73\nDevice\n    Model: PlayStation 4\n    Type: console\n    Vendor: Sony\nEngine\n    Name: WebKit\n    Version: 537.73\nOS\n    Name: PlayStation\n    Version: 4\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36 Edge/20.02",
+			"Browser\n    Name: Edge\n    Version: 20.02\nDevice\n    Model: Xbox One\n    Type: console\n    Vendor: Microsoft\nEngine\n    Name: EdgeHTML\n    Version: 20.02\nOS\n    Name: Xbox\n    Version: One\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Nintendo Switch; WifiWebAuthApplet) AppleWebKit/606.4 (KHTML, like Gecko) NF/6.0.1.15.4 NintendoBrowser/5.1.0.20393",
+			"Browser\n    Name: WebKit\n    Version: 606.4\nDevice\n    Model: Switch\n    Type: console\n    Vendor: Nintendo\nEngine\n    Name: WebKit\n    Version: 606.4\nOS\n    Name: Nintendo\n    Version: Switch\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) 76.0.3809.146/6.0 TV Safari/537.36",
+			"Browser\n    Name: Safari\n    Version: 1\nDevice\n    Model: unknown\n    Type: smarttv\n    Vendor: unknown\nEngine\n    Name: WebKit\n    Version: 537.36\nOS\n    Name: Tizen\n    Version: 6.0\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36 WebAppManager",
+			"Browser\n    Name: Chrome\n    Version: 79.0.3945.79\nDevice\n    Model: unknown\n    Type: smarttv\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 79.0.3945.79\nOS\n    Name: webOS\n    Version: 6\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 9; AFTKA) AppleWebKit/537.36 (KHTML, like Gecko) Silk/120.4.1 like Chrome/120.0.6099.230 Safari/537.36",
+			"Browser\n    Name: Silk\n    Version: 120.4.1\nDevice\n    Model: KA\n    Type: smarttv\n    Vendor: Amazon\nEngine\n    Name: Blink\n    Version: 120.0.6099.230\nOS\n    Name: Android\n    Version: 9\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; U; Linux armv7l like Android; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/533.2+ Kindle/3.0+",
+			"Browser\n    Name: Kindle\n    Version: 3.0\nDevice\n    Model: 3.0\n    Type: tablet\n    Vendor: Kindle\nEngine\n    Name: WebKit\n    Version: 531.2\nOS\n    Name: Android\n    Version: unknown\nCPU\n    Architecture: arm",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 4.4.3; en-us; KFTHWI Build/KTU84M) AppleWebKit/537.36 (KHTML, like Gecko) Silk/3.68 like Chrome/39.0.2171.93 Safari/537.36",
+			"Browser\n    Name: Silk\n    Version: 3.68\nDevice\n    Model: KFTHWI\n    Type: tablet\n    Vendor: Amazon\nEngine\n    Name: Blink\n    Version: 39.0.2171.93\nOS\n    Name: Android\n    Version: 4.4.3\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (BB10; Touch) AppleWebKit/537.35+ (KHTML, like Gecko) Version/10.3.3.2205 Mobile Safari/537.35+",
+			"Browser\n    Name: Mobile Safari\n    Version: 10.3.3.2205\nDevice\n    Model: Touch\n    Type: mobile\n    Vendor: BlackBerry\nEngine\n    Name: WebKit\n    Version: 537.35\nOS\n    Name: BlackBerry\n    Version: 10\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (PlayBook; U; RIM Tablet OS 2.1.0; en-US) AppleWebKit/536.2+ (KHTML like Gecko) Version/7.2.1.0 Safari/536.2+",
+			"Browser\n    Name: Safari\n    Version: 7.2.1.0\nDevice\n    Model: PlayBook\n    Type: tablet\n    Vendor: RIM\nEngine\n    Name: WebKit\n    Version: 536.2\nOS\n    Name: RIM Tablet OS\n    Version: 2.1.0\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (SymbianOS/9.4; Series60/5.0 NokiaN97-1/20.0.019; Profile/MIDP-2.1 Configuration/CLDC-1.1) AppleWebKit/525 (KHTML, like Gecko) BrowserNG/7.1.18124",
+			"Browser\n    Name: WebKit\n    Version: 525\nDevice\n    Model: N97-1\n    Type: mobile\n    Vendor: Nokia\nEngine\n    Name: WebKit\n    Version: 525\nOS\n    Name: Symbian\n    Version: 9.4\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+			"Browser\n    Name: WebKit\n    Version: 537.36\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: WebKit\n    Version: 537.36\nOS\n    Name: unknown\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Wget/1.21.4",
+			"Browser\n    Name: unknown\n    Version: unknown\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: unknown\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"PostmanRuntime/7.36.0",
+			"Browser\n    Name: unknown\n    Version: unknown\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: unknown\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Dalvik/2.1.0 (Linux; U; Android 13; Pixel 7 Build/TQ3A.230901.001)",
+			"Browser\n    Name: unknown\n    Version: unknown\nDevice\n    Model: Pixel 7\n    Type: mobile\n    Vendor: Google\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Apple-iPhone7C2/1202.466; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3",
+			"Browser\n    Name: Mobile Safari\n    Version: 3.0\nDevice\n    Model: unknown\n    Type: mobile\n    Vendor: unknown\nEngine\n    Name: WebKit\n    Version: 420\nOS\n    Name: macOS\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 11; HUAWEI P smart 2021) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 HuaweiBrowser/11.1.5.310 Mobile Safari/537.36",
+			"Browser\n    Name: Huawei Browser\n    Version: 11.1.5.310\nDevice\n    Model: P smart 2021\n    Type: mobile\n    Vendor: Huawei\nEngine\n    Name: Blink\n    Version: 88.0.4324.93\nOS\n    Name: Android\n    Version: 11\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 12; HarmonyOS; NOH-AN00; HMSCore 6.12.0.302) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.88 HuaweiBrowser/13.0.5.303 Mobile Safari/537.36",
+			"Browser\n    Name: Huawei Browser\n    Version: 13.0.5.303\nDevice\n    Model: NOH-AN00\n    Type: mobile\n    Vendor: Huawei\nEngine\n    Name: Blink\n    Version: 99.0.4844.88\nOS\n    Name: HarmonyOS\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; M2101K6G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 112.0.0.0\nDevice\n    Model: M2101K6G\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 112.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 10; JNY-LX1; HMSCore 6.11.0.302) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.88 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 99.0.4844.88\nDevice\n    Model: JNY-LX1\n    Type: mobile\n    Vendor: Huawei\nEngine\n    Name: Blink\n    Version: 99.0.4844.88\nOS\n    Name: Android\n    Version: 10\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 14; SM-A546B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.230 Mobile Safari/537.36",
+			"Browser\n    Name: Chrome WebView\n    Version: 120.0.6099.230\nDevice\n    Model: SM-A546B\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 120.0.6099.230\nOS\n    Name: Android\n    Version: 14\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; RMX3630) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 120.0.0.0\nDevice\n    Model: RMX3630\n    Type: mobile\n    Vendor: Realme\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; CPH2437) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 119.0.0.0\nDevice\n    Model: CPH2437\n    Type: mobile\n    Vendor: OnePlus\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; Pixel Tablet) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 120.0.0.0\nDevice\n    Model: Pixel Tablet\n    Type: tablet\n    Vendor: Google\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 12; Lenovo TB-X606F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 119.0.0.0\nDevice\n    Model: TB-X606F\n    Type: tablet\n    Vendor: Lenovo\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Android\n    Version: 12\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 9; Redmi Note 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 YaBrowser/23.9.4.90 (lite) Mobile Safari/537.36",
+			"Browser\n    Name: Yandex\n    Version: 23.9.4.90\nDevice\n    Model: Redmi Note 8 Pro\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 115.0.0.0\nOS\n    Name: Android\n    Version: 9\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 YaBrowser/23.9.5.775 Yowser/2.5 Safari/537.36",
+			"Browser\n    Name: Yandex\n    Version: 23.9.5.775\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 117.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Vivaldi/6.5.3206.48",
+			"Browser\n    Name: Vivaldi\n    Version: 6.5.3206.48\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Brave/1.61.109",
+			"Browser\n    Name: Brave\n    Version: 1.61.109\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Whale/3.23.214.17 Safari/537.36",
+			"Browser\n    Name: Whale\n    Version: 3.23.214.17\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5.2 DuckDuckGo/7 Safari/605.1.15",
+			"Browser\n    Name: DuckDuckGo\n    Version: 7\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: macOS\n    Version: 10.15.7\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Avast/115.0.20950.132",
+			"Browser\n    Name: Avast Secure Browser\n    Version: 115.0.20950.132\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 115.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 AVG/114.0.19060.133",
+			"Browser\n    Name: AVG Secure Browser\n    Version: 114.0.19060.133\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 114.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1",
+			"Browser\n    Name: Mobile Chrome\n    Version: 120.0.6099.119\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 17.0\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/120.0.2210.86 Version/16.0 Mobile/15E148 Safari/604.1",
+			"Browser\n    Name: Edge\n    Version: 120.0.2210.86\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 16.5\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36 EdgA/120.0.2210.85",
+			"Browser\n    Name: Edge\n    Version: 120.0.2210.85\nDevice\n    Model: SM-G991B\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 120.0.6099.210\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36 OPR/77.0.4054.277 (Edition Yx GX)",
+			"Browser\n    Name: Opera\n    Version: 77.0.4054.277\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 91.0.4472.164\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15 Ddg/16.6",
+			"Browser\n    Name: DuckDuckGo\n    Version: 16.6\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: macOS\n    Version: 13.5\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0 Waterfox/G5.1.9",
+			"Browser\n    Name: Waterfox\n    Version: G5.1.9\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 LibreWolf/120.0.1-1",
+			"Browser\n    Name: LibreWolf\n    Version: 120.0.1\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; rv:102.0) Gecko/20100101 Goanna/6.5 Firefox/102.0 PaleMoon/32.5.2",
+			"Browser\n    Name: PaleMoon\n    Version: 32.5.2\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Goanna\n    Version: 6.5\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPX/2.1.0",
+			"Browser\n    Name: Opera GX\n    Version: 2.1.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 13; en-US; SM-A515F Build/TP1A.220624.014) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.108 UCBrowser/13.4.0.1306 Mobile Safari/537.36",
+			"Browser\n    Name: UCBrowser\n    Version: 13.4.0.1306\nDevice\n    Model: SM-A515F\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 78.0.3904.108\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 10; MI 8 Build/QKQ1.190828.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/71.0.3578.141 Mobile Safari/537.36 BaiduBoxApp/11.0.5.12",
+			"Browser\n    Name: Baidu\n    Version: 11.0.5.12\nDevice\n    Model: MI 8\n    Type: mobile\n    Vendor: Xiaomi\nEngine\n    Name: Blink\n    Version: 71.0.3578.141\nOS\n    Name: Android\n    Version: 10\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 10; EML-L29 Build/HUAWEIEML-L29; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/76.0.3809.89 Mobile Safari/537.36 T7/11.20 SP-engine/2.16.0 baiduboxapp/11.20.0.14 (Baidu; P1 10)",
+			"Browser\n    Name: Baidu\n    Version: 11.20.0.14\nDevice\n    Model: EML-L29\n    Type: mobile\n    Vendor: Huawei\nEngine\n    Name: Blink\n    Version: 76.0.3809.89\nOS\n    Name: Android\n    Version: 10\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 Maxthon/6.1.2.1000",
+			"Browser\n    Name: Maxthon\n    Version: 6.1.2.1000\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 86.0.4240.198\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Iron Safari/537.36 Chrome/117.0.0.0",
+			"Browser\n    Name: Chrome\n    Version: 117.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 117.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27",
+			"Browser\n    Name: Safari\n    Version: 5.0.4\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: WebKit\n    Version: 533.20.25\nOS\n    Name: Windows\n    Version: 7\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 5.1; rv:52.0) Gecko/20100101 Firefox/52.0 SeaMonkey/2.49.1",
+			"Browser\n    Name: SeaMonkey\n    Version: 2.49.1\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 52.0\nOS\n    Name: Windows\n    Version: XP\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0 Thunderbird/115.5.0",
+			"Browser\n    Name: Firefox\n    Version: 115.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Electron/28.0.0",
+			"Browser\n    Name: Chrome\n    Version: 120.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Slack/4.36.134 Chrome/114.0.5735.289 Electron/25.9.3 Safari/537.36",
+			"Browser\n    Name: Electron\n    Version: 25.9.3\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: Blink\n    Version: 114.0.5735.289\nOS\n    Name: macOS\n    Version: 10.15.7\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; SM-G991B Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.210 Mobile Safari/537.36 Instagram 312.1.0.34.111 Android",
+			"Browser\n    Name: Instagram\n    Version: 312.1.0.34.111\nDevice\n    Model: SM-G991B\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 120.0.6099.210\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21B91 [FBAN/FBIOS;FBAV/442.0.0.23.111;FBBV/545975969]",
+			"Browser\n    Name: Facebook\n    Version: 442.0.0.23.111\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 17.1.1\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UD1A.231105.004; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/119.0.6045.193 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/442.0.0.31.112;]",
+			"Browser\n    Name: Facebook\n    Version: 442.0.0.31.112\nDevice\n    Model: Pixel 8\n    Type: mobile\n    Vendor: Google\nEngine\n    Name: Blink\n    Version: 119.0.6045.193\nOS\n    Name: Android\n    Version: 14\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1 musical_ly_32.5.0 JsSdk/2.0 NetType/WIFI Channel/App Store ByteLocale/en Region/US",
+			"Browser\n    Name: TikTok\n    Version: 32.5.0\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 17.1\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/119.0 Herring/97.1.8280.88",
+			"Browser\n    Name: Firefox\n    Version: 119.0\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: macOS\n    Version: 10.15\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Roku4640X/DVP-7.70 (297.70E04154A)",
+			"Browser\n    Name: unknown\n    Version: unknown\nDevice\n    Model: DVP-7.70\n    Type: smarttv\n    Vendor: Roku\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: unknown\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; AFTB Build/JDQ39) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.173 Mobile Safari/537.22",
+			"Browser\n    Name: Mobile Chrome\n    Version: 25.0.1364.173\nDevice\n    Model: B\n    Type: smarttv\n    Vendor: Amazon\nEngine\n    Name: WebKit\n    Version: 537.22\nOS\n    Name: Android\n    Version: 4.2.2\nCPU\n    Architecture: unknown",
+		},
+		{
+			"AppleTV6,2/11.1",
+			"Browser\n    Name: unknown\n    Version: unknown\nDevice\n    Model: Apple TV\n    Type: smarttv\n    Vendor: Apple\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: unknown\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/119.0.6045.105 Safari/537.36",
+			"Browser\n    Name: Chrome Headless\n    Version: 119.0.6045.105\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 119.0.6045.105\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 PhantomJS/2.1.1",
+			"Browser\n    Name: PhantomJS\n    Version: 2.1.1\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 7.0; SM-T827R4 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.116 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 60.0.3112.116\nDevice\n    Model: SM-T827R\n    Type: tablet\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 60.0.3112.116\nOS\n    Name: Android\n    Version: 7.0\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 2.3.6; en-us; Nexus S Build/GRK39F) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
+			"Browser\n    Name: Android Browser\n    Version: 4.0\nDevice\n    Model: Nexus S\n    Type: mobile\n    Vendor: unknown\nEngine\n    Name: WebKit\n    Version: 533.1\nOS\n    Name: Android\n    Version: 2.3.6\nCPU\n    Architecture: unknown",
+		},
+		{
+			"BlackBerry9700/5.0.0.862 Profile/MIDP-2.1 Configuration/CLDC-1.1 VendorID/331 UNTRUSTED/1.0",
+			"Browser\n    Name: unknown\n    Version: unknown\nDevice\n    Model: 9700\n    Type: mobile\n    Vendor: BlackBerry\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: BlackBerry\n    Version: 5.0.0.862\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Mobile; Windows Phone 8.1; Android 4.0; ARM; Trident/7.0; Touch; rv:11.0; IEMobile/11.0; NOKIA; Lumia 635) like iPhone OS 7_0_3 Mac OS X AppleWebKit/537 (KHTML, like Gecko) Mobile Safari/537",
+			"Browser\n    Name: IEMobile\n    Version: 11.0\nDevice\n    Model: Lumia 635\n    Type: mobile\n    Vendor: Nokia\nEngine\n    Name: Trident\n    Version: 7.0\nOS\n    Name: Windows Phone\n    Version: 8.1\nCPU\n    Architecture: arm",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.53 Safari/537.36 CocCoc/103.0.130",
+			"Browser\n    Name: Chrome\n    Version: 103.0.5060.53\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 103.0.5060.53\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 11_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15 Epiphany/605.1.15",
+			"Browser\n    Name: Epiphany\n    Version: 605.1.15\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: macOS\n    Version: 11.6\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Falkon/23.08.4 Chrome/117.0.0.0 Safari/537.36",
+			"Browser\n    Name: Falkon\n    Version: 23.08.4\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 117.0.0.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0 Floorp/11.5.0",
+			"Browser\n    Name: Firefox\n    Version: 120.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 120.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Samsung Internet\n    Version: 23.0\nDevice\n    Model: K\n    Type: mobile\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 115.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; SM-G991N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Whale/1.0.0.0 Crosswalk/26.115.0.0 Mobile Safari/537.36 NAVER(inapp; search; 2000; 12.10.5)",
+			"Browser\n    Name: NAVER\n    Version: 12.10.5\nDevice\n    Model: SM-G991N\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 115.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; SLBrowser/9.5.0.999 SLBSlide) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Smart Lenovo Browser\n    Version: 9.5.0.999\nDevice\n    Model: SLBrowser/9.5.0.999 SLBSlide\n    Type: mobile\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 109.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.53 Safari/537.36 coc_coc_browser/103.0.130",
+			"Browser\n    Name: Coc Coc\n    Version: 103.0.130\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 103.0.5060.53\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux x86_64) KHTML/5.103 (like Gecko) Konqueror/22.12",
+			"Browser\n    Name: Konqueror\n    Version: 22.12\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: KHTML\n    Version: 5.103\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1 OPT/1.14.3",
+			"Browser\n    Name: Opera Touch\n    Version: 1.14.3\nDevice\n    Model: iPhone\n    Type: mobile\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: iOS\n    Version: 12.0\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; U; Android 4.0.4; en-us; SCH-I535 Build/IMM76D) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Dolfin/2.0 Mobile Safari/534.30",
+			"Browser\n    Name: Dolphin\n    Version: 2.0\nDevice\n    Model: SCH-I535\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: WebKit\n    Version: 534.30\nOS\n    Name: Android\n    Version: 4.0.4\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Coast/5.04.110603 Mobile/15E148 Safari/7534.48.3",
+			"Browser\n    Name: Opera Coast\n    Version: 5.04.110603\nDevice\n    Model: Macintosh\n    Type: unknown\n    Vendor: Apple\nEngine\n    Name: WebKit\n    Version: 605.1.15\nOS\n    Name: macOS\n    Version: 10.15.7\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 MMS/2.1.0",
+			"Browser\n    Name: Opera Neon\n    Version: 2.1.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 120.0.0.0\nOS\n    Name: Windows\n    Version: 10\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36 Focus/122.0",
+			"Browser\n    Name: Firefox Focus\n    Version: 122.0\nDevice\n    Model: SM-G991B\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 5.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 49.0.2623.112\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 49.0.2623.112\nOS\n    Name: Windows\n    Version: XP\nCPU\n    Architecture: amd64",
+		},
+		{
+			"Mozilla/5.0 (Windows NT 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 49.0.2623.112\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 49.0.2623.112\nOS\n    Name: Windows\n    Version: 2000\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/4.0 (compatible; MSIE 6.0; Windows 98)",
+			"Browser\n    Name: IE\n    Version: 6.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: unknown\n    Version: unknown\nOS\n    Name: Windows\n    Version: 98\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.0.0 Safari/537.36 WebAppManager",
+			"Browser\n    Name: Chrome\n    Version: 90.0.0.0\nDevice\n    Model: unknown\n    Type: smarttv\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 90.0.0.0\nOS\n    Name: webOS\n    Version: TV\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux ppc64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+			"Browser\n    Name: Chrome\n    Version: 110.0.0.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Blink\n    Version: 110.0.0.0\nOS\n    Name: Linux\n    Version: unknown\nCPU\n    Architecture: ppc64",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux mips; rv:52.0) Gecko/20100101 Firefox/52.0",
+			"Browser\n    Name: Firefox\n    Version: 52.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 52.0\nOS\n    Name: Linux\n    Version: mips\nCPU\n    Architecture: mips",
+		},
+		{
+			"Mozilla/5.0 (X11; Linux sparc; rv:52.0) Gecko/20100101 Firefox/52.0",
+			"Browser\n    Name: Firefox\n    Version: 52.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 52.0\nOS\n    Name: Linux\n    Version: sparc\nCPU\n    Architecture: sparc",
+		},
+		{
+			"Mozilla/5.0 (X11; OpenBSD armv7l; rv:109.0) Gecko/20100101 Firefox/112.0",
+			"Browser\n    Name: Firefox\n    Version: 112.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: OpenBSD\n    Version: armv7l\nCPU\n    Architecture: arm",
+		},
+		{
+			"Mozilla/5.0 (X11; OpenBSD i386; rv:109.0) Gecko/20100101 Firefox/112.0",
+			"Browser\n    Name: Firefox\n    Version: 112.0\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Gecko\n    Version: 109.0\nOS\n    Name: OpenBSD\n    Version: unknown\nCPU\n    Architecture: ia32",
+		},
+		{
+			"Opera/9.80 (S60; SymbOS) Presto/2.5.25 Version/10.54",
+			"Browser\n    Name: Opera\n    Version: 10.54\nDevice\n    Model: unknown\n    Type: unknown\n    Vendor: unknown\nEngine\n    Name: Presto\n    Version: 2.5.25\nOS\n    Name: Symbian\n    Version: unknown\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (New Nintendo 3DS like iPhone) AppleWebKit/536.30 (KHTML, like Gecko) NX/3.0.0.5.24 Mobile NintendoBrowser/1.12.10169.EU",
+			"Browser\n    Name: WebKit\n    Version: 536.30\nDevice\n    Model: 3DS\n    Type: console\n    Vendor: Nintendo\nEngine\n    Name: WebKit\n    Version: 536.30\nOS\n    Name: Nintendo\n    Version: 3DS\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 9; GT-I9300) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 80.0.3987.132\nDevice\n    Model: GT-I9300\n    Type: mobile\n    Vendor: Samsung\nEngine\n    Name: Blink\n    Version: 80.0.3987.132\nOS\n    Name: Android\n    Version: 9\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; ONEPLUS A6003) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 119.0.0.0\nDevice\n    Model: A6003\n    Type: mobile\n    Vendor: OnePlus\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; CPH2451) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 119.0.0.0\nDevice\n    Model: CPH2451\n    Type: mobile\n    Vendor: OnePlus\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+		{
+			"Mozilla/5.0 (Linux; Android 13; CPH1911) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+			"Browser\n    Name: Mobile Chrome\n    Version: 119.0.0.0\nDevice\n    Model: CPH1911\n    Type: mobile\n    Vendor: OPPO\nEngine\n    Name: Blink\n    Version: 119.0.0.0\nOS\n    Name: Android\n    Version: 13\nCPU\n    Architecture: unknown",
+		},
+	} {
+		got, err := runOp(t, "Parse User Agent", tc.ua)
+		if err != nil {
+			t.Fatalf("corpus %d: %v", i, err)
+		}
+		if got != tc.want {
+			t.Errorf("corpus %d (%s):\ngot  %q\nwant %q", i, tc.ua, got, tc.want)
+		}
 	}
 }

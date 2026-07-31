@@ -2,212 +2,127 @@ package ops
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
-
-	"github.com/dlclark/regexp2"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
-
-// useragent_rules.go is generated from ua-parser-js 2.0.10; see tools/uagen.
-//go:generate go run ../../tools/uagen/gen.go -in ../../tools/uagen/uarules.json -out useragent_rules.go
 
 func init() {
 	core.Register(ParseUserAgent{})
 }
 
-// uaRule is one [regexes → props] entry in a ua-parser-js detection table.
+// uaRule is one detection rule: a pattern and an action that records what a
+// match reveals. The rule tables live in useragent_rules.go.
 type uaRule struct {
-	regexes []*regexp2.Regexp
-	props   []uaProp
+	re *regexp.Regexp
+	// unless vetoes the rule when it also matches, for names that appear
+	// inside unrelated products.
+	unless *regexp.Regexp
+	// apply records what the match reveals; returning false declines the
+	// match so later rules are still tried.
+	apply func(ua string, m []string, res map[string]string) bool
 }
 
-// uaProp describes how a matched capture group maps onto a result property,
-// mirroring ua-parser-js's prop-spec forms (capture / static / fn / replace).
-type uaProp struct {
-	prop   string
-	kind   string // "cap", "static", "fn", "replace"
-	static string
-	// fn forms
-	fn    string // "strMapper", "strTest", "lowerize", "trim"
-	fnMap *uaLookup
-	// strTest form
-	testRe          *regexp2.Regexp
-	ifTrue, ifFalse string
-	// replace form
-	replRe  *regexp2.Regexp
-	repl    string
-	replFn  string
-	replMap *uaLookup
-}
-
-type uaLookupEntry struct {
-	key   string
-	vals  []string
-	undef bool
-}
-
-// uaLookup is an ordered value→key map for strMapper.
-type uaLookup struct {
-	entries   []uaLookupEntry
-	hasStar   bool
-	star      string
-	starUndef bool
-}
-
-// uaTrim strips leading whitespace (ua-parser-js trim, no length limit here).
-func uaTrim(s string) string { return strings.TrimLeft(s, " \t\n\r\f\v") }
-
-// uaStrMapper reverse-maps str to a key whose value equals str (case-insensitive),
-// falling back to the "*" entry, then to str. ok=false means "undefined". Ported
-// from ua-parser-js strMapper (has() is case-insensitive equality). The current
-// generated ruleset happens not to use undef entries, a "?" key or starUndef, so
-// those arms (and the "strMapper not found -> delete" arms in uaApplyProps) are
-// not reached by real user agents; they are exercised directly in the tests.
-func uaStrMapper(str string, m *uaLookup) (string, bool) {
-	for _, e := range m.entries {
-		if e.undef {
-			continue
-		}
-		for _, v := range e.vals {
-			if strings.EqualFold(str, v) {
-				if e.key == "?" { // UNKNOWN
-					return "", false
-				}
-				return e.key, true
-			}
-		}
-	}
-	if m.hasStar {
-		if m.starUndef {
-			return "", false
-		}
-		return m.star, true
-	}
-	return str, true
-}
-
-// uaStrTest returns ifTrue when testRe matches str, else ifFalse.
-func uaStrTest(str string, p uaProp) string {
-	if ok, _ := p.testRe.MatchString(str); ok {
-		return p.ifTrue
-	}
-	return p.ifFalse
-}
-
-// uaApplyProps assigns the matched capture groups to result properties per the
-// rule's prop specs. Ported from ua-parser-js rgxMapper's inner loop.
-func uaApplyProps(res map[string]string, props []uaProp, matched []string) {
-	k := 0
-	for _, p := range props {
-		k++
-		match := ""
-		if k < len(matched) {
-			match = matched[k]
-		}
-		applyUAProp(res, p, match)
-	}
-}
-
-// applyUAProp applies one property extractor to the result map: a capture, a
-// static value, a function transform, or a regex replacement.
-func applyUAProp(res map[string]string, p uaProp, match string) {
-	switch p.kind {
-	case "cap":
-		set(res, p.prop, match)
-	case "static":
-		res[p.prop] = p.static
-	case "fn":
-		applyUAFn(res, p, match)
-	case "replace":
-		applyUAReplace(res, p, match)
-	}
-}
-
-// applyUAFn applies the "fn" property forms (lowerize/trim/strTest/strMapper) to
-// the match.
-func applyUAFn(res map[string]string, p uaProp, match string) {
-	switch p.fn {
-	case "lowerize":
-		res[p.prop] = strings.ToLower(match)
-	case "trim":
-		res[p.prop] = uaTrim(match)
-	case "strTest":
-		if match != "" {
-			res[p.prop] = uaStrTest(match, p)
-		} else {
-			delete(res, p.prop)
-		}
-	case "strMapper":
-		if match != "" {
-			if v, ok := uaStrMapper(match, p.fnMap); ok {
-				res[p.prop] = v
-			} else {
-				delete(res, p.prop)
-			}
-		} else {
-			delete(res, p.prop)
-		}
-	}
-}
-
-// applyUAReplace applies the "replace" property form: a regex replacement,
-// optionally post-processed (lowerize/trim/strMapper). An empty match deletes.
-func applyUAReplace(res map[string]string, p uaProp, match string) {
-	if match == "" {
-		delete(res, p.prop)
-		return
-	}
-	v, _ := p.replRe.Replace(match, p.repl, -1, -1)
-	switch p.replFn {
-	case "lowerize":
-		v = strings.ToLower(v)
-	case "trim":
-		v = uaTrim(v)
-	case "strMapper":
-		if mv, ok := uaStrMapper(v, p.replMap); ok {
-			res[p.prop] = mv
-		} else {
-			delete(res, p.prop)
-		}
-		return
-	}
-	res[p.prop] = v
-}
-
-// set assigns match to prop when truthy, otherwise clears it (JS `x ? x : undefined`).
-func set(res map[string]string, prop, match string) {
-	if match != "" {
-		res[prop] = match
-	} else {
-		delete(res, prop)
-	}
-}
-
-// uaParseCategory runs a detection table against ua and returns the matched
-// properties (first matching rule wins). Ported from ua-parser-js rgxMapper.
+// uaParseCategory runs a category's rules in order; the first accepted match
+// decides and later rules are not consulted.
 func uaParseCategory(ua string, rules []uaRule) map[string]string {
 	res := map[string]string{}
-	for _, rule := range rules {
-		for _, re := range rule.regexes {
-			m, _ := re.FindStringMatch(ua)
-			if m == nil {
-				continue
-			}
-			groups := m.Groups()
-			matched := make([]string, len(groups))
-			for gi := range groups {
-				matched[gi] = groups[gi].String()
-			}
-			uaApplyProps(res, rule.props, matched)
+	for _, r := range rules {
+		if r.unless != nil && r.unless.MatchString(ua) {
+			continue
+		}
+		if m := r.re.FindStringSubmatch(ua); m != nil && r.apply(ua, m, res) {
 			return res
 		}
 	}
 	return res
 }
 
-// ParseUserAgent parses a User-Agent string into browser/device/engine/os/cpu
-// details, ported from ua-parser-js 2.0.10's default detection tables.
+// uaCap returns the first non-empty capture group, so alternations can bind
+// the same meaning to different groups.
+func uaCap(m []string) string {
+	for _, g := range m[1:] {
+		if g != "" {
+			return g
+		}
+	}
+	return ""
+}
+
+// uaSetVersion records a version if there is one; an empty capture stays
+// unset so it renders as unknown.
+func uaSetVersion(res map[string]string, v string) {
+	if v != "" {
+		res["version"] = v
+	}
+}
+
+// uaDots turns the underscore-separated versions used inside parenthesised
+// system strings ("10_15_7") into dotted form.
+func uaDots(v string) string { return strings.ReplaceAll(v, "_", ".") }
+
+// uaNamed builds the common browser rule: a static name with the version in
+// the first non-empty capture group.
+func uaNamed(name, pattern string) uaRule {
+	return uaRule{re: regexp.MustCompile("(?i)" + pattern), apply: func(_ string, m []string, res map[string]string) bool {
+		res["name"] = name
+		uaSetVersion(res, uaCap(m))
+		return true
+	}}
+}
+
+// uaCapNamed builds the rule form that keeps the input's own spelling of the
+// name: group 1 is the name, group 2 the version.
+func uaCapNamed(pattern string) uaRule {
+	return uaRule{re: regexp.MustCompile("(?i)" + pattern), apply: func(_ string, m []string, res map[string]string) bool {
+		res["name"] = m[1]
+		uaSetVersion(res, m[2])
+		return true
+	}}
+}
+
+// uaOSNamed builds the common OS rule: a static name with the version in the
+// first non-empty capture group, underscores dotted.
+func uaOSNamed(name, pattern string) uaRule {
+	return uaRule{re: regexp.MustCompile("(?i)" + pattern), apply: func(_ string, m []string, res map[string]string) bool {
+		res["name"] = name
+		uaSetVersion(res, uaDots(uaCap(m)))
+		return true
+	}}
+}
+
+// uaDevice builds a device rule; the model is the first non-empty capture
+// group unless a static model is given, and empty fields stay unset.
+func uaDevice(pattern, model, vendor, devType string) uaRule {
+	return uaRule{re: regexp.MustCompile("(?i)" + pattern), apply: func(_ string, m []string, res map[string]string) bool {
+		mdl := model
+		if mdl == "" {
+			mdl = uaCap(m)
+		}
+		if mdl != "" {
+			res["model"] = mdl
+		}
+		if vendor != "" {
+			res["vendor"] = vendor
+		}
+		if devType != "" {
+			res["type"] = devType
+		}
+		return true
+	}}
+}
+
+// uaField returns res[key] or "unknown".
+func uaField(res map[string]string, key string) string {
+	if v, ok := res[key]; ok && v != "" {
+		return v
+	}
+	return "unknown"
+}
+
+// ParseUserAgent identifies the browser, device, engine, OS and CPU described
+// by a user-agent string. Ported from CyberChef ParseUserAgent.mjs.
 type ParseUserAgent struct{}
 
 // Meta returns the operation metadata.
@@ -225,22 +140,14 @@ func (ParseUserAgent) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseUserAgent) Args() []core.ArgDef { return nil }
 
-// field returns res[key] or "unknown".
-func uaField(res map[string]string, key string) string {
-	if v, ok := res[key]; ok && v != "" {
-		return v
-	}
-	return "unknown"
-}
-
-// Run parses the user agent. Ported from CyberChef ParseUserAgent.mjs.
+// Run parses the user agent.
 func (ParseUserAgent) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ua := in.String()
-	browser := uaParseCategory(ua, uaTables["browser"])
-	cpu := uaParseCategory(ua, uaTables["cpu"])
-	device := uaParseCategory(ua, uaTables["device"])
-	engine := uaParseCategory(ua, uaTables["engine"])
-	os := uaParseCategory(ua, uaTables["os"])
+	browser := uaParseCategory(ua, uaBrowserRules)
+	cpu := uaParseCategory(ua, uaCPURules)
+	device := uaParseCategory(ua, uaDeviceRules)
+	engine := uaParseCategory(ua, uaEngineRules)
+	os := uaParseCategory(ua, uaOSRules)
 
 	out := fmt.Sprintf(`Browser
     Name: %s

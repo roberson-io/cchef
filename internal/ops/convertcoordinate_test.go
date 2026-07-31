@@ -223,6 +223,11 @@ func TestConvertCoordinateOutputBranches(t *testing.T) {
 		// UTM output for a southern-hemisphere coordinate (hemi = "S").
 		cc("utm out southern hemisphere", "-33.8688, 151.2093", "56 S 334368.634 6250948.345,",
 			"Decimal Degrees", "Auto", "Universal Transverse Mercator", "Comma", "None", 3.0),
+		// A single-digit UTM zone is zero-padded, as CyberChef prints it.
+		cc("utm out single-digit zone", "0, -180", "01 N 166021.443 0.000,",
+			"Decimal Degrees", "Auto", "Universal Transverse Mercator", "Comma", "None", 3.0),
+		cc("utm out two-digit zone", "6.428, -81.7", "17 N 422592.073 710569.936,",
+			"Decimal Degrees", "Auto", "Universal Transverse Mercator", "Comma", "None", 3.0),
 		// A leading S/W direction negates the value (Degrees-family input).
 		cc("direction negates value", "S51.5074 W0.1278", "-51.5074°,-0.1278°,",
 			"Decimal Degrees", "Direction Preceding", "Decimal Degrees", "Comma", "None", 4.0),

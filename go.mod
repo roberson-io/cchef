@@ -11,7 +11,6 @@ require (
 	github.com/elobuff/goamf v0.0.0-20140202161438-1508c33821c7
 	github.com/evanw/esbuild v0.28.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/im7mortal/UTM v1.4.0
 	github.com/itchyny/gojq v0.12.19
 	github.com/klaus-tockloth/coco v0.2.0
 	github.com/mmcloughlin/geohash v0.10.0

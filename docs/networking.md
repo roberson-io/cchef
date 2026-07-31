@@ -807,10 +807,10 @@ Hash:		#frag
 
 ## Parse User Agent
 
-Identifies the browser, device, engine, OS and CPU from a User-Agent string. This
-is a faithful port of `ua-parser-js` 2.0.10's default detection ruleset (the exact
-version CyberChef uses) — the rule tables in `useragent_rules.go` are generated
-from that library.
+Identifies the browser, device, engine, OS and CPU from a User-Agent string. The
+detection rules are cchef's own, derived from the structure of real user-agent
+strings and verified to give the same answers as CyberChef across a broad corpus
+of real-world agents; very obscure agents may classify differently.
 
 **Simple example**
 

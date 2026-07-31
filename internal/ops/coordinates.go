@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/im7mortal/UTM"
 	"github.com/klaus-tockloth/coco"
 	"github.com/mmcloughlin/geohash"
 	"github.com/wroge/wgs84"
@@ -586,7 +585,7 @@ func formatCoordinateOutput(outFormat string, lat, lon float64, precision int) (
 		}
 		return grid, "", nil
 	case "Universal Transverse Mercator":
-		e, n, zone, _, err := UTM.FromLatLon(lat, lon, lat >= 0)
+		e, n, zone, err := utmFromLatLon(lat, lon)
 		if err != nil {
 			return "", "", fmt.Errorf("could not convert co-ordinates to UTM: %w", err)
 		}
@@ -594,7 +593,7 @@ func formatCoordinateOutput(outFormat string, lat, lon float64, precision int) (
 		if lat < 0 {
 			hemi = "S"
 		}
-		return fmt.Sprintf("%d %s %s %s", zone, hemi,
+		return fmt.Sprintf("%02d %s %s %s", zone, hemi,
 			strconv.FormatFloat(e, 'f', precision, 64), strconv.FormatFloat(n, 'f', precision, 64)), "", nil
 	default:
 		// outFormat is validated against coordFormats by the arg layer, so every
@@ -639,7 +638,7 @@ func utmParse(input string) (float64, float64, error) {
 	if err1 != nil || err2 != nil {
 		return 0, 0, fmt.Errorf("invalid UTM easting/northing")
 	}
-	lat, lon, err := UTM.ToLatLon(e, n, zone, "", hemi == "N")
+	lat, lon, err := utmToLatLon(e, n, zone, hemi == "N")
 	if err != nil {
 		return 0, 0, fmt.Errorf("invalid UTM co-ordinate: %w", err)
 	}

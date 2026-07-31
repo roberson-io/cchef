@@ -154,7 +154,6 @@ to refresh it:
   named character reference set.
 - [`tools/magicgen`](tools/magicgen/) — the Magic operation's detection checks
   and language byte-frequency profiles.
-- [`tools/uagen`](tools/uagen/) — user agent detection rules.
 - [`tools/cpgen`](tools/cpgen/) — code page tables for the text encodings.
 
 ### Dependencies
@@ -182,7 +181,7 @@ to refresh it:
 | [`elobuff/goamf`](https://github.com/elobuff/goamf) | AMF encode and decode |
 | [`ulikunitz/xz`](https://github.com/ulikunitz/xz) | The LZMA codec |
 | [`sergi/go-diff`](https://github.com/sergi/go-diff) | The Diff operation |
-| [`mmcloughlin/geohash`](https://github.com/mmcloughlin/geohash), [`wroge/wgs84`](https://github.com/wroge/wgs84), [`klaus-tockloth/coco`](https://github.com/klaus-tockloth/coco), [`im7mortal/UTM`](https://github.com/im7mortal/UTM) | Coordinate formats and conversion |
+| [`mmcloughlin/geohash`](https://github.com/mmcloughlin/geohash), [`wroge/wgs84`](https://github.com/wroge/wgs84), [`klaus-tockloth/coco`](https://github.com/klaus-tockloth/coco) | Coordinate formats and conversion |
 
 Ciphers, hashes, compression formats and file parsers are written from scratch
 rather than pulled in, so the binary stays self-contained and the behavior stays

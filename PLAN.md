@@ -59,20 +59,16 @@ linked in); and **GOST**, **Ascon**, **TEA/XTEA/XXTEA**, **PRESENT**,
   ~13 MB. A clear error is returned when it is absent, and nothing else is
   affected.
 
-### License problems to resolve before going public
+### License problems (resolved)
 
-Two dependencies are incompatible with distributing under Apache 2.0. Both were
-already on the reduction list for supply-chain reasons; they now have a harder
-reason.
-
-- [ ] **`github.com/im7mortal/UTM` is GPL-3.0** and is imported by
-  `internal/ops/coordinates.go`, so it links into the binary. Replacing it means
-  implementing transverse Mercator conversion from the published formulas.
-  `klaus-tockloth/coco` (MGRS) alongside it is MIT and can stay.
-- [ ] **`ua-parser-js` is AGPL-3.0-or-later**, and
-  `internal/ops/useragent_rules.go` is a transcription of 210 of its detection
-  rules. Note the difference from CyberChef's position: CyberChef *depends* on
-  the npm package, whereas cchef copies the tables into its own source.
+Two dependencies were incompatible with distributing under Apache 2.0; both
+have been replaced. The GPL-3.0 `im7mortal/UTM` module was replaced by
+`internal/ops/utm.go`, a port of the MIT-licensed `utm` Python package. The
+AGPL-3.0 ua-parser-js detection tables that had been transcribed into
+`internal/ops/useragent_rules.go` were replaced by hand-derived rules built
+from the structure of real user-agent strings and black-box probing of
+CyberChef's observed output; parity was verified over a 187-string corpus and
+against the live oracle.
 
 ### Other planned reimplementations
 
@@ -256,7 +252,6 @@ above is also open.
 
 ### Before going public
 
-- **Resolve the two license problems** (see Dependencies).
 - **Fuzz the from-scratch parsers.** Go's native fuzzing (`go test -fuzz`),
   applied per package rather than to the built binary, which would only add
   process overhead around the same code. The high-value targets are the parsers

@@ -35,8 +35,8 @@ The following third-party material is included in this repository:
    portions are incorporated into source code, those portions are licensed
    under the BSD 3-Clause License. See tools/htmlentgen/entity.txt.
 
-4. User agent detection rules — internal/ops/useragent_rules.go
+4. UTM coordinate conversion — internal/ops/utm.go
 
-   Transcribed from the detection tables in ua-parser-js by Faisal Salman
-   (https://github.com/faisalman/ua-parser-js), version 2.0.10, which is
-   licensed AGPL-3.0-or-later. See tools/uagen/README.md.
+   Ported from the utm Python package by Tobias Bieniek
+   (https://github.com/Turbo87/utm), Copyright (c) 2012-2017 Tobias Bieniek,
+   licensed under the MIT License.

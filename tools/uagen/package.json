@@ -1,9 +1,0 @@
-{
-  "name": "uagen",
-  "private": true,
-  "description": "Extracts ua-parser-js default rule tables for the cchef Parse User Agent operation.",
-  "type": "module",
-  "dependencies": {
-    "ua-parser-js": "2.0.10"
-  }
-}
