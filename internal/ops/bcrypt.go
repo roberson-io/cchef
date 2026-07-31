@@ -53,18 +53,15 @@ func (Bcrypt) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (Bcrypt) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: 10}}
+	minRounds, maxRounds := float64(bcryptMinRounds), float64(bcryptMaxRounds)
+	return []core.ArgDef{
+		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: 10, Min: &minRounds, Max: &maxRounds},
+	}
 }
 
 // Run generates a bcrypt hash. Ported from CyberChef Bcrypt.mjs (bcryptjs).
 func (Bcrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	// bcryptjs genSalt clamps the cost to [4, 31] rather than erroring.
 	rounds := int(args[0].(float64))
-	if rounds < 4 {
-		rounds = 4
-	} else if rounds > 31 {
-		rounds = 31
-	}
 
 	hash, err := bcryptGenerate(bcryptTruncate(in.Bytes()), rounds)
 	if err != nil {
@@ -197,3 +194,11 @@ func bcryptGetRounds(hash string) string {
 	}
 	return "NaN"
 }
+
+// bcrypt's cost range. bcryptjs, and so CyberChef, silently clamps a value
+// outside it and hashes at the clamped cost; declaring the range means a
+// mistyped cost is refused rather than quietly becoming a different one.
+const (
+	bcryptMinRounds = 4
+	bcryptMaxRounds = 31
+)

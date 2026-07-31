@@ -117,10 +117,12 @@ func TestBcryptHash(t *testing.T) {
 	}
 }
 
-// Rounds outside [4, 31] are clamped (matching bcryptjs genSalt), not rejected.
-// A real cost of 31 is infeasible to run, so the generation call is stubbed to
-// capture the (clamped) cost and confirm the $2b$ prefix rewrite.
-func TestBcryptHashRoundsClamp(t *testing.T) {
+// The cost reaches bcrypt exactly as given, across the whole accepted range.
+// bcryptjs clamps a value outside [4, 31] and hashes at the clamped cost; cchef
+// refuses it instead (see TestBcryptRoundsBound), so nothing here is clamped. A
+// real cost of 31 is infeasible to run, so the generation call is stubbed to
+// capture the cost and confirm the $2b$ prefix rewrite.
+func TestBcryptHashCostPassedThrough(t *testing.T) {
 	orig := bcryptGenerate
 	defer func() { bcryptGenerate = orig }()
 
@@ -135,8 +137,8 @@ func TestBcryptHashRoundsClamp(t *testing.T) {
 		wantCost int
 		prefix   string
 	}{
-		{3, 4, "$2b$04$"},
-		{40, 31, "$2b$31$"},
+		{4, 4, "$2b$04$"},
+		{31, 31, "$2b$31$"},
 		{10, 10, "$2b$10$"},
 	} {
 		out, err := runOp(t, "Bcrypt", "pw", c.rounds)
@@ -144,7 +146,7 @@ func TestBcryptHashRoundsClamp(t *testing.T) {
 			t.Fatalf("Bcrypt rounds=%d: %v", c.rounds, err)
 		}
 		if gotCost != c.wantCost {
-			t.Fatalf("rounds=%d: clamped cost %d, want %d", c.rounds, gotCost, c.wantCost)
+			t.Fatalf("rounds=%d: cost reached bcrypt as %d, want %d", c.rounds, gotCost, c.wantCost)
 		}
 		if out[:7] != c.prefix {
 			t.Fatalf("rounds=%d: got prefix %q, want %q", c.rounds, out[:7], c.prefix)
@@ -185,5 +187,33 @@ func TestBcryptHashGenerateError(t *testing.T) {
 
 	if _, err := runOp(t, "Bcrypt", "pw", 10); err == nil {
 		t.Fatal("expected generation error to be surfaced")
+	}
+}
+
+// TestBcryptRoundsBound covers the cost range. bcryptjs, and so CyberChef,
+// silently clamps anything outside [4, 31] and hashes at the clamped cost
+// without saying so; cchef refuses the value instead.
+func TestBcryptRoundsBound(t *testing.T) {
+	op, _ := core.Default.Get("Bcrypt")
+	for _, tc := range []struct {
+		rounds float64
+		want   string
+	}{
+		{3, "Rounds must be greater than or equal to 4."},
+		{32, "Rounds must be less than or equal to 31."},
+	} {
+		_, err := core.CoerceArgs(op.Args(), []any{tc.rounds})
+		if err == nil {
+			t.Fatalf("%v rounds was accepted", tc.rounds)
+		}
+		if err.Error() != tc.want {
+			t.Errorf("got %q, want %q", err.Error(), tc.want)
+		}
+	}
+	// Both ends of the range are still accepted.
+	for _, r := range []float64{4, 31} {
+		if _, err := core.CoerceArgs(op.Args(), []any{r}); err != nil {
+			t.Errorf("%v rounds should be accepted: %v", r, err)
+		}
 	}
 }

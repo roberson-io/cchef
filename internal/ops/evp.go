@@ -53,10 +53,11 @@ func (DeriveEVPKey) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (DeriveEVPKey) Args() []core.ArgDef {
+	maxKeySize, maxIterations := float64(kdfMaxKeySize), float64(kdfMaxIterations)
 	return []core.ArgDef{
 		{Name: "Passphrase", Type: core.ArgToggleString, Value: "", ToggleValues: []string{"UTF8", "Latin1", "Hex", "Base64"}},
-		{Name: "Key size", Type: core.ArgNumber, Integer: true, Value: float64(128)},
-		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: float64(1)},
+		{Name: "Key size", Type: core.ArgNumber, Integer: true, Value: float64(128), Max: &maxKeySize},
+		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: float64(1), Max: &maxIterations},
 		{Name: "Hashing function", Type: core.ArgOption, Value: evpHashOptions},
 		{Name: "Salt", Type: core.ArgToggleString, Value: "", ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64"}},
 	}

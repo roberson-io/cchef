@@ -713,8 +713,8 @@ Reference: [Bcrypt](https://wikipedia.org/wiki/Bcrypt)
 
 Hashes the input password with bcrypt, an adaptive password-hashing function
 built on the Blowfish cipher. A random salt is generated each run, so the output
-differs every time (verify a password with **Bcrypt compare**). The cost is
-clamped to the 4–31 range and the output uses the `$2b$` version.
+differs every time (verify a password with **Bcrypt compare**). The cost must be
+in bcrypt's 4–31 range and the output uses the `$2b$` version.
 
 This operation is also listed under [Hashing](hashing.md).
 
@@ -722,7 +722,7 @@ This operation is also listed under [Hashing](hashing.md).
 
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--rounds` | number | `10` | Cost (log2 of the iteration count); clamped to 4–31. |
+| `--rounds` | number | `10` | Cost (log2 of the iteration count), 4 to 31. |
 
 **Simple example**
 
@@ -1347,8 +1347,8 @@ an empty salt means no salt. That makes the output fully deterministic.
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--passphrase` / `--passphrase-type` | toggleString | (empty) / `UTF8` | The passphrase and how to decode it (`UTF8`, `Latin1`, `Hex`, `Base64`). |
-| `--key-size` | number | `128` | Derived key size in **bits**. |
-| `--iterations` | number | `1` | Hash iterations per block. |
+| `--key-size` | number | `128` | Derived key size in **bits**, up to 8192. |
+| `--iterations` | number | `1` | Hash iterations per block, up to 10000000. |
 | `--hashing-function` | option | `SHA1` | `SHA1`, `SHA256`, `SHA384`, `SHA512` or `MD5`. |
 | `--salt` / `--salt-type` | toggleString | (empty) / `Hex` | The salt and how to decode it (`Hex`, `UTF8`, `Latin1`, `Base64`). |
 
@@ -1462,8 +1462,8 @@ results.
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--passphrase` / `--passphrase-type` | toggleString | (empty) / `UTF8` | The passphrase and how to decode it (`UTF8`, `Latin1`, `Hex`, `Base64`). |
-| `--key-size` | number | `128` | Derived key size in **bits**. |
-| `--iterations` | number | `1` | PBKDF2 iteration count. |
+| `--key-size` | number | `128` | Derived key size in **bits**, up to 8192. |
+| `--iterations` | number | `1` | PBKDF2 iteration count, up to 10000000. |
 | `--hashing-function` | option | `SHA1` | PRF hash: `SHA1`, `SHA256`, `SHA384`, `SHA512` or `MD5`. |
 | `--salt` / `--salt-type` | toggleString | (empty) / `Hex` | The salt and how to decode it (`Hex`, `UTF8`, `Latin1`, `Base64`); empty means a random salt. |
 
@@ -3347,7 +3347,7 @@ parallelization. This is also listed under [Hashing](hashing.md).
 | `--iterations-n` | number | `16384` | CPU/memory cost `N` (must be a power of two). |
 | `--memory-factor-r` | number | `8` | Block size factor `r`. |
 | `--parallelization-factor-p` | number | `1` | Parallelization factor `p`. |
-| `--key-length` | number | `64` | Length of the derived key in bytes. |
+| `--key-length` | number | `64` | Length of the derived key in bytes, up to 4096. |
 
 **Simple example**
 

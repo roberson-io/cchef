@@ -51,10 +51,11 @@ func (DerivePBKDF2Key) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (DerivePBKDF2Key) Args() []core.ArgDef {
+	maxKeySize, maxIterations := float64(kdfMaxKeySize), float64(kdfMaxIterations)
 	return []core.ArgDef{
 		{Name: "Passphrase", Type: core.ArgToggleString, Value: "", ToggleValues: []string{"UTF8", "Latin1", "Hex", "Base64"}},
-		{Name: "Key size", Type: core.ArgNumber, Integer: true, Value: float64(128)},
-		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: float64(1)},
+		{Name: "Key size", Type: core.ArgNumber, Integer: true, Value: float64(128), Max: &maxKeySize},
+		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: float64(1), Max: &maxIterations},
 		{Name: "Hashing function", Type: core.ArgOption, Value: pbkdf2HashOptions},
 		{Name: "Salt", Type: core.ArgToggleString, Value: "", ToggleValues: []string{"Hex", "UTF8", "Latin1", "Base64"}},
 	}
@@ -103,3 +104,12 @@ func (DerivePBKDF2Key) Run(_ *core.Dish, args []any) (*core.Dish, error) {
 	}
 	return core.NewDish([]byte(hex.EncodeToString(key)), core.TypeString), nil
 }
+
+// Upper limits shared by the two password-based key derivations. CyberChef
+// leaves both open, so a mistyped iteration count runs until the process is
+// killed. Both are far above real use: OWASP's 2023 guidance is 600,000
+// PBKDF2-HMAC-SHA256 iterations, and a derived key is normally 128 to 512 bits.
+const (
+	kdfMaxKeySize    = 8192     // bits
+	kdfMaxIterations = 10000000 //nolint:revive // 10 million, written out to match the message text
+)

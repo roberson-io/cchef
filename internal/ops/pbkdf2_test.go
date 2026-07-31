@@ -178,3 +178,31 @@ func TestDerivePBKDF2Errors(t *testing.T) {
 		t.Fatal("expected error for invalid Base64 salt")
 	}
 }
+
+// TestPBKDF2ResourceBounds covers the caps on the two parameters that size the
+// work. CyberChef leaves both open, so a mistyped iteration count runs until
+// the process is killed.
+func TestPBKDF2ResourceBounds(t *testing.T) {
+	op, _ := core.Default.Get("Derive PBKDF2 key")
+	for _, tc := range []struct {
+		name  string
+		index int
+		value float64
+		want  string
+	}{
+		{"key size", 1, kdfMaxKeySize + 1, "Key size must be less than or equal to 8192."},
+		{"iterations", 2, kdfMaxIterations + 1, "Iterations must be less than or equal to 10000000."},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			args := core.DefaultArgs(op.Args())
+			args[tc.index] = tc.value
+			_, err := core.CoerceArgs(op.Args(), args)
+			if err == nil {
+				t.Fatalf("%v was accepted", tc.value)
+			}
+			if err.Error() != tc.want {
+				t.Errorf("got %q, want %q", err.Error(), tc.want)
+			}
+		})
+	}
+}

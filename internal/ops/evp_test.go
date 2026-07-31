@@ -113,3 +113,26 @@ func TestDeriveEVPKeyErrors(t *testing.T) {
 		t.Fatal("expected error for invalid Base64 salt")
 	}
 }
+
+// TestEVPResourceBounds covers the same caps on Derive EVP key.
+func TestEVPResourceBounds(t *testing.T) {
+	op, _ := core.Default.Get("Derive EVP key")
+	for _, tc := range []struct {
+		index int
+		value float64
+		want  string
+	}{
+		{1, kdfMaxKeySize + 1, "Key size must be less than or equal to 8192."},
+		{2, kdfMaxIterations + 1, "Iterations must be less than or equal to 10000000."},
+	} {
+		args := core.DefaultArgs(op.Args())
+		args[tc.index] = tc.value
+		_, err := core.CoerceArgs(op.Args(), args)
+		if err == nil {
+			t.Fatalf("%v was accepted", tc.value)
+		}
+		if err.Error() != tc.want {
+			t.Errorf("got %q, want %q", err.Error(), tc.want)
+		}
+	}
+}

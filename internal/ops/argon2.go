@@ -46,16 +46,31 @@ func (Argon2) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (Argon2) Args() []core.ArgDef {
+	maxIter, maxMem := float64(argon2MaxIterations), float64(argon2MaxMemory)
+	maxLanes, maxLen := float64(argon2MaxParallelism), float64(argon2MaxHashLen)
 	return []core.ArgDef{
 		{Name: "Salt", Type: core.ArgToggleString, Value: "somesalt", ToggleValues: []string{"UTF8", "Hex", "Base64", "Latin1"}},
-		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: 3},
-		{Name: "Memory (KiB)", Type: core.ArgNumber, Integer: true, Value: 4096},
-		{Name: "Parallelism", Type: core.ArgNumber, Integer: true, Value: 1},
-		{Name: "Hash length (bytes)", Type: core.ArgNumber, Integer: true, Value: 32},
+		{Name: "Iterations", Type: core.ArgNumber, Integer: true, Value: 3, Max: &maxIter},
+		{Name: "Memory (KiB)", Type: core.ArgNumber, Integer: true, Value: 4096, Max: &maxMem},
+		{Name: "Parallelism", Type: core.ArgNumber, Integer: true, Value: 1, Max: &maxLanes},
+		{Name: "Hash length (bytes)", Type: core.ArgNumber, Integer: true, Value: 32, Max: &maxLen},
 		{Name: "Type", Type: core.ArgOption, Value: []string{"Argon2i", "Argon2d", "Argon2id"}},
 		{Name: "Output format", Type: core.ArgOption, Value: []string{"Encoded hash", "Hex hash", "Raw hash"}},
 	}
 }
+
+// Upper limits on the parameters that size the work. CyberChef leaves all four
+// open. The lane count is the one the algorithm forces: the backend takes it as
+// a uint8, so a larger value used to wrap around and hash at a different cost
+// than the one reported. The rest are set far above any published
+// recommendation — RFC 9106 suggests 1 to 3 iterations, and libsodium's most
+// expensive preset asks for 1 GiB.
+const (
+	argon2MaxIterations  = 4096
+	argon2MaxMemory      = 2 * 1024 * 1024 // KiB, so 2 GiB
+	argon2MaxParallelism = 255
+	argon2MaxHashLen     = 4096
+)
 
 // Run derives the Argon2 hash in the requested output format.
 func (Argon2) Run(in *core.Dish, args []any) (*core.Dish, error) {
@@ -95,9 +110,9 @@ func (Argon2) Run(in *core.Dish, args []any) (*core.Dish, error) {
 func argon2Compute(typ string, password, salt []byte, time, memory, parallelism, hashLen uint32) []byte {
 	switch typ {
 	case "Argon2i":
-		return argon2.Key(password, salt, time, memory, uint8(parallelism), hashLen) // #nosec G115 -- parallelism validated >= 1 and small
+		return argon2.Key(password, salt, time, memory, uint8(parallelism), hashLen) // #nosec G115 -- the argument declares a maximum of argon2MaxParallelism (255)
 	case "Argon2id":
-		return argon2.IDKey(password, salt, time, memory, uint8(parallelism), hashLen) // #nosec G115 -- parallelism validated >= 1 and small
+		return argon2.IDKey(password, salt, time, memory, uint8(parallelism), hashLen) // #nosec G115 -- the argument declares a maximum of argon2MaxParallelism (255)
 	default: // Argon2d
 		return argon2dRaw(password, salt, time, memory, parallelism, hashLen)
 	}

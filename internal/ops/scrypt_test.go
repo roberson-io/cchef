@@ -101,3 +101,19 @@ func TestScryptPowerOfTwoBoundary(t *testing.T) {
 		t.Fatalf("N=1: got %v, want error mentioning N must be > 1", err)
 	}
 }
+
+// TestScryptKeyLengthBound covers the cap on the output length. N and r are
+// already bounded by the parameter check ported from scryptsy; the key length
+// was not.
+func TestScryptKeyLengthBound(t *testing.T) {
+	op, _ := core.Default.Get("Scrypt")
+	args := core.DefaultArgs(op.Args())
+	args[4] = scryptMaxKeyLen + 1
+	_, err := core.CoerceArgs(op.Args(), args)
+	if err == nil {
+		t.Fatal("an oversized key length was accepted")
+	}
+	if want := "Key length must be less than or equal to 4096."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
+}

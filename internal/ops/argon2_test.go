@@ -168,3 +168,86 @@ func TestArgon2Compare(t *testing.T) {
 		},
 	})
 }
+
+// TestArgon2ParallelismBound covers the upper bound on lanes. The backend takes
+// the lane count as a uint8, so without it 256 became 0 and panicked, and 260
+// became 4 — computing a different digest while labelling the output p=260.
+func TestArgon2ParallelismBound(t *testing.T) {
+	op, _ := core.Default.Get("Argon2")
+	args := core.DefaultArgs(op.Args())
+	args[3] = float64(256)
+	_, err := core.CoerceArgs(op.Args(), args)
+	if err == nil {
+		t.Fatal("256 lanes was accepted")
+	}
+	if want := "Parallelism must be less than or equal to 255."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
+	// The last accepted value still works.
+	args[3] = float64(255)
+	if _, err := core.CoerceArgs(op.Args(), args); err != nil {
+		t.Errorf("255 lanes should be accepted: %v", err)
+	}
+}
+
+// TestArgon2ResourceBounds covers the caps on the parameters that size the
+// work. CyberChef leaves all four open, so a mistyped memory cost allocates
+// until the process is killed.
+func TestArgon2ResourceBounds(t *testing.T) {
+	op, _ := core.Default.Get("Argon2")
+	for _, tc := range []struct {
+		name  string
+		index int
+		value float64
+		want  string
+	}{
+		{"iterations", 1, argon2MaxIterations + 1, "Iterations must be less than or equal to 4096."},
+		{"memory", 2, argon2MaxMemory + 1, "Memory (KiB) must be less than or equal to 2097152."},
+		{"hash length", 4, argon2MaxHashLen + 1, "Hash length (bytes) must be less than or equal to 4096."},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			args := core.DefaultArgs(op.Args())
+			args[tc.index] = tc.value
+			_, err := core.CoerceArgs(op.Args(), args)
+			if err == nil {
+				t.Fatalf("%v was accepted", tc.value)
+			}
+			if err.Error() != tc.want {
+				t.Errorf("got %q, want %q", err.Error(), tc.want)
+			}
+		})
+	}
+}
+
+// TestArgon2LowerBoundsStayWithTheOperation checks that the minimums still come
+// from the operation, so CyberChef's own wording survives.
+func TestArgon2LowerBoundsStayWithTheOperation(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		args []any
+		want string
+	}{
+		{
+			"time cost",
+			[]any{core.ToggleString{Value: "somesalt", Option: "UTF8"}, 0, 4096, 1, 32, "Argon2i", "Encoded hash"},
+			"Error: Time cost is too small",
+		},
+		{
+			"too few lanes",
+			[]any{core.ToggleString{Value: "somesalt", Option: "UTF8"}, 1, 4096, 0, 32, "Argon2i", "Encoded hash"},
+			"Error: Too few lanes",
+		},
+		{
+			"output too short",
+			[]any{core.ToggleString{Value: "somesalt", Option: "UTF8"}, 1, 4096, 1, 3, "Argon2i", "Encoded hash"},
+			"Error: Output is too short",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := runOp(t, "Argon2", "password", tc.args...)
+			if err == nil || err.Error() != tc.want {
+				t.Errorf("got %v, want %q", err, tc.want)
+			}
+		})
+	}
+}

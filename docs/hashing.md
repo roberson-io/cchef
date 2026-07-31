@@ -128,10 +128,10 @@ the reference phc-winner-argon2 library CyberChef's argon2-browser is built from
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--salt` | toggleString | `somesalt` | Salt (min 8 bytes), interpreted by `--salt-type` (`UTF8`, `Hex`, `Base64`, `Latin1`). |
-| `--iterations` | number | `3` | Time cost (passes over memory). |
-| `--memory-kib` | number | `4096` | Memory cost in KiB (min 8 × parallelism). |
-| `--parallelism` | number | `1` | Number of lanes. |
-| `--hash-length-bytes` | number | `32` | Output length in bytes (min 4). |
+| `--iterations` | number | `3` | Time cost (passes over memory), up to 4096. |
+| `--memory-kib` | number | `4096` | Memory cost in KiB (min 8 × parallelism, max 2097152 — 2 GiB). |
+| `--parallelism` | number | `1` | Number of lanes, 1 to 255. |
+| `--hash-length-bytes` | number | `32` | Output length in bytes, 4 to 4096. |
 | `--type` | option | `Argon2i` | `Argon2i`, `Argon2d` or `Argon2id`. |
 | `--output-format` | option | `Encoded hash` | `Encoded hash` (PHC string), `Hex hash` or `Raw hash`. |
 

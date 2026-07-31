@@ -80,16 +80,27 @@ only the ordering *within* a stage reflects a real dependency.
   upstream it is recorded under
   [Deliberate differences](#deliberate-differences-from-cyberchef), and the
   upstream defect is logged in `../CYBERCHEF-BUGS.md`.
-- [ ] **Bound the parameters that size work or memory.** Roughly 139 numeric
-  arguments carry no bound in either project. Most cost nothing to leave open
-  (`Affine Cipher / a`), but the ones that size work or memory turn a
-  command-line typo into an unbounded allocation: `argon2
-  --memory-kib=50000000` allocates until it is killed, with no crafted input
-  involved — the same class of defect fuzzing found in `From MessagePack`.
-  Sweep `Argon2` (Memory, Iterations, Parallelism, Hash length), `Bcrypt`
-  (Rounds), the key-derivation iteration counts and the image dimensions, pick
-  limits that leave every real use working, and record each as a deliberate
-  difference. `TestNoAllocationBombs` is the place to pin them.
+- [x] **Bound the parameters that size work or memory.** Ten arguments across
+  the password-based key derivations now declare a maximum: `Argon2` (Memory,
+  Iterations, Parallelism, Hash length), `Bcrypt` (Rounds), `Derive PBKDF2 key`
+  and `Derive EVP key` (Key size, Iterations), and `Scrypt` (Key length).
+  `argon2 --memory-kib=50000000` no longer allocates until it is killed. Each
+  limit sits far above published guidance, so no real use is refused, and each
+  is recorded under
+  [Deliberate differences](#deliberate-differences-from-cyberchef).
+
+  Two defects turned up in cchef itself. The lane count reaches the backend as
+  a `uint8`, so `--parallelism 256` wrapped to zero and panicked, and
+  `--parallelism 260` wrapped to four — hashing at a different cost while
+  labelling the output `p=260`. Both are refused now. The bounds are pinned by
+  the operations' own tests rather than `TestNoAllocationBombs`, which drives
+  input rather than arguments and would have to run the bomb to observe it.
+
+  The other ~136 unbounded numeric arguments are left open: they size nothing.
+  Four are worth a look if this comes up again — `Generate De Bruijn Sequence`
+  (Alphabet size × Key length is an exponential output), `Generate Lorem Ipsum`
+  (Length), `Sleep` (Time (ms)) and the inflate operations' `Initial output
+  buffer size`.
 - [ ] **Make the CyberChef base URL configurable.** `cyberChefBaseURL` in
   `internal/core/url.go` hardcodes `https://gchq.github.io/CyberChef/`, so
   `cchef url` cannot point at a self-hosted or air-gapped instance — a normal
@@ -370,7 +381,13 @@ this list when a relaxation from stage 1 lands.
   should fail rather than quietly produce a different answer, so a shared URL
   carrying a fractional argument errors here instead of running. All 14 that
   CyberChef marks are among them, and cchef additionally caps seven parameters
-  CyberChef leaves open: `AES Decrypt` (IV
+  CyberChef leaves open. Ten of them bound the cost of a password-based key
+  derivation, where an open parameter turns a typo into an allocation or a run
+  that does not finish: `Argon2` (Iterations ≤ 4096, Memory ≤ 2 GiB,
+  Parallelism ≤ 255, Hash length ≤ 4096), `Bcrypt` (Rounds 4–31, which bcryptjs
+  silently clamps to instead), `Derive PBKDF2 key` and `Derive EVP key` (Key
+  size ≤ 8192 bits, Iterations ≤ 10,000,000) and `Scrypt` (Key length ≤ 4096).
+  The other seven are older: `AES Decrypt` (IV
   Length ≥ 0), `Generate Image` (Pixel Scale Factor ≤ 64, Pixels per row ≤
   2048), `Pseudo-Random Integer Generator` (Min and Max Value to ±2^53−1), `To
   Hexdump` (Width ≤ 65536) and `Wrap` (Line Width ≤ 65536).

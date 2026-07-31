@@ -36,12 +36,13 @@ func (Scrypt) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (Scrypt) Args() []core.ArgDef {
+	maxKeyLen := float64(scryptMaxKeyLen)
 	return []core.ArgDef{
 		{Name: "Salt", Type: core.ArgToggleString, Value: "", ToggleValues: scryptToggleValues},
 		{Name: "Iterations (N)", Type: core.ArgNumber, Integer: true, Value: float64(16384)},
 		{Name: "Memory factor (r)", Type: core.ArgNumber, Integer: true, Value: float64(8)},
 		{Name: "Parallelization factor (p)", Type: core.ArgNumber, Integer: true, Value: float64(1)},
-		{Name: "Key length", Type: core.ArgNumber, Integer: true, Value: float64(64)},
+		{Name: "Key length", Type: core.ArgNumber, Integer: true, Value: float64(64), Max: &maxKeyLen},
 	}
 }
 
@@ -96,3 +97,8 @@ func (Scrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 	return core.NewDish([]byte(hex.EncodeToString(data)), core.TypeString), nil
 }
+
+// scryptMaxKeyLen caps the derived key. N and r are already bounded by the
+// parameter check ported from scryptsy; the output length was not, and it sizes
+// an allocation directly.
+const scryptMaxKeyLen = 4096
