@@ -52,10 +52,7 @@ func TestWrap(t *testing.T) {
 // TestWrapValidation covers the Line Width bounds added upstream (CyberChef
 // #2606); previously these inputs panicked in cchef via a bad regexp repeat.
 func TestWrapValidation(t *testing.T) {
-	if _, err := runOp(t, "Wrap", "hello", 1.1); err == nil {
-		t.Fatal("expected an error for a non-integer line width")
-	}
-	for _, width := range []float64{0, -1, 65537} {
+	for _, width := range []float64{1.1, 0, -1, 65537} {
 		if _, err := core.CoerceArgs(Wrap{}.Args(), []any{width}); err == nil {
 			t.Fatalf("expected line width %v to be rejected by the declared bounds", width)
 		}
@@ -79,4 +76,17 @@ func TestHammingDistance(t *testing.T) {
 			core.Recipe{{Op: "Hamming Distance", Args: []any{`\n\n`, "Byte", "Hex"}}},
 		},
 	})
+}
+
+// TestWrapLineWidthInteger pins the integer check CyberChef declares on the
+// line width.
+func TestWrapLineWidthInteger(t *testing.T) {
+	op, _ := core.Default.Get("Wrap")
+	_, err := core.CoerceArgs(op.Args(), []any{20.5})
+	if err == nil {
+		t.Fatal("a fractional line width was accepted")
+	}
+	if want := "Line Width must be an integer."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
 }

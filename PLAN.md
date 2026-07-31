@@ -10,7 +10,8 @@ what the tool is, and `docs/` documents every operation.
 A **curated set of 504 operations** is implemented, tested and documented,
 tracked against CyberChef 11.3.0. Those subcommands cover 501 unique CyberChef
 operations; the difference is `SHA2`, which cchef exposes as
-`sha224`/`sha256`/`sha384`/`sha512`.
+`sha224`/`sha256`/`sha384`/`sha512` — four of its six sizes, and without the
+round count (see stage 1).
 
 - **504 operations** (`internal/ops/`), each a faithful port.
 - **Core engine** (`internal/core/`), CLI (`cmd/`), docs (`docs/`), and
@@ -58,13 +59,45 @@ only the ordering *within* a stage reflects a real dependency.
   conventional `--color` because operation arguments keep CyberChef's spellings
   and two operations have a `Colour` argument, which already answers to
   `--color`; a global flag of that name would have taken it from them.
-- [ ] **Finish the numeric bounds.** Integer-ness is declared on the 130
-  arguments that are semantically whole numbers, and the eight where the
-  operation itself rejects fractions with CyberChef's own message were left to
-  it. `Min`/`Max` is the open half: 56 arguments declare bounds, and the
-  unbounded crypto and generator parameters were spot-checked against the
-  oracle (CyberChef accepts zero PBKDF2 iterations, so cchef does too). Sweep
-  the remaining ~119.
+- [ ] **Close the SHA1 and SHA2 argument gap.** CyberChef's `SHA1` takes a
+  `Rounds` argument (default 80, minimum 16) and its `SHA2` takes a `Size`
+  selector over six digest sizes plus a `Rounds` per family (SHA-256 variants
+  default 64, minimum 16; SHA-512 variants default 160, minimum 32). cchef's
+  `sha1`/`sha224`/`sha256`/`sha384`/`sha512` take no arguments at all, and the
+  `512/224` and `512/256` sizes are absent. So a reduced-round digest cannot be
+  computed, and a recipe CyberChef writes is rejected outright:
+
+  ```
+  $ cchef bake -e "SHA1(80)" -i hello
+  cchef: step 1 (SHA1): too many arguments: got 1, operation takes 0
+  ```
+
+  The two missing sizes are `crypto/sha512.New512_224`/`New512_256` and are
+  nearly free. Rounds is not: Go's `crypto/sha1` and `crypto/sha256` fix the
+  round count, so honouring it means implementing the compression functions
+  in-repo. Decide whether reduced-round SHA earns that before starting.
+- [x] **Match every bound CyberChef declares.** `ArgDef` carries
+  `Min`/`Max`/`Integer`, enforced by `coerceNumber` before the operation runs.
+  Of 218 numeric arguments, nine declared a bound upstream that cchef did not
+  (`RC6 Encrypt`/`RC6 Decrypt` Word Size and Rounds, `XTEA Encrypt`/`XTEA
+  Decrypt` Rounds, `Derive HKDF key` L, `Pseudo-Random Number Generator` Number
+  of bytes, `To Binary` Byte Length) and two declared `integer` that cchef did
+  not (`Generate Image` Pixel Scale Factor, `Wrap` Line Width). Every message
+  was checked against the oracle. Declaring the bounds made three internal
+  checks unreachable, which were removed. Where cchef stays stricter than
+  upstream it is recorded under
+  [Deliberate differences](#deliberate-differences-from-cyberchef), and the
+  upstream defect is logged in `../CYBERCHEF-BUGS.md`.
+- [ ] **Bound the parameters that size work or memory.** Roughly 139 numeric
+  arguments carry no bound in either project. Most cost nothing to leave open
+  (`Affine Cipher / a`), but the ones that size work or memory turn a
+  command-line typo into an unbounded allocation: `argon2
+  --memory-kib=50000000` allocates until it is killed, with no crafted input
+  involved — the same class of defect fuzzing found in `From MessagePack`.
+  Sweep `Argon2` (Memory, Iterations, Parallelism, Hash length), `Bcrypt`
+  (Rounds), the key-derivation iteration counts and the image dimensions, pick
+  limits that leave every real use working, and record each as a deliberate
+  difference. `TestNoAllocationBombs` is the place to pin them.
 - [ ] **Make the CyberChef base URL configurable.** `cyberChefBaseURL` in
   `internal/core/url.go` hardcodes `https://gchq.github.io/CyberChef/`, so
   `cchef url` cannot point at a self-hosted or air-gapped instance — a normal
@@ -338,3 +371,14 @@ this list when a relaxation from stage 1 lands.
 - **User-supplied regular expressions are Go's RE2.** Lookahead and
   backreferences are unavailable; `regexp2` is reserved for internal patterns
   that need them.
+- **Whole-number arguments are enforced.** CyberChef marks only 14 of its 220
+  numeric arguments `integer`, so the rest silently truncate a fractional value:
+  `Bit shift right` with an amount of 1.5 runs. cchef declares `Integer` on 138,
+  refusing the value with `Amount must be an integer.` A typo on a command line
+  should fail rather than quietly produce a different answer, so a shared URL
+  carrying a fractional argument errors here instead of running. All 14 that
+  CyberChef marks are among them, and cchef additionally caps seven parameters
+  CyberChef leaves open: `AES Decrypt` (IV
+  Length ≥ 0), `Generate Image` (Pixel Scale Factor ≤ 64, Pixels per row ≤
+  2048), `Pseudo-Random Integer Generator` (Min and Max Value to ±2^53−1), `To
+  Hexdump` (Width ≤ 65536) and `Wrap` (Line Width ≤ 65536).

@@ -78,3 +78,18 @@ func TestGenerateImageErrors(t *testing.T) {
 		t.Errorf("unsupported mode error = %v, want Unsupported Mode: (CMYK)", err)
 	}
 }
+
+// TestGenerateImageScaleInteger pins the integer check CyberChef declares on
+// the pixel scale factor.
+func TestGenerateImageScaleInteger(t *testing.T) {
+	op, _ := core.Default.Get("Generate Image")
+	args := core.DefaultArgs(op.Args())
+	args[1] = 1.5
+	_, err := core.CoerceArgs(op.Args(), args)
+	if err == nil {
+		t.Fatal("a fractional pixel scale factor was accepted")
+	}
+	if want := "Pixel Scale Factor must be an integer."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
+}

@@ -211,8 +211,9 @@ func (PRNG) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (PRNG) Args() []core.ArgDef {
+	minBytes := 1.0
 	return []core.ArgDef{
-		{Name: "Number of bytes", Type: core.ArgNumber, Integer: true, Value: 32},
+		{Name: "Number of bytes", Type: core.ArgNumber, Integer: true, Value: 32, Min: &minBytes},
 		{Name: "Output as", Type: core.ArgOption, Value: []string{"Hex", "Integer", "Byte array", "Raw"}},
 	}
 }
@@ -220,9 +221,6 @@ func (PRNG) Args() []core.ArgDef {
 // Run generates the random data. Ported from CyberChef PseudoRandomNumberGenerator.mjs.
 func (PRNG) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	n := int(args[0].(float64))
-	if n < 0 {
-		return nil, fmt.Errorf("number of bytes must be non-negative")
-	}
 	b := make([]byte, n)
 	// Since Go 1.24 crypto/rand.Read never returns an error (an entropy failure
 	// is fatal), so this branch is dead by the standard library's contract; the

@@ -149,10 +149,11 @@ func TestRC6ValidationErrors(t *testing.T) {
 		w, r float64
 		sub  string
 	}{
+		// Values outside the declared bounds are refused during coercion; these
+		// are the in-range ones the operation itself has to catch.
 		{"bad word size (not mult 8)", noIV, "ECB", 20, 20, "Invalid word size"},
-		{"bad word size (too big)", noIV, "ECB", 264, 20, "Invalid word size"},
-		{"bad rounds (zero)", noIV, "ECB", 32, 0, "Invalid number of rounds"},
-		{"bad rounds (too big)", noIV, "ECB", 32, 300, "Invalid number of rounds"},
+		{"bad word size (fractional)", noIV, "ECB", 32.5, 20, "Invalid word size"},
+		{"bad rounds (fractional)", noIV, "ECB", 32, 20.5, "Invalid number of rounds"},
 		{"bad IV length", core.ToggleString{Value: "0011", Option: "Hex"}, "CBC", 32, 20, "Invalid IV length"},
 	}
 	for _, c := range cases {
@@ -226,9 +227,10 @@ func TestRC6EdgeCases(t *testing.T) {
 		!strings.Contains(err.Error(), "No padding requested") {
 		t.Fatalf("no padding: %v", err)
 	}
-	// Rounds error at several word sizes to exercise every default-rounds branch.
+	// A fractional round count at several word sizes exercises every
+	// default-rounds branch, which the message quotes.
 	for _, w := range []float64{8, 64, 256} {
-		if _, err := runOp(t, "RC6 Encrypt", "x", key, noIV, "ECB", "Raw", "Hex", "PKCS5", w, 0.0); err == nil ||
+		if _, err := runOp(t, "RC6 Encrypt", "x", key, noIV, "ECB", "Raw", "Hex", "PKCS5", w, 20.5); err == nil ||
 			!strings.Contains(err.Error(), "Invalid number of rounds") {
 			t.Fatalf("rounds w=%v: %v", w, err)
 		}
@@ -240,5 +242,40 @@ func TestRC6EdgeCases(t *testing.T) {
 	}
 	if _, err := runOp(t, "RC6 Encrypt", "x", key, badB64, "CBC", "Raw", "Hex", "PKCS5", 32.0, 20.0); err == nil {
 		t.Fatal("bad base64 IV should error")
+	}
+}
+
+// TestRC6DeclaredBounds pins the Word Size and Rounds bounds CyberChef declares
+// on the ingredient. They are checked during argument coercion, so an
+// out-of-range value is reported with the bound's message rather than the
+// operation's own; the operation's message is what an in-range but otherwise
+// invalid value gets.
+func TestRC6DeclaredBounds(t *testing.T) {
+	for _, opName := range []string{"RC6 Encrypt", "RC6 Decrypt"} {
+		op, _ := core.Default.Get(opName)
+		const wordSize, rounds = 6, 7
+		for _, tc := range []struct {
+			name  string
+			index int
+			value float64
+			want  string
+		}{
+			{"word size below 8", wordSize, 7, "Word Size must be greater than or equal to 8."},
+			{"word size above 256", wordSize, 257, "Word Size must be less than or equal to 256."},
+			{"rounds below 1", rounds, 0, "Rounds must be greater than or equal to 1."},
+			{"rounds above 255", rounds, 256, "Rounds must be less than or equal to 255."},
+		} {
+			t.Run(opName+"/"+tc.name, func(t *testing.T) {
+				args := core.DefaultArgs(op.Args())
+				args[tc.index] = tc.value
+				_, err := core.CoerceArgs(op.Args(), args)
+				if err == nil {
+					t.Fatalf("%v was accepted", tc.value)
+				}
+				if err.Error() != tc.want {
+					t.Errorf("got %q, want %q", err.Error(), tc.want)
+				}
+			})
+		}
 	}
 }

@@ -70,12 +70,19 @@ func teaOutput(out []byte, outType string) *core.Dish {
 	return core.NewDish([]byte(byteArrayToUtf8(out)), core.TypeString)
 }
 
-// teaValidateRounds reproduces XTEA's rounds check (an integer in [1, 255]).
+// XTEA round-count limits, declared on the Rounds argument so a value outside
+// them is refused during coercion, and re-checked here.
+const (
+	xteaMinRounds = 1
+	xteaMaxRounds = 255
+)
+
+// teaValidateRounds reproduces XTEA's rounds check (an integer in range).
 func teaValidateRounds(roundsF float64) (int, error) {
 	rounds := int(roundsF)
-	if float64(rounds) != roundsF || rounds < 1 || rounds > 255 {
+	if float64(rounds) != roundsF || rounds < xteaMinRounds || rounds > xteaMaxRounds {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
-		return 0, fmt.Errorf("Invalid number of rounds: %s\n\nRounds must be an integer between 1 and 255. Standard XTEA uses 32 rounds.", strconv.FormatFloat(roundsF, 'g', -1, 64))
+		return 0, fmt.Errorf("Invalid number of rounds: %s\n\nRounds must be an integer between %d and %d. Standard XTEA uses 32 rounds.", strconv.FormatFloat(roundsF, 'g', -1, 64), xteaMinRounds, xteaMaxRounds)
 	}
 	return rounds, nil
 }
@@ -146,7 +153,8 @@ func (TEADecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 // xteaArgs is the TEA argument list plus the XTEA Rounds count.
 func xteaArgs() []core.ArgDef {
-	return append(teaArgs(), core.ArgDef{Name: "Rounds", Type: core.ArgNumber, Value: float64(32)})
+	rMin, rMax := float64(xteaMinRounds), float64(xteaMaxRounds)
+	return append(teaArgs(), core.ArgDef{Name: "Rounds", Type: core.ArgNumber, Value: float64(32), Min: &rMin, Max: &rMax})
 }
 
 // XTEAEncrypt encrypts with the XTEA block cipher.

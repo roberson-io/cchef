@@ -138,10 +138,11 @@ func TestTEAErrors(t *testing.T) {
 		{"TEA decrypt bad key", "TEA Decrypt", teaTS("0011"), iv8, "ECB", "PKCS5", nil, "0011223344556677", "Invalid key length: 2 bytes"},
 		{"TEA decrypt bad PKCS5 padding", "TEA Decrypt", key16, iv8, "ECB", "PKCS5", nil, "0011223344556677", "Invalid PKCS#5 padding."},
 		{"XTEA bad key length", "XTEA Encrypt", teaTS("0011"), iv8, "CBC", "PKCS5", []any{32}, "48656c6c6f", "Invalid key length: 2 bytes"},
-		{"XTEA rounds too low", "XTEA Encrypt", key16, iv8, "CBC", "PKCS5", []any{0}, "48656c6c6f", "Invalid number of rounds: 0"},
-		{"XTEA rounds too high", "XTEA Encrypt", key16, iv8, "CBC", "PKCS5", []any{256}, "48656c6c6f", "Invalid number of rounds: 256"},
+		// Out-of-range rounds are refused during coercion (see
+		// TestXTEADeclaredBounds); a fractional count is in range, so the
+		// operation catches it.
 		{"XTEA rounds non-integer", "XTEA Encrypt", key16, iv8, "CBC", "PKCS5", []any{32.5}, "48656c6c6f", "Invalid number of rounds: 32.5"},
-		{"XTEA decrypt rounds too low", "XTEA Decrypt", key16, iv8, "CBC", "PKCS5", []any{0}, "0011223344556677", "Invalid number of rounds: 0"},
+		{"XTEA decrypt rounds non-integer", "XTEA Decrypt", key16, iv8, "CBC", "PKCS5", []any{32.5}, "0011223344556677", "Invalid number of rounds: 32.5"},
 		{"XTEA decrypt bad key", "XTEA Decrypt", teaTS("0011"), iv8, "CBC", "PKCS5", []any{32}, "0011223344556677", "Invalid key length: 2 bytes"},
 		{"XTEA decrypt bad ct length", "XTEA Decrypt", key16, iv8, "ECB", "PKCS5", []any{32}, "0011223344", "Invalid ciphertext length: 5 bytes"},
 		{"XTEA encrypt NO padding partial", "XTEA Encrypt", key16, iv8, "ECB", "NO", []any{32}, "48656c6c6f", "No padding requested but input length (5 bytes)"},
@@ -159,5 +160,31 @@ func TestTEAErrors(t *testing.T) {
 				t.Fatalf("got %q, want substring %q", err.Error(), c.want)
 			}
 		})
+	}
+}
+
+// TestXTEADeclaredBounds pins the Rounds bounds CyberChef declares on the
+// ingredient, which are reported during coercion rather than by the operation.
+func TestXTEADeclaredBounds(t *testing.T) {
+	for _, opName := range []string{"XTEA Encrypt", "XTEA Decrypt"} {
+		op, _ := core.Default.Get(opName)
+		const rounds = 6
+		for _, tc := range []struct {
+			value float64
+			want  string
+		}{
+			{0, "Rounds must be greater than or equal to 1."},
+			{256, "Rounds must be less than or equal to 255."},
+		} {
+			args := core.DefaultArgs(op.Args())
+			args[rounds] = tc.value
+			_, err := core.CoerceArgs(op.Args(), args)
+			if err == nil {
+				t.Fatalf("%s: rounds %v was accepted", opName, tc.value)
+			}
+			if err.Error() != tc.want {
+				t.Errorf("%s: got %q, want %q", opName, err.Error(), tc.want)
+			}
+		}
 	}
 }

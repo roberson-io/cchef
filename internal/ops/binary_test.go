@@ -59,3 +59,26 @@ func TestBinaryBranches(t *testing.T) {
 		t.Fatal("From Binary width 0: expected an error")
 	}
 }
+
+// TestToBinaryByteLengthMax pins the upper bound CyberChef declares on To
+// Binary's byte length; the lower bound is already declared. From Binary
+// carries no upper bound upstream, so it accepts the same value.
+func TestToBinaryByteLengthMax(t *testing.T) {
+	op, _ := core.Default.Get("To Binary")
+	args := core.DefaultArgs(op.Args())
+	args[1] = float64(257)
+	_, err := core.CoerceArgs(op.Args(), args)
+	if err == nil {
+		t.Fatal("a byte length of 257 was accepted")
+	}
+	if want := "Byte Length must be less than or equal to 256."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
+
+	from, _ := core.Default.Get("From Binary")
+	fromArgs := core.DefaultArgs(from.Args())
+	fromArgs[1] = float64(257)
+	if _, err := core.CoerceArgs(from.Args(), fromArgs); err != nil {
+		t.Errorf("From Binary has no upper bound upstream, but 257 was refused: %v", err)
+	}
+}

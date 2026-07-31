@@ -88,3 +88,17 @@ func TestDeriveHKDFKeyErrors(t *testing.T) {
 		t.Fatalf("too-large L: got %v", err)
 	}
 }
+
+// TestHKDFLengthBound pins the minimum CyberChef declares on the output length.
+func TestHKDFLengthBound(t *testing.T) {
+	op, _ := core.Default.Get("Derive HKDF key")
+	args := core.DefaultArgs(op.Args())
+	args[4] = float64(-1)
+	_, err := core.CoerceArgs(op.Args(), args)
+	if err == nil {
+		t.Fatal("a negative output length was accepted")
+	}
+	if want := "L (number of output octets) must be greater than or equal to 0."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
+	}
+}

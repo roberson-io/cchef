@@ -130,9 +130,16 @@ func TestPRNG(t *testing.T) {
 	}
 }
 
-// TestPRNGNegativeBytes covers the non-negative byte-count guard.
-func TestPRNGNegativeBytes(t *testing.T) {
-	if _, err := runOp(t, "Pseudo-Random Number Generator", "", -1, "Hex"); err == nil {
-		t.Fatal("expected an error for a negative byte count")
+// TestPRNGByteCountBound pins the minimum CyberChef declares on the byte count.
+func TestPRNGByteCountBound(t *testing.T) {
+	op, _ := core.Default.Get("Pseudo-Random Number Generator")
+	args := core.DefaultArgs(op.Args())
+	args[0] = float64(0)
+	_, err := core.CoerceArgs(op.Args(), args)
+	if err == nil {
+		t.Fatal("a zero byte count was accepted")
+	}
+	if want := "Number of bytes must be greater than or equal to 1."; err.Error() != want {
+		t.Errorf("got %q, want %q", err.Error(), want)
 	}
 }

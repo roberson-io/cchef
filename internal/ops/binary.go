@@ -12,6 +12,10 @@ import (
 // BIN_DELIM_OPTIONS).
 var binDelims = []string{"Space", "Comma", "Semi-colon", "Colon", "Line feed", "CRLF", "None"}
 
+// maxByteLength caps the bits a byte is padded to. Arbitrary, and far wider
+// than the word size of any machine.
+const maxByteLength = 256
+
 func init() {
 	core.Register(ToBinary{})
 	core.Register(FromBinary{})
@@ -34,10 +38,10 @@ func (ToBinary) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (ToBinary) Args() []core.ArgDef {
-	minLen := 1.0
+	minLen, maxLen := 1.0, float64(maxByteLength)
 	return []core.ArgDef{
 		{Name: "Delimiter", Type: core.ArgOption, Value: binDelims},
-		{Name: "Byte Length", Type: core.ArgNumber, Integer: true, Value: 8, Min: &minLen},
+		{Name: "Byte Length", Type: core.ArgNumber, Integer: true, Value: 8, Min: &minLen, Max: &maxLen},
 	}
 }
 

@@ -344,12 +344,22 @@ func rc6NumStr(f float64) string {
 	return strconv.FormatFloat(f, 'f', -1, 64)
 }
 
+// RC6 word size and round count limits, declared on the arguments so a value
+// outside them is refused during coercion, and re-checked here because the
+// word size must also be a multiple of 8.
+const (
+	rc6MinWordSize = 8
+	rc6MaxWordSize = 256
+	rc6MinRounds   = 1
+	rc6MaxRounds   = 255
+)
+
 // rc6Validate checks the word size, IV length and round count with CyberChef's
 // exact error messages, returning the integer word size and round count.
 func rc6Validate(w, rounds float64, ivLen int, mode string) (int, int, error) {
-	if w != math.Trunc(w) || w < 8 || w > 256 || int(w)%8 != 0 {
+	if w != math.Trunc(w) || w < rc6MinWordSize || w > rc6MaxWordSize || int(w)%8 != 0 {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
-		return 0, 0, fmt.Errorf("Invalid word size: %s. Must be a multiple of 8 between 8 and 256.", rc6NumStr(w))
+		return 0, 0, fmt.Errorf("Invalid word size: %s. Must be a multiple of 8 between %d and %d.", rc6NumStr(w), rc6MinWordSize, rc6MaxWordSize)
 	}
 	wi := int(w)
 	bs := 4 * (wi / 8)
@@ -357,9 +367,9 @@ func rc6Validate(w, rounds float64, ivLen int, mode string) (int, int, error) {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return 0, 0, fmt.Errorf("Invalid IV length: %d bytes\n\nRC6-%d uses an IV length of %d bytes (%d bits).\nMake sure you have specified the type correctly (e.g. Hex vs UTF8).", ivLen, wi, bs, bs*8)
 	}
-	if rounds != math.Trunc(rounds) || rounds < 1 || rounds > 255 {
+	if rounds != math.Trunc(rounds) || rounds < rc6MinRounds || rounds > rc6MaxRounds {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
-		return 0, 0, fmt.Errorf("Invalid number of rounds: %s\n\nRounds must be an integer between 1 and 255. Standard for w=%d is %d.", rc6NumStr(rounds), wi, rc6DefaultRounds(wi))
+		return 0, 0, fmt.Errorf("Invalid number of rounds: %s\n\nRounds must be an integer between %d and %d. Standard for w=%d is %d.", rc6NumStr(rounds), rc6MinRounds, rc6MaxRounds, wi, rc6DefaultRounds(wi))
 	}
 	return wi, int(rounds), nil
 }
@@ -406,6 +416,8 @@ var rc6ModeValues = []string{"CBC", "CFB", "OFB", "CTR", "ECB"}
 // default Input/Output option order. Word Size / Rounds are validated in Run (with
 // CyberChef's exact messages) rather than via Min/Max coercion.
 func rc6Args(inFmt, outFmt []string) []core.ArgDef {
+	wMin, wMax := float64(rc6MinWordSize), float64(rc6MaxWordSize)
+	rMin, rMax := float64(rc6MinRounds), float64(rc6MaxRounds)
 	return []core.ArgDef{
 		{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
 		{Name: "IV", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues},
@@ -413,8 +425,8 @@ func rc6Args(inFmt, outFmt []string) []core.ArgDef {
 		{Name: "Input", Type: core.ArgOption, Value: inFmt},
 		{Name: "Output", Type: core.ArgOption, Value: outFmt},
 		{Name: "Padding", Type: core.ArgOption, Value: presentPaddings},
-		{Name: "Word Size", Type: core.ArgNumber, Integer: true, Value: float64(32)},
-		{Name: "Rounds", Type: core.ArgNumber, Integer: true, Value: float64(20)},
+		{Name: "Word Size", Type: core.ArgNumber, Value: float64(32), Min: &wMin, Max: &wMax},
+		{Name: "Rounds", Type: core.ArgNumber, Value: float64(20), Min: &rMin, Max: &rMax},
 	}
 }
 

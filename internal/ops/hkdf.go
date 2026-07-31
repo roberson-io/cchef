@@ -43,13 +43,14 @@ func (DeriveHKDFKey) Meta() core.OpMeta {
 
 // Args returns the argument definitions.
 func (DeriveHKDFKey) Args() []core.ArgDef {
+	minOctets := 0.0
 	toggle := []string{"Hex", "Decimal", "Base64", "UTF8", "Latin1"}
 	return []core.ArgDef{
 		{Name: "Salt", Type: core.ArgToggleString, Value: "", ToggleValues: toggle},
 		{Name: "Info", Type: core.ArgToggleString, Value: "", ToggleValues: toggle},
 		{Name: "Hashing function", Type: core.ArgOption, Value: hkdfHashOptions, DefaultIndex: 6},
 		{Name: "Extract mode", Type: core.ArgOption, Value: hkdfExtractModes},
-		{Name: "L (number of output octets)", Type: core.ArgNumber, Integer: true, Value: float64(16)},
+		{Name: "L (number of output octets)", Type: core.ArgNumber, Integer: true, Value: float64(16), Min: &minOctets},
 	}
 }
 
@@ -76,9 +77,6 @@ func (DeriveHKDFKey) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 
 	hashLen := newHash().Size()
-	if l < 0 {
-		return nil, fmt.Errorf("L must be non-negative") //nolint:staticcheck,revive // verbatim CyberChef message
-	}
 	if l > hkdfMaxBlocks*hashLen {
 		return nil, fmt.Errorf("L too large (maximum length for %s is %d)", hashName, hkdfMaxBlocks*hashLen) //nolint:staticcheck,revive // verbatim CyberChef message
 	}

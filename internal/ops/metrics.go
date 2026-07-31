@@ -2,7 +2,6 @@ package ops
 
 import (
 	"fmt"
-	"math"
 	"math/bits"
 	"strconv"
 	"strings"
@@ -103,7 +102,7 @@ func (Wrap) Meta() core.OpMeta {
 func (Wrap) Args() []core.ArgDef {
 	minWidth, maxWidth := 1.0, float64(maxWrapWidth)
 	return []core.ArgDef{
-		{Name: "Line Width", Type: core.ArgNumber, Value: 64, Min: &minWidth, Max: &maxWidth},
+		{Name: "Line Width", Type: core.ArgNumber, Integer: true, Value: 64, Min: &minWidth, Max: &maxWidth},
 	}
 }
 
@@ -121,13 +120,8 @@ func (Wrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if input == "" {
 		return core.NewDish(nil, core.TypeString), nil
 	}
-	// Width is bounded to [1, maxWrapWidth] by the ArgDef; only the integer
-	// requirement is left to check here.
-	width := args[0].(float64)
-	if math.Round(width) != width {
-		return nil, fmt.Errorf("line width must be an integer")
-	}
-	w := int(width)
+	// The ArgDef bounds the width to a whole number in [1, maxWrapWidth].
+	w := int(args[0].(float64))
 
 	var pieces []string
 	for _, line := range strings.FieldsFunc(input, isLineTerminator) {

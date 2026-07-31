@@ -97,15 +97,10 @@ func TestDeriveHKDFKeyPaddingBoundaries(t *testing.T) {
 	}
 }
 
-// TestDeriveHKDFKeyMoreErrors covers the negative-L, invalid-Base64 and
-// (defensive) unsupported-hash branches.
+// TestDeriveHKDFKeyMoreErrors covers the invalid-Base64 and (defensive)
+// unsupported-hash branches. A negative L is refused by the declared bound
+// (see TestHKDFLengthBound).
 func TestDeriveHKDFKeyMoreErrors(t *testing.T) {
-	// Negative L.
-	if _, err := runOp(t, "Derive HKDF key", "x",
-		core.ToggleString{Value: "", Option: "Hex"}, core.ToggleString{Value: "", Option: "Hex"},
-		"SHA256", "with salt", float64(-1)); err == nil || !strings.Contains(err.Error(), "L must be non-negative") {
-		t.Fatalf("negative L: %v", err)
-	}
 	// Invalid Base64 salt (cchef's strict decoder).
 	if _, err := runOp(t, "Derive HKDF key", "x",
 		core.ToggleString{Value: "!!!", Option: "Base64"}, core.ToggleString{Value: "", Option: "Hex"},
