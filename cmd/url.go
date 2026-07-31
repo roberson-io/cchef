@@ -12,11 +12,17 @@ func init() {
 	urlCmd := &cobra.Command{
 		Use:   "url",
 		Short: "Print a CyberChef share URL for a recipe (and optional input)",
-		Long: "Build a https://gchq.github.io/CyberChef/ URL that opens the given\n" +
-			"recipe, with the input pre-loaded if one is supplied. The recipe is\n" +
-			"given with -e or -r, exactly like `cchef bake`.",
+		Long: "Build a CyberChef URL that opens the given recipe, with the input\n" +
+			"pre-loaded if one is supplied. The recipe is given with -e or -r,\n" +
+			"exactly like `cchef bake`.\n\n" +
+			"Links point at the public instance unless --base-url, $CCHEF_BASE_URL\n" +
+			"or base-url in the config file names another.",
 		Example: "  cchef url -e \"To_Hex()\" -i hello",
 		RunE: func(cmd *cobra.Command, posArgs []string) error {
+			base, err := resolveBaseURL(cmd)
+			if err != nil {
+				return err
+			}
 			recipe, err := loadRecipe()
 			if err != nil {
 				return err
@@ -29,12 +35,13 @@ func init() {
 					return err
 				}
 			}
-			_, err = fmt.Fprintln(cmd.OutOrStdout(), core.BuildURL(recipe, input))
+			_, err = fmt.Fprintln(cmd.OutOrStdout(), core.BuildURL(base, recipe, input))
 			return err
 		},
 	}
 	urlCmd.Flags().StringVarP(&flagRecipeExpr, "expr", "e", "", "recipe as an inline JSON or Chef string")
 	urlCmd.Flags().StringVarP(&flagRecipeFile, "recipe", "r", "", "path to a recipe file (JSON or Chef)")
+	addBaseURLFlag(urlCmd)
 	addIOFlags(urlCmd)
 	rootCmd.AddCommand(urlCmd)
 }

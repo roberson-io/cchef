@@ -101,15 +101,21 @@ only the ordering *within* a stage reflects a real dependency.
   (Alphabet size × Key length is an exponential output), `Generate Lorem Ipsum`
   (Length), `Sleep` (Time (ms)) and the inflate operations' `Initial output
   buffer size`.
-- [ ] **Make the CyberChef base URL configurable.** `cyberChefBaseURL` in
-  `internal/core/url.go` hardcodes `https://gchq.github.io/CyberChef/`, so
-  `cchef url` cannot point at a self-hosted or air-gapped instance — a normal
-  arrangement for the sort of work this tool is used for. Keep the GCHQ URL as
-  the default and allow both an environment variable and a config file, with
-  precedence flag > environment > config file > default. Decide the config
-  file's location and format alongside it (`$XDG_CONFIG_HOME/cchef/`, and
-  whether anything else belongs in it), since this is the first thing to need
-  one. `recipe convert` and `bake` are unaffected; only URL generation is.
+- [x] **Make the CyberChef base URL configurable.** `cchef url` points at a
+  self-hosted or air-gapped instance through `--base-url`, `$CCHEF_BASE_URL` or
+  `base-url` in the config file, in that order of precedence, falling back to
+  `core.DefaultBaseURL`. Anything that is not an `http`/`https` URL is refused,
+  naming whichever of the three supplied it. `bake` and `recipe convert` are
+  untouched.
+
+  The config file settled as YAML at `$XDG_CONFIG_HOME/cchef/config.yaml`,
+  `$XDG_CONFIG_HOME` defaulting to `~/.config`, with `$CCHEF_CONFIG` naming the
+  file outright. YAML because it is already a dependency and takes comments;
+  the XDG layout on every platform so the path is the same one everywhere.
+  Having no file is the normal case; one that exists but will not parse is an
+  error naming it. `base-url` is the only key, and the rule for adding more is
+  that a setting belongs to the machine, never to a recipe — a recipe has to
+  mean the same thing wherever it is run.
 - [ ] **Revisit [clig.dev](https://clig.dev/) end to end.** It shaped the
   interface early in development and has not been re-checked since. Do this
   before the docs pass, since it may produce more surface changes.

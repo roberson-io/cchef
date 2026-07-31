@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-// cyberChefBaseURL is the public CyberChef instance used for share links.
-const cyberChefBaseURL = "https://gchq.github.io/CyberChef/"
+// DefaultBaseURL is the public CyberChef instance share links point at unless
+// the caller names another.
+const DefaultBaseURL = "https://gchq.github.io/CyberChef/"
 
 // fragmentSafe is the set of characters left unescaped in a URL fragment,
 // matching CyberChef's Utils.encodeURIFragment (encodeURIComponent minus the
@@ -29,11 +30,12 @@ func EncodeURIFragment(s string) string {
 	return sb.String()
 }
 
-// BuildURL constructs a CyberChef share URL for the given recipe and input. The
-// recipe is rendered in Chef format; the input is standard base64 (no padding),
-// both then fragment-encoded.
-func BuildURL(r Recipe, input []byte) string {
-	url := cyberChefBaseURL + "#recipe=" + EncodeURIFragment(GeneratePrettyRecipe(r, false))
+// BuildURL constructs a CyberChef share URL for the given recipe and input,
+// pointing at the instance named by base. The recipe is rendered in Chef
+// format; the input is standard base64 (no padding), both then
+// fragment-encoded.
+func BuildURL(base string, r Recipe, input []byte) string {
+	url := base + "#recipe=" + EncodeURIFragment(GeneratePrettyRecipe(r, false))
 	if len(input) > 0 {
 		enc := base64.RawStdEncoding.EncodeToString(input)
 		url += "&input=" + EncodeURIFragment(enc)

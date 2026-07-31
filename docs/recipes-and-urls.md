@@ -98,6 +98,58 @@ https://gchq.github.io/CyberChef/#recipe=ROT13()To_Hex()&input=SGVsbG8
 
 Open the URL to continue editing the recipe interactively in CyberChef.
 
+### Pointing at another CyberChef instance
+
+Links go to the public GCHQ instance by default. A self-hosted or air-gapped
+deployment is named in one of three places, most specific first:
+
+| Source | Example |
+| --- | --- |
+| `--base-url` | `cchef url --base-url https://cyberchef.internal/ -e "ROT13()"` |
+| `$CCHEF_BASE_URL` | `CCHEF_BASE_URL=https://cyberchef.internal/ cchef url -e "ROT13()"` |
+| the config file | `base-url: https://cyberchef.internal/` |
+
+```bash
+cchef url --base-url https://cyberchef.internal/ -e "ROT13()" -i 'Hello'
+```
+
+Output:
+
+```
+https://cyberchef.internal/#recipe=ROT13()&input=SGVsbG8
+```
+
+An address that is not an `http://` or `https://` URL is refused, naming
+whichever of the three supplied it, rather than printing a link that goes
+nowhere.
+
+Only link generation is affected. `bake` and `recipe convert` never fetch
+anything, so they behave the same wherever the instance lives.
+
+---
+
+## Configuration file
+
+cchef reads a config file for settings that belong to the machine rather than to
+a recipe. It is optional, and there is one setting so far:
+
+```yaml
+# ~/.config/cchef/config.yaml
+base-url: https://cyberchef.internal/
+```
+
+The file is looked for at `$XDG_CONFIG_HOME/cchef/config.yaml`, with
+`$XDG_CONFIG_HOME` defaulting to `~/.config` as the XDG Base Directory
+Specification says. The same layout is used on every platform, so the path is
+the same one everywhere. `$CCHEF_CONFIG` names the file outright and skips the
+search.
+
+Having no config file is the normal case. One that exists but cannot be parsed
+is an error naming the file, so a typo is reported rather than ignored.
+
+Recipes and their arguments never come from here: a recipe has to mean the same
+thing wherever it is run.
+
 ---
 
 ## `cchef recipe convert` — convert between formats
