@@ -795,14 +795,24 @@ over [chroma](https://github.com/alecthomas/chroma), mapping chroma's token type
 onto the same `hljs-*` class vocabulary so the HTML can be styled with a
 highlight.js theme.
 
-As a CLI-native addition beyond CyberChef (which only produces HTML), the
-**Output format** option can instead render the highlighting straight to the
-terminal with ANSI colours.
+HTML is not much use on a terminal, so when the output is going to one the spans
+are rendered as ANSI color instead. This is a property of where the output is
+going rather than of the recipe, so it is the global `--ansi` flag rather than an
+operation option:
+
+- `auto` (the default) colors an interactive terminal and leaves the HTML alone
+  whenever the output is piped, redirected, or written with `-o`. It also honors
+  [`NO_COLOR`](https://no-color.org).
+- `always` forces the ANSI rendering, which is what `| less -R` needs.
+- `never` always gives the HTML, even at a terminal.
+
+The flag is `--ansi` rather than the usual `--color` because operation arguments
+keep CyberChef's spellings, and two operations have a *Colour* argument of their
+own; a global `--color` would take that name away from them.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
 | Language | string | `auto detect` | A chroma language name or alias (case-insensitive, e.g. `go`, `javascript`, `python`), or `auto detect` to infer it from the input. An unrecognised name is an error. |
-| Output format | option | `HTML` | `HTML` emits `hljs-*` spans (matching CyberChef); `Terminal` emits ANSI-coloured text for direct display in a terminal. |
 
 > **Fidelity.** chroma is not highlight.js, so token boundaries and, especially,
 > language auto-detection differ — the highlighted regions are not byte-identical
@@ -839,11 +849,26 @@ Output:
     <span class="hljs-keyword">return</span> a + b
 ```
 
-To view the highlighting in a terminal instead of as HTML, select the terminal
-output format (the result is ANSI-coloured text, so it is not reproduced here):
+Run at a terminal, the same command shows the highlighting in color rather than
+as HTML. Piping it into a pager needs `--ansi always`, since the output is no
+longer going to the terminal directly (the result is ANSI-colored text, so it is
+not reproduced here):
 
 ```bash
-cchef syntax-highlighter -i "func add(a, b int) int { return a + b }" --language go --output-format Terminal
+cchef syntax-highlighter -i "func add(a, b int) int { return a + b }" --language go --ansi always | less -R
+```
+
+Going the other way, `--ansi never` gives the HTML at a terminal too — useful
+when reading it directly or copying it out:
+
+```bash
+cchef syntax-highlighter -i "let x = 42;" --language javascript --ansi never
+```
+
+Output:
+
+```
+<span class="hljs-keyword">let</span> x = <span class="hljs-number">42</span>;
 ```
 
 ## To Camel case

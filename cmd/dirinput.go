@@ -22,6 +22,12 @@ func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error
 	if err != nil {
 		return err
 	}
+	// Resolved up front so an unusable --color value is reported before the
+	// recipe runs, whatever the recipe is.
+	color, err := wantANSI(cmd)
+	if err != nil {
+		return err
+	}
 	switch {
 	case fileList && flagOutDir == "":
 		return fmt.Errorf("this recipe produces several files; use --out-dir to write them")
@@ -29,7 +35,8 @@ func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error
 		return fmt.Errorf("--out-dir requires --in-dir")
 	}
 	if flagInDir != "" {
-		return runRecipeDir(cmd, recipe)
+		// Per-file results go to --out-dir as files, which take the HTML.
+		return runRecipeDir(cmd, recipe, color && flagOutDir == "")
 	}
 
 	in, err := resolveInput(cmd, posArgs)
@@ -43,7 +50,11 @@ func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error
 	if out.Type() == core.TypeFileList {
 		return writeFileList(flagOutDir, out.Files())
 	}
-	return writeOutput(cmd, out.Bytes())
+	data := out.Bytes()
+	if color && recipeHighlights(recipe) {
+		data = []byte(ansiFromHLJS(string(data)))
+	}
+	return writeOutput(cmd, data)
 }
 
 // recipeFileListOutput reports whether the recipe's last enabled step produces a
@@ -130,7 +141,8 @@ type dirFile struct {
 // --out-dir (one file each, mirroring the input tree) when set, otherwise to
 // stdout with a `==> name <==` header per file. A file whose read or recipe run
 // fails is reported to stderr and skipped; the command still exits non-zero.
-func runRecipeDir(cmd *cobra.Command, recipe core.Recipe) error {
+func runRecipeDir(cmd *cobra.Command, recipe core.Recipe, color bool) error {
+	color = color && recipeHighlights(recipe)
 	files, err := listDirFiles(flagInDir, flagRecursive)
 	if err != nil {
 		return err
@@ -150,6 +162,9 @@ func runRecipeDir(cmd *cobra.Command, recipe core.Recipe) error {
 			_, _ = fmt.Fprintf(errOut, "cchef: %s: %v\n", f.rel, err)
 			failures++
 			continue
+		}
+		if color {
+			res = core.NewDish([]byte(ansiFromHLJS(res.String())), core.TypeString)
 		}
 		fatal, err := writeDirResult(out, f, res)
 		if err == nil {

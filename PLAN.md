@@ -31,6 +31,11 @@ These shape every item below.
   [Deliberate differences](#deliberate-differences-from-cyberchef).
 - **Test-driven**: test → red stub → implementation, per the
   [`/add-operation`](.claude/skills/add-operation/SKILL.md) skill.
+- **Following CyberChef is a choice, not an obligation.** Tracking upstream is
+  what makes the oracle useful, but the maintainer decides what cchef contains.
+  An operation CyberChef removes may stay, and an upstream change may be
+  declined. Semantic versioning is likewise a convention to weigh, not a rule
+  that overrides that judgment.
 - **Dependencies are a liability.** `golang.org/x/*` and libraries with
   large-organization backing are fine long-term; modules maintained by
   individuals, especially unmaintained ones, are candidates for in-repo
@@ -44,13 +49,15 @@ only the ordering *within* a stage reflects a real dependency.
 
 ### 1. Behavior and CLI surface
 
-- [ ] **Move Syntax highlighter's output format off the operation.** It keeps a
-  cchef-added `Output format` (`HTML`/`Terminal`) argument, so a generated share
-  URL carries an argument CyberChef does not know — the same defect already
-  fixed on Render Image, Play Media and Render PDF. Both its forms are text, so
-  `--preview`/`--data-uri` do not apply. Either default to `Terminal` when
-  stdout is a terminal and `HTML` otherwise (matching how the trailing newline
-  already works), or add a global flag.
+- [x] **Move Syntax highlighter's output format off the operation.** Its
+  cchef-added `Output format` (`HTML`/`Terminal`) argument is gone, so the
+  operation now takes CyberChef's single `Language` argument and a generated
+  share URL carries nothing CyberChef cannot read. The terminal rendering moved
+  to a global `--ansi` flag (`auto`/`always`/`never`, honoring `NO_COLOR`), which
+  converts the hljs spans to ANSI at the IO layer. Named `--ansi` rather than the
+  conventional `--color` because operation arguments keep CyberChef's spellings
+  and two operations have a `Colour` argument, which already answers to
+  `--color`; a global flag of that name would have taken it from them.
 - [ ] **Finish the numeric bounds.** Integer-ness is declared on the 130
   arguments that are semantically whole numbers, and the eight where the
   operation itself rejects fractions with CyberChef's own message were left to
@@ -58,6 +65,15 @@ only the ordering *within* a stage reflects a real dependency.
   unbounded crypto and generator parameters were spot-checked against the
   oracle (CyberChef accepts zero PBKDF2 iterations, so cchef does too). Sweep
   the remaining ~119.
+- [ ] **Make the CyberChef base URL configurable.** `cyberChefBaseURL` in
+  `internal/core/url.go` hardcodes `https://gchq.github.io/CyberChef/`, so
+  `cchef url` cannot point at a self-hosted or air-gapped instance — a normal
+  arrangement for the sort of work this tool is used for. Keep the GCHQ URL as
+  the default and allow both an environment variable and a config file, with
+  precedence flag > environment > config file > default. Decide the config
+  file's location and format alongside it (`$XDG_CONFIG_HOME/cchef/`, and
+  whether anything else belongs in it), since this is the first thing to need
+  one. `recipe convert` and `bake` are unaffected; only URL generation is.
 - [ ] **Revisit [clig.dev](https://clig.dev/) end to end.** It shaped the
   interface early in development and has not been re-checked since. Do this
   before the docs pass, since it may produce more surface changes.
@@ -122,6 +138,31 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
 
 ### 4. Structure
 
+- [ ] **Decide whether cchef is importable as a library.** Everything but
+  `cmd/` lives under `internal/`, so no other Go program can use the engine
+  today — a caller wanting to bake a recipe has to shell out.
+
+  The smallest thing that would work: export the `Dish` type hub,
+  `Operation`/`ArgDef`, the registry and `Recipe.Execute` — today's
+  `internal/core` — plus a blank import that pulls in the operations for their
+  registrations, so a caller can bake a recipe and register operations of its
+  own.
+
+  Start with the operation types internal, because the direction is cheap to
+  reverse: internal to exported is additive and breaks nobody, exported to
+  internal breaks every importer. What is known is that `cmd/` — the only
+  consumer so far, and a demanding one — never names a concrete operation
+  type: a blank import registers them and `core.Default.Get`/`All` does the
+  rest, so 504 subcommands, `list`, `bake` and the staging commands are all
+  built without one. What is not known is whether a caller would want a
+  compile-time reference to a specific operation (`ops.ToBase64{}` type-checks
+  where `Get("To Base64")` cannot). Export them when someone asks and can say
+  what for. Same reasoning for the engines (`yara`, `jsnum`, `termimage`).
+
+  Settle this **before** the split below, since the split decides package
+  boundaries and it would be wasteful to draw them twice. Then add a
+  [pkg.go.dev](https://pkg.go.dev) badge to the README and write package-level
+  doc comments for whatever becomes public.
 - [ ] **Split `internal/ops`.** It is one flat package of ~782 files / 165k LOC
   implementing the 504 operations. Nothing is broken; the concern is
   navigability and build granularity. Re-measure before acting — these figures
@@ -191,6 +232,37 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
   Windows on amd64/arm64 from one config, with archives, checksums, a Homebrew
   tap and nfpm-built deb/rpm once the repository is public. Document `tesseract`
   as the one optional runtime dependency on each platform.
+- [ ] **Adopt the versioning scheme and record the aligned CyberChef version.**
+  cchef's version tracks CyberChef's, one component down:
+
+  | CyberChef | cchef | Meaning |
+  | --- | --- | --- |
+  | v11.3.0 | **v1.0.0** | The first public tag |
+  | v11.4.0 | v1.1.0 | A CyberChef minor release |
+  | v12.0.0 | v2.0.0 | A CyberChef major release |
+  | v11.3.1, or nothing | v1.0.1 | A CyberChef patch, or a cchef-only fix |
+
+  So the whole v1.0.x line stays aligned with CyberChef v11.3.0. Patch is
+  cchef's own and is used freely; minor and major follow CyberChef even when
+  the release brings cchef no change of its own.
+
+  Record the aligned CyberChef version as a constant beside `version` in
+  `cmd/version.go`, report it from `cchef --version`, and pin it with a test so
+  it cannot drift from what the port was built against. Give the docs and this
+  file a single source to quote — several places currently spell out "11.3.0"
+  by hand.
+- [ ] **Add a CHANGELOG.** Keep-a-Changelog format, one section per release,
+  each naming the CyberChef version it aligns with. The v1.0.0 entry is just a
+  baseline: initial release, aligned with CyberChef v11.3.0, no itemisation of
+  what it contains. Entries after that record cchef-only fixes and what each
+  CyberChef release brought in.
+- [ ] **Sign and attest releases.** The SBOM already exists (`make sbom-audit`,
+  CycloneDX via cyclonedx-gomod, scanned with grype); publish it as a release
+  asset rather than only a CI artifact. Sign checksums and archives — Sigstore
+  cosign keyless signing is the low-friction route for a public repo, and
+  GoReleaser supports it directly — and publish build provenance (SLSA
+  attestation via `actions/attest-build-provenance`). Document how to verify a
+  download in the README, since an unverifiable signature helps nobody.
 - [ ] **Man pages.** cobra can generate a full man tree (`cobra/doc`), but with
   504 subcommands that is a large tree: hand-write a quality `cchef(1)`
   following man-page best practice, then decide whether generated
@@ -243,7 +315,9 @@ this list when a relaxation from stage 1 lands.
   through. Presentation is an IO-layer concern rather than an operation
   argument, so two global flags serve every operation that emits bytes:
   `--preview` renders an image inline (iTerm2/WezTerm or kitty) and `--data-uri`
-  writes a `data:<mime>;base64,…` URI. Report-style operations (Magic, YARA
+  writes a `data:<mime>;base64,…` URI. On the same principle, Syntax
+  highlighter's hljs-class HTML is rendered as ANSI color when the output is
+  going to a terminal, under `--ansi`. Report-style operations (Magic, YARA
   Rules, ELF Info) print text instead of a table, and the `List<File>` ones
   write into `--out-dir`.
 - **Imaging reproduces Jimp's pixel maths from scratch** on an `image.NRGBA`.

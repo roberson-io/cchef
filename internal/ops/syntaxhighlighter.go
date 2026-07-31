@@ -5,9 +5,7 @@ import (
 	"strings"
 
 	"github.com/alecthomas/chroma/v2"
-	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
-	"github.com/alecthomas/chroma/v2/styles"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
@@ -17,29 +15,15 @@ func init() {
 }
 
 // SyntaxHighlighter adds syntax highlighting to a range of source-code
-// languages. Ported from CyberChef SyntaxHighlighter.mjs, which highlights with
-// highlight.js and emits HTML spans carrying hljs-* CSS classes (or auto-detects
-// the language). cchef reimplements it over chroma
-// (github.com/alecthomas/chroma), mapping chroma's token types onto the same
-// hljs-* class vocabulary so the HTML output can be styled with a highlight.js
-// theme.
-//
-// Reduced fidelity, by design: chroma is not highlight.js, so token boundaries
-// and language auto-detection are not byte-identical. As a CLI-native addition
-// beyond CyberChef (which only outputs HTML), the "Output format" option can also
-// render the highlighting directly to the terminal with ANSI colours.
+// languages, emitting HTML spans that carry hljs-* CSS classes so the output can
+// be styled with a highlight.js theme. The highlighting comes from chroma
+// (github.com/alecthomas/chroma), whose token types are mapped onto the hljs-*
+// class vocabulary; token boundaries and language auto-detection therefore
+// differ from highlight.js.
 type SyntaxHighlighter struct{}
 
-const (
-	shAutoDetect = "auto detect"
-	shHTML       = "HTML"
-	shTerminal   = "Terminal"
-	// shTermStyle is the chroma style used for terminal (ANSI) output.
-	shTermStyle = "monokai"
-	// shTermFormatter is chroma's 256-colour terminal formatter, the widest-
-	// compatible ANSI target.
-	shTermFormatter = "terminal256"
-)
+// shAutoDetect is the Language value that infers the language from the input.
+const shAutoDetect = "auto detect"
 
 // Meta returns the operation metadata.
 func (SyntaxHighlighter) Meta() core.OpMeta {
@@ -54,19 +38,18 @@ func (SyntaxHighlighter) Meta() core.OpMeta {
 }
 
 // Args returns the argument definitions. "Language" is a free-form language name
-// (chroma lexer name or alias, matched case-insensitively) or "auto detect";
-// "Output format" selects HTML (default, matching CyberChef) or Terminal ANSI.
+// (a chroma lexer name or alias, matched case-insensitively) or "auto detect".
+// CyberChef offers highlight.js's language list here; chroma's differs, so the
+// argument takes any name rather than a fixed set of choices.
 func (SyntaxHighlighter) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Language", Type: core.ArgString, Value: shAutoDetect},
-		{Name: "Output format", Type: core.ArgOption, Value: []string{shHTML, shTerminal}},
 	}
 }
 
-// Run highlights the input in the requested language and output format.
+// Run highlights the input in the requested language.
 func (SyntaxHighlighter) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	lang := strings.TrimSpace(args[0].(string))
-	format := args[1].(string)
 	src := in.String()
 
 	lexer, err := shPickLexer(lang, src)
@@ -77,17 +60,7 @@ func (SyntaxHighlighter) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	tokens := it.Tokens()
-
-	if format == shTerminal {
-		var b strings.Builder
-		f := formatters.Get(shTermFormatter)
-		if err := f.Format(&b, styles.Get(shTermStyle), chroma.Literator(tokens...)); err != nil {
-			return nil, err
-		}
-		return core.NewDish([]byte(b.String()), core.TypeString), nil
-	}
-	return core.NewDish([]byte(formatHLJS(tokens)), core.TypeString), nil
+	return core.NewDish([]byte(formatHLJS(it.Tokens())), core.TypeString), nil
 }
 
 // shPickLexer resolves the language name to a chroma lexer. "auto detect" (or an

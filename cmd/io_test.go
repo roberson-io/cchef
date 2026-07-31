@@ -19,6 +19,7 @@ func resetIOFlags() {
 	flagInput, flagInFile, flagOutput = "", "", ""
 	flagInDir, flagOutDir = "", ""
 	flagRecursive = false
+	flagANSI = ansiAuto
 }
 
 func newIOCmd() *cobra.Command {

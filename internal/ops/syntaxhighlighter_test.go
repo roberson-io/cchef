@@ -13,11 +13,23 @@ import (
 // reimplements this over chroma (github.com/alecthomas/chroma). chroma is a
 // different engine, so token boundaries are not byte-identical to highlight.js —
 // these tests assert the structural contract (the hljs-* class vocabulary, HTML
-// escaping, the two output formats and the error path) rather than an exact
-// highlight.js match.
+// escaping and the error path) rather than an exact highlight.js match.
+
+// TestSyntaxHighlighterArgs pins the argument list to CyberChef's single
+// Language argument. An argument CyberChef does not define would travel in a
+// generated share URL as a step it cannot read back.
+func TestSyntaxHighlighterArgs(t *testing.T) {
+	args := SyntaxHighlighter{}.Args()
+	if len(args) != 1 {
+		t.Fatalf("Args() has %d entries, want 1: %+v", len(args), args)
+	}
+	if args[0].Name != "Language" {
+		t.Errorf("argument 0 is %q, want %q", args[0].Name, "Language")
+	}
+}
 
 func TestSyntaxHighlighterHTML(t *testing.T) {
-	out, err := runOp(t, "Syntax highlighter", "const x = 42;", "javascript", "HTML")
+	out, err := runOp(t, "Syntax highlighter", "const x = 42;", "javascript")
 	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
@@ -36,7 +48,7 @@ func TestSyntaxHighlighterHTML(t *testing.T) {
 }
 
 func TestSyntaxHighlighterEscapesHTML(t *testing.T) {
-	out, err := runOp(t, "Syntax highlighter", "x = a < b && c > d;", "javascript", "HTML")
+	out, err := runOp(t, "Syntax highlighter", "x = a < b && c > d;", "javascript")
 	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
@@ -54,7 +66,7 @@ func TestSyntaxHighlighterAutoDetect(t *testing.T) {
 	// chroma's language analysis is weaker than highlight.js's (a documented
 	// reduced-fidelity trade-off); Go is reliably detected from its structure.
 	src := "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"hi\")\n}\n"
-	out, err := runOp(t, "Syntax highlighter", src, "auto detect", "HTML")
+	out, err := runOp(t, "Syntax highlighter", src, "auto detect")
 	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
@@ -66,7 +78,7 @@ func TestSyntaxHighlighterAutoDetect(t *testing.T) {
 func TestSyntaxHighlighterExactClassMap(t *testing.T) {
 	// Go's `int` is a KeywordType, which maps through the exact-override table to
 	// hljs-type (distinct from the plain hljs-keyword category default).
-	out, err := runOp(t, "Syntax highlighter", "var n int = 5\n", "go", "HTML")
+	out, err := runOp(t, "Syntax highlighter", "var n int = 5\n", "go")
 	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
@@ -78,7 +90,7 @@ func TestSyntaxHighlighterExactClassMap(t *testing.T) {
 func TestSyntaxHighlighterAutoDetectFallback(t *testing.T) {
 	// Prose that no lexer recognises exercises the plaintext fallback: it runs
 	// without error and emits the (escaped) text with no highlighting spans.
-	out, err := runOp(t, "Syntax highlighter", "the quick brown fox\n", "auto detect", "HTML")
+	out, err := runOp(t, "Syntax highlighter", "the quick brown fox\n", "auto detect")
 	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
@@ -87,27 +99,14 @@ func TestSyntaxHighlighterAutoDetectFallback(t *testing.T) {
 	}
 }
 
-func TestSyntaxHighlighterTerminal(t *testing.T) {
-	out, err := runOp(t, "Syntax highlighter", "const x = 42;", "javascript", "Terminal")
-	if err != nil {
-		t.Fatalf("run: %v", err)
-	}
-	if !strings.Contains(out, "\x1b[") {
-		t.Errorf("Terminal output should contain ANSI escape sequences: %q", out)
-	}
-	if strings.Contains(out, "hljs-") {
-		t.Errorf("Terminal output should not contain HTML span classes: %q", out)
-	}
-}
-
 func TestSyntaxHighlighterUnknownLanguage(t *testing.T) {
-	if _, err := runOp(t, "Syntax highlighter", "x", "not-a-real-language", "HTML"); err == nil {
+	if _, err := runOp(t, "Syntax highlighter", "x", "not-a-real-language"); err == nil {
 		t.Fatal("expected an error for an unknown language")
 	}
 }
 
 func TestSyntaxHighlighterDefaults(t *testing.T) {
-	// Empty Args → CoerceArgs supplies the defaults: "auto detect" language, HTML.
+	// Empty Args → CoerceArgs supplies the default "auto detect" language.
 	out, err := core.Recipe{{Op: "Syntax highlighter"}}.Execute(sdish("const x = 1;"))
 	if err != nil {
 		t.Fatalf("execute: %v", err)

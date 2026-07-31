@@ -24,6 +24,7 @@ var (
 	flagRecursive bool   // --recursive: with --in-dir, walk subdirectories
 	flagPreview   bool   // --preview: show image output inline in the terminal
 	flagDataURI   bool   // --data-uri: write byte output as a data: URI
+	flagANSI      string // --ansi: auto/always/never for highlighted output
 )
 
 func addIOFlags(cmd *cobra.Command) {
@@ -36,6 +37,7 @@ func addIOFlags(cmd *cobra.Command) {
 	f.BoolVar(&flagRecursive, "recursive", false, "with --in-dir, recurse into subdirectories")
 	f.BoolVar(&flagPreview, "preview", false, "display image output inline (iTerm2 or kitty terminals)")
 	f.BoolVar(&flagDataURI, "data-uri", false, "write output as a data: URI")
+	f.StringVar(&flagANSI, "ansi", ansiAuto, "render highlighted code as ANSI color for a terminal: auto, always or never")
 }
 
 // resolveInput returns the input bytes, in priority order: --in-file, then
