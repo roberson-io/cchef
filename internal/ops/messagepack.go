@@ -288,6 +288,17 @@ func (r *mreader) take(n int) ([]byte, error) {
 	return b, nil
 }
 
+// canHold rejects a container header that declares more elements than the rest
+// of the input could supply. Every element is at least one byte, so a count
+// beyond that is malformed — and sizing the result from it first would let a
+// few bytes of header ask for an unbounded allocation.
+func (r *mreader) canHold(n int) error {
+	if n < 0 || n > len(r.data)-r.pos {
+		return errors.New("unexpected end of MessagePack data")
+	}
+	return nil
+}
+
 func (r *mreader) u8() (uint64, error) {
 	b, err := r.take(1)
 	if err != nil {
@@ -503,6 +514,9 @@ func msgpackBin(r *mreader, prefix byte) (any, error) {
 }
 
 func msgpackArray(r *mreader, n int) (any, error) {
+	if err := r.canHold(n); err != nil {
+		return nil, err
+	}
 	arr := make([]any, n)
 	for i := range arr {
 		v, err := msgpackParse(r)
@@ -523,6 +537,10 @@ func msgpackArrayN(r *mreader, readLen func() (uint64, error)) (any, error) {
 }
 
 func msgpackMap(r *mreader, n int) (any, error) {
+	// A pair is two values, so it needs at least two bytes.
+	if err := r.canHold(2 * n); err != nil {
+		return nil, err
+	}
 	obj := jsObject{}
 	for range n {
 		k, err := msgpackParse(r)

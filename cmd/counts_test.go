@@ -62,7 +62,7 @@ func TestUniqueOpCountMatchesRegistry(t *testing.T) {
 	// four subcommands are not a further unique operation.
 	const sha2Extras = 3
 	want := len(core.Default.All()) - sha2Extras
-	if got := countIn(t, "PLAN.md", `cover\s+(\d+) unique CyberChef operations`); got != want {
+	if got := countIn(t, "PLAN.md", `cover\s+(\d+)\s+unique\s+CyberChef\s+operations`); got != want {
 		t.Errorf("PLAN.md quotes %d unique operations, registry implies %d", got, want)
 	}
 }

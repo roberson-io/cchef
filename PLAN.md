@@ -1,391 +1,207 @@
-# CyberChef CLI (`cchef`) — Plan & Status
-
-## Context
+# cchef — Plan
 
 `cchef` is a Go CLI port of the data-transformation engine of
 [CyberChef](https://gchq.github.io/CyberChef/) (cloned alongside at
-`../CyberChef`). Each operation is a subcommand, operations chain into recipes
-(pipes, JSON, or CyberChef's compact "Chef" format), and recipes round-trip to a
-shareable `gchq.github.io/CyberChef` URL.
+`../CyberChef`). This file tracks what is left to do; the README describes
+what the tool is, and `docs/` documents every operation.
 
-Two rules have shaped everything:
+## Status
 
-- **Test-driven, against CyberChef's own fixtures.** Test → red stub →
-  implementation, with cases transcribed from
-  `../CyberChef/tests/operations/tests/*.mjs`. Where an operation has no
-  fixtures, behavior is derived from a running CyberChef (see
-  [Verification](#verification)).
-- **A single static binary, no cgo.** This rules out several otherwise obvious
-  libraries and is why so much is implemented from scratch.
+A **curated set of 504 operations** is implemented, tested and documented,
+tracked against CyberChef 11.3.0. Those subcommands cover 501 unique CyberChef
+operations; the difference is `SHA2`, which cchef exposes as
+`sha224`/`sha256`/`sha384`/`sha512`.
 
-Where cchef's answer differs from CyberChef's on purpose, it is because
-CyberChef has a defect. Those are cataloged with reproductions in
-`../CYBERCHEF-BUGS.md` and noted in the relevant `docs/` page. See
-[Deliberate differences](#deliberate-differences-from-cyberchef) for the
-differences that are *not* bug fixes.
+- **504 operations** (`internal/ops/`), each a faithful port.
+- **Core engine** (`internal/core/`), CLI (`cmd/`), docs (`docs/`), and
+  generators for the large tables (`tools/`).
+- `make all` (fmt, fix, vet, test, build, lint, sec) and `make fuzz` are clean.
 
-## Dependencies
+## Constraints
 
-**Policy.** `golang.org/x/*` and libraries with large-organization backing are
-acceptable long-term. The concern is modules maintained by individuals —
-especially unmaintained ones — which carry supply-chain and bit-rot risk. Those
-are candidates for in-repo reimplementation, following the precedent set by the
-codepage engine and the generated rule tables: reimplement rather than depend,
-and differential-verify byte-for-byte against the oracle.
+These shape every item below.
 
-The README lists every direct dependency and what it is for. What follows is the
-reasoning that is not obvious from that list.
+- **A single static binary, no cgo.** This rules out otherwise obvious
+  libraries and is why so much is implemented from scratch. OCR is the one
+  exception: it drives an installed `tesseract` and errors clearly without it.
+- **Operations match CyberChef**, verified against upstream fixtures or a
+  running CyberChef. Where cchef differs on purpose it is because CyberChef has
+  a defect; those are cataloged in `../CYBERCHEF-BUGS.md`. Differences that are
+  *not* bug fixes are listed under
+  [Deliberate differences](#deliberate-differences-from-cyberchef).
+- **Test-driven**: test → red stub → implementation, per the
+  [`/add-operation`](.claude/skills/add-operation/SKILL.md) skill.
+- **Dependencies are a liability.** `golang.org/x/*` and libraries with
+  large-organization backing are fine long-term; modules maintained by
+  individuals, especially unmaintained ones, are candidates for in-repo
+  reimplementation. Nothing GPL or AGPL: the project is Apache-2.0.
 
-**Written from scratch rather than pulled in.** Every cipher, hash, compression
-format and file parser. Also: the **codepage engine** (a port of the `codepage`
-npm library CyberChef wraps, byte-for-byte across all 152 charsets, its decode
-tables extracted into an embedded ~1.2 MB blob by `tools/cpgen`); the
-**JavaScript parser/beautifier/minifier**; the **d3 subset** behind the charts;
-the **x86 disassembler**; the **Bletchley machines**; the **YARA engine** (no
-usable pure-Go library exists, and the alternatives need a C or Rust library
-linked in); and **GOST**, **Ascon**, **TEA/XTEA/XXTEA**, **PRESENT**,
-**Twofish**, **RC6**, **SM4**, **Salsa20**, **SIGABA** and **Typex**.
+## Remaining work
 
-**Notable carve-outs.**
+Ordered so that changes to behavior and the CLI surface land before the
+verification, documentation and packaging that describe them. Reorder freely —
+only the ordering *within* a stage reflects a real dependency.
 
-- **PGP** (7 operations) runs on `ProtonMail/go-crypto` rather than reproducing
-  kbpgp's exact output. Armor headers and generated-key subkey structure differ;
-  interoperability is complete in both directions and is what the tests pin.
-- **OCR** is the one operation cchef does not perform itself — it drives the
-  installed `tesseract` binary, its only external tool. Every cgo-free Go route
-  was examined and rejected: `gosseract` needs cgo; `gogosseract` is
-  unmaintained and much slower; no Tesseract WASI build exists; no maintained
-  pure-Go engine exists; and embedding the WASM plus language data would add
-  ~13 MB. A clear error is returned when it is absent, and nothing else is
-  affected.
+### 1. Behavior and CLI surface
 
-### License problems (resolved)
-
-Two dependencies were incompatible with distributing under Apache 2.0; both
-have been replaced. The GPL-3.0 `im7mortal/UTM` module was replaced by
-`internal/ops/utm.go`, a port of the MIT-licensed `utm` Python package. The
-AGPL-3.0 ua-parser-js detection tables that had been transcribed into
-`internal/ops/useragent_rules.go` were replaced by hand-derived rules built
-from the structure of real user-agent strings and black-box probing of
-CyberChef's observed output; parity was verified over a 187-string corpus and
-against the live oracle.
-
-### Other planned reimplementations
-
-Each is removed once its Go replacement is oracle-verified over the same inputs.
-
-- [ ] `github.com/elobuff/goamf` (**AMF Encode/Decode**) — highest priority:
-  unmaintained since 2014, and removing it also drops an indirect dependency.
-  Fuzzing found two defects in it. It indexes into its buffers without checking
-  the length, so truncated input panicked; `amfDecode` now contains that and
-  reports an error, where CyberChef decodes the same bytes into a partial
-  structure. It also spends about a second and a large allocation on a
-  four-byte length prefix, which a reimplementation should bound.
-- [ ] `github.com/sergi/go-diff` (**Diff**) — reimplement the Myers diff.
-- [ ] `github.com/mmcloughlin/geohash` (**Convert co-ordinate format**) —
-  bit-interleaving; small.
-- [ ] `github.com/wroge/wgs84` (**Convert co-ordinate format**) — the remaining
-  datum transforms; precision-sensitive, verify against the oracle.
-- [ ] `golang.org/x/text/encoding/charmap` (**MIME Decoding**) — route through
-  the in-repo codepage engine, which already covers all 16 ISO-8859 charsets.
-  This removes the *usage*, not the `x/text` module, which stays for
-  `unicode/norm`.
-
-**Explicitly kept:** `dlclark/regexp2` (backtracking PCRE, which RE2 cannot
-replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full `.proto`
-compiler), `golang.org/x/text/unicode/norm`, `golang.org/x/crypto`, and
-`go.yaml.in/yaml/v3`.
-
-## Current status
-
-The core engine, recipe/URL machinery, CLI, docs, and a **curated set of 504
-operations** are implemented, tested and documented — every operation CyberChef
-implements is ported, tracked against CyberChef 11.3.0. Those subcommands cover
-501 unique CyberChef operations; the difference is `SHA2`, which cchef exposes
-as `sha224`/`sha256`/`sha384`/`sha512`.
-
-- **Core engine** (`internal/core/`): `Dish` (byte-backed type hub), the
-  `Operation` interface with its `ArgDef`/`ToggleString` ingredient model, a
-  self-registering `Registry`, `Recipe.Execute` with flow control, and faithful
-  ports of `GeneratePrettyRecipe`/`ParseRecipeConfig` and
-  `EncodeURIFragment`/`BuildURL`, each with byte-exact tests.
-- **504 operations** (`internal/ops/`), each a faithful port with tests
-  transcribed from CyberChef's fixtures.
-- **CLI** (`cmd/`): auto-generated per-operation subcommands with flags derived
-  from the argument definitions (or from `ArgDef.Flag`, where a web-form label
-  made an unreasonable flag name), plus `bake`, `url`, `recipe convert` and
-  `list`. Input resolves `--in-file` > `-i/--input` > positional > stdin, and a
-  positional naming a file is refused rather than encoded as its own text;
-  output is byte-exact when piped and adds a trailing newline only on a
-  terminal. `--in-dir`/`--out-dir` run a recipe over a directory, `--preview`
-  and `--data-uri` present byte output, and every name keeping CyberChef's UK
-  spelling also answers to its US one.
-- **Staged recipes**: `cchef recipe add/rm/move/toggle/show/clear` builds a
-  recipe a step at a time in `.cchef-recipe.json`, which `bake`, `url` and
-  `recipe convert` fall back to when given no recipe of their own.
-- **Docs** (`docs/`): a page per category with options tables, simple and
-  complex examples, and reference links.
-- **Tooling**: `make all` runs fmt, fix, vet, test, build, lint and sec; plus
-  `complexity` and `sbom-audit`. Every gosec suppression must name its rule and
-  reason, enforced by the build.
-
-## Architecture (as built)
-
-```
-cchef/
-  main.go                    thin entry -> cmd.Execute()
-  cmd/
-    root.go                  root cobra command
-    register_ops.go          one subcommand per registered op (flags from ArgDefs)
-    io.go                    input resolution and output, --in-dir/--out-dir,
-                             --preview/--data-uri presentation
-    bake.go url.go recipe.go list.go
-    stage.go                 the staged recipe and its `recipe add` commands
-    spelling.go              UK/US spelling aliases for names, flags and values
-    opmeta.go                op -> category, plus the derived-summary machinery
-    opsummaries.go           curated one-line summaries
-    opaliases.go             short aliases for high-traffic ops
-  internal/core/
-    dish.go                  Dish + conversions between the type hub's forms
-    operation.go             Operation, ArgDef, ArgType, ToggleString, coercion
-    registry.go              Register / Get / All; ops self-register via init()
-    recipe.go                RecipeOp, Recipe.Execute
-    flow.go                  FlowState / FlowOperation, sub-recipe execution
-    chef.go url.go naming.go
-  internal/ops/              one file per operation, plus the shared engines
-  internal/yara/             the YARA rule engine
-  internal/jsnum/            JavaScript number formatting
-  internal/termimage/        inline image previews for --preview
-  tools/                     generators for the large tables (see the READMEs)
-  docs/                      one page per category
-```
-
-`internal/ops` is a single flat package: one file per operation alongside the
-engines and static tables they share. See
-[Proposed reorganization](#proposed-reorganization-of-internalops).
-
-## Recipe formats and URLs
-
-- **JSON**: `[{"op":"To Base64","args":["A-Za-z0-9+/="]}, ...]`, recognized by
-  its leading `[`.
-- **Chef** (compact): `To_Base64('A-Za-z0-9+/=')To_Hex('Space')`, with optional
-  `/disabled` and `/breakpoint` flags.
-- A recipe in either form that does not parse is refused, rather than silently
-  doing nothing.
-- **URL**: `https://gchq.github.io/CyberChef/#recipe=<chef>&input=<base64>`.
-
-## Adding an operation
-
-The repeatable workflow is the [`/add-operation`](.claude/skills/add-operation/SKILL.md)
-skill: research upstream, write the test first from its fixtures, add a red
-stub, port `run()` until green, cover the new code, then update the docs, the
-category table and the counts.
-
-## Deliberate differences from CyberChef
-
-These are choices, not bug fixes — the bug fixes live in `../CYBERCHEF-BUGS.md`.
-
-- **Errors are errors.** CyberChef catches an `OperationError` and renders its
-  message as the recipe's output; cchef returns it, so a shell sees a non-zero
-  exit and the message on stderr.
-- **No browser, so no HTML previews.** CyberChef's `presentType: "html"`
-  operations render in the page. The byte-emitting ones (Render Image, Play
-  Media, Render PDF) validate their input and pass the bytes through, to be
-  saved with `-o`. Presentation is an IO-layer concern rather than an operation
-  argument, so two global flags serve every operation that emits bytes:
-  `--preview` renders an image inline (iTerm2/WezTerm or kitty), and
-  `--data-uri` writes a `data:<mime>;base64,…` URI. Report-style operations
-  (Magic, YARA Rules, ELF Info) print text instead of a table, and the
-  `List<File>` ones write into `--out-dir`.
-- **Imaging reproduces Jimp's pixel maths from scratch** on an `image.NRGBA`,
-  decoding with the standard library plus `golang.org/x/image`. Lossless formats
-  are pixel-identical; JPEG output is a lossy re-encode, and Rotate by
-  non-multiples of 90° matches dimensions rather than every pixel. Verified
-  against Jimp run under Node, since the oracle cannot execute the image module.
-- **Text rendering uses CyberChef's own bitmap font atlases** (vendored in
-  `internal/ops/bmfonts/`), so Add Text To Image is pixel-identical, including
-  Jimp's quirk of sizing the bitmap at one line per word plus one.
-- **Charts emit SVG text.** The parts of d3 they need are ported, so scales,
-  ticks, color ramps and hexagonal binning are byte-identical to goldens
-  produced by running the real operations under Node. Three mechanical
-  deviations make the result valid, standalone SVG: `__data__` bindings are not
-  serialized, the clip element is spelled `clipPath`, and the root carries an
-  `xmlns`. Two portability details are pinned deliberately: the hexagon angles
-  are tabulated because Go and V8 disagree by an ulp on `sin`/`cos`, and the
-  interpolation sites force intermediate rounding because Go on arm64 fuses
-  multiply-add where JavaScript rounds twice.
-- **Multi-file output.** Split Colour Channels is the only operation with a
-  `List<File>` output. `core.Dish` has a `TypeFileList`; such a dish is terminal
-  and the CLI writes it into `--out-dir`, giving each input its own
-  subdirectory when reading a directory.
-- **User-supplied regular expressions are Go's RE2.** Lookahead and
-  backreferences are unavailable; `regexp2` is reserved for internal patterns
-  that need them.
-
-## Proposed reorganization of `internal/ops`
-
-**Status: proposal — not started.** `internal/ops` is one flat package of
-**782 files / 165k LOC** (414 non-test at 106k, 368 test at 59k) implementing
-the 504 registered operations. Nothing is broken; the concern is navigability
-and build/test granularity. Re-measure before acting — these figures drift.
-
-- **The operation files are healthy.** 315 files declare a `Meta()`, most
-  registering one operation and some an encode/decode pair. One operation per
-  file mirrors CyberChef and keeps the test loop tight; **keep it**. The file
-  count is a symptom of scope, not of bad layout.
-- **99 files register nothing.** These are the engines and static data — the
-  JavaScript parser, the entity and codepage tables, the XML DOM, protobuf, d3,
-  the disassemblers, the Bletchley machines, the signature and rule tables —
-  sitting alphabetically interleaved with forty-line operations.
-- **Coupling is low**, but a handful of shared helpers (`convertToByteArray`,
-  `charRep`, `parseEscapedChars`, `imageTransform` and a few others) hold the
-  reference graph together. Extracting them breaks it into many small
-  components, so the package is genuinely splittable.
-
-Three problems worth fixing:
-
-1. **One compilation unit and one test binary.** A one-line edit recompiles the
-   whole package, and there is no per-package caching or parallel test
-   execution. Every unexported helper is visible to every file, which is why the
-   add-operation skill has to say "grep before adding a helper" — package
-   boundaries would enforce that instead of prose.
-2. **Category is a side table rather than structure.** `opCategories` in
-   `cmd/opmeta.go` hand-maintains 504 entries, policed by a test.
-3. **Engines and operations carry equal visual weight** in a directory listing.
-
-The staged approach: extract the shared helpers into `internal/opsutil` and the
-standalone engines into their own packages (worthwhile on its own), then split
-the remainder one package per category, then generate the category table from
-the result. The move is also the moment to audit file-splitting consistency:
-reciprocal operations (encode/decode, encrypt/decrypt) normally share one file
-per algorithm, so any operation spread across several files should be
-re-justified or merged.
-
-## Remaining / future work
-
-Roughly ordered: what blocks going public, then what a polished release looks
-like, then open-ended improvements. The
-[reorganization of `internal/ops`](#proposed-reorganization-of-internalops)
-above is also open.
-
-### Before going public
-
-Nothing outstanding. Fuzzing is in place (`make fuzz`, seven targets across
-`internal/core`, `internal/ops` and `internal/yara`) and found eight defects,
-all fixed: two out-of-range slices in the protobuf parser, a panic in the AMF
-library, a negative index in XML Beautify, `To Base85` writing a partial zero
-group as `z`, an unbounded `Get All Casings`, a panic in the SSDEEP
-comparison, and a class of operations that read a byte which is not valid
-UTF-8 as U+FFFD instead of falling back to one character per byte as CyberChef
-does. Four of those were CyberChef defects as well and are in the bug log.
-
-The breaking CLI changes are done: flags renamed off their web-form labels,
-US spellings accepted, integer arguments validated, output presentation moved
-off the operations, and the positional-argument guard added. Anything else that
-would change the CLI surface should land before the repository goes public.
-
-### Distribution
-
-- **GoReleaser.** A no-cgo static binary is its ideal case: macOS, Linux and
-  Windows on amd64/arm64 from one config, with archives, checksums, a Homebrew
-  tap and nfpm-built deb/rpm once the repository is public. Document
-  `tesseract` as the one optional runtime dependency on each platform.
-- **Man pages.** cobra can generate a full man tree (`cobra/doc`), but with 504
-  subcommands that is a large tree: hand-write a quality `cchef(1)` following
-  man-page best practice, then decide whether generated per-subcommand pages
-  earn their bulk.
-
-### CLI and user experience
-
-- **Revisit [clig.dev](https://clig.dev/) end to end.** It shaped the interface
-  early in development and has not been re-checked since.
-- **Finish the numeric bounds.** Integer-ness is now declared on the 130
+- [ ] **Move Syntax highlighter's output format off the operation.** It keeps a
+  cchef-added `Output format` (`HTML`/`Terminal`) argument, so a generated share
+  URL carries an argument CyberChef does not know — the same defect already
+  fixed on Render Image, Play Media and Render PDF. Both its forms are text, so
+  `--preview`/`--data-uri` do not apply. Either default to `Terminal` when
+  stdout is a terminal and `HTML` otherwise (matching how the trailing newline
+  already works), or add a global flag.
+- [ ] **Finish the numeric bounds.** Integer-ness is declared on the 130
   arguments that are semantically whole numbers, and the eight where the
   operation itself rejects fractions with CyberChef's own message were left to
-  it. `Min`/`Max` is a separate question: 56 arguments declare bounds, and the
+  it. `Min`/`Max` is the open half: 56 arguments declare bounds, and the
   unbounded crypto and generator parameters were spot-checked against the
-  oracle (CyberChef accepts zero PBKDF2 iterations, so cchef does too). A full
-  sweep of the rest would still be worth doing.
-- **Syntax highlighter’s output format is still an operation argument.** All 44
-  upstream `presentType: "html"` operations were audited and made consistent,
-  but this one keeps a cchef-added `Output format` (`HTML`/`Terminal`) argument,
-  so a generated share URL carries an argument CyberChef does not know. Its two
-  forms are both text, so `--preview`/`--data-uri` do not apply. Options:
-  default to `Terminal` when stdout is a terminal and `HTML` otherwise (matching
-  how the trailing newline already works), or move it to a global flag.
+  oracle (CyberChef accepts zero PBKDF2 iterations, so cchef does too). Sweep
+  the remaining ~119.
+- [ ] **Revisit [clig.dev](https://clig.dev/) end to end.** It shaped the
+  interface early in development and has not been re-checked since. Do this
+  before the docs pass, since it may produce more surface changes.
+- [ ] **Decide how far to loosen JavaScript parity.** Strict parity was
+  scaffolding: it made the oracle and the sweeps possible. Some of what it
+  preserved is JavaScript rather than CyberChef — `internal/jsnum` exists solely
+  to reproduce JS float formatting, and JSON output enumerates integer keys
+  first because V8 does. Proposed tiering: keep byte parity where interop is the
+  point (data transforms feeding other tools, anything reachable from a shared
+  CyberChef URL), and allow Go-native behavior where the quirk is a wart nobody
+  depends on. Each relaxation becomes a deliberate difference, recorded below,
+  with the sweeps asserting the divergence precisely. The cost to watch: every
+  divergence makes the oracle a little less useful.
 
-### Loosening JavaScript parity
+### 2. Verification
 
-Strict parity was scaffolding: matching CyberChef byte for byte is what made
-the oracle and the sweeps possible, and gave confidence the port works. Some of
-what it preserved, though, is JavaScript rather than CyberChef — `internal/jsnum`
-exists solely to reproduce JS float formatting, and JSON output enumerates
-integer keys first because V8 does. Consider tiering the requirement:
-
-- **Keep byte parity where interop is the point** — data transforms whose
-  output feeds other tools, and anything reachable from a shared CyberChef URL,
-  where the same recipe must give the same answer.
-- **Allow Go-native behavior where the quirk is a wart** nobody depends on,
-  taking advantage of Go's strengths instead of reproducing JavaScript's
-  peculiarities.
-
-Every relaxation is a deliberate difference: record it in
-[that section](#deliberate-differences-from-cyberchef), and have the sweeps
-assert the divergence precisely (the existing convention for bug fixes). The
-cost to watch: each divergence makes the oracle a little less useful.
-
-### Documentation and comments
-
-Comments and docs have accumulated process talk — provenance claims
-("faithful", "byte-for-byte"), descriptions of upstream's behavior,
-development narrative — where they should state what the code does and the
-constraints a reader needs. Clean this up opportunistically as files are
-touched rather than as a dedicated audit pass, and hold new code to the
-tighter standard so the debt stops growing.
-
-**Documentation is US English**, except where it quotes an operation, flag or
-option value whose original spelling is UK English (`Split Colour Channels`
-stays as CyberChef named it). The `docs/` pages still need this conversion; it
-cannot be a blind find-and-replace, because the examples embed verified command
-output and functional option values that must keep their exact spellings.
-
-**Cross-reference the classic tools.** Many operations do the same job as a
-well-known CLI tool: the Base64/Base32 codecs (coreutils `base64`/`base32`),
-hex and hexdump (`xxd`, `od`), the hash subcommands (`md5sum`/`sha256sum`,
-`openssl dgst`), Strings (binutils `strings`), the compression codecs (`gzip`,
-`bzip2`, `zip`), text-encoding conversion (`iconv`), UUID generation
-(`uuidgen`), jq/JPath (`jq`), Diff (`diff`), and so on. The docs page for such
-an operation should say it is an alternative to that tool and link to the
-tool's home page or repository, so a reader arriving from either direction can
-map one onto the other. Where cchef's behavior differs from the classic tool
-(because parity is with CyberChef), the note should say how.
-
-### Fidelity and verification
-
-- **Real-input corpus.** Test the built tool against real inputs, not just
-  contrived fixtures: actual ELF and PE binaries, photographs, archives,
-  documents, through the relevant operations and against the oracle. Record
-  every mismatch — a corpus that drops mismatches hides bugs.
-- **Standardized test vectors.** For the standardized algorithms (AES, DES, the
-  SHA family, HMAC, RSA, ECDSA), consider cross-checking against NIST's
+- [ ] **Build a real-input corpus.** Test the built tool against real inputs,
+  not only contrived fixtures: actual ELF and PE binaries, photographs,
+  archives, documents, through the relevant operations and against the oracle.
+  Record every mismatch — a corpus that drops mismatches hides bugs.
+- [ ] **Cross-check against standardized test vectors.** For AES, DES, the SHA
+  family, HMAC, RSA and ECDSA, check against NIST's
   [CAVP](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program)
-  vectors. Being independent of CyberChef, they would catch anywhere CyberChef
-  itself diverges from the standard — and confirm the places cchef matches it
-  deliberately. They validate the core algorithm, not the option plumbing, so
-  the oracle checks stay.
-- **`Hex to PEM` — mixed hex/non-hex input.** Faithful for all well-formed hex
+  vectors. Being independent of CyberChef, they catch anywhere CyberChef itself
+  diverges from the standard, and confirm the places cchef matches it
+  deliberately. They validate the algorithm, not the option plumbing, so the
+  oracle checks stay.
+- [ ] **`Hex to PEM` — mixed hex/non-hex input.** Faithful for well-formed hex
   and lenient on stray characters as upstream is, but input that *interleaves*
   hex and non-hex (`"3g3"`) is not reproduced: jsrsasign routes through
   CryptoJS's word packing and fractional-`sigBytes` clamp. Closing it means
   porting that pipeline. Low priority — garbage in, garbage out.
-- **`Avro to JSON` — 64-bit longs above 2^53.** cchef reads `long` as exact
+- [ ] **`Avro to JSON` — 64-bit longs above 2^53.** cchef reads `long` as exact
   `int64`; avsc reads into a float64. Unreachable for avsc-produced files, since
-  its encoder rejects such values.
+  its encoder rejects such values. Low priority.
+
+### 3. Dependencies
+
+Each is removed once its Go replacement is oracle-verified over the same inputs.
+
+- [ ] **`github.com/elobuff/goamf`** (AMF Encode/Decode) — highest priority:
+  unmaintained since 2014, and removing it drops an indirect dependency too.
+  Fuzzing found two defects in it: it indexes into its buffers without checking
+  the length, so truncated input panicked (`amfDecode` now contains that and
+  reports an error, where CyberChef decodes the same bytes into a partial
+  structure), and it spends about a second and a large allocation on a
+  four-byte length prefix. A reimplementation should bound both.
+- [ ] **`github.com/sergi/go-diff`** (Diff) — reimplement the Myers diff.
+- [ ] **`github.com/mmcloughlin/geohash`** (Convert co-ordinate format) —
+  bit-interleaving; small.
+- [ ] **`github.com/wroge/wgs84`** (Convert co-ordinate format) — the remaining
+  datum transforms; precision-sensitive, verify against the oracle.
+- [ ] **`golang.org/x/text/encoding/charmap`** (MIME Decoding) — route through
+  the in-repo codepage engine, which already covers all 16 ISO-8859 charsets.
+  This removes the *usage*, not the `x/text` module, which stays for
+  `unicode/norm`.
+
+Explicitly kept: `dlclark/regexp2` (backtracking PCRE, which RE2 cannot
+replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
+`.proto` compiler), `golang.org/x/text/unicode/norm`, `golang.org/x/crypto`,
+`go.yaml.in/yaml/v3`.
+
+### 4. Structure
+
+- [ ] **Split `internal/ops`.** It is one flat package of ~782 files / 165k LOC
+  implementing the 504 operations. Nothing is broken; the concern is
+  navigability and build granularity. Re-measure before acting — these figures
+  drift. What the measurements showed:
+
+  - The operation files are healthy: ~315 declare a `Meta()`, most registering
+    one operation. One operation per file mirrors CyberChef and keeps the test
+    loop tight — **keep it**.
+  - ~99 files register nothing. These are the engines and static data — the
+    JavaScript parser, the entity and codepage tables, the XML DOM, protobuf,
+    d3, the disassemblers, the Bletchley machines — interleaved alphabetically
+    with forty-line operations.
+  - Coupling is low, but a few shared helpers (`convertToByteArray`, `charRep`,
+    `parseEscapedChars`, `imageTransform`) hold the reference graph together.
+    Extracting them breaks it into many small components.
+
+  Three problems worth fixing: one compilation unit and one test binary, so a
+  one-line edit recompiles everything and every unexported helper is visible to
+  every file; category is a side table (`opCategories` hand-maintains 504
+  entries) rather than structure; and engines carry the same visual weight as
+  operations in a directory listing.
+
+  Staged approach: extract the shared helpers into `internal/opsutil` and the
+  standalone engines into their own packages (worthwhile on its own), then split
+  the remainder one package per category, then generate the category table from
+  the result. Do it when nothing else is in flight — it is large mechanical
+  churn. It is also the moment to audit file-splitting consistency: reciprocal
+  operations normally share one file per algorithm, so any operation spread
+  across several files should be re-justified or merged.
+
+### 5. Documentation
+
+- [ ] **Name the actual flag in every options table.** Pages disagree on what
+  the first column holds: `date-time.md` and eight others give the flag
+  (`` `--days` ``), while `code-tidy.md`, `compression.md`, `extractors.md`,
+  `flow-control.md`, `forensics.md`, `language.md` and `multimedia.md` give
+  CyberChef's display name, leaving the reader to infer `--colour-pattern-1`
+  from an example. Roughly 276 of 1,082 option rows are affected, plus a few
+  stragglers in `arithmetic-logic.md` and `encryption-encoding.md`. Convert
+  them to the flag, which is the majority convention and the useful one; a
+  derived name is not always guessable from the label, so check each against
+  `cchef <op> --help` rather than deriving it by hand. Worth doing in the same
+  pass as the two items below, since it touches the same pages.
+- [ ] **Convert `docs/` to US English**, except where it quotes an operation,
+  flag or option value whose original spelling is UK English (`Split Colour
+  Channels` stays as CyberChef named it). Not a blind find-and-replace: the
+  examples embed verified command output and functional option values that must
+  keep their exact spellings.
+- [ ] **Cross-reference the classic tools.** Many operations do the same job as
+  a well-known CLI tool: the Base64/Base32 codecs (`base64`/`base32`), hex and
+  hexdump (`xxd`, `od`), the hash subcommands (`md5sum`/`sha256sum`, `openssl
+  dgst`), Strings (`strings`), the compression codecs (`gzip`, `bzip2`, `zip`),
+  text-encoding conversion (`iconv`), UUID generation (`uuidgen`), jq/JPath
+  (`jq`), Diff (`diff`). Each such page should say it is an alternative to that
+  tool, link to it, and note where cchef's behavior differs because parity is
+  with CyberChef.
+- [ ] **Clean up process talk in comments and docs.** Provenance claims
+  ("faithful", "byte-for-byte"), descriptions of upstream's behavior, and
+  development narrative belong nowhere; state what the code does and the
+  constraints a reader needs. Do this opportunistically as files are touched
+  rather than as a dedicated audit, and hold new code to the tighter standard so
+  the debt stops growing.
+
+### 6. Release
+
+- [ ] **GoReleaser.** A no-cgo static binary is its ideal case: macOS, Linux and
+  Windows on amd64/arm64 from one config, with archives, checksums, a Homebrew
+  tap and nfpm-built deb/rpm once the repository is public. Document `tesseract`
+  as the one optional runtime dependency on each platform.
+- [ ] **Man pages.** cobra can generate a full man tree (`cobra/doc`), but with
+  504 subcommands that is a large tree: hand-write a quality `cchef(1)`
+  following man-page best practice, then decide whether generated
+  per-subcommand pages earn their bulk.
 
 ## Verification
 
-- **`make all`** — fmt, fix, vet, test, build, lint and sec, all clean. Plus
-  `make complexity`.
+How to check the work above.
+
+- **`make all`** — fmt, fix, vet, test, build, lint, sec. Plus `make complexity`
+  and `make fuzz`.
 - **Both architectures.** CI runs linux/amd64 while development is on arm64, and
   Go's `math` functions differ in the last bit between them. Anything with
   floating-point maths is checked on both:
@@ -395,18 +211,56 @@ map one onto the other. Where cchef's behavior differs from the classic tool
       -e GOFLAGS=-buildvcs=false -e GOGC=off golang:1.26 go test ./...
   ```
 
-- **The oracle.** For operations without upstream fixtures, a real CyberChef
+- **The oracle.** For operations without upstream fixtures, a running CyberChef
   gives authoritative output. Two are used: the HTTP server (Docker, from
   `../CyberChef-server`, `POST /bake`), and the Node API for what the server
   cannot do — operations whose `run()` is async or loads WASM, and `List<File>`
   output. Keep the image current: it installs the last *published* npm
-  `cyberchef`, so an operation merged after that release is present in the
-  source checkout but absent from the oracle. The server also refuses an empty
-  input for every operation, so those cases are covered by fixtures instead.
-  Flow control is excluded from both oracles by design, so those operations are
-  verified against upstream's fixtures alone.
+  `cyberchef`, so an operation merged after that release is in the source
+  checkout but absent from the oracle. The server also refuses empty input for
+  every operation, so those cases are covered by fixtures instead. Flow control
+  is excluded from both oracles by design.
 - **Differential sweeps.** For anything with formatting, numeric or
   binary-layout subtleties, fixtures are not enough: sweep many varied inputs
   through cchef and the oracle and compare byte for byte. Where cchef diverges
   deliberately, the sweep asserts the divergence precisely rather than skipping
   the case.
+- **Fuzzing.** `make fuzz` runs seven targets across `internal/core`,
+  `internal/ops` and `internal/yara`: the parsers that read data cchef did not
+  write, plus round-trip properties over the byte-level codecs. Failing inputs
+  land in `testdata/fuzz/` and become regression tests.
+
+## Deliberate differences from CyberChef
+
+Choices, not bug fixes — the bug fixes are in `../CYBERCHEF-BUGS.md`. Add to
+this list when a relaxation from stage 1 lands.
+
+- **Errors are errors.** CyberChef catches an `OperationError` and renders its
+  message as the recipe's output; cchef returns it, so a shell sees a non-zero
+  exit and the message on stderr.
+- **No browser, so no HTML previews.** The byte-emitting operations (Render
+  Image, Play Media, Render PDF) validate their input and pass the bytes
+  through. Presentation is an IO-layer concern rather than an operation
+  argument, so two global flags serve every operation that emits bytes:
+  `--preview` renders an image inline (iTerm2/WezTerm or kitty) and `--data-uri`
+  writes a `data:<mime>;base64,…` URI. Report-style operations (Magic, YARA
+  Rules, ELF Info) print text instead of a table, and the `List<File>` ones
+  write into `--out-dir`.
+- **Imaging reproduces Jimp's pixel maths from scratch** on an `image.NRGBA`.
+  Lossless formats are pixel-identical; JPEG output is a lossy re-encode, and
+  Rotate by non-multiples of 90° matches dimensions rather than every pixel.
+  Text rendering uses CyberChef's own bitmap font atlases, so Add Text To Image
+  is pixel-identical.
+- **Charts emit standalone SVG.** Byte-identical to goldens produced under Node
+  except for three mechanical deviations that make the result valid SVG:
+  `__data__` bindings are not serialized, the clip element is spelled
+  `clipPath`, and the root carries an `xmlns`. Two portability details are
+  pinned deliberately: hexagon angles are tabulated because Go and V8 disagree
+  by an ulp on `sin`/`cos`, and the interpolation sites force intermediate
+  rounding because Go on arm64 fuses multiply-add where JavaScript rounds twice.
+- **PGP** runs on `ProtonMail/go-crypto` rather than reproducing kbpgp's exact
+  output. Armor headers and generated-key subkey structure differ;
+  interoperability is complete in both directions and is what the tests pin.
+- **User-supplied regular expressions are Go's RE2.** Lookahead and
+  backreferences are unavailable; `regexp2` is reserved for internal patterns
+  that need them.

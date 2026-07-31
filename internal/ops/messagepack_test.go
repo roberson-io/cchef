@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"math"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -466,5 +467,42 @@ func TestMsgpackParseSized(t *testing.T) {
 	v, err := msgpackParseSized(&mreader{data: []byte{0x02, 'h', 'i'}}, 0xd9)
 	if err != nil || v != "hi" {
 		t.Fatalf("str8: %v, %v", v, err)
+	}
+}
+
+// TestFromMessagePackHeaderBomb covers a container header that declares more
+// elements than the input could possibly hold. Every element takes at least
+// one byte, so a count larger than the bytes remaining is malformed. These all
+// failed already, but only after sizing the result from the declared count:
+// five bytes asked for 64 GB, which is a denial of service rather than an
+// error. The check here is on what gets allocated, not just on the failure.
+func TestFromMessagePackHeaderBomb(t *testing.T) {
+	for _, in := range []string{
+		"\xdd\xff\xff\xff\xff", // array 32: 4,294,967,295 elements
+		"\xdc\xff\xff",         // array 16: 65,535 elements
+		"\xdf\xff\xff\xff\xff", // map 32
+		"\xde\xff\xff",         // map 16
+		"\x9f",                 // fixarray of 15, with nothing following
+		"\x8f",                 // fixmap of 15, with nothing following
+	} {
+		var before, after runtime.MemStats
+		runtime.GC()
+		runtime.ReadMemStats(&before)
+		if _, err := runOp(t, "From MessagePack", in); err == nil {
+			t.Errorf("expected an error for %q", in)
+		}
+		runtime.ReadMemStats(&after)
+		if mb := float64(after.TotalAlloc-before.TotalAlloc) / (1 << 20); mb > 1 {
+			t.Errorf("%q allocated %.0f MB from %d bytes of input", in, mb, len(in))
+		}
+	}
+
+	// A container whose elements are all present still decodes.
+	got, err := runOp(t, "From MessagePack", "\x93\x01\x02\x03")
+	if err != nil {
+		t.Fatalf("a well-formed array: %v", err)
+	}
+	if want := "[\n    1,\n    2,\n    3\n]"; got != want {
+		t.Errorf("array = %q, want %q", got, want)
 	}
 }
