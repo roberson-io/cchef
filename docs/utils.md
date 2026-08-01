@@ -299,10 +299,6 @@ with `<ins>` and `<del>` tags.
 | `--show-subtraction` | bool | `false` | Show only the differences (omit unchanged text). |
 | `--ignore-whitespace` | bool | `false` | Ignore whitespace (Word and Line modes). |
 
-> Diffs use a Go diff library rather than CyberChef's jsdiff. All modes match
-> CyberChef except Word with `--ignore-whitespace`, which may attach trailing
-> whitespace to a change differently.
-
 **Simple example**
 
 ```bash
@@ -314,6 +310,27 @@ Output:
 ```
 the quick <del>brown</del><ins>red</ins> fox
 ```
+
+**Complex example**
+
+`--show-subtraction` drops the text the two samples agree on, leaving only what
+changed.
+
+```bash
+cchef diff -i 'a { color: red; margin: 0 }|a { color: blue; margin: 0 }' --sample-delimiter '|' --diff-by CSS --show-subtraction
+```
+
+Output:
+
+```
+<del>red</del><ins>blue</ins>
+```
+
+Each `--diff-by` mode splits the samples differently: `Character` by code point,
+`Word` and `Sentence` by their punctuation, `Line` by newline, `CSS` by braces,
+colons, semicolons and commas. `JSON` compares lines while disregarding a comma
+at the end of one, so the last entry of an object still matches itself
+elsewhere.
 
 ## Drop bytes
 

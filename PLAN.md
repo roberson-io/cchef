@@ -247,7 +247,27 @@ Each is removed once its Go replacement is oracle-verified over the same inputs.
   contain goamf's panics is gone; a test feeds every prefix of a valid encoding
   through both formats. Both upstream defects found along the way are logged in
   `../CYBERCHEF-BUGS.md`.
-- [ ] **`github.com/sergi/go-diff`** (Diff) — reimplement the Myers diff.
+- [x] **`github.com/sergi/go-diff`** (Diff) — replaced by an in-repo port of
+  jsdiff, the library CyberChef itself uses: the greedy Myers search with
+  jsdiff's own pruning of diagonals that have reached the edge of the edit
+  graph, plus its six tokenizers.
+
+  Removing it closed the gap the wrapper left. go-diff is a port of Google's
+  diff-match-patch, a different algorithm with different tie-breaking, so five
+  of the six granularities had been approximated by encoding tokens as runes
+  and diffing those, and Word with **Ignore whitespace** was documented as not
+  matching. JSON mode was a plain line diff, missing the two things that make
+  it a JSON diff — lines are compared with a trailing comma disregarded, and
+  the longer of two such lines is the one kept. All six modes are now exact
+  against the oracle over 72 cases.
+
+  go-diff also imposed a one-second deadline, after which it returned a
+  suboptimal diff; the same input could give two answers on two machines. The
+  port has no deadline, which is what CyberChef does, so the result depends
+  only on the input. The cost is set by how much the samples differ rather than
+  by how large they are: 488 KB with forty changed lines takes under 0.1s in
+  every mode, while two 32 KB samples of unrelated random text — the worst case
+  the algorithm has — take 36s and 211 MB.
 - [ ] **`github.com/mmcloughlin/geohash`** (Convert co-ordinate format) —
   bit-interleaving; small.
 - [ ] **`github.com/wroge/wgs84`** (Convert co-ordinate format) — the remaining

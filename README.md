@@ -5,13 +5,11 @@
 
 **CyberChef on the command line.** `cchef` is a Go port of the data-transformation
 engine of [CyberChef](https://gchq.github.io/CyberChef/) — the "Cyber Swiss Army
-Knife" — built for the terminal. Every operation is a subcommand that reads input
+Knife" built for the terminal. The "Swiss Army Knife" analogy is apt. This tool is useful for lower stakes use cases but is not recommended for production or critical infrastructure purposes.
+
+Every operation is a subcommand that reads input
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
-
-Every CyberChef operation is ported, each one test-driven against CyberChef's own
-fixtures. [PLAN.md](PLAN.md) tracks the per-category detail and the places where
-cchef deliberately differs.
 
 ## Install
 
@@ -92,8 +90,7 @@ documents every operation's options, examples and reference links:
 | [Public Key](docs/public-key.md) | RSA, ECDSA and PGP; X.509 certificates and CSRs; key generation, signing and verification |
 | [Utils](docs/utils.md) | Sorting, filtering, unique, find and replace, padding, escaping, unit and coordinate conversion, diff, file trees |
 
-Names keep the spellings CyberChef uses, which are often British, and every
-one of them also answers to its American spelling — `analyze-hash` runs
+Flags and options are aliased to support both US and UK spellings: `analyze-hash` runs
 `analyse-hash`, `--color` sets `--colour`, and `Grayscale` selects `Greyscale`.
 See [British and American spellings](docs/README.md#british-and-american-spellings).
 
@@ -130,7 +127,7 @@ a failing input is written under `testdata/fuzz/` and becomes a regression
 test from then on.
 
 CI runs on linux/amd64 while development is typically on arm64, so anything
-touching floating-point maths is worth checking on both:
+touching floating-point precision is worth checking on both:
 
 ```bash
 docker run --rm --platform linux/amd64 -v "$PWD":/src -w /src \
@@ -190,9 +187,7 @@ to refresh it:
 | [`antchfx/xpath`](https://github.com/antchfx/xpath) | XPath expressions |
 | [`go.yaml.in/yaml`](https://github.com/yaml/go-yaml) | YAML conversion |
 | [`google.golang.org/protobuf`](https://pkg.go.dev/google.golang.org/protobuf), [`bufbuild/protocompile`](https://github.com/bufbuild/protocompile) | Protobuf decoding |
-| [`elobuff/goamf`](https://github.com/elobuff/goamf) | AMF encode and decode |
 | [`ulikunitz/xz`](https://github.com/ulikunitz/xz) | The LZMA codec |
-| [`sergi/go-diff`](https://github.com/sergi/go-diff) | The Diff operation |
 | [`mmcloughlin/geohash`](https://github.com/mmcloughlin/geohash), [`wroge/wgs84`](https://github.com/wroge/wgs84), [`klaus-tockloth/coco`](https://github.com/klaus-tockloth/coco) | Coordinate formats and conversion |
 
 Ciphers, hashes, compression formats and file parsers are written from scratch
@@ -220,8 +215,7 @@ something that verification missed, please open an issue.
 
 ## License
 
-Released under the [Apache License 2.0](LICENSE), the same license CyberChef
-uses. Attribution for the upstream project and for third-party material included
+Released under the [Apache License 2.0](LICENSE). Attribution for the upstream project and for third-party material included
 here is in [NOTICE](NOTICE).
 
 ## Credits
