@@ -6,9 +6,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"golang.org/x/text/encoding"
-	"golang.org/x/text/encoding/charmap"
-
 	"github.com/roberson-io/cchef/internal/core"
 )
 
@@ -17,21 +14,19 @@ func init() {
 }
 
 // CyberChef surfaces these OperationError messages verbatim.
+// The codepages the three supported charset families decode through. The
+// ISO-8859 parts sit consecutively from one above the base, so the part number
+// gives the codepage directly.
+const (
+	mimeCodepageUTF8        = 65001
+	mimeCodepageASCII       = 20127
+	mimeISO8859BaseCodepage = 28590
+)
+
 var (
 	errMIMEUnhandledCharset = errors.New("Unhandled Charset")        //nolint:staticcheck // verbatim CyberChef message
 	errMIMEEncodedWord      = errors.New("Incorrectly Encoded Word") //nolint:staticcheck // verbatim CyberChef message
 )
-
-// mimeISO8859 maps the ISO-8859 part numbers x/text supports to their decoders.
-// ISO-8859-11 (Thai) and the never-standardised ISO-8859-12 are absent from
-// x/text and therefore unsupported (they resolve to "Unhandled Charset").
-var mimeISO8859 = map[int]encoding.Encoding{
-	1: charmap.ISO8859_1, 2: charmap.ISO8859_2, 3: charmap.ISO8859_3,
-	4: charmap.ISO8859_4, 5: charmap.ISO8859_5, 6: charmap.ISO8859_6,
-	7: charmap.ISO8859_7, 8: charmap.ISO8859_8, 9: charmap.ISO8859_9,
-	10: charmap.ISO8859_10, 13: charmap.ISO8859_13, 14: charmap.ISO8859_14,
-	15: charmap.ISO8859_15, 16: charmap.ISO8859_16,
-}
 
 // MIMEDecoding decodes RFC 2047 MIME encoded-word header extensions.
 type MIMEDecoding struct{}
@@ -225,30 +220,18 @@ func mimeConvertFromCharset(charset string, data []byte) (string, error) {
 	parts := strings.Split(charset, "-")
 	switch {
 	case len(parts) == 2 && parts[0] == "utf" && charset == "utf-8":
-		return mimeUTF8(data), nil
+		return cptableDecode(mimeCodepageUTF8, data)
 	case len(parts) == 2 && charset == "us-ascii":
-		// cptable's US-ASCII (20127) maps every byte to U+00XX (Latin-1).
-		return mimeLatin1(data), nil
+		return cptableDecode(mimeCodepageASCII, data)
 	case len(parts) == 3 && parts[0] == "iso" && parts[1] == "8859":
 		if n, ok := parseLeadingInt(parts[2]); ok && n >= 1 && n <= 16 {
-			if enc, ok := mimeISO8859[n]; ok {
-				out, err := enc.NewDecoder().Bytes(data)
-				if err != nil {
-					return "", err
-				}
-				return string(out), nil
-			}
+			// The ISO-8859 parts sit consecutively in the codepage numbering,
+			// so the part number gives the codepage directly. Part 12 was never
+			// standardized and has no codepage, which the lookup reports.
+			return cptableDecode(mimeISO8859BaseCodepage+n, data)
 		}
 	}
 	return "", errMIMEUnhandledCharset
-}
-
-// mimeUTF8 decodes bytes as UTF-8, replacing any invalid sequence with U+FFFD.
-func mimeUTF8(b []byte) string {
-	if utf8.Valid(b) {
-		return string(b)
-	}
-	return strings.ToValidUTF8(string(b), "�")
 }
 
 // mimeRunesToBytes takes the low byte of each rune, matching cptable's treatment

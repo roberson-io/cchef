@@ -302,17 +302,27 @@ Each is removed once its Go replacement is oracle-verified over the same inputs.
   hundred-kilometre squares, both directions, three precisions — agrees
   everywhere. UTM remains the one format with a projection difference, at the
   sub-millimetre digit.
-- [ ] **`golang.org/x/text/encoding/charmap`** (MIME Decoding) — route through
-  the in-repo codepage engine, which already covers all 16 ISO-8859 charsets.
-  This removes the *usage*, not the `x/text` module, which stays for
-  `unicode/norm`.
+- [x] **`golang.org/x/text/encoding/charmap`** (MIME Decoding) — routed through
+  the in-repo codepage engine. The `x/text` module stays, for `unicode/norm`,
+  so `go.mod` is unchanged; the package is out of the build and the binary is
+  **140 KB smaller**.
 
-  Worth doing on its own terms, because charmap has no ISO-8859-11 table and
-  the codepage engine does (cp28601). `=?ISO-8859-11?Q?=A1=A2?=` decodes to
-  Thai in CyberChef and returns `Unhandled Charset` in cchef, so this is a
-  divergence to fix rather than only dependency hygiene. ISO-8859-12 was never
-  standardised and errors on both sides, which is already correct. Dropping the
-  package also takes 109 KB of duplicate charset tables out of the binary.
+  CyberChef calls `cptable.utils.decode(28590 + part)`, and the engine already
+  reproduces cptable, so the ISO-8859 branch became that one call. It closed two
+  divergences rather than only removing a dependency:
+
+  - **ISO-8859-11 works.** charmap has no Thai table; cp28601 does.
+    `=?ISO-8859-11?Q?=A1=A2?=` returned `Unhandled Charset` and now decodes.
+    ISO-8859-12 was never standardized and is refused on both sides.
+  - **Invalid UTF-8 matches.** UTF-8 and US-ASCII went through the same engine
+    at the same time, since CyberChef decodes them as codepages 65001 and 20127
+    rather than specially. cptable does not substitute U+FFFD — a lone `0xFF`
+    is read as the start of a four-byte sequence and lands on U+C0000 — which
+    cchef now reproduces, so the operation's last fidelity note is gone.
+
+  A differential sweep of 216 encoded words over all sixteen parts plus UTF-8
+  and US-ASCII, `B` and `Q` encodings, random bytes throughout, agrees
+  everywhere.
 
 Explicitly kept: `dlclark/regexp2` (backtracking PCRE, which RE2 cannot
 replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
@@ -405,8 +415,7 @@ replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full
 - [ ] **Clean up process talk in comments and docs.** Provenance claims
   ("faithful", "byte-for-byte"), descriptions of upstream's behavior, and
   development narrative belong nowhere; state what the code does and the
-  constraints a reader needs. Do this opportunistically as files are touched
-  rather than as a dedicated audit, and hold new code to the tighter standard so
+  constraints a reader needs. Hold new code to the tighter standard so
   the debt stops growing.
 
 ### 6. Release

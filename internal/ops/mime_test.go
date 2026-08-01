@@ -75,13 +75,17 @@ func TestMIMEByteArrayToUtf8(t *testing.T) {
 // Base64 UTF-8 word: it substitutes U+FFFD, whereas CyberChef's cptable maps the
 // bytes to a non-standard high code point. A documented divergence on malformed
 // input.
+// Invalid UTF-8 is decoded the way CyberChef's codepage library does, not
+// replaced with U+FFFD. Verified against the oracle.
 func TestMIMEDecodingInvalidUTF8(t *testing.T) {
 	out, err := (MIMEDecoding{}).Run(sdish("=?UTF-8?B?/w==?="), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out.String() != "�" {
-		t.Fatalf("invalid utf-8 = %q want %q", out.String(), "�")
+	// cptable does not replace an invalid sequence; it reads the byte as the
+	// start of a four-byte one and lands on an unassigned plane-15 code point.
+	if want := "\U000C0000"; out.String() != want {
+		t.Fatalf("invalid utf-8 = %q want %q", out.String(), want)
 	}
 }
 
@@ -144,5 +148,46 @@ func TestMimeLocateWord(t *testing.T) {
 	// A "=?" with no closing "?=" is not a complete word.
 	if _, ok := mimeLocateWord([]rune("=?utf-8?B?abc")); ok {
 		t.Fatal("expected incomplete word to be rejected")
+	}
+}
+
+// Every ISO-8859 part CyberChef accepts, decoded through the in-repo codepage
+// engine. Verified against the oracle; part 11 (Thai) is the one x/text has no
+// table for, and part 12 was never standardized.
+func TestMIMEDecodingISO8859Family(t *testing.T) {
+	runCases(t, []opCase{
+		{"part 1", "Subject: =?ISO-8859-1?Q?=A1=C0=E9?=", "Subject: ¡Àé", mimeRecipe},
+		{"part 2", "Subject: =?ISO-8859-2?Q?=A1=C0=E9?=", "Subject: ĄŔé", mimeRecipe},
+		{"part 3", "Subject: =?ISO-8859-3?Q?=A1=C0=E9?=", "Subject: ĦÀé", mimeRecipe},
+		{"part 4", "Subject: =?ISO-8859-4?Q?=A1=C0=E9?=", "Subject: ĄĀé", mimeRecipe},
+		{"part 5", "Subject: =?ISO-8859-5?Q?=A1=C0=E9?=", "Subject: ЁРщ", mimeRecipe},
+		{"part 6", "Subject: =?ISO-8859-6?Q?=A1=C0=E9?=", "Subject: ��ى", mimeRecipe},
+		{"part 7", "Subject: =?ISO-8859-7?Q?=A1=C0=E9?=", "Subject: ‘ΐι", mimeRecipe},
+		{"part 8", "Subject: =?ISO-8859-8?Q?=A1=C0=E9?=", "Subject: ��י", mimeRecipe},
+		{"part 9", "Subject: =?ISO-8859-9?Q?=A1=C0=E9?=", "Subject: ¡Àé", mimeRecipe},
+		{"part 10", "Subject: =?ISO-8859-10?Q?=A1=C0=E9?=", "Subject: ĄĀé", mimeRecipe},
+		{"part 11 Thai", "Subject: =?ISO-8859-11?Q?=A1=C0=E9?=", "Subject: กภ้", mimeRecipe},
+		{"part 13", "Subject: =?ISO-8859-13?Q?=A1=C0=E9?=", "Subject: ”Ąé", mimeRecipe},
+		{"part 14", "Subject: =?ISO-8859-14?Q?=A1=C0=E9?=", "Subject: ḂÀé", mimeRecipe},
+		{"part 15", "Subject: =?ISO-8859-15?Q?=A1=C0=E9?=", "Subject: ¡Àé", mimeRecipe},
+		{"part 16", "Subject: =?ISO-8859-16?Q?=A1=C0=E9?=", "Subject: ĄÀé", mimeRecipe},
+		// Base64-encoded words take the same decoding path.
+		{"part 1 base64", "Subject: =?ISO-8859-1?B?wqk=?=", "Subject: Â©", mimeRecipe},
+		{"utf-8", "Subject: =?utf-8?Q?caf=C3=A9?=", "Subject: café", mimeRecipe},
+		{"us-ascii", "Subject: =?US-ASCII?Q?plain?=", "Subject: plain", mimeRecipe},
+	})
+}
+
+// Part 12 was never standardized, so no codepage exists for it; a part outside
+// the family is refused with CyberChef's own message.
+func TestMIMEDecodingUnsupportedCharsets(t *testing.T) {
+	for _, in := range []string{
+		"Subject: =?ISO-8859-12?Q?=A1?=",
+		"Subject: =?ISO-8859-99?Q?x?=",
+		"Subject: =?WINDOWS-1252?Q?x?=",
+	} {
+		if _, err := runOp(t, "MIME Decoding", in); err == nil {
+			t.Errorf("%q: expected an error", in)
+		}
 	}
 }

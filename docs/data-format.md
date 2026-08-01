@@ -1325,12 +1325,9 @@ Decodes [RFC 2047](https://tools.ietf.org/html/rfc2047) MIME encoded-word header
 extensions (`=?charset?encoding?text?=`) so non-ASCII text in message headers is
 rendered as Unicode. Both the `B` (Base64) and `Q` (Quoted-Printable-like)
 encodings are supported, whitespace between adjacent encoded words is dropped per
-the RFC, and the UTF-8, US-ASCII and ISO-8859-* charsets are handled.
-
-> **Fidelity note:** CyberChef decodes charsets with the `codepage` library;
-> cchef uses `golang.org/x/text`, which lacks ISO-8859-11/12 (they resolve to an
-> "Unhandled Charset" error) and substitutes U+FFFD for invalid UTF-8 rather than
-> `codepage`'s non-standard high code point.
+the RFC, and the UTF-8, US-ASCII and ISO-8859-* charsets are handled. ISO-8859-12
+was never standardized and has no mapping, so it is refused, as upstream refuses
+it.
 
 **Simple example**
 

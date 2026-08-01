@@ -174,7 +174,7 @@ to refresh it:
 | [`spf13/cobra`](https://github.com/spf13/cobra) | The CLI framework |
 | [`dlclark/regexp2`](https://github.com/dlclark/regexp2) | Backtracking regular expressions where RE2 cannot express a CyberChef pattern |
 | [`golang.org/x/crypto`](https://pkg.go.dev/golang.org/x/crypto) | Legacy-Keccak, bcrypt, scrypt, Argon2 and other hashers |
-| [`golang.org/x/text`](https://pkg.go.dev/golang.org/x/text) | Unicode normalization and text encodings |
+| [`golang.org/x/text`](https://pkg.go.dev/golang.org/x/text) | Unicode normalization |
 | [`golang.org/x/image`](https://pkg.go.dev/golang.org/x/image) | BMP, TIFF and WEBP decoding for the image operations |
 | [`golang.org/x/arch`](https://pkg.go.dev/golang.org/x/arch) | ARM and ARM64 disassembly |
 | [`ProtonMail/go-crypto`](https://github.com/ProtonMail/go-crypto) | OpenPGP, interoperable with CyberChef's kbpgp |
