@@ -1025,3 +1025,48 @@ func TestParseAvroObject(t *testing.T) {
 		t.Fatalf("wrapped primitive: %+v, %v", prim, err)
 	}
 }
+
+// A long is a signed 64-bit integer, and cchef reads it as one. CyberChef
+// cannot: avsc decodes through a float64, so it refuses a magnitude above
+// 9007199254740990 outright and silently returns the wrong sign for anything
+// below -2^52. These pin the exact values, which is a deliberate difference.
+func TestAvroLongsBeyondJavaScriptRange(t *testing.T) {
+	// One record, field "v" of type long, no compression.
+	cases := []struct {
+		name, hex, want string
+	}{
+		{
+			"maximum int64", "4f626a0104166176726f2e736368656d6194017b2274797065223a20227265636f7264222c20226e616d65223a202252222c20226669656c6473223a205b7b226e616d65223a202276222c202274797065223a20226c6f6e67227d5d7d146176726f2e636f646563086e756c6c00000102030405060708090a0b0c0d0e0f0214feffffffffffffffff01000102030405060708090a0b0c0d0e0f",
+			"9223372036854775807",
+		},
+		{
+			"minimum int64", "4f626a0104166176726f2e736368656d6194017b2274797065223a20227265636f7264222c20226e616d65223a202252222c20226669656c6473223a205b7b226e616d65223a202276222c202274797065223a20226c6f6e67227d5d7d146176726f2e636f646563086e756c6c00000102030405060708090a0b0c0d0e0f0214ffffffffffffffffff01000102030405060708090a0b0c0d0e0f",
+			"-9223372036854775808",
+		},
+		{
+			// The first negative value CyberChef gets the sign wrong for.
+			"just past the sign-flip bound", "4f626a0104166176726f2e736368656d6194017b2274797065223a20227265636f7264222c20226e616d65223a202252222c20226669656c6473223a205b7b226e616d65223a202276222c202274797065223a20226c6f6e67227d5d7d146176726f2e636f646563086e756c6c00000102030405060708090a0b0c0d0e0f02108180808080808010000102030405060708090a0b0c0d0e0f",
+			"-4503599627370497",
+		},
+		{
+			// The largest magnitude CyberChef still accepts; both agree here.
+			"largest value CyberChef accepts", "4f626a0104166176726f2e736368656d6194017b2274797065223a20227265636f7264222c20226e616d65223a202252222c20226669656c6473223a205b7b226e616d65223a202276222c202274797065223a20226c6f6e67227d5d7d146176726f2e636f646563086e756c6c00000102030405060708090a0b0c0d0e0f0210fcffffffffffff1f000102030405060708090a0b0c0d0e0f",
+			"9007199254740990",
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			raw, err := hex.DecodeString(c.hex)
+			if err != nil {
+				t.Fatal(err)
+			}
+			out, err := (AvroToJSON{}).Run(core.NewDish(raw, core.TypeByteArray), []any{true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if want := `"v": ` + c.want; !strings.Contains(out.String(), want) {
+				t.Errorf("got %s, want it to contain %q", out.String(), want)
+			}
+		})
+	}
+}

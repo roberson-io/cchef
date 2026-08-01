@@ -53,38 +53,30 @@ func (HexToPEM) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return core.NewDish([]byte(out), core.TypeString), nil
 }
 
-// hexToBase64 base64-encodes a hex string the way jsrsasign does: each 2-hex-digit
-// group becomes a byte (8 bits) via JavaScript parseInt semantics (a leading
-// partial parse, non-hex -> 0), and a trailing odd digit contributes a 4-bit
-// nibble. The resulting bit stream is then base64-encoded with '=' padding.
+// hexToBase64 base64-encodes a hex string the way jsrsasign's hex2b64 does: the
+// hex is read three digits at a time, twelve bits becoming two base64
+// characters, with a one- or two-digit remainder handled separately and the
+// result padded to a multiple of four.
 //
-// This reproduces CyberChef byte-for-byte for all well-formed (fully hexadecimal)
-// input, and is lenient rather than erroring on stray characters. One quirk is
-// not reproduced: for input that interleaves hex and non-hex characters,
-// jsrsasign routes through CryptoJS's 32-bit word packing whose exact garbage
-// bytes we do not emulate, so such malformed input can differ.
+// Reading in threes rather than in bytes is what makes malformed input behave
+// as it does. Each group goes through JavaScript's parseInt, which takes the
+// leading run of hex digits and stops, so a stray character truncates its group
+// rather than shifting the digits after it along.
 func hexToBase64(hexStr string) string {
 	var sb strings.Builder
-	bitBuf, bitCnt := 0, 0
-	for i := 0; i < len(hexStr); {
-		var v, nbits int
-		if i+2 <= len(hexStr) {
-			v, nbits = parseHexLenient(hexStr[i:i+2]), 8
-			i += 2
-		} else {
-			v, nbits = parseHexLenient(hexStr[i:i+1]), 4
-			i++
-		}
-		bitBuf = bitBuf<<nbits | v
-		bitCnt += nbits
-		for bitCnt >= 6 {
-			bitCnt -= 6
-			sb.WriteByte(pemBase64Map[(bitBuf>>bitCnt)&0x3f])
-		}
-		bitBuf &= (1 << bitCnt) - 1
+	i := 0
+	for ; i+3 <= len(hexStr); i += 3 {
+		e := int(jsToInt32(jsParseHex(hexStr[i : i+3])))
+		sb.WriteString(base64CharAt(e >> 6))
+		sb.WriteString(base64CharAt(e & 0x3f))
 	}
-	if bitCnt > 0 {
-		sb.WriteByte(pemBase64Map[(bitBuf<<(6-bitCnt))&0x3f])
+	switch len(hexStr) - i {
+	case 1:
+		sb.WriteString(base64CharAt(int(jsToInt32(jsParseHex(hexStr[i:]))) << 2))
+	case 2:
+		e := int(jsToInt32(jsParseHex(hexStr[i:])))
+		sb.WriteString(base64CharAt(e >> 2))
+		sb.WriteString(base64CharAt((e & 3) << 4))
 	}
 	for sb.Len()%4 != 0 {
 		sb.WriteByte('=')
@@ -92,26 +84,15 @@ func hexToBase64(hexStr string) string {
 	return sb.String()
 }
 
-// parseHexLenient mirrors JavaScript parseInt(s, 16): it reads the leading run of
-// hex digits and stops at the first non-hex character; a string with no leading
-// hex digit yields 0 (JavaScript's NaN, coerced to 0 by the bitwise pipeline).
-func parseHexLenient(s string) int {
-	v := 0
-	for i := 0; i < len(s); i++ {
-		var d int
-		switch c := s[i]; {
-		case c >= '0' && c <= '9':
-			d = int(c - '0')
-		case c >= 'a' && c <= 'f':
-			d = int(c-'a') + 10
-		case c >= 'A' && c <= 'F':
-			d = int(c-'A') + 10
-		default:
-			return v
-		}
-		v = v*16 + d
+// base64CharAt indexes the base64 alphabet, returning nothing for an index
+// outside it. JavaScript's charAt does the same, which is how a negative value
+// — reachable because parseInt accepts a sign — drops a character rather than
+// erroring.
+func base64CharAt(i int) string {
+	if i < 0 || i >= len(pemBase64Map) {
+		return ""
 	}
-	return v
+	return string(pemBase64Map[i])
 }
 
 // wrapBase64 joins width-character chunks of s with CRLF.

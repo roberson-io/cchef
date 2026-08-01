@@ -196,19 +196,9 @@ only the ordering *within* a stage reflects a real dependency.
   Written up in the corpus under `results/`.
 
   What comes back into this repository is a fix and a regression test for
-  anything the corpus finds. Nothing yet, because nothing has failed.
-- [ ] **Compare the large files against the Node oracle.** The CyberChef server
-  takes a 100 KB JSON body and the input travels as hex, so it will not compare
-  anything over ~50 KB. That leaves 21 corpus files with no differential at all,
-  and they are the ones with the most structure: the archives, the PDFs, the
-  Debian and Go ELF binaries, and nine Windows PE files including OpenSSL,
-  SQLite and the MSVC runtimes. The Node API oracle does not go over HTTP and
-  has no such limit.
-
-  Two narrower gaps to close in the same pass: only six operations are compared
-  and all are whole-input transforms, so nothing structural (`elf-info`,
-  `extract-exif`, `unzip`) is checked against CyberChef at all; and the corpus
-  has no Office documents, whose authoring-tool metadata is worth exercising.
+  anything the corpus finds. Nothing yet, because nothing has failed. The
+  corpus's own remaining work — the coverage gaps in the sweep — is tracked in
+  its README, not here.
 - [ ] **Cross-check against standardized test vectors.** For AES, DES, the SHA
   family, HMAC, RSA and ECDSA, check against NIST's
   [CAVP](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program)
@@ -216,14 +206,35 @@ only the ordering *within* a stage reflects a real dependency.
   diverges from the standard, and confirm the places cchef matches it
   deliberately. They validate the algorithm, not the option plumbing, so the
   oracle checks stay.
-- [ ] **`Hex to PEM` — mixed hex/non-hex input.** Faithful for well-formed hex
-  and lenient on stray characters as upstream is, but input that *interleaves*
-  hex and non-hex (`"3g3"`) is not reproduced: jsrsasign routes through
-  CryptoJS's word packing and fractional-`sigBytes` clamp. Closing it means
-  porting that pipeline. Low priority — garbage in, garbage out.
-- [ ] **`Avro to JSON` — 64-bit longs above 2^53.** cchef reads `long` as exact
-  `int64`; avsc reads into a float64. Unreachable for avsc-produced files, since
-  its encoder rejects such values. Low priority.
+- [x] **`Hex to PEM` — mixed hex/non-hex input.** Closed, and the note this item
+  carried was wrong about the cause: jsrsasign does not route through CryptoJS
+  at all. Its `hex2b64` reads the hex **three digits at a time**, twelve bits
+  becoming two base64 characters, each group through JavaScript's `parseInt`.
+
+  Reading in threes rather than in bytes is the whole of it. A stray character
+  truncates its own group and does not shift the digits after it along, so
+  `"ffgg00"` is `D/AA` rather than `/wAA`. `parseInt` also accepts a `0x` prefix
+  at radix 16 and a sign, and a negative value indexes the base64 alphabet
+  negatively, which `charAt` renders as no character — `"-ff"` is `B===`.
+  Rewriting the function to match dropped it to half the size. The shared
+  `jsParseHex` was missing the `0x` case and now has it.
+- [x] **`Avro to JSON` — 64-bit longs outside JavaScript's range.** Investigated
+  and settled as a deliberate difference: cchef keeps reading `long` as an exact
+  `int64`. The note this item used to carry was wrong in both directions —
+  avsc's encoder does not reject large values, and its decoder does not quietly
+  round them.
+
+  What it actually does is worse, and is now logged in `../CYBERCHEF-BUGS.md`.
+  Above a magnitude of 9007199254740990 the read throws and CyberChef reports
+  `Error parsing Avro file`, which is at least visible. But **every negative
+  long below -2^52 comes back positive**: the zig-zag intermediate crosses 2^53
+  before the sign is recovered from its low bit, so the bit is lost to rounding
+  and the check that would have caught it passes on the now-positive result.
+  `-4503599627370497` decodes as `4503599627370496`, silently.
+
+  Refusing a file cchef reads perfectly, or copying a sign error, would both be
+  worse than the difference. `internal/ops/avro_test.go` pins the exact int64
+  values at both bounds.
 
 ### 3. Dependencies
 
@@ -543,6 +554,13 @@ this list when a relaxation from stage 1 lands.
 - **User-supplied regular expressions are Go's RE2.** Lookahead and
   backreferences are unavailable; `regexp2` is reserved for internal patterns
   that need them.
+- **An Avro `long` is read as a 64-bit integer.** Avro defines `long` as signed
+  64-bit; avsc decodes it through a float64, so CyberChef refuses a magnitude
+  above 9007199254740990 and silently returns the wrong sign below -2^52 —
+  logged as a bug. cchef reads the whole range exactly, so it accepts files
+  CyberChef refuses and disagrees with it on that band. Copying either failure
+  would mean returning a number that is not the one in the file.
+
 - **AMF Decode returns the value, not a parse tree.** CyberChef hands back the
   object model of the npm package it wraps, annotated with markers, lengths,
   traits and class names: an AMF0 double of 42 comes out as

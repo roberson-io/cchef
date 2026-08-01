@@ -201,13 +201,17 @@ func jsSliceFrom(s string, start int) string {
 }
 
 // jsParseHex is parseInt(s, 16): it reads the leading hex digits and yields NaN
-// when there are none.
+// when there are none. A 0x prefix is allowed and skipped, as it is for that
+// radix.
 func jsParseHex(s string) float64 {
 	s = strings.TrimLeft(s, " \t\n\r\v\f")
 	neg := false
 	if strings.HasPrefix(s, "-") || strings.HasPrefix(s, "+") {
 		neg = s[0] == '-'
 		s = s[1:]
+	}
+	if len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') {
+		s = s[2:]
 	}
 	end := 0
 	for end < len(s) && isHexDigit(s[end]) {

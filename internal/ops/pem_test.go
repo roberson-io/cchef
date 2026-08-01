@@ -121,3 +121,58 @@ func TestHexToPEM(t *testing.T) {
 		},
 	})
 }
+
+// jsrsasign's hex2b64 reads the hex three digits at a time, twelve bits to two
+// base64 characters, through JavaScript's parseInt. That is why a group with a
+// stray character in it is not simply skipped: parseInt takes the leading run
+// of hex digits and the value lands in the low bits of the group. Every
+// expectation here came from the CyberChef oracle.
+func TestHexToBase64JSRSASign(t *testing.T) {
+	cases := []struct{ in, want string }{
+		// Well-formed hex, every remainder of three.
+		{"", ""},
+		{"a", "o==="},
+		{"ab", "qw=="},
+		{"abc", "q8=="},
+		{"abcd", "q80="},
+		{"abcde", "q83g"},
+		{"aabbccdd", "qrvM3Q=="},
+		{"aabbccd", "qrvM0==="},
+		{"4a4b4c4d4e", "SktMTU4="},
+		{"1", "E==="},
+		{"12", "Eg=="},
+		{"123", "Ej=="},
+		{"1234", "EjQ="},
+		{"12345", "EjRQ"},
+		{"123456", "EjRW"},
+		{"1234567", "EjRWc==="},
+
+		// A stray character inside a group truncates parseInt, it does not
+		// shift the remaining digits along.
+		{"3g3", "AD=="},
+		{"3g", "Aw=="},
+		{"g3", "AA=="},
+		{"zz", "AA=="},
+		{"gg", "AA=="},
+		{"ffgg00", "D/AA"},
+		{"3g3g3g3g", "ADAAAw=="},
+		{"3041g2", "MEAB"},
+		{"xyz123", "AAEj"},
+		{"0g0g0g", "AAAA"},
+
+		// parseInt with radix 16 accepts a leading 0x, and a sign. A negative
+		// value shifts to a negative index, which JavaScript's charAt renders
+		// as no character at all.
+		{"0x41", "AEE="},
+		{"-ff", "B==="},
+		{"-f", "Q==="},
+		{"+ff", "D/=="},
+		{"--f", "AA=="},
+		{"f-f", "AP=="},
+	}
+	for _, c := range cases {
+		if got := hexToBase64(c.in); got != c.want {
+			t.Errorf("hexToBase64(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
