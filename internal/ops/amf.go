@@ -1,12 +1,7 @@
 package ops
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
-
-	amf "github.com/elobuff/goamf"
 
 	"github.com/roberson-io/cchef/internal/core"
 )
@@ -19,36 +14,6 @@ func init() {
 // amfFormats are the supported AMF versions. AMF3 is the default (index 1),
 // matching CyberChef.
 var amfFormats = []string{"AMF0", "AMF3"}
-
-// amfVersion maps a format name to the library's version constant.
-func amfVersion(format string) amf.Version {
-	if format == "AMF0" {
-		return amf.AMF0
-	}
-	return amf.AMF3
-}
-
-// toAMFValue recursively converts a value decoded by encoding/json into the
-// concrete amf.Object / amf.Array types the encoder requires (it rejects plain
-// map[string]interface{} and []interface{}).
-func toAMFValue(v any) any {
-	switch x := v.(type) {
-	case map[string]any:
-		o := amf.Object{}
-		for k, val := range x {
-			o[k] = toAMFValue(val)
-		}
-		return o
-	case []any:
-		a := make(amf.Array, len(x))
-		for i, val := range x {
-			a[i] = toAMFValue(val)
-		}
-		return a
-	default:
-		return v
-	}
-}
 
 // AMFDecode deserializes Action Message Format binary data into JSON.
 type AMFDecode struct{}
@@ -74,28 +39,19 @@ func (AMFDecode) Args() []core.ArgDef {
 
 // Run decodes AMF bytes into a JSON string.
 func (AMFDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	val, err := amfDecode(in.Bytes(), amfVersion(args[0].(string)))
+	r := &amfReader{data: in.Bytes()}
+	var val any
+	var err error
+	if args[0].(string) == "AMF0" {
+		var refs []any
+		val, err = amf0Decode(r, &refs)
+	} else {
+		val, err = amf3Decode(r, newAMF3Tables())
+	}
 	if err != nil {
 		return nil, fmt.Errorf("AMF decode: %w", err)
 	}
-	out, err := json.Marshal(val)
-	if err != nil {
-		return nil, fmt.Errorf("AMF decode: marshal JSON: %w", err)
-	}
-	return core.NewDish(out, core.TypeJSON), nil
-}
-
-// amfDecode reads one AMF value. The decoder indexes into its buffers without
-// checking the length, so a truncated value panics rather than failing; that
-// is turned into an error here so malformed input cannot end the process.
-func amfDecode(data []byte, version amf.Version) (val any, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			val, err = nil, errors.New("malformed AMF data")
-		}
-	}()
-	dec := &amf.Decoder{}
-	return dec.Decode(bytes.NewReader(data), version)
+	return core.NewDish([]byte(jsStringify(val, 0)), core.TypeJSON), nil
 }
 
 // AMFEncode serializes JSON into Action Message Format binary data.
@@ -122,14 +78,23 @@ func (AMFEncode) Args() []core.ArgDef {
 
 // Run encodes a JSON string into AMF bytes.
 func (AMFEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	var val any
-	if err := json.Unmarshal(in.Bytes(), &val); err != nil {
+	val, err := amfParseJSON(in.Bytes())
+	if err != nil {
 		return nil, fmt.Errorf("AMF encode: parse JSON input: %w", err)
 	}
-	var buf bytes.Buffer
-	enc := &amf.Encoder{}
-	if _, err := enc.Encode(&buf, toAMFValue(val), amfVersion(args[0].(string))); err != nil {
+	w := &amfWriter{}
+	if args[0].(string) == "AMF0" {
+		err = amf0Encode(w, val)
+	} else {
+		err = amf3Encode(w, val)
+	}
+	if err == nil {
+		// A length the format cannot express is recorded on the writer rather
+		// than returned from every call that writes one.
+		err = w.err
+	}
+	if err != nil {
 		return nil, fmt.Errorf("AMF encode: %w", err)
 	}
-	return core.NewDish(buf.Bytes(), core.TypeArrayBuffer), nil
+	return core.NewDish(w.buf, core.TypeArrayBuffer), nil
 }

@@ -134,14 +134,9 @@ only the ordering *within* a stage reflects a real dependency.
   - **`cchef list --json`** gives the listing as data — subcommand, operation
     name, summary, categories — for completions and wrappers.
 
-  Left open, with reasons:
+  Left open, with reasons. The first has its own item below; the rest are
+  judgement calls recorded here rather than scheduled.
 
-  - **Secrets are passed as flag values** (`--key`, `--passphrase`), which
-    clig.dev tells you never to do: they land in shell history and in `ps`.
-    This is the one real violation. Fixing it means a way to read an argument
-    from a file or the environment, across every operation that takes a key —
-    a general convention rather than a per-operation change, and worth its own
-    item.
   - **No pager for long output.** `cchef list` is 561 lines. `| less` works,
     and spawning a pager is a behaviour change worth deciding separately.
   - **No progress indication** for the operations that take real time (Argon2
@@ -150,23 +145,70 @@ only the ordering *within* a stage reflects a real dependency.
   - **No `-q`/`--quiet`.** There is no non-essential output to suppress: the
     result is the output. The one candidate is the `==> name <==` header under
     `--in-dir`.
-- [ ] **Decide how far to loosen JavaScript parity.** Strict parity was
-  scaffolding: it made the oracle and the sweeps possible. Some of what it
-  preserved is JavaScript rather than CyberChef — `internal/jsnum` exists solely
-  to reproduce JS float formatting, and JSON output enumerates integer keys
-  first because V8 does. Proposed tiering: keep byte parity where interop is the
-  point (data transforms feeding other tools, anything reachable from a shared
-  CyberChef URL), and allow Go-native behavior where the quirk is a wart nobody
-  depends on. Each relaxation becomes a deliberate difference, recorded below,
-  with the sweeps asserting the divergence precisely. The cost to watch: every
-  divergence makes the oracle a little less useful.
+- [x] **Decide how far to loosen JavaScript parity.** Decided: keep it, and
+  handle relaxations one at a time when a concrete case calls for one, as
+  deliberate differences with a named cause. The proposed tiering was to keep
+  byte parity "wherever interop is the point, including anything reachable from
+  a shared CyberChef URL" — which is every recipe, so the rule selected
+  everything and could not decide a single case.
+
+  Nor is there much to gain. `internal/jsnum` is 153 lines behind one function,
+  and its output is not a wart: it prints `0.000001` where Go prints `1e-06`,
+  and `123456789012345680000` where Go prints `1.2345678901234568e+20`. Sixteen
+  operations depend on it, among them coordinate conversion, where interop
+  genuinely matters, and all five d3 charts, whose byte-exact goldens a
+  formatting change would invalidate wholesale. Keeping parity also stays
+  reversible; shipping divergence in v1.0.0 and retracting it later is a
+  breaking change twice over.
+
+  Note that `jsRound` is not a formatting question at all: JavaScript rounds
+  −0.5 to −0 where Go rounds to −1, so relaxing it would change answers.
+- [ ] **Take secrets off the command line.** `--key`, `--passphrase` and their
+  kin are read as flag values, so they land in shell history and are visible in
+  `ps` to anyone on the machine. clig.dev is unambiguous that a CLI should never
+  do this, and it is the one real violation the audit found. Fixing it needs a
+  general convention for reading an argument from a file or the environment —
+  every operation that takes a key is affected, so a per-operation change is the
+  wrong shape. Whatever the convention is, it has to leave a literal value that
+  happens to look like the escape (`@notes.txt` as an actual passphrase) still
+  expressible.
+- [ ] **Decide on the V8 integer-key ordering.** JSON output enumerates
+  integer-like keys first, ascending, because V8 does. Unlike the rest of the
+  JavaScript parity kept above, this one is a genuine wart — JSON object order
+  carries no meaning, and no consumer should depend on it. It is confined to a
+  single file (`jsWriteObject`), so the decision is cheap either way; it was
+  split out of the parity item rather than settled with it.
 
 ### 2. Verification
 
-- [ ] **Build a real-input corpus.** Test the built tool against real inputs,
-  not only contrived fixtures: actual ELF and PE binaries, photographs,
-  archives, documents, through the relevant operations and against the oracle.
-  Record every mismatch — a corpus that drops mismatches hides bugs.
+- [x] **Build a real-input corpus.** Built at `~/repos/cchef-corpus`,
+  deliberately outside this repository and uncommitted: 398 files from a dozen
+  unrelated producers — the PNG conformance suite, ExifTool's camera samples,
+  Debian's GCC-built ELF, signed Windows PE from 7-Zip and CPython, GNU tar and
+  gzip output, PDFs from three producers. Generated inputs were discarded on
+  purpose; a binary from `go build` has no packing, overlay or signature, and an
+  archive from the local `tar` is one implementation of the format.
+
+  First full sweep: **6,726 checks over 398 files, no failures** — no mismatch,
+  panic, timeout or hang. 2,262 of those are byte-for-byte agreements with
+  CyberChef 11.3.0 across six operations, covering the whole PNG suite and
+  camera-sample set. Base64, hex and gzip round-trip exactly on every file.
+  Written up in the corpus under `results/`.
+
+  What comes back into this repository is a fix and a regression test for
+  anything the corpus finds. Nothing yet, because nothing has failed.
+- [ ] **Compare the large files against the Node oracle.** The CyberChef server
+  takes a 100 KB JSON body and the input travels as hex, so it will not compare
+  anything over ~50 KB. That leaves 21 corpus files with no differential at all,
+  and they are the ones with the most structure: the archives, the PDFs, the
+  Debian and Go ELF binaries, and nine Windows PE files including OpenSSL,
+  SQLite and the MSVC runtimes. The Node API oracle does not go over HTTP and
+  has no such limit.
+
+  Two narrower gaps to close in the same pass: only six operations are compared
+  and all are whole-input transforms, so nothing structural (`elf-info`,
+  `extract-exif`, `unzip`) is checked against CyberChef at all; and the corpus
+  has no Office documents, whose authoring-tool metadata is worth exercising.
 - [ ] **Cross-check against standardized test vectors.** For AES, DES, the SHA
   family, HMAC, RSA and ECDSA, check against NIST's
   [CAVP](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program)
@@ -187,13 +229,24 @@ only the ordering *within* a stage reflects a real dependency.
 
 Each is removed once its Go replacement is oracle-verified over the same inputs.
 
-- [ ] **`github.com/elobuff/goamf`** (AMF Encode/Decode) — highest priority:
-  unmaintained since 2014, and removing it drops an indirect dependency too.
-  Fuzzing found two defects in it: it indexes into its buffers without checking
-  the length, so truncated input panicked (`amfDecode` now contains that and
-  reports an error, where CyberChef decodes the same bytes into a partial
-  structure), and it spends about a second and a large allocation on a
-  four-byte length prefix. A reimplementation should bound both.
+- [x] **`github.com/elobuff/goamf`** (AMF Encode/Decode) — replaced by an
+  in-repo AMF0 and AMF3 codec (`internal/ops/amfcodec.go`). It and the
+  `jcoene/gologger` it dragged in are both gone.
+
+  The case for removing it turned out to be stronger than the age and the two
+  fuzzing defects. goamf could not read back its own output in six ordinary
+  cases — an empty string, an empty array, or an empty object, in either format
+  — and an empty AMF0 strict array decoded to `null` with no error at all.
+  Encoding was also nondeterministic: object keys came from Go map iteration,
+  so the same input produced different bytes run to run and matched CyberChef
+  only by chance. Reading the JSON with an ordered decoder fixed that; the
+  encoding now follows the order the input gave, as CyberChef does, and is
+  byte-identical to it.
+
+  The reader checks its length before every read, so the `recover` that used to
+  contain goamf's panics is gone; a test feeds every prefix of a valid encoding
+  through both formats. Both upstream defects found along the way are logged in
+  `../CYBERCHEF-BUGS.md`.
 - [ ] **`github.com/sergi/go-diff`** (Diff) — reimplement the Myers diff.
 - [ ] **`github.com/mmcloughlin/geohash`** (Convert co-ordinate format) —
   bit-interleaving; small.
@@ -411,20 +464,34 @@ this list when a relaxation from stage 1 lands.
 - **User-supplied regular expressions are Go's RE2.** Lookahead and
   backreferences are unavailable; `regexp2` is reserved for internal patterns
   that need them.
+- **AMF Decode returns the value, not a parse tree.** CyberChef hands back the
+  object model of the npm package it wraps, annotated with markers, lengths,
+  traits and class names: an AMF0 double of 42 comes out as
+  `{"marker":0,"$value":42}`, and a small object as a nest of `properties`
+  entries. cchef returns `42` and `{"a":1}`. The annotation is an artifact of
+  that library rather than anything the format requires — it would change if
+  upstream swapped packages — and plain JSON pipes into `jq` and lets
+  encode/decode round-trip, which the tests pin. Encoding is unaffected and
+  stays byte-identical.
 - **Whole-number arguments are enforced.** CyberChef marks only 14 of its 220
   numeric arguments `integer`, so the rest silently truncate a fractional value:
   `Bit shift right` with an amount of 1.5 runs. cchef declares `Integer` on 138,
   refusing the value with `Amount must be an integer.` A typo on a command line
   should fail rather than quietly produce a different answer, so a shared URL
   carrying a fractional argument errors here instead of running. All 14 that
-  CyberChef marks are among them, and cchef additionally caps seven parameters
-  CyberChef leaves open. Ten of them bound the cost of a password-based key
-  derivation, where an open parameter turns a typo into an allocation or a run
-  that does not finish: `Argon2` (Iterations ≤ 4096, Memory ≤ 2 GiB,
-  Parallelism ≤ 255, Hash length ≤ 4096), `Bcrypt` (Rounds 4–31, which bcryptjs
-  silently clamps to instead), `Derive PBKDF2 key` and `Derive EVP key` (Key
-  size ≤ 8192 bits, Iterations ≤ 10,000,000) and `Scrypt` (Key length ≤ 4096).
-  The other seven are older: `AES Decrypt` (IV
-  Length ≥ 0), `Generate Image` (Pixel Scale Factor ≤ 64, Pixels per row ≤
-  2048), `Pseudo-Random Integer Generator` (Min and Max Value to ±2^53−1), `To
-  Hexdump` (Width ≤ 65536) and `Wrap` (Line Width ≤ 65536).
+  CyberChef marks are among them.
+
+  cchef also caps twenty parameters CyberChef leaves open, in three groups.
+  **Ten bound the cost of a password-based key derivation**, where an open
+  parameter turns a typo into an allocation or a run that does not finish:
+  `Argon2` (Iterations ≤ 4096, Memory ≤ 2 GiB, Parallelism ≤ 255, Hash length ≤
+  4096), `Bcrypt` (Rounds 4–31, which bcryptjs silently clamps to instead),
+  `Derive PBKDF2 key` and `Derive EVP key` (Key size ≤ 8192 bits, Iterations ≤
+  10,000,000) and `Scrypt` (Key length ≤ 4096). **Three bound a hash round
+  count** at the length of its constant table, past which CyberChef reads an
+  undefined entry and returns a digest built partly from `NaN`: `SHA1` (Rounds ≤
+  80) and `SHA2` (≤ 64 for the 256 family, ≤ 160 for the 512 family). **Seven
+  are older**: `AES Decrypt` (IV Length ≥ 0), `Generate Image` (Pixel Scale
+  Factor ≤ 64, Pixels per row ≤ 2048), `Pseudo-Random Integer Generator` (Min
+  and Max Value to ±2^53−1), `To Hexdump` (Width ≤ 65536) and `Wrap` (Line Width
+  ≤ 65536).

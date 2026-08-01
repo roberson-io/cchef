@@ -8,7 +8,6 @@ require (
 	github.com/antchfx/xpath v1.3.7
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/dlclark/regexp2 v1.12.0
-	github.com/elobuff/goamf v0.0.0-20140202161438-1508c33821c7
 	github.com/evanw/esbuild v0.28.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/itchyny/gojq v0.12.19
@@ -35,7 +34,6 @@ require (
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
-	github.com/jcoene/gologger v0.0.0-20150511233422-6bdddb86fa18 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
