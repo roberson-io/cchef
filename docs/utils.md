@@ -141,11 +141,9 @@ Degrees Minutes Seconds, Geohash, MGRS, Ordnance Survey National Grid and UTM.
 | `--include-compass-directions` | option | `None` | `None`, `Before`, or `After` the value. |
 | `--precision` | number | `3` | Number of decimal places. |
 
-> UTM and Ordnance Survey National Grid are computed with different projection
-> implementations than CyberChef, so results may differ slightly: UTM by a
-> sub-millimetre digit at high precision, and OSNG *as input* by a few metres
-> (`NN 166 712` decodes to 56.796004° here against CyberChef's 56.796089°).
-> OSNG as output, MGRS, Geohash and the lat/lon formats match exactly.
+> UTM easting/northing are computed with a different projection implementation
+> than CyberChef, so the final (sub-millimetre) digit may occasionally differ at
+> high precision. OSNG, MGRS, Geohash and the lat/lon formats match exactly.
 > Single-digit UTM zones are zero-padded (`01 N`), matching CyberChef, and
 > longitude 180° converts as 180°W (zone 01), where CyberChef errors.
 

@@ -284,8 +284,24 @@ Each is removed once its Go replacement is oracle-verified over the same inputs.
   `o`) was handled differently from ngeohash, which reads it as five zero bits.
   A differential probe over 277 inputs per seed found 25 disagreements before
   and none after.
-- [ ] **`github.com/wroge/wgs84`** (Convert co-ordinate format) — the remaining
-  datum transforms; precision-sensitive, verify against the oracle.
+- [x] **`github.com/wroge/wgs84`** (Convert co-ordinate format) — replaced by a
+  port of geodesy's `osgridref`, the library CyberChef uses, in
+  `internal/ops/coordinates.go`.
+
+  It was used for one thing: the Ordnance Survey National Grid, in both
+  directions. Removing it closed the "OSGB-as-input is a few metres out"
+  difference that had been documented in the operation's own description — the
+  two libraries applied a different Helmert transform between the OSGB36 and
+  WGS84 datums. `TQ 30028 80380` decoded to 51.50737°N where CyberChef gives
+  51.5074°N.
+
+  What went in is the projection as the Ordnance Survey publishes it (Redfearn's
+  series on Airy 1830, forward and inverse) and the seven-parameter datum shift
+  through geocentric coordinates, with Bowring's 1985 formulation coming back.
+  A differential sweep of 450 conversions over the whole British grid — 36
+  hundred-kilometre squares, both directions, three precisions — agrees
+  everywhere. UTM remains the one format with a projection difference, at the
+  sub-millimetre digit.
 - [ ] **`golang.org/x/text/encoding/charmap`** (MIME Decoding) — route through
   the in-repo codepage engine, which already covers all 16 ISO-8859 charsets.
   This removes the *usage*, not the `x/text` module, which stays for

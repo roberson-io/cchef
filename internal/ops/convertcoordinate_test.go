@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"math"
 	"strings"
 	"testing"
 
@@ -74,16 +75,16 @@ func TestConvertCoordinateFormatInputs(t *testing.T) {
 }
 
 // TestConvertCoordinateFormatOSGBInput covers Ordnance Survey National Grid as input.
-// The inverse Helmert transform of the Go geodesy library differs from CyberChef by a
-// few metres (here the latitude: 51.50737 vs CyberChef's 51.5074), so this asserts
-// cchef's own output rather than the oracle's.
+// Ordnance Survey National Grid as input, verified against the oracle. This
+// used to be a few metres out, because the Helmert transform between OSGB36 and
+// WGS84 was a different implementation's.
 func TestConvertCoordinateFormatOSGBInput(t *testing.T) {
 	out, err := runOp(t, "Convert co-ordinate format",
 		"TQ 30028 80380", "Ordnance Survey National Grid", "Comma", "Decimal Degrees", "Comma", "None", 5.0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := "51.50737°,-0.12781°,"; out != want {
+	if want := "51.5074°,-0.12781°,"; out != want {
 		t.Errorf("got %q, want %q", out, want)
 	}
 }
@@ -172,7 +173,7 @@ func TestConvertCoordinateFormatAutoDetect(t *testing.T) {
 		// Southern-hemisphere UTM exercises utmParse's hemi=="S" branch (Sydney).
 		cc("auto utm south", "56 S 334368.634 6250948.345,", "-33.8688°,151.2093°,",
 			"Auto", "Comma", "Decimal Degrees", "Comma", "None", 4.0),
-		cc("auto osng (cchef-own; OSGB metre diff)", "TQ 30028 80380,", "51.50737°,-0.12781°,",
+		cc("auto osng", "TQ 30028 80380,", "51.5074°,-0.12781°,",
 			"Auto", "Comma", "Decimal Degrees", "Comma", "None", 5.0),
 
 		// Auto delimiter detection, one per findDelim branch.
@@ -613,6 +614,55 @@ func TestGeohashDecodeCenter(t *testing.T) {
 		lat, lon := geohashDecodeCenter(c.hash)
 		if lat != c.lat || lon != c.lon {
 			t.Errorf("decode(%q) = %v, %v, want %v, %v", c.hash, lat, lon, c.lat, c.lon)
+		}
+	}
+}
+
+// Ordnance Survey National Grid conversions transcribed from geodesy, the
+// library CyberChef uses. Both directions pass through a Helmert transform
+// between the OSGB36 and WGS84 datums, so a coordinate is not merely
+// reprojected but moved onto a different reference ellipsoid.
+func TestOSGBGridToLatLon(t *testing.T) {
+	const tol = 1e-9
+	cases := []struct {
+		e, n     float64
+		lat, lon float64
+	}{
+		{651409.903, 313177.270, 52.65797859822991, 1.7160519457128236},
+		{216650, 771250, 56.796557296939675, -5.003930468291132},
+		{530000, 180000, 51.503990826218306, -0.12835397852590702},
+		{400000, -100000, 49.00077077964187, -2.001307500682245},
+		{100000, 0, 49.825069446807106, -6.172738505443476},
+		{500000, 1000000, 58.87574487611452, -0.2673278941823114},
+		{438700, 114800, 50.93135805700044, -1.4506774292622975},
+	}
+	for _, c := range cases {
+		lat, lon := osgbGridToLatLon(c.e, c.n)
+		if math.Abs(lat-c.lat) > tol || math.Abs(lon-c.lon) > tol {
+			t.Errorf("grid (%v, %v) = %v, %v; want %v, %v", c.e, c.n, lat, lon, c.lat, c.lon)
+		}
+	}
+}
+
+// The reverse direction, likewise from geodesy. Easting and northing are
+// rounded to the millimetre, as the reference implementation does.
+func TestOSGBLatLonToGrid(t *testing.T) {
+	const tol = 1e-6
+	cases := []struct {
+		lat, lon float64
+		e, n     float64
+	}{
+		{52.65798, 1.71605, 651409.760, 313177.419},
+		{51.5074, -0.1278, 530028.746, 180380.095},
+		{56.796089, -5.004712, 216599.999, 771200.087},
+		{58.0, -3.0, 340989.675, 901635.930},
+		{50.0, -5.5, 149280.979, 16965.082},
+		{49.0, -2.0, 400095.632, -100085.687},
+	}
+	for _, c := range cases {
+		e, n := osgbLatLonToGrid(c.lat, c.lon)
+		if math.Abs(e-c.e) > tol || math.Abs(n-c.n) > tol {
+			t.Errorf("lat/lon (%v, %v) = %v, %v; want %v, %v", c.lat, c.lon, e, n, c.e, c.n)
 		}
 	}
 }

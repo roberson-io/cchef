@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/klaus-tockloth/coco"
-	"github.com/wroge/wgs84"
 )
 
 // Coordinate conversion constants.
@@ -357,6 +356,209 @@ func fmtMGRS(m string) string {
 }
 
 // convertCoordinates converts a coordinate string between formats.
+// An ellipsoid is the shape a datum models the earth with, given by its two
+// semi-axes and the flattening between them.
+type ellipsoid struct{ a, b, f float64 }
+
+// The Ordnance Survey National Grid is defined on Airy 1830, an ellipsoid
+// fitted to Britain in the nineteenth century, whereas GPS positions are on
+// WGS84. The two describe different shapes, so a position has to be moved
+// between them rather than merely reprojected.
+var (
+	ellipsoidWGS84    = ellipsoid{a: 6378137, b: 6356752.314245, f: 1 / 298.257223563}
+	ellipsoidAiry1830 = ellipsoid{a: 6377563.396, b: 6356256.909, f: 1 / 299.3249646}
+)
+
+// helmert is the seven-parameter transformation between two datums: three
+// shifts in metres, a scale difference in parts per million, and three
+// rotations in seconds of arc.
+type helmert struct {
+	tx, ty, tz float64
+	scalePPM   float64
+	rx, ry, rz float64
+}
+
+// osgb36FromWGS84 moves a position from WGS84 onto OSGB36. Negated, it moves
+// one back.
+var osgb36FromWGS84 = helmert{
+	tx: -446.448, ty: 125.157, tz: -542.060,
+	scalePPM: 20.4894,
+	rx:       -0.1502, ry: -0.2470, rz: -0.8421,
+}
+
+// The National Grid's projection: a transverse Mercator on Airy 1830, with its
+// true origin at 49°N 2°W and that origin placed 400 km west and 100 km north
+// of the grid's own zero.
+const (
+	osgbScaleFactor = 0.9996012717
+	osgbTrueLat     = 49 * math.Pi / 180
+	osgbTrueLon     = -2 * math.Pi / 180
+	osgbFalseEast   = 400000
+	osgbFalseNorth  = -100000
+)
+
+// negated returns the transformation that undoes h.
+func (h helmert) negated() helmert {
+	return helmert{-h.tx, -h.ty, -h.tz, -h.scalePPM, -h.rx, -h.ry, -h.rz}
+}
+
+// apply moves a geocentric point by the transformation.
+func (h helmert) apply(x1, y1, z1 float64) (x, y, z float64) {
+	const secondsPerRadian = 3600 * 180 / math.Pi
+	s := h.scalePPM/1e6 + 1
+	rx, ry, rz := h.rx/secondsPerRadian, h.ry/secondsPerRadian, h.rz/secondsPerRadian
+	return h.tx + x1*s - y1*rz + z1*ry,
+		h.ty + x1*rz + y1*s - z1*rx,
+		h.tz - x1*ry + y1*rx + z1*s
+}
+
+// toGeocentric turns a latitude and longitude on the given ellipsoid into
+// coordinates measured from the centre of the earth, which is the only frame in
+// which two datums can be compared.
+func toGeocentric(latDeg, lonDeg float64, e ellipsoid) (x, y, z float64) {
+	lat, lon := latDeg*math.Pi/180, lonDeg*math.Pi/180
+	sinLat, cosLat := math.Sin(lat), math.Cos(lat)
+	eSq := 2*e.f - e.f*e.f
+	nu := e.a / math.Sqrt(1-eSq*sinLat*sinLat)
+	return nu * cosLat * math.Cos(lon),
+		nu * cosLat * math.Sin(lon),
+		nu * (1 - eSq) * sinLat
+}
+
+// fromGeocentric is the reverse, by Bowring's 1985 formulation.
+func fromGeocentric(x, y, z float64, e ellipsoid) (latDeg, lonDeg float64) {
+	e2 := 2*e.f - e.f*e.f
+	eps2 := e2 / (1 - e2)
+	p := math.Hypot(x, y)
+	r := math.Sqrt(p*p + z*z)
+
+	tanBeta := (e.b * z) / (e.a * p) * (1 + eps2*e.b/r)
+	sinBeta := tanBeta / math.Sqrt(1+tanBeta*tanBeta)
+	cosBeta := sinBeta / tanBeta
+
+	// On the equator both are zero and their ratio is undefined; the latitude
+	// there is zero by inspection.
+	lat := 0.0
+	if !math.IsNaN(cosBeta) {
+		lat = math.Atan2(z+eps2*e.b*sinBeta*sinBeta*sinBeta, p-e2*e.a*cosBeta*cosBeta*cosBeta)
+	}
+	return lat * 180 / math.Pi, math.Atan2(y, x) * 180 / math.Pi
+}
+
+// convertDatum moves a latitude and longitude from one datum to another.
+func convertDatum(latDeg, lonDeg float64, from, to ellipsoid, h helmert) (float64, float64) {
+	x, y, z := toGeocentric(latDeg, lonDeg, from)
+	x, y, z = h.apply(x, y, z)
+	return fromGeocentric(x, y, z, to)
+}
+
+// osgbMeridionalArc returns the distance along the meridian from the projection's
+// true origin to the given latitude.
+func osgbMeridionalArc(lat float64) float64 {
+	a, b := ellipsoidAiry1830.a, ellipsoidAiry1830.b
+	n := (a - b) / (a + b)
+	n2, n3 := n*n, n*n*n
+
+	ma := (1 + n + (5.0/4)*n2 + (5.0/4)*n3) * (lat - osgbTrueLat)
+	mb := (3*n + 3*n*n + (21.0/8)*n3) * math.Sin(lat-osgbTrueLat) * math.Cos(lat+osgbTrueLat)
+	mc := ((15.0/8)*n2 + (15.0/8)*n3) * math.Sin(2*(lat-osgbTrueLat)) * math.Cos(2*(lat+osgbTrueLat))
+	md := (35.0 / 24) * n3 * math.Sin(3*(lat-osgbTrueLat)) * math.Cos(3*(lat+osgbTrueLat))
+	return b * osgbScaleFactor * (ma - mb + mc - md)
+}
+
+// osgbCurvature returns the transverse and meridional radii of curvature at a
+// latitude, and the ratio between them that the projection series need.
+func osgbCurvature(sinLat float64) (nu, rho, eta2 float64) {
+	a, b := ellipsoidAiry1830.a, ellipsoidAiry1830.b
+	e2 := 1 - (b*b)/(a*a)
+	nu = a * osgbScaleFactor / math.Sqrt(1-e2*sinLat*sinLat)
+	rho = a * osgbScaleFactor * (1 - e2) / math.Pow(1-e2*sinLat*sinLat, 1.5)
+	return nu, rho, nu/rho - 1
+}
+
+// osgbGridToLatLon converts an Ordnance Survey easting and northing to WGS84
+// latitude and longitude, by inverting the projection onto OSGB36 and then
+// moving the result onto WGS84.
+func osgbGridToLatLon(e, n float64) (lat, lon float64) {
+	a := ellipsoidAiry1830.a
+
+	// The latitude the northing belongs to has no closed form; each pass
+	// narrows the gap between the arc it implies and the northing given.
+	phi, m := osgbTrueLat, 0.0
+	for {
+		phi = (n-osgbFalseNorth-m)/(a*osgbScaleFactor) + phi
+		m = osgbMeridionalArc(phi)
+		if n-osgbFalseNorth-m < 0.00001 { // within a hundredth of a millimetre
+			break
+		}
+	}
+
+	sinPhi, cosPhi := math.Sin(phi), math.Cos(phi)
+	nu, rho, eta2 := osgbCurvature(sinPhi)
+
+	tanPhi := math.Tan(phi)
+	tan2, tan4 := tanPhi*tanPhi, tanPhi*tanPhi*tanPhi*tanPhi
+	tan6 := tan4 * tan2
+	sec := 1 / cosPhi
+	nu3, nu5 := nu*nu*nu, nu*nu*nu*nu*nu
+	nu7 := nu5 * nu * nu
+
+	vii := tanPhi / (2 * rho * nu)
+	viii := tanPhi / (24 * rho * nu3) * (5 + 3*tan2 + eta2 - 9*tan2*eta2)
+	ix := tanPhi / (720 * rho * nu5) * (61 + 90*tan2 + 45*tan4)
+	x := sec / nu
+	xi := sec / (6 * nu3) * (nu/rho + 2*tan2)
+	xii := sec / (120 * nu5) * (5 + 28*tan2 + 24*tan4)
+	xiia := sec / (5040 * nu7) * (61 + 662*tan2 + 1320*tan4 + 720*tan6)
+
+	dE := e - osgbFalseEast
+	dE2 := dE * dE
+	dE3, dE4 := dE2*dE, dE2*dE2
+	dE5, dE6 := dE3*dE2, dE4*dE2
+	dE7 := dE5 * dE2
+
+	phi = phi - vii*dE2 + viii*dE4 - ix*dE6
+	lambda := osgbTrueLon + x*dE - xi*dE3 + xii*dE5 - xiia*dE7
+
+	return convertDatum(phi*180/math.Pi, lambda*180/math.Pi,
+		ellipsoidAiry1830, ellipsoidWGS84, osgb36FromWGS84.negated())
+}
+
+// osgbLatLonToGrid converts WGS84 latitude and longitude to an Ordnance Survey
+// easting and northing, moving the position onto OSGB36 first.
+func osgbLatLonToGrid(lat, lon float64) (e, n float64) {
+	latDeg, lonDeg := convertDatum(lat, lon, ellipsoidWGS84, ellipsoidAiry1830, osgb36FromWGS84)
+	phi, lambda := latDeg*math.Pi/180, lonDeg*math.Pi/180
+
+	sinPhi, cosPhi := math.Sin(phi), math.Cos(phi)
+	nu, rho, eta2 := osgbCurvature(sinPhi)
+
+	cos3 := cosPhi * cosPhi * cosPhi
+	cos5 := cos3 * cosPhi * cosPhi
+	tan2 := math.Tan(phi) * math.Tan(phi)
+	tan4 := tan2 * tan2
+
+	i := osgbMeridionalArc(phi) + osgbFalseNorth
+	ii := (nu / 2) * sinPhi * cosPhi
+	iii := (nu / 24) * sinPhi * cos3 * (5 - tan2 + 9*eta2)
+	iiia := (nu / 720) * sinPhi * cos5 * (61 - 58*tan2 + tan4)
+	iv := nu * cosPhi
+	v := (nu / 6) * cos3 * (nu/rho - tan2)
+	vi := (nu / 120) * cos5 * (5 - 18*tan2 + tan4 + 14*eta2 - 58*tan2*eta2)
+
+	dL := lambda - osgbTrueLon
+	dL2 := dL * dL
+	dL3, dL4 := dL2*dL, dL2*dL2
+	dL5 := dL4 * dL
+	dL6 := dL5 * dL
+
+	north := i + ii*dL2 + iii*dL4 + iiia*dL6
+	east := osgbFalseEast + iv*dL + v*dL3 + vi*dL5
+
+	// Rounded to the millimetre, as the reference implementation does.
+	return math.Round(east*1000) / 1000, math.Round(north*1000) / 1000
+}
+
 // The limits of the world, which the geohash search halves repeatedly.
 const (
 	coordMinLat = -90.0
@@ -593,8 +795,7 @@ func parseCoordinateInput(inFormat, input string, split []string, isPair bool) (
 		if !ok {
 			return 0, 0, fmt.Errorf("invalid Ordnance Survey National Grid reference")
 		}
-		l, la, _ := wgs84.From(wgs84.OSGB36NationalGrid())(e, n, 0)
-		lat, lon = la, l
+		lat, lon = osgbGridToLatLon(e, n)
 	case "Universal Transverse Mercator":
 		return utmParse(input)
 	case "Degrees Minutes Seconds":
@@ -672,7 +873,7 @@ func formatCoordinateOutput(outFormat string, lat, lon float64, precision int) (
 		}
 		return fmtMGRS(string(m)), "", nil
 	case "Ordnance Survey National Grid":
-		e, n, _ := wgs84.To(wgs84.OSGB36NationalGrid())(lon, lat, 0)
+		e, n := osgbLatLonToGrid(lat, lon)
 		grid := osgbToGrid(e, n, clampGridPrecision(precision))
 		if grid == "" {
 			return "", "", fmt.Errorf("could not convert co-ordinates to OS National Grid. Are the co-ordinates in range?")

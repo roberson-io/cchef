@@ -21,9 +21,8 @@ func (ConvertCoordinateFormat) Meta() core.OpMeta {
 		Name:   "Convert co-ordinate format",
 		Module: "Hashing",
 		Description: "Converts geographical coordinates between different formats.\n\n" +
-			"Note: UTM and Ordnance Survey National Grid use different projection implementations than CyberChef, " +
-			"so results may differ slightly at high precision (UTM by a sub-millimetre digit; OSGB-as-input by a few metres). " +
-			"MGRS, Geohash and the lat/lon formats match exactly.",
+			"Note: UTM uses a different projection implementation than CyberChef, so results may differ by a " +
+			"sub-millimetre digit at high precision. Every other format matches exactly.",
 		InfoURL:    "https://wikipedia.org/wiki/Geographic_coordinate_conversion",
 		InputType:  core.TypeString,
 		OutputType: core.TypeString,

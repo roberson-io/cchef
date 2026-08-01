@@ -188,7 +188,7 @@ to refresh it:
 | [`go.yaml.in/yaml`](https://github.com/yaml/go-yaml) | YAML conversion |
 | [`google.golang.org/protobuf`](https://pkg.go.dev/google.golang.org/protobuf), [`bufbuild/protocompile`](https://github.com/bufbuild/protocompile) | Protobuf decoding |
 | [`ulikunitz/xz`](https://github.com/ulikunitz/xz) | The LZMA codec |
-| [`wroge/wgs84`](https://github.com/wroge/wgs84), [`klaus-tockloth/coco`](https://github.com/klaus-tockloth/coco) | Coordinate formats and conversion |
+| [`klaus-tockloth/coco`](https://github.com/klaus-tockloth/coco) | Coordinate formats and conversion |
 
 Ciphers, hashes, compression formats and file parsers are written from scratch
 rather than pulled in, so the binary stays self-contained and the behavior stays
