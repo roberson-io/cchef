@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 func opCommandByName(t *testing.T, opName string) *cobra.Command {

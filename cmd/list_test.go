@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // TestListJSON checks the machine-readable form: one object per subcommand,

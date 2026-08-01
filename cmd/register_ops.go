@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/roberson-io/cchef/internal/core"
-	_ "github.com/roberson-io/cchef/internal/ops" // register operations
+	"github.com/roberson-io/cchef/core"
+	_ "github.com/roberson-io/cchef/ops" // register operations
 )
 
 func init() {

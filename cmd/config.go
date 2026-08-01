@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v3"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // cchef reads a config file only for settings that belong to the machine rather

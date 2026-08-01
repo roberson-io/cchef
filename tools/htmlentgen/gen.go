@@ -1,6 +1,6 @@
 //go:build ignore
 
-// Command htmlentgen generates internal/ops/htmlentity_tables.go from the
+// Command htmlentgen generates ops/htmlentity_tables.go from the
 // vendored WHATWG named character reference set.
 //
 // It mirrors CyberChef's own generateHTMLEntities.mjs so that the two stay in
@@ -165,9 +165,9 @@ var htmlEntityToByte = map[string]int{
 	if err != nil {
 		log.Fatalf("format: %v", err)
 	}
-	if err := os.WriteFile("internal/ops/htmlentity_tables.go", src, 0o644); err != nil {
+	if err := os.WriteFile("ops/htmlentity_tables.go", src, 0o644); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("wrote internal/ops/htmlentity_tables.go: %d encode names, %d decode names, %d overrides\n",
+	fmt.Printf("wrote ops/htmlentity_tables.go: %d encode names, %d decode names, %d overrides\n",
 		len(encode), len(decode), len(overrides))
 }

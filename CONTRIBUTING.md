@@ -51,8 +51,8 @@ than raw `go` commands — several targets do more than the obvious command.
 - Cover options, error paths, and edge cases — not just the happy path. If a
   branch is genuinely unreachable, delete it rather than writing a test that
   pretends to reach it.
-- An operation lives in `internal/ops/<op>.go` with its tests in
-  `internal/ops/<op>_test.go` — one operation per file pair, edge cases
+- An operation lives in `ops/<op>.go` with its tests in
+  `ops/<op>_test.go` — one operation per file pair, edge cases
   included; don't add separate coverage-test files.
 - **Floating-point tests must hold on more than one architecture.** CI runs
   linux/amd64, and Go's `math` functions can differ in the last bit across

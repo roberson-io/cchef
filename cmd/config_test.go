@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // writeConfig puts a config file in a temporary directory and points

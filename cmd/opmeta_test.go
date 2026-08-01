@@ -5,7 +5,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // knownCategories is the closed set of CyberChef categories cchef groups by,

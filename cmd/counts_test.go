@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // The operation counts quoted in PLAN.md and docs/README.md are maintained by
@@ -46,7 +46,7 @@ func TestSubcommandCountsMatchRegistry(t *testing.T) {
 	for _, tc := range []struct{ file, pattern string }{
 		{"docs/README.md", `\*\*Scope:\*\* (\d+) operations, covering every CyberChef operation`},
 		{"PLAN.md", `curated set of (\d+)\s+operations`},
-		{"PLAN.md", `- \*\*(\d+) operations\*\* \(` + "`internal/ops/`" + `\)`},
+		{"PLAN.md", `- \*\*(\d+) operations\*\* \(` + "`ops/`" + `\)`},
 	} {
 		if got := countIn(t, tc.file, tc.pattern); got != want {
 			t.Errorf("%s: quoted %d subcommands, registry has %d", tc.file, got, want)

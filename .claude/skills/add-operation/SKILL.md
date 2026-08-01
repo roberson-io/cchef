@@ -73,9 +73,9 @@ fixtures), say so explicitly and update the PLAN/docs notes accordingly.
 
 ## 2. Write the test FIRST (red)
 
-Create `internal/ops/<name>_test.go` and transcribe the relevant fixture cases
+Create `ops/<name>_test.go` and transcribe the relevant fixture cases
 into the shared `opCase` table runner (`runCases`, defined in
-`internal/ops/fixtures_test.go`). Each case is input → expected output via a
+`ops/fixtures_test.go`). Each case is input → expected output via a
 `core.Recipe`, with args in the same order as CyberChef's `recipeConfig` args.
 
 ```go
@@ -95,7 +95,7 @@ func TestFooFixtures(t *testing.T) {
 
 ## 3. Add a compiling stub, confirm red
 
-Create `internal/ops/<name>.go` with a type implementing `core.Operation`
+Create `ops/<name>.go` with a type implementing `core.Operation`
 (`Meta`, `Args`, `Run`) registered in `init()` via `core.Register`, but with a
 no-op `Run`. Run `make test` and confirm the new tests **FAIL**.
 
@@ -147,7 +147,7 @@ A faithful port does not have to be a monolith. As you implement:
 
 Data types (`InputType`/`OutputType`): `TypeString`, `TypeByteArray`,
 `TypeArrayBuffer`, `TypeNumber`. Reuse existing helpers where possible (e.g.
-`expandAlphRange`, `nonHex`, `charRep` already exist in `internal/ops`). Before
+`expandAlphRange`, `nonHex`, `charRep` already exist in `ops`). Before
 adding a helper, `grep` for it — duplicates like `padEnd`/`isHexByte` already
 exist and will fail to compile.
 
@@ -158,7 +158,7 @@ coverage and close the gaps with **genuine** tests — every option/format, each
 error path, edge cases — verified against the oracle where possible:
 
 ```
-go test ./internal/ops/ -coverprofile=/tmp/ops.cov
+go test ./ops/ -coverprofile=/tmp/ops.cov
 go tool cover -func=/tmp/ops.cov | grep -i <name>.go
 ```
 
@@ -261,7 +261,7 @@ this as one checklist and update **all** of them:
    CyberChef operations are covered (M directly plus `SHA2`...)").
 4. Update the operation counts in the **Current status** section near the top of
    PLAN.md (the "curated set of N operations" sentence and the "**N operations**
-   (`internal/ops/`)" bullet) — these count cchef subcommands, which may differ
+   (`ops/`)" bullet) — these count cchef subcommands, which may differ
    from the unique-op count (e.g. `sha256`/`sha512` are two subcommands but one
    CyberChef `SHA2` op).
 

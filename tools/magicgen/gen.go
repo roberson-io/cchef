@@ -1,6 +1,6 @@
 //go:build ignore
 
-// Command magicgen generates internal/ops/magic_data.go from the tables
+// Command magicgen generates ops/magic_data.go from the tables
 // previously extracted from CyberChef to magicdata.json by dump.mjs.
 //
 // Run from the repository root:
@@ -110,7 +110,7 @@ func main() {
 	}
 	coreImport := ""
 	if needsCore {
-		coreImport = "\nimport \"github.com/roberson-io/cchef/internal/core\"\n"
+		coreImport = "\nimport \"github.com/roberson-io/cchef/core\"\n"
 	}
 
 	var b bytes.Buffer
@@ -186,10 +186,10 @@ var magicChecks = []magicCheck{
 	if err != nil {
 		log.Fatalf("format: %v", err)
 	}
-	if err := os.WriteFile("internal/ops/magic_data.go", src, 0o644); err != nil {
+	if err := os.WriteFile("ops/magic_data.go", src, 0o644); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("wrote internal/ops/magic_data.go: %d checks, %d common and %d extensive languages\n",
+	fmt.Printf("wrote ops/magic_data.go: %d checks, %d common and %d extensive languages\n",
 		len(d.Checks), len(d.CommonLangs), len(d.ExtensiveLangs))
 }
 

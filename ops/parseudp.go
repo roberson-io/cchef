@@ -1,0 +1,65 @@
+package ops
+
+import (
+	"fmt"
+
+	"github.com/roberson-io/cchef/core"
+)
+
+func init() {
+	core.Register(ParseUDP{})
+}
+
+// parseNetInput decodes the input string per the "Hex"/"Raw" format option shared
+// by the packet-parsing operations. The option list guarantees one of these two
+// values, so no error path is needed.
+func parseNetInput(input, format string) []byte {
+	if format == "Hex" {
+		return hexToBytes(input)
+	}
+	return []byte(input) // "Raw"
+}
+
+// ParseUDP parses a UDP datagram header into a JSON object.
+type ParseUDP struct{}
+
+// Meta returns the operation metadata.
+func (ParseUDP) Meta() core.OpMeta {
+	return core.OpMeta{
+		Name:        "Parse UDP",
+		Module:      "Default",
+		Description: "Parses a UDP header and payload (if present).",
+		InfoURL:     "https://wikipedia.org/wiki/User_Datagram_Protocol",
+		InputType:   core.TypeString,
+		OutputType:  core.TypeJSON,
+	}
+}
+
+// Args returns the argument definitions.
+func (ParseUDP) Args() []core.ArgDef {
+	return []core.ArgDef{{Name: "Input format", Type: core.ArgOption, Value: []string{"Hex", "Raw"}}}
+}
+
+// Run parses the datagram. Ported from CyberChef ParseUDP.mjs.
+func (ParseUDP) Run(in *core.Dish, args []any) (*core.Dish, error) {
+	s := newByteStream(parseNetInput(in.String(), args[0].(string)))
+	if s.length() < 8 {
+		return nil, fmt.Errorf("need 8 bytes for a UDP header")
+	}
+
+	udp := newOMap()
+	udp.set("Source port", s.readInt(2))
+	udp.set("Destination port", s.readInt(2))
+	length := s.readInt(2)
+	udp.set("Length", length)
+	udp.set("Checksum", "0x"+toHexFast(s.getBytes(2)))
+	if s.hasMore() {
+		udp.set("Data", "0x"+toHexFast(s.getBytes(length-8)))
+	}
+
+	out, err := marshalOMap(udp)
+	if err != nil {
+		return nil, err
+	}
+	return core.NewDish(out, core.TypeJSON), nil
+}

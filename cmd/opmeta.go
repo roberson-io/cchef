@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // maxSummaryLen bounds a derived one-line summary so `cchef list` and command

@@ -1,6 +1,6 @@
 # magicgen
 
-Generates `internal/ops/magic_data.go`, the tables the **Magic** operation
+Generates `ops/magic_data.go`, the tables the **Magic** operation
 needs, from a CyberChef checkout.
 
 Three things come across:

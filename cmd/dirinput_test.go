@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/roberson-io/cchef/internal/core"
+	"github.com/roberson-io/cchef/core"
 )
 
 // writeTree creates each file (relative path -> content) under a fresh temp dir
@@ -308,7 +308,7 @@ func TestInDirRecursiveWalkError(t *testing.T) {
 // A file-list operation writes one file per result into --out-dir, which for
 // these operations does not require --in-dir.
 func TestOutDirFileList(t *testing.T) {
-	src, err := os.ReadFile("../internal/ops/testdata/resize_input.png")
+	src, err := os.ReadFile("../ops/testdata/resize_input.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,7 +336,7 @@ func TestOutDirFileList(t *testing.T) {
 // Without --out-dir a file-list operation has nowhere to put its files, so it
 // fails with a message naming the flag rather than emitting nothing.
 func TestFileListRequiresOutDir(t *testing.T) {
-	src, err := os.ReadFile("../internal/ops/testdata/resize_input.png")
+	src, err := os.ReadFile("../ops/testdata/resize_input.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,7 +353,7 @@ func TestFileListRequiresOutDir(t *testing.T) {
 // With --in-dir the per-input results are kept apart in a directory named after
 // the input file, so several inputs cannot overwrite one another.
 func TestInDirOutDirFileList(t *testing.T) {
-	src, err := os.ReadFile("../internal/ops/testdata/resize_input.png")
+	src, err := os.ReadFile("../ops/testdata/resize_input.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -380,7 +380,7 @@ func TestInDirOutDirFileList(t *testing.T) {
 // A file list cannot feed a following operation; the recipe must say so.
 func TestFileListCannotChain(t *testing.T) {
 	_, err := execRootCapture(t, "bake", "-e", "Split_Colour_Channels()\nTo_Hex()", "--in-file",
-		"../internal/ops/testdata/resize_input.png", "--out-dir", t.TempDir())
+		"../ops/testdata/resize_input.png", "--out-dir", t.TempDir())
 	if err == nil || !strings.Contains(err.Error(), "cannot be chained") {
 		t.Fatalf("error = %v, want one about chaining", err)
 	}

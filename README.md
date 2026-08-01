@@ -1,6 +1,7 @@
 # cchef
 
 [![CI](https://github.com/roberson-io/cchef/actions/workflows/ci.yml/badge.svg)](https://github.com/roberson-io/cchef/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/roberson-io/cchef.svg)](https://pkg.go.dev/github.com/roberson-io/cchef)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **CyberChef on the command line.** `cchef` is a Go port of the data-transformation
@@ -107,6 +108,40 @@ A recipe is an ordered list of operations, expressible in two formats (auto-dete
 
 Run one with `cchef bake -e <recipe>` / `-r <file>`, convert between formats with
 `cchef recipe convert`, or share it with `cchef url`.
+
+## Use as a Go library
+
+The engine is importable, so a Go program can bake recipes without shelling
+out. [`core`](https://pkg.go.dev/github.com/roberson-io/cchef/core) is the
+engine; importing [`ops`](https://pkg.go.dev/github.com/roberson-io/cchef/ops)
+for its side effects registers every operation.
+
+```bash
+go get github.com/roberson-io/cchef
+```
+
+```go
+import (
+    "github.com/roberson-io/cchef/core"
+    _ "github.com/roberson-io/cchef/ops" // register the operations
+)
+
+r, err := core.ParseRecipeConfig(`[{"op":"To Base64"}]`)
+out, err := r.Execute(core.NewDish([]byte("hello"), core.TypeByteArray))
+// out.String() == "aGVsbG8="
+```
+
+An operation can also be named directly, which the compiler checks where a
+lookup by name cannot:
+
+```go
+op := ops.ToBase64{}
+out, err := op.Run(core.NewDish([]byte("hello"), core.TypeByteArray),
+    core.DefaultArgs(op.Args()))
+```
+
+Implement `core.Operation` and pass it to `core.Register` to add an operation of
+your own; it is then usable by name in any recipe, alongside the built-in ones.
 
 ## Development
 
