@@ -268,14 +268,35 @@ Each is removed once its Go replacement is oracle-verified over the same inputs.
   by how large they are: 488 KB with forty changed lines takes under 0.1s in
   every mode, while two 32 KB samples of unrelated random text — the worst case
   the algorithm has — take 36s and 211 MB.
-- [ ] **`github.com/mmcloughlin/geohash`** (Convert co-ordinate format) —
-  bit-interleaving; small.
+- [x] **`github.com/mmcloughlin/geohash`** (Convert co-ordinate format) —
+  replaced by a port of ngeohash, the library CyberChef uses, in
+  `internal/ops/coordinates.go`.
+
+  This one was a divergence rather than only hygiene. ngeohash assigns a
+  coordinate sitting exactly on a cell boundary to the *lower* cell; the Go
+  library assigns it to the upper one. The origin encoded as `s0000000` where
+  CyberChef gives `7zzzzzzz`, and every pole and quadrant boundary was wrong
+  the same way. Worse, the centre of a decoded cell is itself an exact boundary
+  at any finer precision, so **Geohash in and Geohash out disagreed on ordinary
+  hashes** — `ezs42` came back as `ezs42000` instead of `ezs427zz`. Two smaller
+  faults went with it: an upper-case hash decoded differently from its
+  lower-case form, and a letter outside the geohash alphabet (`a`, `i`, `l`,
+  `o`) was handled differently from ngeohash, which reads it as five zero bits.
+  A differential probe over 277 inputs per seed found 25 disagreements before
+  and none after.
 - [ ] **`github.com/wroge/wgs84`** (Convert co-ordinate format) — the remaining
   datum transforms; precision-sensitive, verify against the oracle.
 - [ ] **`golang.org/x/text/encoding/charmap`** (MIME Decoding) — route through
   the in-repo codepage engine, which already covers all 16 ISO-8859 charsets.
   This removes the *usage*, not the `x/text` module, which stays for
   `unicode/norm`.
+
+  Worth doing on its own terms, because charmap has no ISO-8859-11 table and
+  the codepage engine does (cp28601). `=?ISO-8859-11?Q?=A1=A2?=` decodes to
+  Thai in CyberChef and returns `Unhandled Charset` in cchef, so this is a
+  divergence to fix rather than only dependency hygiene. ISO-8859-12 was never
+  standardised and errors on both sides, which is already correct. Dropping the
+  package also takes 109 KB of duplicate charset tables out of the binary.
 
 Explicitly kept: `dlclark/regexp2` (backtracking PCRE, which RE2 cannot
 replace), `google.golang.org/protobuf` + `bufbuild/protocompile` (a full

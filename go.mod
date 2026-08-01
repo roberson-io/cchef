@@ -12,7 +12,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/itchyny/gojq v0.12.19
 	github.com/klaus-tockloth/coco v0.2.0
-	github.com/mmcloughlin/geohash v0.10.0
 	github.com/recolabs/gnata v0.2.3
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.9

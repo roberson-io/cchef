@@ -109,11 +109,15 @@ cchef view-bit-plane --in-file in.png --color  Red --bit 0 -o out.png
 
 cchef generate-image -i 41424344 --mode Greyscale -o out.png
 cchef generate-image -i 41424344 --mode Grayscale -o out.png
+
+cchef convert-co-ordinate-format -i '51.5074, -0.1278' --output-format Geohash
+cchef convert-coordinate-format  -i '51.5074, -0.1278' --output-format Geohash
 ```
 
 Help text and this documentation show the CyberChef spelling; the American
 spelling works everywhere but is not listed. The words covered are *analyse*,
-*colour*, *centre*, *grey*, *metre*, *normalise*, *randomise*, and *serialise*.
+*colour*, *centre*, *grey*, *metre*, *normalise*, *randomise*, and *serialise*,
+plus the hyphenated *co-ordinate*.
 Recipes, URLs, and `bake` are unaffected — they take operation and argument
 names exactly as CyberChef writes them.
 

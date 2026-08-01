@@ -26,6 +26,7 @@ func TestUSSpellingCommandAliases(t *testing.T) {
 		{"BSON serialise", "bson-serialize"},
 		{"Normalise Unicode", "normalize-unicode"},
 		{"Randomize Colour Palette", "randomize-color-palette"},
+		{"Convert co-ordinate format", "convert-coordinate-format"},
 	} {
 		cmd := opCommandByName(t, tc.op)
 		if !cmd.HasAlias(tc.alias) {

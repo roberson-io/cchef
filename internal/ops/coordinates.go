@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/klaus-tockloth/coco"
-	"github.com/mmcloughlin/geohash"
 	"github.com/wroge/wgs84"
 )
 
@@ -358,7 +357,102 @@ func fmtMGRS(m string) string {
 }
 
 // convertCoordinates converts a coordinate string between formats.
-// Ported from CyberChef ConvertCoordinates.mjs (geodesy/ngeohash replaced by Go libs).
+// The limits of the world, which the geohash search halves repeatedly.
+const (
+	coordMinLat = -90.0
+	coordMaxLat = 90.0
+	coordMinLon = -180.0
+	coordMaxLon = 180.0
+)
+
+// geohashAlphabet is the base-32 alphabet geohashes are written in: the digits
+// and the lower-case letters, less a, i, l and o.
+const geohashAlphabet = "0123456789bcdefghjkmnpqrstuvwxyz"
+
+// geohashBitsPerChar is how many bits of the interleaved coordinate each
+// character of a geohash carries.
+const geohashBitsPerChar = 5
+
+// geohashEncode turns a coordinate into a geohash of the given length, by
+// repeatedly halving the world and recording which half the point falls in,
+// alternating longitude and latitude. A point sitting exactly on a boundary
+// belongs to the lower half, so the origin encodes as a run of z rather than a
+// run of 0.
+func geohashEncode(lat, lon float64, precision int) string {
+	minLat, maxLat := coordMinLat, coordMaxLat
+	minLon, maxLon := coordMinLon, coordMaxLon
+
+	var out strings.Builder
+	value, bits, total := 0, 0, 0
+	for out.Len() < precision {
+		var bit int
+		if total%2 == 0 {
+			mid := (maxLon + minLon) / 2
+			if lon > mid {
+				bit, minLon = 1, mid
+			} else {
+				maxLon = mid
+			}
+		} else {
+			mid := (maxLat + minLat) / 2
+			if lat > mid {
+				bit, minLat = 1, mid
+			} else {
+				maxLat = mid
+			}
+		}
+
+		value = value<<1 + bit
+		bits++
+		total++
+		if bits == geohashBitsPerChar {
+			out.WriteByte(geohashAlphabet[value])
+			value, bits = 0, 0
+		}
+	}
+	return out.String()
+}
+
+// geohashDecodeBBox returns the corners of the cell a geohash names. A
+// character outside the alphabet contributes five zero bits, exactly as a "0"
+// would, which is how the library CyberChef uses treats one.
+func geohashDecodeBBox(hash string) (minLat, minLon, maxLat, maxLon float64) {
+	minLat, maxLat = coordMinLat, coordMaxLat
+	minLon, maxLon = coordMinLon, coordMaxLon
+
+	isLon := true
+	for _, c := range strings.ToLower(hash) {
+		value := max(strings.IndexRune(geohashAlphabet, c), 0)
+		for bit := geohashBitsPerChar - 1; bit >= 0; bit-- {
+			set := value>>bit&1 == 1
+			if isLon {
+				mid := (maxLon + minLon) / 2
+				if set {
+					minLon = mid
+				} else {
+					maxLon = mid
+				}
+			} else {
+				mid := (maxLat + minLat) / 2
+				if set {
+					minLat = mid
+				} else {
+					maxLat = mid
+				}
+			}
+			isLon = !isLon
+		}
+	}
+	return minLat, minLon, maxLat, maxLon
+}
+
+// geohashDecodeCenter returns the centre of the cell a geohash names.
+func geohashDecodeCenter(hash string) (lat, lon float64) {
+	minLat, minLon, maxLat, maxLon := geohashDecodeBBox(hash)
+	return (minLat + maxLat) / 2, (minLon + maxLon) / 2
+}
+
+// Ported from CyberChef ConvertCoordinates.mjs (geodesy replaced by Go libs).
 func convertCoordinates(input, inFormat, inDelim, outFormat, outDelim string, includeDir string, precision int) (string, error) {
 	if precision < 0 {
 		precision = 0
@@ -487,7 +581,7 @@ func tokeniseCoordInput(input, inFormat, inDelim string) (string, []string, bool
 func parseCoordinateInput(inFormat, input string, split []string, isPair bool) (lat, lon float64, err error) {
 	switch inFormat {
 	case "Geohash":
-		lat, lon = geohash.DecodeCenter(reCoordNonAN.ReplaceAllString(input, ""))
+		lat, lon = geohashDecodeCenter(reCoordNonAN.ReplaceAllString(input, ""))
 	case "Military Grid Reference System":
 		ll, _, err := coco.MGRS(reCoordNonAN.ReplaceAllString(input, "")).ToLL()
 		if err != nil {
@@ -568,7 +662,7 @@ func formatCoordinateOutput(outFormat string, lat, lon float64, precision int) (
 	case "Degrees Minutes Seconds":
 		return convDDToDMS(lat, precision), convDDToDMS(lon, precision), nil
 	case "Geohash":
-		return geohash.EncodeWithPrecision(lat, lon, uint(precision)), "", nil
+		return geohashEncode(lat, lon, precision), "", nil
 	case "Military Grid Reference System":
 		p := clampGridPrecision(precision)
 		acc := int(math.Pow(10, float64(5-p/2)))

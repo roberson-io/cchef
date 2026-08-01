@@ -472,3 +472,147 @@ func TestDetectDegreeFormat(t *testing.T) {
 		}
 	}
 }
+
+// Geohash results verified against the CyberChef-server oracle. These pin the
+// cases where a geohash library that rounds a coordinate sitting exactly on a
+// cell boundary the other way gives a different, equally valid, answer.
+func TestConvertCoordinateGeohash(t *testing.T) {
+	cc := func(in, out string, precision float64) core.Recipe {
+		return core.Recipe{{Op: "Convert co-ordinate format", Args: []any{
+			in, "Auto", out, "Space", "None", precision,
+		}}}
+	}
+	ccd := func(in, delim, out string, precision float64) core.Recipe {
+		return core.Recipe{{Op: "Convert co-ordinate format", Args: []any{
+			in, delim, out, "Space", "None", precision,
+		}}}
+	}
+	runCases(t, []opCase{
+		{
+			"boundary origin", "0,0", "7zzzzzzz ",
+			cc("Decimal Degrees", "Geohash", 8.0),
+		},
+		{
+			"boundary north-east pole", "90,180", "zzzzzzzz ",
+			cc("Decimal Degrees", "Geohash", 8.0),
+		},
+		{
+			"boundary south-west pole", "-90,-180", "00000000 ",
+			cc("Decimal Degrees", "Geohash", 8.0),
+		},
+		{
+			"boundary mid quadrant", "-45.0,45.0", "hzzzzzzz ",
+			cc("Decimal Degrees", "Geohash", 8.0),
+		},
+		{
+			"round trip", "ezs42", "ezs427zz ",
+			cc("Geohash", "Geohash", 8.0),
+		},
+		{
+			"round trip single character", "s", "s7zzzzzz ",
+			cc("Geohash", "Geohash", 8.0),
+		},
+		{
+			"round trip two characters", "sv", "sv7zzzzz ",
+			cc("Geohash", "Geohash", 8.0),
+		},
+		{
+			"uppercase", "EZS42", "42.60498047° -5.60302734° ",
+			cc("Geohash", "Decimal Degrees", 8.0),
+		},
+		{
+			"uppercase round trip", "EZS42", "ezs427zz ",
+			cc("Geohash", "Geohash", 8.0),
+		},
+		{
+			"punctuation stripped", "ezs-42", "ezs427zz ",
+			cc("Geohash", "Geohash", 8.0),
+		},
+		{
+			"letter outside the alphabet", "ezs4a2", "42.54180908° -5.60852051° ",
+			cc("Geohash", "Decimal Degrees", 8.0),
+		},
+		{
+			"every letter outside the alphabet", "ail", "-89.296875° -179.296875° ",
+			ccd("Geohash", "Comma", "Decimal Degrees", 8.0),
+		},
+		{
+			"longest hash", "zzzzzzzzzzzz", "89.9999999162° 179.9999998324° ",
+			ccd("Geohash", "Comma", "Decimal Degrees", 10.0),
+		},
+		{
+			"all zeros", "00000000", "-89.9999141693° -179.9998283386° ",
+			ccd("Geohash", "Comma", "Decimal Degrees", 10.0),
+		},
+		{
+			"to degrees minutes seconds", "u4pruydqqvj", "57° 38' 56.7983\" 10° 24' 26.7829\" ",
+			ccd("Geohash", "Comma", "Degrees Minutes Seconds", 4.0),
+		},
+		{
+			"single zero", "0", "-67.5° -157.5° ",
+			ccd("Geohash", "Comma", "Decimal Degrees", 6.0),
+		},
+		{
+			"single z", "z", "67.5° 157.5° ",
+			ccd("Geohash", "Comma", "Decimal Degrees", 6.0),
+		},
+	})
+}
+
+// Encoding transcribed from ngeohash, the library CyberChef uses. A coordinate
+// exactly on a cell boundary belongs to the lower cell, which is why the origin
+// encodes to a run of z rather than a run of 0.
+func TestGeohashEncode(t *testing.T) {
+	cases := []struct {
+		lat, lon  float64
+		precision int
+		want      string
+	}{
+		{0, 0, 8, "7zzzzzzz"},
+		{90, 180, 8, "zzzzzzzz"},
+		{-90, -180, 8, "00000000"},
+		{-45, 45, 8, "hzzzzzzz"},
+		{51.5074, -0.1278, 9, "gcpvj0duq"},
+		{37.7749, -122.4194, 12, "9q8yyk8ytpxr"},
+		{0, 0, 1, "7"},
+		{0.0001, -0.0001, 5, "ebpbp"},
+		{51.5074, -0.1278, 0, ""},
+	}
+	for _, c := range cases {
+		if got := geohashEncode(c.lat, c.lon, c.precision); got != c.want {
+			t.Errorf("encode(%v, %v, %d) = %q, want %q", c.lat, c.lon, c.precision, got, c.want)
+		}
+	}
+}
+
+// Decoding transcribed from ngeohash. A character outside the geohash alphabet
+// contributes five zero bits, exactly as a "0" would.
+func TestGeohashDecodeCenter(t *testing.T) {
+	cases := []struct {
+		hash     string
+		lat, lon float64
+	}{
+		{"ezs42", 42.60498046875, -5.60302734375},
+		{"EZS42", 42.60498046875, -5.60302734375},
+		{"s", 22.5, 22.5},
+		{"sv", 30.9375, 39.375},
+		{"0", -67.5, -157.5},
+		{"z", 67.5, 157.5},
+		{"zzzzzzzzzzzz", 89.99999991618097, 179.99999983236194},
+		{"00000000", -89.99991416931152, -179.99982833862305},
+		{"ezs4a2", 42.54180908203125, -5.6085205078125},
+		{"aaaa", -89.912109375, -179.82421875},
+		{"ail", -89.296875, -179.296875},
+		{"u4pruydqqvj", 57.64911063015461, 10.407439693808556},
+		{"dr5ru7c02wh", 40.757979825139046, -73.99151913821697},
+		{"bbe", 48.515625, -141.328125},
+		{"e3m", 7.734375, -26.015625},
+		{"", 0, 0},
+	}
+	for _, c := range cases {
+		lat, lon := geohashDecodeCenter(c.hash)
+		if lat != c.lat || lon != c.lon {
+			t.Errorf("decode(%q) = %v, %v, want %v, %v", c.hash, lat, lon, c.lat, c.lon)
+		}
+	}
+}

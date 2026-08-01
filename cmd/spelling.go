@@ -23,6 +23,8 @@ var spellingPairs = [][2]string{
 	{"Colour", "Color"},
 	{"centre", "center"},
 	{"Centre", "Center"},
+	{"co-ordinate", "coordinate"},
+	{"Co-ordinate", "Coordinate"},
 	{"grey", "gray"},
 	{"Grey", "Gray"},
 	{"metre", "meter"},
