@@ -10,6 +10,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -19,7 +20,7 @@ func init() {
 // JPathExpression extracts information from a JSON object with a JSONPath query.
 // Ported from CyberChef JPathExpression.mjs, which wraps the jsonpath-plus npm
 // library. cchef reimplements the JSONPath evaluator over the order-preserving
-// jsonvalue.go representation (jsObject / []any) so matched values serialize
+// jsonvalue.go representation (jsonval.Object / []any) so matched values serialize
 // byte-for-byte like jsonpath-plus's results.map(JSON.stringify).join(delimiter),
 // including ECMAScript object key ordering.
 //
@@ -55,7 +56,7 @@ func (JPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	query := args[0].(string)
 	delim := parseEscapedChars(args[1].(string))
 
-	root, err := jsonParseOrdered(in.Bytes())
+	root, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError prefix
 		return nil, errors.New("Invalid input JSON: " + err.Error())
@@ -68,7 +69,7 @@ func (JPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	matches := evalJPath(root, segs)
 	parts := make([]string, len(matches))
 	for i, m := range matches {
-		parts[i] = jsStringify(m, 0)
+		parts[i] = jsonval.Stringify(m, 0)
 	}
 	return core.NewDish([]byte(strings.Join(parts, delim)), core.TypeString), nil
 }
@@ -91,11 +92,11 @@ func evalJPath(root any, segs []jpSeg) []any {
 // have no children.
 func jsChildren(node any) []any {
 	switch x := node.(type) {
-	case jsObject:
-		ordered := jsESOrder(x)
+	case jsonval.Object:
+		ordered := jsonval.ESOrder(x)
 		out := make([]any, len(ordered))
 		for i, p := range ordered {
-			out[i] = p.v
+			out[i] = p.V
 		}
 		return out
 	case []any:
@@ -109,9 +110,9 @@ func jsChildren(node any) []any {
 // strings the special "length" property yields the length; nothing else matches.
 func jsChild(node any, name string) (any, bool) {
 	switch x := node.(type) {
-	case jsObject:
-		if i := jsIndex(x, name); i >= 0 {
-			return x[i].v, true
+	case jsonval.Object:
+		if i := jsonval.Index(x, name); i >= 0 {
+			return x[i].V, true
 		}
 	case []any:
 		if name == "length" {
@@ -134,9 +135,9 @@ func jsIndexInto(node any, i int) (any, bool) {
 		if i >= 0 && i < len(x) {
 			return x[i], true
 		}
-	case jsObject:
-		if j := jsIndex(x, strconv.Itoa(i)); j >= 0 {
-			return x[j].v, true
+	case jsonval.Object:
+		if j := jsonval.Index(x, strconv.Itoa(i)); j >= 0 {
+			return x[j].V, true
 		}
 	}
 	return nil, false
@@ -1026,7 +1027,7 @@ func jsTruthyVal(v any) bool {
 		return x != 0 && !math.IsNaN(x)
 	case string:
 		return x != ""
-	default: // []any, jsObject
+	default: // []any, jsonval.Object
 		return true
 	}
 }
@@ -1038,7 +1039,7 @@ func jsCoerceString(v any) string {
 	case string:
 		return x
 	case float64:
-		return jsFormatNumber(x)
+		return jsonval.FormatNumber(x)
 	case bool:
 		return strconv.FormatBool(x)
 	case nil:

@@ -43,10 +43,12 @@ complexity:
 		echo "No functions over complexity $(GOCYCLO_OVER)."; \
 	fi
 
-## cover: run tests, write a cross-package coverage profile, and print the total
+## cover: run tests, then list every function short of full coverage and the total
 cover:
 	$(GO) test -coverpkg=./... -covermode=atomic -coverprofile=coverage.out ./...
+	@$(GO) tool cover -func=coverage.out | grep -v '100.0%$$' | grep -v '^total:' || true
 	@$(GO) tool cover -func=coverage.out | tail -1
+	@echo "for the uncovered blocks themselves: $(GO) tool cover -html=coverage.out -o coverage.html"
 
 ## fix: apply go fix modernizations, iterating to a fixed point (bounded)
 fix:

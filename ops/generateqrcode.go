@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/deflateraw"
 )
 
 func init() {
@@ -112,7 +113,7 @@ func qrRenderPNG(matrix [][]byte, margin, size int) []byte {
 	out := append([]byte{}, pngSignature...)
 	out = append(out, header...)
 	out = binary.BigEndian.AppendUint32(out, crc32.ChecksumIEEE(header[4:]))
-	out = pngChunk(out, "IDAT", zlibDeflate(bitmap))
+	out = pngChunk(out, "IDAT", deflateraw.Deflate(bitmap))
 	return append(out, pngEnd...)
 }
 

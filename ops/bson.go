@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -49,10 +50,10 @@ const (
 // rejected with js-bson's exact error text.
 func bsonSerialise(v any) ([]byte, error) {
 	switch x := v.(type) {
-	case jsObject:
+	case jsonval.Object:
 		return bsonEncodeDoc(x), nil
 	case nil:
-		return bsonEncodeDoc(jsObject{}), nil
+		return bsonEncodeDoc(jsonval.Object{}), nil
 	case []any:
 		//nolint:staticcheck,revive // js-bson's verbatim error text
 		return nil, errors.New("BSONError: serialize does not support an array as the root input")
@@ -65,10 +66,10 @@ func bsonSerialise(v any) ([]byte, error) {
 // bsonEncodeDoc encodes an object as a BSON document. Keys are emitted in
 // ECMAScript enumeration order (integer-like keys first, ascending), matching how
 // js-bson iterates a JS object.
-func bsonEncodeDoc(obj jsObject) []byte {
+func bsonEncodeDoc(obj jsonval.Object) []byte {
 	body := []byte{}
-	for _, p := range jsESOrder(obj) {
-		body = append(body, bsonEncodeElem(p.k, p.v)...)
+	for _, p := range jsonval.ESOrder(obj) {
+		body = append(body, bsonEncodeElem(p.K, p.V)...)
 	}
 	out := make([]byte, 4, len(body)+bsonMinDocLen)
 	binary.LittleEndian.PutUint32(out, uint32(len(body)+bsonMinDocLen)) // #nosec G115 -- document length is non-negative
@@ -109,7 +110,7 @@ func bsonEncodeValue(val any) (byte, []byte) {
 		return bsonTypeInt64, binary.LittleEndian.AppendUint64(nil, uint64(x)) // #nosec G115 -- writing the two's-complement bytes of an int64
 	case []any:
 		return bsonTypeArray, bsonEncodeDoc(bsonArrayDoc(x))
-	case jsObject:
+	case jsonval.Object:
 		return bsonTypeDocument, bsonEncodeDoc(x)
 	default:
 		return bsonTypeNull, nil
@@ -135,10 +136,10 @@ func bsonEncodeString(s string) []byte {
 
 // bsonArrayDoc turns an array into a document with stringified integer keys
 // "0","1",…, which is how BSON represents arrays.
-func bsonArrayDoc(arr []any) jsObject {
-	pairs := make(jsObject, len(arr))
+func bsonArrayDoc(arr []any) jsonval.Object {
+	pairs := make(jsonval.Object, len(arr))
 	for i, e := range arr {
-		pairs[i] = jsPair{k: strconv.Itoa(i), v: e}
+		pairs[i] = jsonval.Pair{K: strconv.Itoa(i), V: e}
 	}
 	return pairs
 }
@@ -150,7 +151,7 @@ type bsonReader struct {
 }
 
 // bsonDeserialise decodes a single top-level BSON document.
-func bsonDeserialise(data []byte) (jsObject, error) {
+func bsonDeserialise(data []byte) (jsonval.Object, error) {
 	r := &bsonReader{b: data}
 	doc, err := r.readDocument()
 	if err != nil {
@@ -162,7 +163,7 @@ func bsonDeserialise(data []byte) (jsObject, error) {
 	return doc, nil
 }
 
-func (r *bsonReader) readDocument() (jsObject, error) {
+func (r *bsonReader) readDocument() (jsonval.Object, error) {
 	start := r.pos
 	length, err := r.readInt32()
 	if err != nil {
@@ -172,7 +173,7 @@ func (r *bsonReader) readDocument() (jsObject, error) {
 		return nil, errors.New("invalid BSON document length")
 	}
 	end := start + int(length)
-	obj := jsObject{}
+	obj := jsonval.Object{}
 	for r.pos < end-1 {
 		typ := r.b[r.pos]
 		r.pos++
@@ -184,7 +185,7 @@ func (r *bsonReader) readDocument() (jsObject, error) {
 		if err != nil {
 			return nil, err
 		}
-		obj = append(obj, jsPair{k: key, v: val})
+		obj = append(obj, jsonval.Pair{K: key, V: val})
 	}
 	if r.pos >= len(r.b) || r.b[r.pos] != 0x00 {
 		return nil, errors.New("missing BSON document terminator")
@@ -241,7 +242,7 @@ func (r *bsonReader) readExtendedValue(typ byte) (any, error) {
 	case bsonTypeRegex:
 		return r.readRegex()
 	case bsonTypeMinKey, bsonTypeMaxKey:
-		return jsObject{}, nil
+		return jsonval.Object{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported BSON element type 0x%02x", typ)
 	}
@@ -254,7 +255,7 @@ func (r *bsonReader) readArray() (any, error) {
 	}
 	arr := make([]any, len(doc))
 	for i, p := range doc {
-		arr[i] = p.v
+		arr[i] = p.V
 	}
 	return arr, nil
 }
@@ -306,7 +307,7 @@ func (r *bsonReader) readTimestamp() (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return jsObject{{k: "$timestamp", v: strconv.FormatUint(v, 10)}}, nil
+	return jsonval.Object{{K: "$timestamp", V: strconv.FormatUint(v, 10)}}, nil
 }
 
 func (r *bsonReader) readRegex() (any, error) {
@@ -316,7 +317,7 @@ func (r *bsonReader) readRegex() (any, error) {
 	if _, err := r.readCString(); err != nil { // flags
 		return nil, err
 	}
-	return jsObject{}, nil
+	return jsonval.Object{}, nil
 }
 
 func (r *bsonReader) readInt32() (int32, error) {
@@ -385,7 +386,7 @@ func (BSONSerialise) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if input == "" {
 		return core.NewDish([]byte{}, core.TypeArrayBuffer), nil
 	}
-	val, err := jsonParseOrdered([]byte(input))
+	val, err := jsonval.ParseOrdered([]byte(input))
 	if err != nil {
 		return nil, fmt.Errorf("invalid JSON input: %w", err)
 	}
@@ -424,5 +425,5 @@ func (BSONDeserialise) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish([]byte(jsStringify(doc, 2)), core.TypeString), nil
+	return core.NewDish([]byte(jsonval.Stringify(doc, 2)), core.TypeString), nil
 }

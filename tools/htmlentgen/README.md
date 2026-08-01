@@ -1,6 +1,6 @@
 # htmlentgen
 
-Generates `ops/htmlentity_tables.go`, the lookup tables behind **To
+Generates `internal/htmlent/htmlentity_tables.go`, the lookup tables behind **To
 HTML Entity** and **From HTML Entity**, from the WHATWG named character
 reference set.
 

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/lodashcase"
 )
 
 func init() {
@@ -35,9 +36,9 @@ func (ToKebabCase) Args() []core.ArgDef {
 func (ToKebabCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	smart := args[0].(bool)
 	input := in.String()
-	out := lodashKebabCase(input)
+	out := lodashcase.KebabCase(input)
 	if smart {
-		out = replaceVariableNames(input, lodashKebabCase)
+		out = lodashcase.ReplaceVariableNames(input, lodashcase.KebabCase)
 	}
 	return core.NewDish([]byte(out), core.TypeString), nil
 }

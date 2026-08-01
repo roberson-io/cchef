@@ -11,6 +11,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -67,7 +68,7 @@ func (JSONBeautify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if sortKeys {
 		val = jbSortKeys(val)
 	}
-	return core.NewDish([]byte(jsStringifyIndent(val, indentStr)), core.TypeString), nil
+	return core.NewDish([]byte(jsonval.StringifyIndent(val, indentStr)), core.TypeString), nil
 }
 
 // jbSortKeys deep-sorts object keys, matching CyberChef's sortKeys (JS
@@ -79,12 +80,12 @@ func jbSortKeys(v any) any {
 			x[i] = jbSortKeys(x[i])
 		}
 		return x
-	case jsObject:
-		out := make(jsObject, len(x))
+	case jsonval.Object:
+		out := make(jsonval.Object, len(x))
 		copy(out, x)
-		sort.Slice(out, func(i, j int) bool { return out[i].k < out[j].k })
+		sort.Slice(out, func(i, j int) bool { return out[i].K < out[j].K })
 		for i := range out {
-			out[i].v = jbSortKeys(out[i].v)
+			out[i].V = jbSortKeys(out[i].V)
 		}
 		return out
 	}
@@ -92,7 +93,7 @@ func jbSortKeys(v any) any {
 }
 
 // json5Parser is a recursive-descent JSON5 parser producing the shared ordered
-// value tree (jsObject / []any / string / float64 / bool / nil). All numbers are
+// value tree (jsonval.Object / []any / string / float64 / bool / nil). All numbers are
 // float64, matching JSON5.parse's JS Number semantics (including precision loss
 // on large integers and NaN/Infinity, which JSON.stringify then renders as null).
 type json5Parser struct {
@@ -363,7 +364,7 @@ func (p *json5Parser) readHexDigits(n int) (rune, error) {
 
 func (p *json5Parser) parseObject() (any, error) {
 	p.pos++ // consume {
-	obj := jsObject{}
+	obj := jsonval.Object{}
 	p.skipSpace()
 	if c, _ := p.cur(); c == '}' {
 		p.pos++
@@ -480,12 +481,12 @@ func (p *json5Parser) parseIdentifier() (string, error) {
 // jbSetKey appends key→value, or, if the key already exists, updates the value in
 // place (last value wins, first position kept) — matching JS object semantics for
 // duplicate keys.
-func jbSetKey(obj jsObject, k string, v any) jsObject {
-	if i := jsIndex(obj, k); i >= 0 {
-		obj[i].v = v
+func jbSetKey(obj jsonval.Object, k string, v any) jsonval.Object {
+	if i := jsonval.Index(obj, k); i >= 0 {
+		obj[i].V = v
 		return obj
 	}
-	return append(obj, jsPair{k: k, v: v})
+	return append(obj, jsonval.Pair{K: k, V: v})
 }
 
 func isDecimalRune(c rune) bool {

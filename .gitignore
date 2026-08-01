@@ -4,6 +4,7 @@
 # Go
 *.test
 *.out
+coverage.html
 
 # Go module vendoring is not used; build in module mode.
 /vendor/

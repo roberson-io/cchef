@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func jpathRecipe(query, delim string) core.Recipe {
@@ -192,7 +193,7 @@ func TestJPathErrors(t *testing.T) {
 
 func jpCtx(t *testing.T, j string) any {
 	t.Helper()
-	v, err := jsonParseOrdered([]byte(j))
+	v, err := jsonval.ParseOrdered([]byte(j))
 	if err != nil {
 		t.Fatalf("bad ctx JSON %q: %v", j, err)
 	}
@@ -300,7 +301,7 @@ func TestJPExprParseErrors(t *testing.T) {
 // jpEval compiles and runs a query directly, returning the serialized matches.
 func jpEval(t *testing.T, jsonStr, query string) []string {
 	t.Helper()
-	root, err := jsonParseOrdered([]byte(jsonStr))
+	root, err := jsonval.ParseOrdered([]byte(jsonStr))
 	if err != nil {
 		t.Fatalf("bad JSON %q: %v", jsonStr, err)
 	}
@@ -311,7 +312,7 @@ func jpEval(t *testing.T, jsonStr, query string) []string {
 	matches := evalJPath(root, segs)
 	out := make([]string, len(matches))
 	for i, m := range matches {
-		out[i] = jsStringify(m, 0)
+		out[i] = jsonval.Stringify(m, 0)
 	}
 	return out
 }
@@ -397,7 +398,7 @@ func TestJPExprMoreEval(t *testing.T) {
 		if err != nil {
 			t.Fatalf("parse %q: %v", c.expr, err)
 		}
-		ctx, _ := jsonParseOrdered([]byte(c.ctx))
+		ctx, _ := jsonval.ParseOrdered([]byte(c.ctx))
 		if got := evalTruthy(e, ctx); got != c.want {
 			t.Errorf("%q on %s = %v want %v", c.expr, c.ctx, got, c.want)
 		}

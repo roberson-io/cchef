@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -35,9 +36,9 @@ func (JSONMinify) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if input == "" {
 		return core.NewDish([]byte(""), core.TypeString), nil
 	}
-	val, err := jsonParseOrdered([]byte(input))
+	val, err := jsonval.ParseOrdered([]byte(input))
 	if err != nil {
 		return nil, fmt.Errorf("invalid JSON input: %w", err)
 	}
-	return core.NewDish([]byte(jsStringify(val, 0)), core.TypeString), nil
+	return core.NewDish([]byte(jsonval.Stringify(val, 0)), core.TypeString), nil
 }

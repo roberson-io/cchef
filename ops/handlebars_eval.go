@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // hbContext is what a template is being rendered against: the value paths are
@@ -105,12 +107,12 @@ func hbWalk(value any, path string) any {
 			continue
 		}
 		switch container := value.(type) {
-		case jsObject:
-			i := jsIndex(container, part)
+		case jsonval.Object:
+			i := jsonval.Index(container, part)
 			if i < 0 {
 				return nil
 			}
-			value = container[i].v
+			value = container[i].V
 		case []any:
 			i, err := strconv.Atoi(part)
 			if err != nil || i < 0 || i >= len(container) {
@@ -194,22 +196,22 @@ func (b *hbBlock) renderEach(out *strings.Builder, ctx *hbContext) error {
 		}
 		return nil
 
-	case jsObject:
+	case jsonval.Object:
 		// A block walks an object's fields in the order JavaScript enumerates
 		// them: the ones named by a whole number first, in numeric order, then
 		// the rest in the order they were written.
-		fields := jsESOrder(collection)
+		fields := jsonval.ESOrder(collection)
 		if len(fields) == 0 {
 			return hbRenderAll(out, b.inverse, ctx)
 		}
 		for i, field := range fields {
 			locals := map[string]any{
-				"key":   field.k,
+				"key":   field.K,
 				"index": float64(i),
 				"first": i == 0,
 				"last":  i == len(fields)-1,
 			}
-			if err := hbRenderAll(out, b.body, ctx.child(field.v, locals)); err != nil {
+			if err := hbRenderAll(out, b.body, ctx.child(field.V, locals)); err != nil {
 				return err
 			}
 		}

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/snefru"
 )
 
 func init() {
@@ -173,7 +174,7 @@ func (Snefru) Args() []core.ArgDef {
 func (Snefru) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	size := int(args[0].(float64))
 	rounds, _ := strconv.Atoi(args[1].(string))
-	return runHashOp(func() hash.Hash { return newSnefruParams(size, rounds) }, in), nil
+	return runHashOp(func() hash.Hash { return snefru.NewWithParams(size, rounds) }, in), nil
 }
 
 // Whirlpool computes the Whirlpool hash (or its -0/-T variants).

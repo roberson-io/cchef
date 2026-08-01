@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/codepage"
 )
 
 // TestDecodeTextVectors decodes representative graphic-character byte sequences
@@ -94,16 +95,16 @@ func TestEncodeTextVectors(t *testing.T) {
 // (they encode to 0x00), so those are skipped here.
 func TestTextRoundTrip(t *testing.T) {
 	const sample = "Hello, World! 123"
-	for _, c := range cpCharsets {
-		if c.kind == "none" || c.kind == "utf7" || c.cp == 21027 {
+	for _, c := range codepage.Charsets {
+		if c.Kind == "none" || c.Kind == "utf7" || c.CP == 21027 {
 			continue
 		}
-		t.Run(c.name, func(t *testing.T) {
-			enc, err := EncodeText{}.Run(sdish(sample), []any{c.name})
+		t.Run(c.Name, func(t *testing.T) {
+			enc, err := EncodeText{}.Run(sdish(sample), []any{c.Name})
 			if err != nil {
 				t.Fatalf("encode: %v", err)
 			}
-			dec, err := DecodeText{}.Run(abytes(string(enc.Bytes())), []any{c.name})
+			dec, err := DecodeText{}.Run(abytes(string(enc.Bytes())), []any{c.Name})
 			if err != nil {
 				t.Fatalf("decode: %v", err)
 			}

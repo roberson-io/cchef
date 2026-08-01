@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsbeautify"
+	"github.com/roberson-io/cchef/internal/jsparse"
 )
 
 func init() {
@@ -13,7 +15,7 @@ func init() {
 
 // JavaScriptBeautify parses JavaScript (or JSON) and pretty-prints it. Ported
 // from CyberChef JavaScriptBeautify.mjs, which parses with esprima.parseScript
-// and regenerates with escodegen; jsParse/jsParseFull and jsGenerate
+// and regenerates with escodegen; jsparse.Parse/jsparse.ParseFull and jsbeautify.Generate
 // (jsbeautify_*.go) are from-scratch transliterations of those. With "Include
 // comments" enabled, comments are collected with source ranges, attached to the
 // AST (a port of estraverse.attachComments), and re-emitted.
@@ -52,20 +54,20 @@ func (JavaScriptBeautify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	comment := args[3].(bool)
 
 	if comment {
-		ast, comments, tokens, err := jsParseFull(in.String())
+		ast, comments, tokens, err := jsparse.ParseFull(in.String())
 		if err != nil {
 			return nil, errors.New("Unable to parse JavaScript.\n" + err.Error())
 		}
-		cs := jsAttachComments(ast, comments, tokens)
-		out := jsGenerateComments(ast, indent, quotes, semicolons, cs)
+		cs := jsbeautify.AttachComments(ast, comments, tokens)
+		out := jsbeautify.GenerateComments(ast, indent, quotes, semicolons, cs)
 		return core.NewDish([]byte(out), core.TypeString), nil
 	}
 
-	ast, err := jsParse(in.String())
+	ast, err := jsparse.Parse(in.String())
 	if err != nil {
 		return nil, errors.New("Unable to parse JavaScript.\n" + err.Error())
 	}
-	out := jsGenerate(ast, indent, quotes, semicolons)
+	out := jsbeautify.Generate(ast, indent, quotes, semicolons)
 	return core.NewDish([]byte(out), core.TypeString), nil
 }
 

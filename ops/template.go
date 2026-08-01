@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // Template renders a Handlebars template against JSON input.
@@ -35,7 +36,7 @@ func (Template) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	// The document is read keeping the order its fields were written in, since a
 	// template can walk them and the order is then visible in the output.
-	document, err := jsonParseOrdered(in.Bytes())
+	document, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("Error translating from ArrayBuffer to JSON: %w", err)
 	}

@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 var (
@@ -154,7 +155,7 @@ func TestJSONToYAMLErrors(t *testing.T) {
 	if _, err := yamlBuildNode([]any{struct{}{}}); err == nil {
 		t.Fatal("yamlBuildNode of a bad sequence element: expected error")
 	}
-	if _, err := yamlBuildNode(jsObject{{k: "k", v: struct{}{}}}); err == nil {
+	if _, err := yamlBuildNode(jsonval.Object{{K: "k", V: struct{}{}}}); err == nil {
 		t.Fatal("yamlBuildNode of a bad map value: expected error")
 	}
 }
@@ -176,13 +177,13 @@ func TestYAMLRoundTrip(t *testing.T) {
 		}
 		// YAML to JSON pretty-prints (indent 4); compare against the compact input
 		// via a re-parse.
-		got, err := jsonParseOrdered(j.Bytes())
+		got, err := jsonval.ParseOrdered(j.Bytes())
 		if err != nil {
 			t.Fatalf("reparse %q: %v", in, err)
 		}
-		want, _ := jsonParseOrdered([]byte(in))
-		if jsStringify(got, 0) != jsStringify(want, 0) {
-			t.Fatalf("round-trip %q = %q", in, jsStringify(got, 0))
+		want, _ := jsonval.ParseOrdered([]byte(in))
+		if jsonval.Stringify(got, 0) != jsonval.Stringify(want, 0) {
+			t.Fatalf("round-trip %q = %q", in, jsonval.Stringify(got, 0))
 		}
 	}
 }

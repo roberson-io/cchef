@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"hash"
+
+	"github.com/roberson-io/cchef/internal/snefru"
 )
 
 // cryptoapiHashers maps CyberChef's crypto-api hash-function names (as used by
@@ -33,5 +35,5 @@ var cryptoapiHashers = map[string]func() hash.Hash{
 	"Whirlpool":   newWhirlpool,
 	"Whirlpool-0": newWhirlpool0,
 	"Whirlpool-T": newWhirlpoolT,
-	"Snefru":      newSnefru,
+	"Snefru":      snefru.New,
 }

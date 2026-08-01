@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // A Handlebars renderer, written from scratch. CyberChef's Template operation
@@ -178,7 +180,7 @@ func hbFormat(v any, escape bool) string {
 			parts[i] = hbFormat(item, false)
 		}
 		s = strings.Join(parts, ",")
-	case jsObject:
+	case jsonval.Object:
 		s = "[object Object]"
 	default:
 		s = fmt.Sprint(value)
@@ -203,7 +205,7 @@ func hbTruthy(v any) bool {
 		return value != 0
 	case []any:
 		return len(value) > 0
-	case jsObject:
+	case jsonval.Object:
 		// An object is present whether or not it has any fields.
 		return true
 	}

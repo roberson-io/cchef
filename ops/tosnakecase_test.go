@@ -14,7 +14,7 @@ func snakeRecipe(smart bool) core.Recipe {
 // CyberChef-server oracle. CyberChef wraps lodash's snakeCase; cchef reimplements
 // lodash's word splitter (deburr + words), so output matches byte-for-byte across
 // the BMP surface. "Attempt to be context aware" (smart) only transforms
-// identifier-like tokens, leaving quoted strings untouched (replaceVariableNames).
+// identifier-like tokens, leaving quoted strings untouched (lodashcase.ReplaceVariableNames).
 func TestToSnakeCaseFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{"empty", "", "", snakeRecipe(false)},

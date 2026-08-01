@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/codepage"
 )
 
 // citrixCTX1CP is the codepage the Citrix CTX1 format runs over: 1200 = UTF-16LE.
@@ -36,7 +37,7 @@ func (CitrixCTX1Encode) Args() []core.ArgDef { return nil }
 // is UTF-16LE encoded, each byte is folded into a running XOR chain against
 // 0xa5, and the two nibbles of each result byte are emitted as 'A'..'P'.
 func (CitrixCTX1Encode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	utf16pass, err := cptableEncode(citrixCTX1CP, in.String())
+	utf16pass, err := codepage.Encode(citrixCTX1CP, in.String())
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func (CitrixCTX1Decode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		result[i], result[j] = result[j], result[i]
 	}
 
-	out, err := cptableDecode(citrixCTX1CP, result)
+	out, err := codepage.Decode(citrixCTX1CP, result)
 	if err != nil {
 		return nil, err
 	}

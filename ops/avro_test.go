@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func TestAvroToJSONErrors(t *testing.T) {
@@ -883,7 +884,7 @@ func TestDecodeRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeRecord: %v", err)
 	}
-	want := jsObject{{k: "flag", v: true}, {k: "n", v: int64(5)}}
+	want := jsonval.Object{{K: "flag", V: true}, {K: "n", V: int64(5)}}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %#v, want %#v", got, want)
 	}
@@ -898,7 +899,7 @@ func TestDecodeMap(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeMap: %v", err)
 	}
-	want := jsObject{{k: "x", v: int64(7)}}
+	want := jsonval.Object{{K: "x", V: int64(7)}}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %#v, want %#v", got, want)
 	}

@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // cborEncodeRecipe encodes JSON input to canonical CBOR and renders it as
@@ -129,7 +130,7 @@ func TestCBORDecodeFixtures(t *testing.T) {
 		if err != nil {
 			t.Fatalf("decode %q: %v", c.hex, err)
 		}
-		if got := jsStringify(v, 0); got != c.want {
+		if got := jsonval.Stringify(v, 0); got != c.want {
 			t.Fatalf("decode %q = %q want %q", c.hex, got, c.want)
 		}
 	}
@@ -183,7 +184,7 @@ func TestCBORDecodeVectors(t *testing.T) {
 		if err != nil {
 			t.Fatalf("decode %q: %v", c.hex, err)
 		}
-		if got := jsStringify(v, 0); got != c.want {
+		if got := jsonval.Stringify(v, 0); got != c.want {
 			t.Fatalf("decode %q = %q want %q", c.hex, got, c.want)
 		}
 	}
@@ -349,7 +350,7 @@ func TestCBORRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatalf("decode round-trip %q: %v", in, err)
 		}
-		if got := jsStringify(v, 0); got != in {
+		if got := jsonval.Stringify(v, 0); got != in {
 			t.Fatalf("round-trip %q = %q", in, got)
 		}
 	}

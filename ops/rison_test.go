@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func risonEnc(option string) core.Recipe {
@@ -193,22 +194,22 @@ func TestRisonEncodeInternals(t *testing.T) {
 	if got := risonEncodeNumber(math.NaN()); got != "!n" {
 		t.Errorf("NaN: got %q, want !n", got)
 	}
-	if _, err := risonEncodeValue(jsUndefined{}); err == nil {
+	if _, err := risonEncodeValue(jsonval.Undefined{}); err == nil {
 		t.Error("risonEncodeValue(undefined) should error")
 	}
-	if _, err := risonEncodeArrayVal([]any{jsUndefined{}}); err == nil {
+	if _, err := risonEncodeArrayVal([]any{jsonval.Undefined{}}); err == nil {
 		t.Error("risonEncodeArrayVal with undefined should error")
 	}
-	if _, err := risonEncodeObjectVal(jsObject{{k: "x", v: jsUndefined{}}}); err == nil {
+	if _, err := risonEncodeObjectVal(jsonval.Object{{K: "x", V: jsonval.Undefined{}}}); err == nil {
 		t.Error("risonEncodeObjectVal with undefined should error")
 	}
-	if _, err := risonEncodeObjectEntry(jsObject{{k: "x", v: jsUndefined{}}}); err == nil {
+	if _, err := risonEncodeObjectEntry(jsonval.Object{{K: "x", V: jsonval.Undefined{}}}); err == nil {
 		t.Error("risonEncodeObjectEntry with undefined should error")
 	}
-	if _, err := risonEncodeArrayEntry([]any{jsUndefined{}}); err == nil {
+	if _, err := risonEncodeArrayEntry([]any{jsonval.Undefined{}}); err == nil {
 		t.Error("risonEncodeArrayEntry with undefined should error")
 	}
-	if _, err := risonEncodeURI(jsUndefined{}); err == nil {
+	if _, err := risonEncodeURI(jsonval.Undefined{}); err == nil {
 		t.Error("risonEncodeURI with undefined should error")
 	}
 	// risonEncodeString short-circuits "" before risonIDOk, so cover its empty

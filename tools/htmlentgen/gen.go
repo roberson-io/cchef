@@ -1,6 +1,6 @@
 //go:build ignore
 
-// Command htmlentgen generates ops/htmlentity_tables.go from the
+// Command htmlentgen generates internal/htmlent/htmlentity_tables.go from the
 // vendored WHATWG named character reference set.
 //
 // It mirrors CyberChef's own generateHTMLEntities.mjs so that the two stay in
@@ -131,11 +131,16 @@ func main() {
 // reference set (https://html.spec.whatwg.org/entities.json), by the same rules
 // CyberChef's own generator uses, so the two cannot drift apart.
 
-package ops
+// Package htmlent holds the HTML named-character-reference tables.
+//
+// The names and their code points come from the WHATWG entity list, generated
+// rather than hand-written (see tools/htmlentgen). They back the To HTML
+// Entity and From HTML Entity operations.
+package htmlent
 
-// htmlByteToEntity gives the one entity name used when encoding each code
+// ByteToEntity gives the one entity name used when encoding each code
 // point (%d of them).
-var htmlByteToEntity = map[int]string{
+var ByteToEntity = map[int]string{
 `, len(encode))
 	codePoints := make([]int, 0, len(encode))
 	for cp := range encode {
@@ -147,9 +152,9 @@ var htmlByteToEntity = map[int]string{
 	}
 	fmt.Fprintf(&b, `}
 
-// htmlEntityToByte maps every spec name to its code point when decoding (%d of
+// EntityToByte maps every spec name to its code point when decoding (%d of
 // them), so the names that are not chosen for encoding are still understood.
-var htmlEntityToByte = map[string]int{
+var EntityToByte = map[string]int{
 `, len(decode))
 	names := make([]string, 0, len(decode))
 	for name := range decode {
@@ -165,9 +170,9 @@ var htmlEntityToByte = map[string]int{
 	if err != nil {
 		log.Fatalf("format: %v", err)
 	}
-	if err := os.WriteFile("ops/htmlentity_tables.go", src, 0o644); err != nil {
+	if err := os.WriteFile("internal/htmlent/htmlentity_tables.go", src, 0o644); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("wrote ops/htmlentity_tables.go: %d encode names, %d decode names, %d overrides\n",
+	fmt.Printf("wrote internal/htmlent/htmlentity_tables.go: %d encode names, %d decode names, %d overrides\n",
 		len(encode), len(decode), len(overrides))
 }

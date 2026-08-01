@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -52,7 +53,7 @@ func (ToMessagePack) Args() []core.ArgDef { return nil }
 
 // Run encodes JSON input into MessagePack bytes.
 func (ToMessagePack) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	v, err := jsonParseOrdered(in.Bytes())
+	v, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("encode to MessagePack: parse JSON input: %w", err)
 	}
@@ -93,11 +94,11 @@ func (FromMessagePack) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, fmt.Errorf("decode from MessagePack: %w", err)
 	}
-	if _, ok := v.(jsUndefined); ok {
+	if _, ok := v.(jsonval.Undefined); ok {
 		// JSON.stringify(undefined) is undefined; CyberChef emits empty output.
 		return core.NewDish([]byte{}, core.TypeJSON), nil
 	}
-	return core.NewDish([]byte(jsStringify(v, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(v, 4)), core.TypeJSON), nil
 }
 
 // --- encoder ---
@@ -122,7 +123,7 @@ func msgpackEncode(buf *bytes.Buffer, v any) error {
 		msgpackEncodeNumber(buf, x)
 	case []any:
 		return msgpackEncodeArray(buf, x)
-	case jsObject:
+	case jsonval.Object:
 		return msgpackEncodeMap(buf, x)
 	default:
 		return fmt.Errorf("unsupported value type %T", v)
@@ -224,13 +225,13 @@ func msgpackEncodeArray(buf *bytes.Buffer, arr []any) error {
 	return nil
 }
 
-func msgpackEncodeMap(buf *bytes.Buffer, obj jsObject) error {
+func msgpackEncodeMap(buf *bytes.Buffer, obj jsonval.Object) error {
 	// notepack enumerates Object.keys (ECMAScript order) and drops keys whose
 	// value is undefined; JSON input never yields undefined, but the filter is
 	// kept for fidelity.
-	pairs := make(jsObject, 0, len(obj))
-	for _, p := range jsESOrder(obj) {
-		if _, ok := p.v.(jsUndefined); ok {
+	pairs := make(jsonval.Object, 0, len(obj))
+	for _, p := range jsonval.ESOrder(obj) {
+		if _, ok := p.V.(jsonval.Undefined); ok {
 			continue
 		}
 		pairs = append(pairs, p)
@@ -249,10 +250,10 @@ func msgpackEncodeMap(buf *bytes.Buffer, obj jsObject) error {
 		return errors.New("Object too large") //nolint:staticcheck // verbatim notepack.io error text
 	}
 	for _, p := range pairs {
-		if err := msgpackEncodeString(buf, p.k); err != nil {
+		if err := msgpackEncodeString(buf, p.K); err != nil {
 			return err
 		}
-		if err := msgpackEncode(buf, p.v); err != nil {
+		if err := msgpackEncode(buf, p.V); err != nil {
 			return err
 		}
 	}
@@ -510,7 +511,7 @@ func msgpackBin(r *mreader, prefix byte) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return jsBuffer(b), nil
+	return jsonval.Buffer(b), nil
 }
 
 func msgpackArray(r *mreader, n int) (any, error) {
@@ -541,7 +542,7 @@ func msgpackMap(r *mreader, n int) (any, error) {
 	if err := r.canHold(2 * n); err != nil {
 		return nil, err
 	}
-	obj := jsObject{}
+	obj := jsonval.Object{}
 	for range n {
 		k, err := msgpackParse(r)
 		if err != nil {
@@ -552,10 +553,10 @@ func msgpackMap(r *mreader, n int) (any, error) {
 			return nil, err
 		}
 		key := jsToString(k)
-		if i := jsIndex(obj, key); i >= 0 {
-			obj[i].v = v
+		if i := jsonval.Index(obj, key); i >= 0 {
+			obj[i].V = v
 		} else {
-			obj = append(obj, jsPair{k: key, v: v})
+			obj = append(obj, jsonval.Pair{K: key, V: v})
 		}
 	}
 	return obj, nil
@@ -596,7 +597,7 @@ func msgpackExt(r *mreader, prefix byte) (any, error) {
 		if _, err := r.take(int(n)); err != nil { // #nosec G115 -- length validated by take
 			return nil, err
 		}
-		return jsObject{}, nil
+		return jsonval.Object{}, nil
 	}
 	if typ == -1 && prefix == 0xc7 {
 		return msgpackTimestamp96(r)
@@ -605,7 +606,7 @@ func msgpackExt(r *mreader, prefix byte) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []any{int64(typ), jsBuffer(b)}, nil
+	return []any{int64(typ), jsonval.Buffer(b)}, nil
 }
 
 // msgpackFixExt decodes the fixext family (0xd4..0xd8). Type 0 on fixext1 is
@@ -624,7 +625,7 @@ func msgpackFixExt(r *mreader, prefix byte) (any, error) {
 		if _, err := r.take(1); err != nil {
 			return nil, err
 		}
-		return jsUndefined{}, nil
+		return jsonval.Undefined{}, nil
 	case prefix == 0xd6 && typ == -1:
 		return msgpackTimestamp32(r)
 	case prefix == 0xd7 && typ == 0:
@@ -636,7 +637,7 @@ func msgpackFixExt(r *mreader, prefix byte) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []any{int64(typ), jsBuffer(b)}, nil
+	return []any{int64(typ), jsonval.Buffer(b)}, nil
 }
 
 // --- timestamps ---
@@ -734,11 +735,11 @@ func jsToString(v any) string {
 		return jsNumberToString(x)
 	case string:
 		return x
-	case jsUndefined:
+	case jsonval.Undefined:
 		return "undefined"
 	case []any:
 		return jsArrayJoin(x)
-	default: // jsObject (including Buffer/ArrayBuffer)
+	default: // jsonval.Object (including Buffer/ArrayBuffer)
 		return "[object Object]"
 	}
 }
@@ -751,7 +752,7 @@ func jsArrayJoin(a []any) string {
 		if e == nil {
 			continue
 		}
-		if _, ok := e.(jsUndefined); ok {
+		if _, ok := e.(jsonval.Undefined); ok {
 			continue
 		}
 		parts[i] = jsToString(e)
@@ -760,7 +761,7 @@ func jsArrayJoin(a []any) string {
 }
 
 // jsNumberToString reproduces JavaScript's Number.prototype.toString for the
-// finite/non-finite cases; it differs from jsFormatNumber (JSON.stringify) only
+// finite/non-finite cases; it differs from jsonval.FormatNumber (JSON.stringify) only
 // in rendering NaN and ±Infinity literally rather than as null.
 func jsNumberToString(f float64) string {
 	switch {
@@ -771,5 +772,5 @@ func jsNumberToString(f float64) string {
 	case math.IsInf(f, -1):
 		return "-Infinity"
 	}
-	return jsFormatNumber(f)
+	return jsonval.FormatNumber(f)
 }

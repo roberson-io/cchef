@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // msgpackEncodeRecipe encodes JSON input to MessagePack and renders it as
@@ -138,10 +139,10 @@ func TestToMessagePackWidths(t *testing.T) {
 		}
 		return a
 	}
-	mapOf := func(n int) jsObject {
-		o := make(jsObject, n)
+	mapOf := func(n int) jsonval.Object {
+		o := make(jsonval.Object, n)
 		for i := range o {
-			o[i] = jsPair{k: strconv.Itoa(i), v: float64(0)}
+			o[i] = jsonval.Pair{K: strconv.Itoa(i), V: float64(0)}
 		}
 		return o
 	}
@@ -270,7 +271,7 @@ func TestFromMessagePackVectors(t *testing.T) {
 		if err != nil {
 			t.Fatalf("decode %q: %v", c.hex, err)
 		}
-		if got := jsStringify(v, 0); got != c.want {
+		if got := jsonval.Stringify(v, 0); got != c.want {
 			t.Fatalf("decode %q = %q want %q", c.hex, got, c.want)
 		}
 	}
@@ -389,7 +390,7 @@ func TestToMessagePackEncodeDirect(t *testing.T) {
 	bad := []any{
 		struct{}{},
 		[]any{struct{}{}},
-		jsObject{{k: "k", v: struct{}{}}},
+		jsonval.Object{{K: "k", V: struct{}{}}},
 	}
 	for _, v := range bad {
 		if err := msgpackEncode(&buf, v); err == nil {
@@ -404,7 +405,7 @@ func TestToMessagePackEncodeDirect(t *testing.T) {
 // therefore encodes as an empty fixmap.
 func TestToMessagePackUndefinedValue(t *testing.T) {
 	var buf bytes.Buffer
-	if err := msgpackEncode(&buf, jsObject{{k: "a", v: jsUndefined{}}}); err != nil {
+	if err := msgpackEncode(&buf, jsonval.Object{{K: "a", V: jsonval.Undefined{}}}); err != nil {
 		t.Fatal(err)
 	}
 	if got := buf.Bytes(); len(got) != 1 || got[0] != 0x80 {
@@ -442,7 +443,7 @@ func TestMessagePackRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatalf("decode round-trip %q: %v", in, err)
 		}
-		if got := jsStringify(v, 0); got != in {
+		if got := jsonval.Stringify(v, 0); got != in {
 			t.Fatalf("round-trip %q = %q", in, got)
 		}
 	}

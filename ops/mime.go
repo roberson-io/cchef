@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/codepage"
 )
 
 func init() {
@@ -220,15 +221,15 @@ func mimeConvertFromCharset(charset string, data []byte) (string, error) {
 	parts := strings.Split(charset, "-")
 	switch {
 	case len(parts) == 2 && parts[0] == "utf" && charset == "utf-8":
-		return cptableDecode(mimeCodepageUTF8, data)
+		return codepage.Decode(mimeCodepageUTF8, data)
 	case len(parts) == 2 && charset == "us-ascii":
-		return cptableDecode(mimeCodepageASCII, data)
+		return codepage.Decode(mimeCodepageASCII, data)
 	case len(parts) == 3 && parts[0] == "iso" && parts[1] == "8859":
 		if n, ok := parseLeadingInt(parts[2]); ok && n >= 1 && n <= 16 {
 			// The ISO-8859 parts sit consecutively in the codepage numbering,
 			// so the part number gives the codepage directly. Part 12 was never
 			// standardized and has no codepage, which the lookup reports.
-			return cptableDecode(mimeISO8859BaseCodepage+n, data)
+			return codepage.Decode(mimeISO8859BaseCodepage+n, data)
 		}
 	}
 	return "", errMIMEUnhandledCharset

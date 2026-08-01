@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // bsonSerRecipe serialises then hex-encodes the bytes for readable comparison.
@@ -145,17 +146,17 @@ func TestBSONCodecDirect(t *testing.T) {
 		t.Errorf("int64(5e9) -> type 0x%02x, want int64", typ)
 	}
 	// NaN encodes as a double and round-trips (js-bson stores NaN as a double).
-	doc := bsonEncodeDoc(jsObject{{k: "x", v: math.NaN()}})
+	doc := bsonEncodeDoc(jsonval.Object{{K: "x", V: math.NaN()}})
 	back, err := bsonDeserialise(doc)
 	if err != nil {
 		t.Fatalf("deserialise NaN: %v", err)
 	}
-	if _, ok := back[0].v.(float64); !ok {
-		t.Errorf("NaN did not round-trip to a float64: %T", back[0].v)
+	if _, ok := back[0].V.(float64); !ok {
+		t.Errorf("NaN did not round-trip to a float64: %T", back[0].V)
 	}
 	// A value type the JSON path never produces encodes as null.
-	if typ, _ := bsonEncodeValue(jsUndefined{}); typ != bsonTypeNull {
-		t.Errorf("jsUndefined -> type 0x%02x, want null", typ)
+	if typ, _ := bsonEncodeValue(jsonval.Undefined{}); typ != bsonTypeNull {
+		t.Errorf("jsonval.Undefined -> type 0x%02x, want null", typ)
 	}
 }
 

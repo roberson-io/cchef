@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // JWT fixtures transcribed from
@@ -266,16 +267,16 @@ func TestJWTSignIatInjection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	v, err := jsonParseOrdered([]byte(out))
+	v, err := jsonval.ParseOrdered([]byte(out))
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	obj := v.(jsObject)
-	i := jsIndex(obj, "iat")
+	obj := v.(jsonval.Object)
+	i := jsonval.Index(obj, "iat")
 	if i < 0 {
 		t.Fatalf("iat not injected: %s", out)
 	}
-	iat := int64(obj[i].v.(float64))
+	iat := int64(obj[i].V.(float64))
 	if iat < before || iat > after {
 		t.Fatalf("iat %d not in [%d, %d]", iat, before, after)
 	}
@@ -415,8 +416,8 @@ func TestJWTSignHeaderBranches(t *testing.T) {
 	if err != nil {
 		t.Fatalf("empty header: %v", err)
 	}
-	if hdr, _ := jwtSegment(tok, 0, "x"); jsStringify(hdr, 0) != `{"alg":"HS256","typ":"JWT"}` {
-		t.Fatalf("unexpected header: %s", jsStringify(hdr, 0))
+	if hdr, _ := jwtSegment(tok, 0, "x"); jsonval.Stringify(hdr, 0) != `{"alg":"HS256","typ":"JWT"}` {
+		t.Fatalf("unexpected header: %s", jsonval.Stringify(hdr, 0))
 	}
 	// A novel custom key is appended after alg/typ.
 	tok, err = runOp(t, "JWT Sign", `{"a":1,"iat":1}`, "k", "HS256", `{"foo":"bar"}`)
@@ -424,7 +425,7 @@ func TestJWTSignHeaderBranches(t *testing.T) {
 		t.Fatalf("custom header: %v", err)
 	}
 	hdr, _ := jwtSegment(tok, 0, "x")
-	if got := jsStringify(hdr, 0); got != `{"alg":"HS256","typ":"JWT","foo":"bar"}` {
+	if got := jsonval.Stringify(hdr, 0); got != `{"alg":"HS256","typ":"JWT","foo":"bar"}` {
 		t.Fatalf("unexpected header: %s", got)
 	}
 }

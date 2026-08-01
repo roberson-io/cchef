@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -63,7 +64,7 @@ func (JWTDecode) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish([]byte(jsStringify(payload, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(payload, 4)), core.TypeJSON), nil
 }
 
 // JWTSign signs a JSON object as a JSON Web Token.
@@ -128,7 +129,7 @@ func (JWTVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish([]byte(jsStringify(payload, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(payload, 4)), core.TypeJSON), nil
 }
 
 // jwtSegment splits a token and returns its base64url-decoded, JSON-parsed
@@ -143,7 +144,7 @@ func jwtSegment(token string, n int, who string) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", who, err)
 	}
-	v, err := jsonParseOrdered(raw)
+	v, err := jsonval.ParseOrdered(raw)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", who, err)
 	}
@@ -161,8 +162,8 @@ func jwtSign(payloadJSON []byte, key, alg, headerArg string) (string, error) {
 	if err != nil {
 		return "", jwtSignError(err)
 	}
-	input := jwtSegEnc.EncodeToString([]byte(jsStringify(header, 0))) + "." +
-		jwtSegEnc.EncodeToString([]byte(jsStringify(payload, 0)))
+	input := jwtSegEnc.EncodeToString([]byte(jsonval.Stringify(header, 0))) + "." +
+		jwtSegEnc.EncodeToString([]byte(jsonval.Stringify(payload, 0)))
 	sig, err := jwtSignSegment(input, key, alg)
 	if err != nil {
 		return "", jwtSignError(err)
@@ -178,17 +179,17 @@ func jwtSignError(err error) error {
 
 // jwtBuildPayload parses the input JSON object preserving key order and appends
 // iat with the current timestamp when absent, as jsonwebtoken does.
-func jwtBuildPayload(data []byte) (jsObject, error) {
-	v, err := jsonParseOrdered(data)
+func jwtBuildPayload(data []byte) (jsonval.Object, error) {
+	v, err := jsonval.ParseOrdered(data)
 	if err != nil {
 		return nil, err
 	}
-	obj, ok := v.(jsObject)
+	obj, ok := v.(jsonval.Object)
 	if !ok {
 		return nil, errors.New("payload must be a JSON object")
 	}
-	if jsIndex(obj, "iat") < 0 {
-		obj = append(obj, jsPair{k: "iat", v: float64(jwtNow())})
+	if jsonval.Index(obj, "iat") < 0 {
+		obj = append(obj, jsonval.Pair{K: "iat", V: float64(jwtNow())})
 	}
 	return obj, nil
 }
@@ -196,30 +197,30 @@ func jwtBuildPayload(data []byte) (jsObject, error) {
 // jwtBuildHeader constructs the JWT header the way jsonwebtoken does: a base of
 // {alg, typ:"JWT", kid:undefined} with the user's header object merged over it
 // (existing keys updated in place, new keys appended).
-func jwtBuildHeader(alg, headerArg string) (jsObject, error) {
+func jwtBuildHeader(alg, headerArg string) (jsonval.Object, error) {
 	algField := alg
 	if alg == "None" {
 		algField = "none"
 	}
-	header := jsObject{
-		{k: "alg", v: algField},
-		{k: "typ", v: "JWT"},
-		{k: "kid", v: jsUndefined{}},
+	header := jsonval.Object{
+		{K: "alg", V: algField},
+		{K: "typ", V: "JWT"},
+		{K: "kid", V: jsonval.Undefined{}},
 	}
 	if strings.TrimSpace(headerArg) == "" {
 		headerArg = "{}"
 	}
-	custom, err := jsonParseOrdered([]byte(headerArg))
+	custom, err := jsonval.ParseOrdered([]byte(headerArg))
 	if err != nil {
 		return nil, err
 	}
-	customObj, ok := custom.(jsObject)
+	customObj, ok := custom.(jsonval.Object)
 	if !ok {
 		return nil, errors.New("header must be a JSON object")
 	}
 	for _, p := range customObj {
-		if i := jsIndex(header, p.k); i >= 0 {
-			header[i].v = p.v
+		if i := jsonval.Index(header, p.K); i >= 0 {
+			header[i].V = p.V
 		} else {
 			header = append(header, p)
 		}
@@ -336,15 +337,15 @@ func jwtVerify(token, key string) (any, error) {
 
 // jwtHeaderAlg extracts the "alg" string from a decoded JWT header.
 func jwtHeaderAlg(header any) (string, error) {
-	obj, ok := header.(jsObject)
+	obj, ok := header.(jsonval.Object)
 	if !ok {
 		return "", errors.New("JWT Verify: invalid header")
 	}
-	i := jsIndex(obj, "alg")
+	i := jsonval.Index(obj, "alg")
 	if i < 0 {
 		return "", errors.New("JWT Verify: invalid algorithm")
 	}
-	alg, ok := obj[i].v.(string)
+	alg, ok := obj[i].V.(string)
 	if !ok {
 		return "", errors.New("JWT Verify: invalid algorithm")
 	}
@@ -395,18 +396,18 @@ func jwtVerifyKey(alg, key string) (any, error) {
 
 // jwtCheckClaims enforces the nbf/exp time claims jsonwebtoken validates.
 func jwtCheckClaims(payload any) error {
-	obj, ok := payload.(jsObject)
+	obj, ok := payload.(jsonval.Object)
 	if !ok {
 		return nil
 	}
 	now := float64(jwtNow())
-	if i := jsIndex(obj, "nbf"); i >= 0 {
-		if nbf, ok := obj[i].v.(float64); ok && now < nbf {
+	if i := jsonval.Index(obj, "nbf"); i >= 0 {
+		if nbf, ok := obj[i].V.(float64); ok && now < nbf {
 			return errors.New("JWT Verify: jwt not active")
 		}
 	}
-	if i := jsIndex(obj, "exp"); i >= 0 {
-		if exp, ok := obj[i].v.(float64); ok && now >= exp {
+	if i := jsonval.Index(obj, "exp"); i >= 0 {
+		if exp, ok := obj[i].V.(float64); ok && now >= exp {
 			return errors.New("JWT Verify: jwt expired")
 		}
 	}

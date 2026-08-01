@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -103,11 +104,11 @@ func (CBORDecode) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if cborHasBigInt(v) {
 		return nil, errors.New("Do not know how to serialize a BigInt") //nolint:staticcheck,revive // verbatim JSON.stringify(BigInt) TypeError text CyberChef surfaces
 	}
-	if _, ok := v.(jsUndefined); ok {
+	if _, ok := v.(jsonval.Undefined); ok {
 		// JSON.stringify(undefined) is undefined; CyberChef emits empty output.
 		return core.NewDish([]byte{}, core.TypeJSON), nil
 	}
-	return core.NewDish([]byte(jsStringify(v, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(v, 4)), core.TypeJSON), nil
 }
 
 // --- encoder ---
@@ -396,7 +397,7 @@ func cborReadStringValue(r *creader, ai, major byte) (any, error) {
 		return nil, err
 	}
 	if major == 2 {
-		return jsBuffer(b), nil
+		return jsonval.Buffer(b), nil
 	}
 	return string(b), nil
 }
@@ -552,16 +553,16 @@ func cborReadMap(r *creader, ai byte) (any, error) {
 	}
 	// cbor builds a plain object only when every key is a (non-__proto__)
 	// string; otherwise it builds a Map, which JSON.stringify renders as {}.
-	obj := jsObject{}
+	obj := jsonval.Object{}
 	for _, p := range pairs {
 		s, ok := p.k.(string)
 		if !ok || s == "__proto__" {
-			return jsObject{}, nil
+			return jsonval.Object{}, nil
 		}
-		if i := jsIndex(obj, s); i >= 0 {
-			obj[i].v = p.v
+		if i := jsonval.Index(obj, s); i >= 0 {
+			obj[i].V = p.v
 		} else {
-			obj = append(obj, jsPair{k: s, v: p.v})
+			obj = append(obj, jsonval.Pair{K: s, V: p.v})
 		}
 	}
 	return obj, nil
@@ -576,7 +577,7 @@ func cborReadSimple(r *creader, ai byte) (any, error) {
 	case 22:
 		return nil, nil
 	case 23:
-		return jsUndefined{}, nil
+		return jsonval.Undefined{}, nil
 	case 25:
 		b, err := r.take(2)
 		if err != nil {
@@ -644,7 +645,7 @@ func cborApplyTag(tag uint64, inner any) any {
 	case 2, 3:
 		return cborBigInt{}
 	default:
-		return jsObject{{k: "tag", v: int64(tag)}, {k: "value", v: inner}} // #nosec G115 -- CBOR tag numbers are small in practice; mirrors the JS Number tag
+		return jsonval.Object{{K: "tag", V: int64(tag)}, {K: "value", V: inner}} // #nosec G115 -- CBOR tag numbers are small in practice; mirrors the JS Number tag
 	}
 }
 
@@ -691,9 +692,9 @@ func cborHasBigInt(v any) bool {
 		if slices.ContainsFunc(x, cborHasBigInt) {
 			return true
 		}
-	case jsObject:
+	case jsonval.Object:
 		for _, p := range x {
-			if cborHasBigInt(p.v) {
+			if cborHasBigInt(p.V) {
 				return true
 			}
 		}

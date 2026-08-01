@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -90,7 +91,7 @@ func flaskHMAC(newHash func() hash.Hash, key, data []byte) []byte {
 // HMAC(derivedKey, ...). Split out so the byte layout can be tested with a fixed
 // timestamp; the public op supplies the current time.
 func flaskSignToken(newHash func() hash.Hash, key, salt []byte, payloadVal any, timestamp int32) string {
-	payload := flaskB64Encode([]byte(jsStringify(payloadVal, 0)))
+	payload := flaskB64Encode([]byte(jsonval.Stringify(payloadVal, 0)))
 	var tb [4]byte
 	binary.BigEndian.PutUint32(tb[:], uint32(timestamp)) // #nosec G115 -- int32 -> uint32 bit reinterpretation is intended
 	timeSeg := flaskB64Encode(tb[:])
@@ -106,7 +107,7 @@ func flaskDecodePayload(seg string) (any, error) {
 	if err != nil {
 		return nil, errFlaskBase64
 	}
-	val, err := jsonParseOrdered(raw)
+	val, err := jsonval.ParseOrdered(raw)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to decode JSON payload: %w", err) //nolint:staticcheck,revive // verbatim CyberChef message prefix
 	}
@@ -162,9 +163,9 @@ func (FlaskSessionDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 	out := val
 	if args[0].(bool) {
-		out = jsObject{{k: "payload", v: val}, {k: "timestamp", v: flaskTimestamp(parts[1])}}
+		out = jsonval.Object{{K: "payload", V: val}, {K: "timestamp", V: flaskTimestamp(parts[1])}}
 	}
-	return core.NewDish([]byte(jsStringify(out, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(out, 4)), core.TypeJSON), nil
 }
 
 // FlaskSessionSign signs a JSON payload into a Flask session cookie.
@@ -196,7 +197,7 @@ func (FlaskSessionSign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	payload, err := jsonParseOrdered(in.Bytes())
+	payload, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -253,9 +254,9 @@ func (FlaskSessionVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, errFlaskSignature
 	}
 
-	out := jsObject{{k: "valid", v: true}, {k: "payload", v: val}}
+	out := jsonval.Object{{K: "valid", V: true}, {K: "payload", V: val}}
 	if args[3].(bool) {
-		out = append(out, jsPair{k: "timestamp", v: flaskTimestamp(parts[1])})
+		out = append(out, jsonval.Pair{K: "timestamp", V: flaskTimestamp(parts[1])})
 	}
-	return core.NewDish([]byte(jsStringify(out, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(out, 4)), core.TypeJSON), nil
 }

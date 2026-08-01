@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -51,7 +52,7 @@ func (CSVToJSON) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	rows := parseCSV(in.String(), cellDelims, rowDelims)
 	v := csvRowsToValue(rows, dict)
-	return core.NewDish([]byte(jsStringify(v, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(v, 4)), core.TypeJSON), nil
 }
 
 // csvRowsToValue shapes parsed CSV rows into the JSON value tree. For "Array of
@@ -77,16 +78,16 @@ func csvRowsToValue(rows [][]string, dict bool) any {
 	}
 	header := rows[0]
 	for _, row := range rows[1:] {
-		obj := jsObject{}
+		obj := jsonval.Object{}
 		for i, h := range header {
-			var v any = jsUndefined{}
+			var v any = jsonval.Undefined{}
 			if i < len(row) {
 				v = row[i]
 			}
-			if idx := jsIndex(obj, h); idx >= 0 {
-				obj[idx].v = v
+			if idx := jsonval.Index(obj, h); idx >= 0 {
+				obj[idx].V = v
 			} else {
-				obj = append(obj, jsPair{k: h, v: v})
+				obj = append(obj, jsonval.Pair{K: h, V: v})
 			}
 		}
 		out = append(out, obj)
@@ -125,7 +126,7 @@ func (JSONToCSV) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cellDelim := parseEscapedChars(args[0].(string))
 	rowDelim := parseEscapedChars(args[1].(string))
 
-	v, err := jsonParseOrdered(in.Bytes())
+	v, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("JSON to CSV: parse JSON input: %w", err)
 	}
@@ -226,11 +227,11 @@ func csvBuild(rows []any, cellDelim, rowDelim string, force bool) (string, bool)
 // character indices, [] for other primitives, and a throw (ok=false) for null.
 func csvKeys(v any) ([]string, bool) {
 	switch x := v.(type) {
-	case jsObject:
-		ordered := jsESOrder(x)
+	case jsonval.Object:
+		ordered := jsonval.ESOrder(x)
 		keys := make([]string, len(ordered))
 		for i, p := range ordered {
-			keys[i] = p.k
+			keys[i] = p.K
 		}
 		return keys, true
 	case string:
@@ -251,26 +252,26 @@ func csvKeys(v any) ([]string, bool) {
 // primitives, and a throw (ok=false) for null.
 func csvGet(r any, key string) (any, bool) {
 	switch x := r.(type) {
-	case jsObject:
-		if i := jsIndex(x, key); i >= 0 {
-			return x[i].v, true
+	case jsonval.Object:
+		if i := jsonval.Index(x, key); i >= 0 {
+			return x[i].V, true
 		}
-		return jsUndefined{}, true
+		return jsonval.Undefined{}, true
 	case string:
 		runes := []rune(x)
 		if i, err := strconv.Atoi(key); err == nil && i >= 0 && i < len(runes) {
 			return string(runes[i]), true
 		}
-		return jsUndefined{}, true
+		return jsonval.Undefined{}, true
 	case []any:
 		if i, err := strconv.Atoi(key); err == nil && i >= 0 && i < len(x) {
 			return x[i], true
 		}
-		return jsUndefined{}, true
+		return jsonval.Undefined{}, true
 	case nil:
 		return nil, false
 	default: // number, bool
-		return jsUndefined{}, true
+		return jsonval.Undefined{}, true
 	}
 }
 
@@ -283,7 +284,7 @@ func csvEscapeCell(v any, force bool, cellDelim, rowDelim string) (string, bool)
 	case string:
 		s = x
 	case float64:
-		s = jsFormatNumber(x)
+		s = jsonval.FormatNumber(x)
 	case bool:
 		if x {
 			s = "true"
@@ -292,13 +293,13 @@ func csvEscapeCell(v any, force bool, cellDelim, rowDelim string) (string, bool)
 		}
 	case nil:
 		s = "null"
-	case jsUndefined:
+	case jsonval.Undefined:
 		s = "undefined"
-	case jsObject, []any:
+	case jsonval.Object, []any:
 		if !force {
 			return "", false
 		}
-		s = jsStringify(v, 0)
+		s = jsonval.Stringify(v, 0)
 	default:
 		return "", false
 	}
@@ -319,38 +320,38 @@ func csvFlatten(val any) (any, error) {
 	if _, ok := csvEntries(val); !ok {
 		return nil, errors.New("cannot flatten non-container")
 	}
-	result := jsObject{}
+	result := jsonval.Object{}
 	csvFlattenStep(val, "", &result)
 	return result, nil
 }
 
 // csvFlattenStep recurses over a container (guaranteed by csvFlatten and the
 // non-empty check below), appending leaf values under dotted keys.
-func csvFlattenStep(cur any, prefix string, result *jsObject) {
+func csvFlattenStep(cur any, prefix string, result *jsonval.Object) {
 	entries, _ := csvEntries(cur)
 	for _, e := range entries {
-		key := e.k
+		key := e.K
 		if prefix != "" {
-			key = prefix + "." + e.k
+			key = prefix + "." + e.K
 		}
-		if csvNonEmptyContainer(e.v) {
-			csvFlattenStep(e.v, key, result)
+		if csvNonEmptyContainer(e.V) {
+			csvFlattenStep(e.V, key, result)
 		} else {
-			*result = append(*result, jsPair{k: key, v: e.v})
+			*result = append(*result, jsonval.Pair{K: key, V: e.V})
 		}
 	}
 }
 
 // csvEntries returns a container's key/value entries (object keys, or array
 // indices as string keys), or ok=false for a non-container.
-func csvEntries(cur any) ([]jsPair, bool) {
+func csvEntries(cur any) ([]jsonval.Pair, bool) {
 	switch x := cur.(type) {
-	case jsObject:
-		return []jsPair(jsESOrder(x)), true
+	case jsonval.Object:
+		return []jsonval.Pair(jsonval.ESOrder(x)), true
 	case []any:
-		entries := make([]jsPair, len(x))
+		entries := make([]jsonval.Pair, len(x))
 		for i, v := range x {
-			entries[i] = jsPair{k: strconv.Itoa(i), v: v}
+			entries[i] = jsonval.Pair{K: strconv.Itoa(i), V: v}
 		}
 		return entries, true
 	default:
@@ -361,7 +362,7 @@ func csvEntries(cur any) ([]jsPair, bool) {
 // csvNonEmptyContainer reports whether v is a non-empty object or array.
 func csvNonEmptyContainer(v any) bool {
 	switch x := v.(type) {
-	case jsObject:
+	case jsonval.Object:
 		return len(x) > 0
 	case []any:
 		return len(x) > 0

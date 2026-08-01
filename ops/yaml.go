@@ -10,6 +10,7 @@ import (
 	yaml "go.yaml.in/yaml/v3"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -44,7 +45,7 @@ func (JSONToYAML) Args() []core.ArgDef { return nil }
 
 // Run converts JSON input to YAML.
 func (JSONToYAML) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	v, err := jsonParseOrdered(in.Bytes())
+	v, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("JSON to YAML: parse JSON input: %w", err)
 	}
@@ -97,7 +98,7 @@ func (YAMLToJSON) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse YAML: %w", err) //nolint:staticcheck // mirrors CyberChef's "Unable to parse YAML" message
 	}
-	return core.NewDish([]byte(jsStringify(v, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(v, 4)), core.TypeJSON), nil
 }
 
 // --- JSON -> YAML node building ---
@@ -131,14 +132,14 @@ func yamlBuildNode(v any) (*yaml.Node, error) {
 			n.Content = append(n.Content, child)
 		}
 		return n, nil
-	case jsObject:
+	case jsonval.Object:
 		n := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
 		for _, p := range x {
-			key, err := yamlBuildNode(p.k)
+			key, err := yamlBuildNode(p.K)
 			if err != nil {
 				return nil, err
 			}
-			val, err := yamlBuildNode(p.v)
+			val, err := yamlBuildNode(p.V)
 			if err != nil {
 				return nil, err
 			}
@@ -154,7 +155,7 @@ func yamlBuildNode(v any) (*yaml.Node, error) {
 // integer-valued number becomes a plain integer (not scientific notation),
 // everything else a float, both formatted like JSON.stringify.
 func yamlNumberNode(f float64) *yaml.Node {
-	s := jsFormatNumber(f)
+	s := jsonval.FormatNumber(f)
 	tag := "!!float"
 	if f == math.Trunc(f) && !math.IsInf(f, 0) && !math.IsNaN(f) && !strings.ContainsAny(s, ".eE") {
 		tag = "!!int"
@@ -176,7 +177,7 @@ func yamlNodeToValue(n *yaml.Node) (any, error) {
 		}
 		return yamlNodeToValue(n.Content[0])
 	case yaml.MappingNode:
-		obj := jsObject{}
+		obj := jsonval.Object{}
 		for i := 0; i+1 < len(n.Content); i += 2 {
 			key, err := yamlMapKey(n.Content[i])
 			if err != nil {
@@ -186,11 +187,11 @@ func yamlNodeToValue(n *yaml.Node) (any, error) {
 			if err != nil {
 				return nil, err
 			}
-			if idx := jsIndex(obj, key); idx >= 0 {
+			if idx := jsonval.Index(obj, key); idx >= 0 {
 				// js-yaml rejects duplicate mapping keys; match that.
 				return nil, fmt.Errorf("duplicated mapping key %q", key)
 			}
-			obj = append(obj, jsPair{k: key, v: val})
+			obj = append(obj, jsonval.Pair{K: key, V: val})
 		}
 		return obj, nil
 	case yaml.SequenceNode:

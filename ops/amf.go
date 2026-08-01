@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/amfcodec"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -39,19 +41,19 @@ func (AMFDecode) Args() []core.ArgDef {
 
 // Run decodes AMF bytes into a JSON string.
 func (AMFDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	r := &amfReader{data: in.Bytes()}
+	r := amfcodec.NewReader(in.Bytes())
 	var val any
 	var err error
 	if args[0].(string) == "AMF0" {
 		var refs []any
-		val, err = amf0Decode(r, &refs)
+		val, err = amfcodec.Decode0(r, &refs)
 	} else {
-		val, err = amf3Decode(r, newAMF3Tables())
+		val, err = amfcodec.Decode3(r, amfcodec.NewTables3())
 	}
 	if err != nil {
 		return nil, fmt.Errorf("AMF decode: %w", err)
 	}
-	return core.NewDish([]byte(jsStringify(val, 0)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(val, 0)), core.TypeJSON), nil
 }
 
 // AMFEncode serializes JSON into Action Message Format binary data.
@@ -78,23 +80,23 @@ func (AMFEncode) Args() []core.ArgDef {
 
 // Run encodes a JSON string into AMF bytes.
 func (AMFEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	val, err := amfParseJSON(in.Bytes())
+	val, err := amfcodec.ParseJSON(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("AMF encode: parse JSON input: %w", err)
 	}
-	w := &amfWriter{}
+	w := &amfcodec.Writer{}
 	if args[0].(string) == "AMF0" {
-		err = amf0Encode(w, val)
+		err = amfcodec.Encode0(w, val)
 	} else {
-		err = amf3Encode(w, val)
+		err = amfcodec.Encode3(w, val)
 	}
 	if err == nil {
 		// A length the format cannot express is recorded on the writer rather
 		// than returned from every call that writes one.
-		err = w.err
+		err = w.Err()
 	}
 	if err != nil {
 		return nil, fmt.Errorf("AMF encode: %w", err)
 	}
-	return core.NewDish(w.buf, core.TypeArrayBuffer), nil
+	return core.NewDish(w.Bytes(), core.TypeArrayBuffer), nil
 }

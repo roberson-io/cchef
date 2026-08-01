@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/htmlent"
 )
 
 //go:generate go run ../../tools/htmlentgen/gen.go
@@ -65,7 +66,7 @@ const latin1Max = 255
 // honouring the convert-all flag and the numeric/hex mode selection.
 func htmlEncodeRune(r rune, convertAll, numeric, hexa bool) string {
 	c := int(r)
-	name, named := htmlByteToEntity[c]
+	name, named := htmlent.ByteToEntity[c]
 	// The table holds bare names, so the delimiters are added here rather than
 	// stored; a name cannot then carry stray punctuation of its own.
 	entity := "&" + name + ";"
@@ -137,8 +138,8 @@ func (FromHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		sb.WriteString(input[last:loc[0]])
 		name := input[loc[2]:loc[3]]
 		switch {
-		case htmlEntityToByte[name] != 0:
-			sb.WriteRune(rune(htmlEntityToByte[name])) // #nosec G115 -- entity table code points are within the Unicode range
+		case htmlent.EntityToByte[name] != 0:
+			sb.WriteRune(rune(htmlent.EntityToByte[name])) // #nosec G115 -- entity table code points are within the Unicode range
 		case len(name) > 1 && name[0] == '#' && htmlNumericRE.MatchString(name):
 			n, _ := strconv.Atoi(name[1:])
 			sb.WriteRune(rune(n)) // #nosec G115 -- numeric entity bounded to 6 digits by the regex

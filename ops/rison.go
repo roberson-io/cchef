@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -47,7 +48,7 @@ func (RisonEncode) Args() []core.ArgDef {
 
 // Run encodes the JSON input as Rison.
 func (RisonEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	v, err := jsonParseOrdered(in.Bytes())
+	v, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("encode to Rison: parse JSON input: %w", err)
 	}
@@ -109,7 +110,7 @@ func (RisonDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish([]byte(jsStringify(v, 4)), core.TypeJSON), nil
+	return core.NewDish([]byte(jsonval.Stringify(v, 4)), core.TypeJSON), nil
 }
 
 // --- encoder (port of rison.encode / encode_object / encode_array / encode_uri) ---
@@ -163,7 +164,7 @@ func risonEncodeNumber(f float64) string {
 	if math.IsInf(f, 0) || math.IsNaN(f) {
 		return "!n"
 	}
-	return strings.Replace(jsFormatNumber(f), "+", "", 1)
+	return strings.Replace(jsonval.FormatNumber(f), "+", "", 1)
 }
 
 // risonEncodeValue rison-encodes a JSON value.
@@ -182,7 +183,7 @@ func risonEncodeValue(v any) (string, error) {
 		return risonEncodeString(x), nil
 	case []any:
 		return risonEncodeArrayVal(x)
-	case jsObject:
+	case jsonval.Object:
 		return risonEncodeObjectVal(x)
 	default:
 		return "", fmt.Errorf("rison can't encode value of type %T", v)
@@ -206,21 +207,21 @@ func risonEncodeArrayVal(arr []any) (string, error) {
 	return b.String(), nil
 }
 
-func risonEncodeObjectVal(obj jsObject) (string, error) {
-	pairs := make(jsObject, len(obj))
+func risonEncodeObjectVal(obj jsonval.Object) (string, error) {
+	pairs := make(jsonval.Object, len(obj))
 	copy(pairs, obj)
-	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i].k < pairs[j].k })
+	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i].K < pairs[j].K })
 	var b strings.Builder
 	b.WriteByte('(')
 	for i, p := range pairs {
-		s, err := risonEncodeValue(p.v)
+		s, err := risonEncodeValue(p.V)
 		if err != nil {
 			return "", err
 		}
 		if i > 0 {
 			b.WriteByte(',')
 		}
-		b.WriteString(risonEncodeString(p.k))
+		b.WriteString(risonEncodeString(p.K))
 		b.WriteByte(':')
 		b.WriteString(s)
 	}
@@ -229,7 +230,7 @@ func risonEncodeObjectVal(obj jsObject) (string, error) {
 }
 
 func risonEncodeObjectEntry(v any) (string, error) {
-	obj, ok := v.(jsObject)
+	obj, ok := v.(jsonval.Object)
 	if !ok {
 		return "", errors.New("rison.encode_object expects an object argument")
 	}
@@ -410,7 +411,7 @@ func (p *risonParser) parseArray() (any, error) {
 }
 
 func (p *risonParser) parseObject() (any, error) {
-	obj := jsObject{}
+	obj := jsonval.Object{}
 	count := 0
 	for {
 		c := p.next()
@@ -443,10 +444,10 @@ func (p *risonParser) parseObject() (any, error) {
 			return nil, err
 		}
 		key := risonKeyString(k)
-		if i := jsIndex(obj, key); i >= 0 {
-			obj[i].v = v
+		if i := jsonval.Index(obj, key); i >= 0 {
+			obj[i].V = v
 		} else {
-			obj = append(obj, jsPair{k: key, v: v})
+			obj = append(obj, jsonval.Pair{K: key, V: v})
 		}
 		count++
 	}
@@ -543,7 +544,7 @@ func risonKeyString(k any) string {
 	case string:
 		return x
 	case float64:
-		return jsFormatNumber(x)
+		return jsonval.FormatNumber(x)
 	case bool:
 		if x {
 			return "true"

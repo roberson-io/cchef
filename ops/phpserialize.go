@@ -8,6 +8,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -34,7 +35,7 @@ func (PHPSerialize) Args() []core.ArgDef { return nil }
 
 // Run serialises the JSON input to PHP serialized form.
 func (PHPSerialize) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	v, err := jsonParseOrdered(in.Bytes())
+	v, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("PHP Serialize: parse JSON input: %w", err)
 	}
@@ -65,12 +66,12 @@ func phpSerialize(v any) string {
 		}
 		b.WriteByte('}')
 		return b.String()
-	case jsObject:
+	case jsonval.Object:
 		var b strings.Builder
 		fmt.Fprintf(&b, "a:%d:{", len(x))
 		for _, p := range x {
-			b.WriteString(phpSerialize(p.k))
-			b.WriteString(phpSerialize(p.v))
+			b.WriteString(phpSerialize(p.K))
+			b.WriteString(phpSerialize(p.V))
 		}
 		b.WriteByte('}')
 		return b.String()
@@ -81,7 +82,7 @@ func phpSerialize(v any) string {
 // phpSerializeNumber renders a number as `i:N` when it is an integer (per the
 // original's parseInt check) or `d:N` otherwise, using JS Number-to-string.
 func phpSerializeNumber(v float64) string {
-	s := jsFormatNumber(v)
+	s := jsonval.FormatNumber(v)
 	if p := phpParseIntPrefix(s); !math.IsNaN(p) && p == v {
 		return "i:" + s
 	}

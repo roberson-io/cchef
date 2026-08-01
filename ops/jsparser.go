@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
+	"github.com/roberson-io/cchef/internal/jsparse"
 )
 
 func init() {
@@ -52,9 +54,9 @@ func (JavaScriptParser) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			return nil, errors.New("the " + name + " option is not yet supported by this JavaScript Parser port")
 		}
 	}
-	ast, err := jsParse(in.String())
+	ast, err := jsparse.Parse(in.String())
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish([]byte(jsStringify(ast, 2)), core.TypeString), nil
+	return core.NewDish([]byte(jsonval.Stringify(ast, 2)), core.TypeString), nil
 }

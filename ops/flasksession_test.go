@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 const (
@@ -68,7 +69,7 @@ func TestFlaskSessionVerify(t *testing.T) {
 // TestFlaskSessionSignExact reproduces the fixture tokens byte-for-byte by
 // injecting their embedded timestamp into the internal signing seam.
 func TestFlaskSessionSignExact(t *testing.T) {
-	payload, err := jsonParseOrdered([]byte(flaskPayloadJSON))
+	payload, err := jsonval.ParseOrdered([]byte(flaskPayloadJSON))
 	if err != nil {
 		t.Fatal(err)
 	}

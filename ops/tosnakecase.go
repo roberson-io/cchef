@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/lodashcase"
 )
 
 func init() {
@@ -31,13 +32,13 @@ func (ToSnakeCase) Args() []core.ArgDef {
 }
 
 // Run converts the input to snake case. With "Attempt to be context aware", only
-// identifier-like tokens are transformed (via replaceVariableNames).
+// identifier-like tokens are transformed (via lodashcase.ReplaceVariableNames).
 func (ToSnakeCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	smart := args[0].(bool)
 	input := in.String()
-	out := lodashSnakeCase(input)
+	out := lodashcase.SnakeCase(input)
 	if smart {
-		out = replaceVariableNames(input, lodashSnakeCase)
+		out = lodashcase.ReplaceVariableNames(input, lodashcase.SnakeCase)
 	}
 	return core.NewDish([]byte(out), core.TypeString), nil
 }

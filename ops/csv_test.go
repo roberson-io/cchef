@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // exampleCSV is the EXAMPLE_CSV fixture from CSV.mjs: a header row, a plain row,
@@ -29,7 +30,7 @@ const exampleCSV = "A,B,C,D,E,F\r\n" +
 func csvValue(t *testing.T, input string, dict bool) string {
 	t.Helper()
 	rows := parseCSV(input, []rune{','}, []rune{'\r', '\n'})
-	return jsStringify(csvRowsToValue(rows, dict), 0)
+	return jsonval.Stringify(csvRowsToValue(rows, dict), 0)
 }
 
 // TestCSVToJSONExample checks the EXAMPLE_CSV fixture in both output shapes.
@@ -81,7 +82,7 @@ func TestCSVToJSONEdges(t *testing.T) {
 // character in the argument is its own delimiter).
 func TestCSVToJSONCustomDelims(t *testing.T) {
 	rows := parseCSV("a;b\r\n1;2\r\n", []rune{';'}, []rune{'\r', '\n'})
-	if got := jsStringify(csvRowsToValue(rows, false), 0); got != `[["a","b"],["1","2"]]` {
+	if got := jsonval.Stringify(csvRowsToValue(rows, false), 0); got != `[["a","b"],["1","2"]]` {
 		t.Fatalf("custom delims: %s", got)
 	}
 }
@@ -105,7 +106,7 @@ func TestCSVToJSONViaRecipe(t *testing.T) {
 // delimiters, failing the test on error.
 func jsonCSV(t *testing.T, jsonText, cell, row string) string {
 	t.Helper()
-	v, err := jsonParseOrdered([]byte(jsonText))
+	v, err := jsonval.ParseOrdered([]byte(jsonText))
 	if err != nil {
 		t.Fatalf("parse %q: %v", jsonText, err)
 	}
@@ -186,7 +187,7 @@ func TestJSONToCSVCustomDelims(t *testing.T) {
 // TestJSONToCSVErrors covers input that cannot be represented as CSV (a bare
 // null, whose keys cannot be read) and invalid JSON.
 func TestJSONToCSVErrors(t *testing.T) {
-	if v, err := jsonParseOrdered([]byte(`null`)); err != nil {
+	if v, err := jsonval.ParseOrdered([]byte(`null`)); err != nil {
 		t.Fatal(err)
 	} else if _, err := jsonToCSV(v, ",", "\r\n"); err == nil {
 		t.Fatal("expected error for null input")
@@ -260,16 +261,16 @@ func TestCSVToJSONIntegerHeaders(t *testing.T) {
 // trailing data, malformed containers and truncation.
 func TestJSONParseOrderedErrors(t *testing.T) {
 	for _, in := range []string{"1 2", "not json", `{"a":}`, `{"a":1`, "[1,", "[1,2", "[1 2]", `{"a" 1}`, `{1:2}`, ""} {
-		if _, err := jsonParseOrdered([]byte(in)); err == nil {
+		if _, err := jsonval.ParseOrdered([]byte(in)); err == nil {
 			t.Fatalf("parse %q: expected error", in)
 		}
 	}
 	// Duplicate keys keep the last value at the first position.
-	v, err := jsonParseOrdered([]byte(`{"a":1,"b":2,"a":3}`))
+	v, err := jsonval.ParseOrdered([]byte(`{"a":1,"b":2,"a":3}`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := jsStringify(v, 0); got != `{"a":3,"b":2}` {
+	if got := jsonval.Stringify(v, 0); got != `{"a":3,"b":2}` {
 		t.Fatalf("dup key: %s", got)
 	}
 }

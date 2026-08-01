@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // EXIF parser ported from the npm "exif-parser" library (lib/jpeg.js, exif.js,
@@ -560,7 +562,7 @@ func exifValueString(v any) string {
 	}
 }
 
-// jsNumberString formats a float as JS String() would (finite via jsFormatNumber,
+// jsNumberString formats a float as JS String() would (finite via jsonval.FormatNumber,
 // which is JS Number.toString for finite values; non-finite keep JS spellings).
 func jsNumberString(f float64) string {
 	switch {
@@ -571,6 +573,6 @@ func jsNumberString(f float64) string {
 	case math.IsInf(f, -1):
 		return "-Infinity"
 	default:
-		return jsFormatNumber(f)
+		return jsonval.FormatNumber(f)
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // AvroToJSON converts Avro Object Container File data into JSON.
@@ -59,14 +60,14 @@ func (AvroToJSON) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var out string
 	if forceJSON {
 		if len(results) == 1 {
-			out = jsStringify(results[0], 4)
+			out = jsonval.Stringify(results[0], 4)
 		} else {
-			out = jsStringify(results, 4)
+			out = jsonval.Stringify(results, 4)
 		}
 	} else {
 		var sb strings.Builder
 		for _, r := range results {
-			sb.WriteString(jsStringify(r, 0))
+			sb.WriteString(jsonval.Stringify(r, 0))
 			sb.WriteByte('\n')
 		}
 		out = sb.String()
@@ -588,13 +589,13 @@ func decodePrimitive(s *avroSchema, r *areader) (any, bool, error) {
 // decodeRecord decodes an Avro record: each field in order, into an
 // insertion-ordered object.
 func decodeRecord(s *avroSchema, r *areader) (any, error) {
-	obj := make(jsObject, 0, len(s.fields))
+	obj := make(jsonval.Object, 0, len(s.fields))
 	for _, f := range s.fields {
 		v, err := decodeValue(f.schema, r)
 		if err != nil {
 			return nil, err
 		}
-		obj = append(obj, jsPair{k: f.name, v: v})
+		obj = append(obj, jsonval.Pair{K: f.name, V: v})
 	}
 	return obj, nil
 }
@@ -603,7 +604,7 @@ func decodeRecord(s *avroSchema, r *areader) (any, error) {
 // Blocks repeat until a zero count; a negative count carries an (ignored) block
 // byte-size prefix.
 func decodeMap(s *avroSchema, r *areader) (any, error) {
-	obj := jsObject{}
+	obj := jsonval.Object{}
 	for {
 		count, err := r.readLong()
 		if err != nil {
@@ -627,7 +628,7 @@ func decodeMap(s *avroSchema, r *areader) (any, error) {
 			if err != nil {
 				return nil, err
 			}
-			obj = append(obj, jsPair{k: string(key), v: v})
+			obj = append(obj, jsonval.Pair{K: string(key), V: v})
 		}
 	}
 }
@@ -648,7 +649,7 @@ func decodeUnion(s *avroSchema, r *areader) (any, error) {
 		return nil, err
 	}
 	if s.wrapped && branch.kind != "null" {
-		return jsObject{{k: avroBranchName(branch), v: v}}, nil
+		return jsonval.Object{{K: avroBranchName(branch), V: v}}, nil
 	}
 	return v, nil
 }
@@ -683,8 +684,8 @@ func decodeBlocks(r *areader, item func() (any, error)) (any, error) {
 
 // avroBuffer renders a byte slice as a Node Buffer, matching avsc's
 // representation of Avro bytes/fixed values.
-func avroBuffer(b []byte) jsObject {
-	return jsBuffer(b)
+func avroBuffer(b []byte) jsonval.Object {
+	return jsonval.Buffer(b)
 }
 
 func init() {
