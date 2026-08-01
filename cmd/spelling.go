@@ -60,13 +60,29 @@ func usSpelling(s string) string { return toUS.Replace(s) }
 func ukSpelling(s string) string { return toUK.Replace(s) }
 
 // canonicalOption returns the defined choice that value names, accepting the
-// other spelling of a choice; a value that names none of them is returned
-// as given, for coercion to reject with the full list.
+// other spelling of a choice and any casing of it; a value that names none of
+// them, or several of them at once, is returned as given, for coercion to
+// reject with the full list.
+//
+// A choice matched exactly wins over one matched loosely, so an operation whose
+// choices differ only by case — To Morse Code's Dash/Dot, DASH/DOT and dash/dot
+// — still selects the one asked for.
 func canonicalOption(value string, opts []string) string {
 	for _, o := range opts {
 		if value == o || value == usSpelling(o) || value == ukSpelling(o) {
 			return o
 		}
+	}
+	found, n := "", 0
+	for _, o := range opts {
+		if strings.EqualFold(value, o) ||
+			strings.EqualFold(value, usSpelling(o)) ||
+			strings.EqualFold(value, ukSpelling(o)) {
+			found, n = o, n+1
+		}
+	}
+	if n == 1 {
+		return found
 	}
 	return value
 }

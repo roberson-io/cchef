@@ -69,6 +69,12 @@ func TestUSSpellingOptionValues(t *testing.T) {
 		"Randomise":  "Randomize",
 		"RGB":        "RGB",
 		"bogus":      "bogus", // not a choice either way: left for coercion to reject
+		// The American spelling and a different case, together.
+		"grayscale":  "Greyscale",
+		"GRAYSCALE":  "Greyscale",
+		"meters (m)": "Metres (m)",
+		"randomise":  "Randomize",
+		"rgb":        "RGB",
 	} {
 		if err := cmd.Flags().Set("mode", in); err != nil {
 			t.Fatal(err)
@@ -98,5 +104,33 @@ func TestSpellingVariants(t *testing.T) {
 	}
 	if got := ukSpelling("serialize-all"); got != "serialise-all" {
 		t.Errorf("ukSpelling(serialize-all) = %q", got)
+	}
+}
+
+// Where the casing of a choice is the setting, an exact match wins and an
+// unmatched casing is left for coercion to reject rather than guessed at.
+func TestOptionValueCaseIsTheSetting(t *testing.T) {
+	cmd := &cobra.Command{}
+	def := core.ArgDef{
+		Name: "Format options", Type: core.ArgOption,
+		Value: []string{"Dash/Dot", "DASH/DOT", "dash/dot"},
+	}
+	get := addArgFlag(cmd, def, "format-options")
+	for in, want := range map[string]string{
+		"Dash/Dot": "Dash/Dot",
+		"DASH/DOT": "DASH/DOT",
+		"dash/dot": "dash/dot",
+		"Dash/DOT": "Dash/DOT", // ambiguous: passed through for coercion to reject
+	} {
+		if err := cmd.Flags().Set("format-options", in); err != nil {
+			t.Fatal(err)
+		}
+		v, err := get(cmd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if v != want {
+			t.Errorf("option %q = %q, want %q", in, v, want)
+		}
 	}
 }

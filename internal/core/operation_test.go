@@ -466,3 +466,74 @@ func TestCoerceToggleString(t *testing.T) {
 		t.Fatal("expected invalid-mode error")
 	}
 }
+
+// TestMatchOptionCase covers the case-insensitive fallback. An exact match
+// always wins, so an operation whose choices differ only by case keeps working;
+// a value matching several choices only by case is ambiguous and is refused.
+func TestMatchOptionCase(t *testing.T) {
+	morse := []string{"Dash/Dot", "DASH/DOT", "dash/dot"}
+	delims := []string{"Space", "Percent", "Comma", "Line feed"}
+	cases := []struct {
+		name  string
+		value string
+		opts  []string
+		want  string
+		ok    bool
+	}{
+		{"exact", "Comma", delims, "Comma", true},
+		{"lower", "comma", delims, "Comma", true},
+		{"upper", "COMMA", delims, "Comma", true},
+		{"mixed with space", "line FEED", delims, "Line feed", true},
+		{"unknown", "nonsense", delims, "", false},
+		{"empty", "", delims, "", false},
+		{"case is the setting, exact wins", "dash/dot", morse, "dash/dot", true},
+		{"case is the setting, exact wins upper", "DASH/DOT", morse, "DASH/DOT", true},
+		{"case is the setting, exact wins title", "Dash/Dot", morse, "Dash/Dot", true},
+		{"ambiguous", "Dash/DOT", morse, "", false},
+		{"ambiguous all lower differs", "dASH/dot", morse, "", false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, ok := matchOption(c.value, c.opts)
+			if ok != c.ok || (ok && got != c.want) {
+				t.Errorf("matchOption(%q) = %q, %v; want %q, %v", c.value, got, ok, c.want, c.ok)
+			}
+		})
+	}
+}
+
+// Option arguments accept any casing through coercion, and the operation is
+// handed the declared spelling rather than what the user typed.
+func TestCoerceOptionIsCaseInsensitive(t *testing.T) {
+	def := ArgDef{Name: "Delimiter", Type: ArgOption, Value: []string{"Space", "Comma", "Line feed"}}
+	for _, in := range []string{"Comma", "comma", "COMMA", "cOmMa"} {
+		got, err := coerceOption(def, in)
+		if err != nil {
+			t.Fatalf("%q: %v", in, err)
+		}
+		if got != "Comma" {
+			t.Errorf("%q coerced to %q, want %q", in, got, "Comma")
+		}
+	}
+	if _, err := coerceOption(def, "nonsense"); err == nil {
+		t.Error("expected an error for a value naming no choice")
+	}
+}
+
+// A toggle-string's mode accepts any casing too, and is likewise normalised.
+func TestCoerceToggleStringIsCaseInsensitive(t *testing.T) {
+	def := ArgDef{Name: "Salt", Type: ArgToggleString, ToggleValues: []string{"UTF8", "Hex", "Base64", "Latin1"}}
+	for _, in := range []string{"UTF8", "utf8", "Utf8"} {
+		got, err := coerceToggleString(def, ToggleString{Value: "s", Option: in})
+		if err != nil {
+			t.Fatalf("%q: %v", in, err)
+		}
+		ts, ok := got.(ToggleString)
+		if !ok || ts.Option != "UTF8" {
+			t.Errorf("%q coerced to %+v, want option %q", in, got, "UTF8")
+		}
+	}
+	if _, err := coerceToggleString(def, ToggleString{Value: "s", Option: "nope"}); err == nil {
+		t.Error("expected an error for a mode naming no choice")
+	}
+}

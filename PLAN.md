@@ -474,6 +474,19 @@ How to check the work above.
 Choices, not bug fixes — the bug fixes are in `../CYBERCHEF-BUGS.md`. Add to
 this list when a relaxation from stage 1 lands.
 
+- **An option value is matched whatever its case, and normalised.** CyberChef
+  validates an `option` argument case-insensitively and then hands the
+  operation the string the caller wrote, so `"comma"` is accepted and silently
+  selects the default — logged as a bug. cchef accepts the same casings, so
+  anything that works upstream works here, but resolves the value to the
+  declared spelling first, so `"comma"` means `Comma`.
+
+  An exact match always wins, because `To Morse Code` offers `Dash/Dot`,
+  `DASH/DOT` and `dash/dot` and there the casing *is* the setting; it is the
+  only argument in the 505 operations whose choices differ only by case. A
+  value matching several choices only by case — `"Dash/DOT"` — is refused,
+  where CyberChef renders a casing that was never on offer.
+
 - **Errors are errors.** CyberChef catches an `OperationError` and renders its
   message as the recipe's output; cchef returns it, so a shell sees a non-zero
   exit and the message on stderr.

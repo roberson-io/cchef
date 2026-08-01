@@ -168,8 +168,8 @@ func coerceOption(def ArgDef, value any) (any, error) {
 		return nil, errMustBeText(def.Name)
 	}
 	opts, _ := def.Value.([]string)
-	if slices.Contains(opts, s) {
-		return s, nil
+	if matched, ok := matchOption(s, opts); ok {
+		return matched, nil
 	}
 	// An empty choice is only a mistake where none is on offer; some operations
 	// offer one as a meaningful selection.
@@ -177,6 +177,25 @@ func coerceOption(def ArgDef, value any) (any, error) {
 		return nil, errCannotBeEmpty(def.Name)
 	}
 	return nil, errMustBeOneOf(def.Name, opts)
+}
+
+// matchOption finds the choice a value names, ignoring case where it can. An
+// exact match always wins, so an operation whose choices differ only by case —
+// To Morse Code offers Dash/Dot, DASH/DOT and dash/dot, where the casing is the
+// setting — still selects the one asked for. Failing that, a value matching a
+// single choice apart from case selects it; one matching several is ambiguous
+// and names nothing.
+func matchOption(value string, opts []string) (string, bool) {
+	if slices.Contains(opts, value) {
+		return value, true
+	}
+	found, n := "", 0
+	for _, o := range opts {
+		if strings.EqualFold(o, value) {
+			found, n = o, n+1
+		}
+	}
+	return found, n == 1
 }
 
 // errMustBeText is what a value that is not text at all gets.
@@ -224,8 +243,12 @@ func coerceToggleString(def ArgDef, value any) (any, error) {
 	if def.NonEmpty && ts.Value == "" {
 		return nil, errCannotBeEmpty(def.Name)
 	}
-	if len(def.ToggleValues) > 0 && !slices.Contains(def.ToggleValues, ts.Option) {
-		return nil, errMustBeOneOf(def.Name, def.ToggleValues)
+	if len(def.ToggleValues) > 0 {
+		matched, ok := matchOption(ts.Option, def.ToggleValues)
+		if !ok {
+			return nil, errMustBeOneOf(def.Name, def.ToggleValues)
+		}
+		ts.Option = matched
 	}
 	return ts, nil
 }

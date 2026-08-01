@@ -94,6 +94,16 @@ echo -n hello | cchef to-base64 | cchef to-hex
 echo -n hello | cchef bake -e "To_Base64()To_Hex()"
 ```
 
+## Option values
+
+An option flag takes one of a fixed set of values, listed in its help text.
+Case does not matter — `--delimiter comma` and `--delimiter Comma` both select
+`Comma` — and the same holds in recipes and URLs, and combines with the
+spellings below, so `--mode grayscale` selects `Greyscale`. One operation offers choices
+that differ only in case (`To Morse Code`'s `Dash/Dot`, `DASH/DOT`, `dash/dot`,
+where the casing is the setting); there an exact match wins, and a value that
+matches several choices only by case is rejected rather than guessed at.
+
 ## British and American spellings
 
 Operation, flag, and option names keep the spellings CyberChef uses, which are
