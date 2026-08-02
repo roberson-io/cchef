@@ -118,6 +118,9 @@ homebrew_casks:
     repository:
       owner: roberson-io
       name: homebrew-tap
+      # Cross-repo push needs the tap PAT; without this GoReleaser falls back to
+      # the Actions GITHUB_TOKEN, which cannot write to another repository.
+      token: '{{ index .Env "HOMEBREW_TAP_GITHUB_TOKEN" }}'
     homepage: https://github.com/roberson-io/cchef
     description: CyberChef on the command line
     license: Apache-2.0
