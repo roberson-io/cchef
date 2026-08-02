@@ -5,6 +5,10 @@ lower-case hexadecimal digest; a few of the checksums (Luhn Checksum, Parity Bit
 emit their own text format, and several operations take options.
 
 > Operations are listed alphabetically.
+>
+> Every string flag has a `--<flag>-file` companion that reads the value from a
+> file, keeping keys and passphrases out of shell history — see
+> [Reading argument values from files](README.md#reading-argument-values-from-files).
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |

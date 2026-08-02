@@ -6,6 +6,10 @@ compromise. Fingerprint TLS and SSH clients and servers (JA3/JA3S, JA4/JA4S,
 HASSH), make live HTTP and DNS-over-HTTPS requests, and encode/decode Protobuf.
 
 > Operations are listed alphabetically.
+>
+> Every string flag has a `--<flag>-file` companion that reads the value from a
+> file, keeping keys and passphrases out of shell history — see
+> [Reading argument values from files](README.md#reading-argument-values-from-files).
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |

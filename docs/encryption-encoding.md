@@ -3,6 +3,10 @@
 Classic ciphers and bitwise operations.
 
 > Operations are listed alphabetically.
+>
+> Every string flag has a `--<flag>-file` companion that reads the value from a
+> file, keeping keys and passphrases out of shell history — see
+> [Reading argument values from files](README.md#reading-argument-values-from-files).
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |
@@ -263,6 +267,22 @@ verified and decryption fails if it does not authenticate.
 
 ```bash
 cchef aes-decrypt -i '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' --key 00112233445566778899aabbccddeeff --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
+```
+
+Output:
+
+```
+The quick brown fox jumps over the lazy dog.
+```
+
+**Keeping the key out of shell history**
+
+The same decryption with the key read from a file (see
+[Reading argument values from files](README.md#reading-argument-values-from-files)):
+
+```bash
+printf '00112233445566778899aabbccddeeff' > aes.key
+cchef aes-decrypt -i '2ef6c3fdb1314b5c2c326a2087fe1a82d5e73bf605ec8431d73e847187fc1c8fbbe969c177df1ecdf8c13f2f505f9498' --key-file aes.key --iv 00000000000000000000000000000000 --mode CBC --input-format Hex --output-format Raw
 ```
 
 Output:

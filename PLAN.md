@@ -49,15 +49,17 @@ only the ordering *within* a stage reflects a real dependency.
 
 ### 1. Behavior and CLI surface
 
-- [ ] **Take secrets off the command line.** `--key`, `--passphrase` and their
-  kin are read as flag values, so they land in shell history and are visible in
-  `ps` to anyone on the machine. clig.dev is unambiguous that a CLI should never
-  do this, and it is the one real violation the audit found. Fixing it needs a
-  general convention for reading an argument from a file or the environment —
-  every operation that takes a key is affected, so a per-operation change is the
-  wrong shape. Whatever the convention is, it has to leave a literal value that
-  happens to look like the escape (`@notes.txt` as an actual passphrase) still
-  expressible.
+- [x] **Take secrets off the command line.** Every string-valued argument flag
+  now has a `--<flag>-file` companion (`--key-file`, `--passphrase-file`, …)
+  that reads the value from a file, registered uniformly in the flag builder
+  rather than per operation. The inline flags stay — deliberately less rigid
+  than clig.dev — so nothing breaks and non-secret values keep their
+  ergonomics; naming both variants is an error, and one trailing newline is
+  stripped so ordinary text files work as-is. No escape syntax means a literal
+  `@notes.txt` passphrase needs no special casing. Recipes, `bake` and the
+  CyberChef URL feature are untouched: a recipe embeds argument values
+  literally (a share URL must carry them to work in the browser), which the
+  docs now call out so secrets go in file flags, not shared recipes or URLs.
 - [ ] **Decide on the V8 integer-key ordering.** JSON output enumerates
   integer-like keys first, ascending, because V8 does. Unlike the rest of the
   JavaScript parity kept above, this one is a genuine wart — JSON object order
@@ -75,51 +77,7 @@ only the ordering *within* a stage reflects a real dependency.
   deliberately. They validate the algorithm, not the option plumbing, so the
   oracle checks stay.
 
-### 3. Documentation
-
-- [x] **Name the actual flag in every options table.** Every option-table
-  first column now holds the real flag (`` `--salt-type` ``), converted against
-  `cchef <op> --help` and checked by a test-style sweep that every listed flag
-  exists on its subcommand. The one exception is Comment, whose single argument
-  has no named flag (it is the bare `--`), so its row stays descriptive.
-- [x] **Convert `docs/` to US English**, except where it quotes an operation,
-  flag or option value whose original spelling is UK English. Names like `Split
-  Colour Channels`, the `--colour` flags, and option values such as
-  `Greyscale` keep their CyberChef spelling; code blocks, link targets, and the
-  "British and American spellings" section of `docs/README.md` were left
-  untouched. The prose stems converted are colour, behaviour, -ise/-isation,
-  metre/centre/litre, grey, analyse, artefact and co-ordinate.
-- [x] **Cross-reference the classic tools.** Eighteen operations that mirror a
-  well-known CLI tool now carry an "Alternative to" note linking the tool and
-  stating where cchef differs: the Base64/Base32 codecs, To Hex / To Hexdump
-  (`xxd`, `od`, `hexdump`), Encode text (`iconv`), Gzip/Gunzip, Bzip2, Zip/Unzip,
-  Strings, JPath and Jq, Diff, Generate UUID, MD5 and SHA2.
-- [x] **Clean up process talk in comments and docs.** Provenance claims
-  ("faithful", "byte-for-byte"), descriptions of upstream's behavior, and
-  development narrative belong nowhere; state what the code does and the
-  constraints a reader needs. Hold new code to the tighter standard so the debt
-  stops growing.
-
-  In `docs/`, "faithful", "byte-for-byte", "from-scratch port", "reimplements X
-  over Y" and "verified against the oracle" are gone; what a behavior needs
-  (interop guarantees like "`bzip2 -d` can read it", divergence caveats like
-  chroma-vs-highlight.js, and the pixel-parity/JPEG-approximation rules) is
-  kept, stated as behavior rather than history.
-
-  In source comments across `ops/` and `internal/` (~430 sentences in 249
-  files), pure "Ported from X.mjs" tags and "from-scratch"/"faithful"
-  qualifiers were removed or rephrased as behavior ("follows jsrsasign's
-  ASN1HEX.dump"). Four kinds were deliberately kept, because they are
-  information rather than narrative: **license attributions and external-source
-  URLs** (the MIT utm package, Crown-Copyright Colossus), **algorithm-source
-  identification** where the source names the exact algorithm ("Jimp's
-  `contain`", "a transliteration of esprima"), **parity constraints that
-  explain code** ("NaN is special-cased to keep parity" — remove the sentence
-  and the special case looks deletable), and **test-vector provenance in test
-  files** ("oracle-verified", "transcribed from CyberChef's fixtures"), which
-  records where expected values came from and how to regenerate them.
-
-### 4. Release
+### 3. Release
 
 - [ ] **GoReleaser.** A no-cgo static binary is its ideal case: macOS, Linux and
   Windows on amd64/arm64 from one config, with archives, checksums, a Homebrew

@@ -29,6 +29,10 @@ so an SM2 ciphertext round-trips through **SM2 Decrypt** rather than reproducing
 fixed byte string.
 
 > Operations are listed alphabetically.
+>
+> Every string flag has a `--<flag>-file` companion that reads the value from a
+> file, keeping keys and passphrases out of shell history — see
+> [Reading argument values from files](README.md#reading-argument-values-from-files).
 
 | Operation | Subcommand | Reference |
 | --- | --- | --- |

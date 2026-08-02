@@ -6,7 +6,24 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/spf13/pflag"
 )
+
+// resetOpFlagState clears per-flag parse state on every subcommand. Cobra keeps
+// a flag's Changed bit and value across Execute calls in one process, so a flag
+// set by an earlier test would leak into the next (and trip conflict checks
+// like --key vs --key-file).
+func resetOpFlagState() {
+	for _, c := range rootCmd.Commands() {
+		c.Flags().VisitAll(func(f *pflag.Flag) {
+			if f.Changed {
+				_ = f.Value.Set(f.DefValue)
+				f.Changed = false
+			}
+		})
+	}
+}
 
 // execRoot runs the root command with the given args and returns stdout. It
 // resets shared flag globals first. Tests use positional input (never -i) so
@@ -17,6 +34,7 @@ func execRoot(t *testing.T, args ...string) string {
 	resetIOFlags()
 	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
 	flagListJSON = false
+	resetOpFlagState()
 
 	var buf bytes.Buffer
 	rootCmd.SetOut(&buf)
@@ -36,6 +54,7 @@ func execRootErr(t *testing.T, args ...string) error {
 	resetIOFlags()
 	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
 	flagListJSON = false
+	resetOpFlagState()
 
 	var buf bytes.Buffer
 	rootCmd.SetOut(&buf)

@@ -104,6 +104,22 @@ that differ only in case (`To Morse Code`'s `Dash/Dot`, `DASH/DOT`, `dash/dot`,
 where the casing is the setting); there an exact match wins, and a value that
 matches several choices only by case is rejected rather than guessed at.
 
+## Reading argument values from files
+
+Every string-valued argument flag has a `--<flag>-file` companion that reads
+the value from a file instead of the command line, keeping secrets like keys
+and passphrases out of shell history and `ps` output. One trailing newline is
+stripped, so an ordinary text file works as-is. Giving both the flag and its
+`-file` companion is an error.
+
+```bash
+cchef aes-decrypt --key-file key.txt --iv 00000000000000000000000000000000 --in-file secret.bin
+```
+
+Recipes, URLs, and `bake` are unaffected: a recipe embeds its argument values
+literally (a CyberChef share URL must carry them to work in the browser), so
+put a secret in a file-flag invocation rather than a shared recipe or URL.
+
 ## British and American spellings
 
 Operation, flag, and option names keep the spellings CyberChef uses, which are

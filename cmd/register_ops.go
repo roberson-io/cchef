@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -161,8 +162,9 @@ func addArgFlag(cmd *cobra.Command, def core.ArgDef, name string) flagGetter {
 		dfltVal, _ := def.Value.(string)
 		f.String(name, dfltVal, def.Name)
 		f.String(modeName, dfltMode, fmt.Sprintf("type of %s (one of %v)", def.Name, def.ToggleValues))
+		getValue := addArgFileFlag(cmd, name)
 		return func(c *cobra.Command) (any, error) {
-			val, err := c.Flags().GetString(name)
+			val, err := getValue(c)
 			if err != nil {
 				return nil, err
 			}
@@ -176,6 +178,36 @@ func addArgFlag(cmd *cobra.Command, def core.ArgDef, name string) flagGetter {
 	default: // ArgString, ArgEditableOption
 		dflt, _ := def.Value.(string)
 		f.String(name, dflt, def.Name)
-		return func(c *cobra.Command) (any, error) { return c.Flags().GetString(name) }
+		getValue := addArgFileFlag(cmd, name)
+		return func(c *cobra.Command) (any, error) { return getValue(c) }
+	}
+}
+
+// addArgFileFlag registers the --<name>-file companion of a string-valued
+// argument flag and returns a reader that resolves the value: the file's
+// content when --<name>-file is given (with one trailing newline stripped, so
+// an ordinary text file works as-is), the inline flag otherwise. Naming both
+// is an error. The variant keeps a secret out of shell history and `ps`; the
+// inline flag remains for values that are not secret.
+func addArgFileFlag(cmd *cobra.Command, name string) func(*cobra.Command) (string, error) {
+	fileName := name + "-file"
+	cmd.Flags().String(fileName, "", fmt.Sprintf("read --%s from a file", name))
+	return func(c *cobra.Command) (string, error) {
+		if !c.Flags().Changed(fileName) {
+			return c.Flags().GetString(name)
+		}
+		if c.Flags().Changed(name) {
+			return "", fmt.Errorf("--%s and --%s name the same value; give one or the other", name, fileName)
+		}
+		// The flag is registered as a string just above, so GetString cannot fail.
+		path, _ := c.Flags().GetString(fileName)
+		data, err := os.ReadFile(path) // #nosec G304 -- the user names their own file
+		if err != nil {
+			return "", err
+		}
+		s := string(data)
+		s = strings.TrimSuffix(s, "\n")
+		s = strings.TrimSuffix(s, "\r")
+		return s, nil
 	}
 }
