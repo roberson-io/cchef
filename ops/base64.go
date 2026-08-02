@@ -75,13 +75,13 @@ func toBase64(data []byte, alph string) string {
 	return out.String()
 }
 
-// fromBase64 decodes a base64 string using the given alphabet, ported from
-// CyberChef's fromBase64. When removeNonAlph is set, characters outside the
-// alphabet are stripped first. Without strict mode the decode is lenient:
-// invalid or partial input yields the bytes it can and never errors (the
-// negative index of a missing character propagates into an out-of-range byte
-// that is simply dropped). Strict mode rejects 4n+1 lengths, misplaced padding,
-// and non-alphabet characters, matching CyberChef.
+// fromBase64 decodes a base64 string using the given alphabet. When
+// removeNonAlph is set, characters outside the alphabet are stripped first.
+// Without strict mode the decode is lenient: invalid or partial input yields
+// the bytes it can and never errors (the negative index of a missing character
+// propagates into an out-of-range byte that is simply dropped). Strict mode
+// rejects 4n+1 lengths, misplaced padding, and non-alphabet characters,
+// matching CyberChef.
 func fromBase64(data, alph string, removeNonAlph, strict bool) ([]byte, error) {
 	alphabet, idx, padIndex, err := buildBase64Alphabet(alph)
 	if err != nil {

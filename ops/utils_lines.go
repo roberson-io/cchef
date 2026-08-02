@@ -51,7 +51,7 @@ func (Filter) Args() []core.ArgDef {
 	}
 }
 
-// Run filters the sections. Ported from CyberChef Filter.mjs.
+// Run filters the sections.
 func (Filter) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	re, err := regexp.Compile(args[1].(string))
@@ -95,7 +95,7 @@ func (Sort) Args() []core.ArgDef {
 	}
 }
 
-// Run sorts the sections. Ported from CyberChef Sort.mjs.
+// Run sorts the sections.
 func (Sort) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	reverse := args[1].(bool)
@@ -320,7 +320,7 @@ func (Unique) Args() []core.ArgDef {
 	}
 }
 
-// Run deduplicates the sections. Ported from CyberChef Unique.mjs.
+// Run deduplicates the sections.
 func (Unique) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	count := args[1].(bool)

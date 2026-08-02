@@ -38,7 +38,7 @@ func (Head) Args() []core.ArgDef {
 	}
 }
 
-// Run keeps the first sections. Ported from CyberChef Head.mjs.
+// Run keeps the first sections.
 func (Head) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	n := int(args[1].(float64))
@@ -78,7 +78,7 @@ func (Tail) Args() []core.ArgDef {
 	}
 }
 
-// Run keeps the last sections. Ported from CyberChef Tail.mjs.
+// Run keeps the last sections.
 func (Tail) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	n := int(args[1].(float64))
@@ -176,7 +176,7 @@ func (DropBytes) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (DropBytes) Args() []core.ArgDef { return byteRangeArgs() }
 
-// Run drops the byte range. Ported from CyberChef DropBytes.mjs.
+// Run drops the byte range.
 func (DropBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	start, length := int(args[0].(float64)), int(args[1].(float64))
 	fn := func(b []byte) []byte { return dropBytes(b, start, length) }
@@ -206,7 +206,7 @@ func (TakeBytes) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (TakeBytes) Args() []core.ArgDef { return byteRangeArgs() }
 
-// Run takes the byte range. Ported from CyberChef TakeBytes.mjs.
+// Run takes the byte range.
 func (TakeBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	start, length := int(args[0].(float64)), int(args[1].(float64))
 	fn := func(b []byte) []byte { return takeBytes(b, start, length) }
@@ -245,7 +245,7 @@ func (DropNthBytes) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (DropNthBytes) Args() []core.ArgDef { return nthArgs("Drop every") }
 
-// Run drops every nth byte. Ported from CyberChef DropNthBytes.mjs.
+// Run drops every nth byte.
 func (DropNthBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	n, start := int(args[0].(float64)), int(args[1].(float64))
 	if n <= 0 {
@@ -288,7 +288,7 @@ func (TakeNthBytes) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (TakeNthBytes) Args() []core.ArgDef { return nthArgs("Take every") }
 
-// Run keeps every nth byte. Ported from CyberChef TakeNthBytes.mjs.
+// Run keeps every nth byte.
 func (TakeNthBytes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	n, start := int(args[0].(float64)), int(args[1].(float64))
 	if n <= 0 {

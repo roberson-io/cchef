@@ -46,7 +46,7 @@ func (ConvertCoordinateFormat) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the coordinates. Ported from CyberChef ConvertCoordinateFormat.mjs.
+// Run converts the coordinates.
 func (ConvertCoordinateFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	if reCoordBlank.ReplaceAllString(input, "") == "" {

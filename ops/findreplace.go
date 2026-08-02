@@ -39,7 +39,7 @@ func (FindReplace) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the replacement. Ported from CyberChef FindReplace.mjs.
+// Run performs the replacement.
 func (FindReplace) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	find := args[0].(core.ToggleString)
 	replace := args[1].(string)

@@ -73,7 +73,7 @@ func (ToBase85) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToBase85.mjs.
+// Run encodes the input.
 func (ToBase85) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alphabet, err := expandB85Alphabet(args[0].(string))
 	if err != nil {
@@ -155,7 +155,7 @@ func (FromBase85) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromBase85.mjs.
+// Run decodes the input.
 func (FromBase85) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alphabet, err := expandB85Alphabet(args[0].(string))
 	if err != nil {

@@ -34,7 +34,7 @@ func (PHPDeserialize) Args() []core.ArgDef {
 	}
 }
 
-// Run deserialises PHP serialized input. Ported from PHPDeserialize.mjs.
+// Run deserialises PHP serialized input.
 func (PHPDeserialize) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	p := &phpDeserializer{runes: []rune(in.String()), validJSON: args[0].(bool)}
 	v, err := p.handleInput()

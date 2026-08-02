@@ -8,9 +8,7 @@ import (
 	"unicode/utf8"
 )
 
-// The data half of the QR reader, ported from jsQR: read the version and format
-// from the sampled matrix, unmask and de-interleave the codewords, correct them
-// with Reed-Solomon, then read the segments out of the bit stream.
+// The data half of the QR reader.
 
 // qrField is the Galois field the error correction is computed over.
 type qrField struct {

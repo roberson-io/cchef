@@ -6,11 +6,10 @@ import (
 	"math/bits"
 )
 
-// Whirlpool and its two earlier variants (Whirlpool-0, Whirlpool-T), ported from
-// crypto-api's whirlpool hasher. crypto-api uses a 64-bit length field (not the
-// standard 256-bit), so these match crypto-api/CyberChef, not the ISO reference
-// vectors. State is kept as 16 uint32 (eight 64-bit words as hi/lo pairs) exactly
-// as the source.
+// Whirlpool and its two earlier variants (Whirlpool-0, Whirlpool-T). crypto-api
+// uses a 64-bit length field (not the standard 256-bit), so these match
+// crypto-api/CyberChef, not the ISO reference vectors. State is kept as 16 uint32
+// (eight 64-bit words as hi/lo pairs) exactly as the source.
 
 var (
 	whirlEBox   = [16]uint32{0x1, 0xb, 0x9, 0xc, 0xd, 0x6, 0xf, 0x3, 0xe, 0x8, 0x7, 0x4, 0xa, 0x2, 0x5, 0x0}

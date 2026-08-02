@@ -44,7 +44,7 @@ var (
 	textIntQuoteRE = regexp.MustCompile(`^["'].*["']$`)
 )
 
-// Run performs the conversion. Ported from TextIntegerConverter.mjs.
+// Run performs the conversion.
 func (TextIntegerConversion) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	outputFormat := args[0].(string)
 	trimmed := strings.TrimSpace(in.String())

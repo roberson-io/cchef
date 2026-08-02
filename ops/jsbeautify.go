@@ -16,7 +16,7 @@ func init() {
 // JavaScriptBeautify parses JavaScript (or JSON) and pretty-prints it. Ported
 // from CyberChef JavaScriptBeautify.mjs, which parses with esprima.parseScript
 // and regenerates with escodegen; jsparse.Parse/jsparse.ParseFull and jsbeautify.Generate
-// (jsbeautify_*.go) are from-scratch transliterations of those. With "Include
+// (jsbeautify_*.go) mirror those. With "Include
 // comments" enabled, comments are collected with source ranges, attached to the
 // AST (a port of estraverse.attachComments), and re-emitted.
 type JavaScriptBeautify struct{}

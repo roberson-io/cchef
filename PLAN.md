@@ -94,24 +94,30 @@ only the ordering *within* a stage reflects a real dependency.
   stating where cchef differs: the Base64/Base32 codecs, To Hex / To Hexdump
   (`xxd`, `od`, `hexdump`), Encode text (`iconv`), Gzip/Gunzip, Bzip2, Zip/Unzip,
   Strings, JPath and Jq, Diff, Generate UUID, MD5 and SHA2.
-- [ ] **Clean up process talk in comments and docs.** Provenance claims
+- [x] **Clean up process talk in comments and docs.** Provenance claims
   ("faithful", "byte-for-byte"), descriptions of upstream's behavior, and
   development narrative belong nowhere; state what the code does and the
   constraints a reader needs. Hold new code to the tighter standard so the debt
   stops growing.
 
-  - [x] **`docs/` done.** "faithful", "byte-for-byte", "from-scratch port",
-    "reimplements X over Y" and "verified against the oracle" are gone from the
-    documentation; what a behavior needs (interop guarantees like "`bzip2 -d`
-    can read it", divergence caveats like chroma-vs-highlight.js, and the
-    pixel-parity/JPEG-approximation rules) is kept, stated as behavior rather
-    than history. One judgment call left inside docs: the terse
-    algorithm-identification tags ("Ported from Jimp's `blur`") on the
-    multimedia operations were kept, since they name the specific algorithm (box
-    blur vs. Gaussian, `contain` vs. `cover`) rather than narrating provenance.
-  - [ ] **Code comments not started.** The same cleanup is owed to Go source
-    comments across `ops/` and `internal/` — a source-tree sweep that pairs
-    with the "hold new code to the tighter standard" habit.
+  In `docs/`, "faithful", "byte-for-byte", "from-scratch port", "reimplements X
+  over Y" and "verified against the oracle" are gone; what a behavior needs
+  (interop guarantees like "`bzip2 -d` can read it", divergence caveats like
+  chroma-vs-highlight.js, and the pixel-parity/JPEG-approximation rules) is
+  kept, stated as behavior rather than history.
+
+  In source comments across `ops/` and `internal/` (~430 sentences in 249
+  files), pure "Ported from X.mjs" tags and "from-scratch"/"faithful"
+  qualifiers were removed or rephrased as behavior ("follows jsrsasign's
+  ASN1HEX.dump"). Four kinds were deliberately kept, because they are
+  information rather than narrative: **license attributions and external-source
+  URLs** (the MIT utm package, Crown-Copyright Colossus), **algorithm-source
+  identification** where the source names the exact algorithm ("Jimp's
+  `contain`", "a transliteration of esprima"), **parity constraints that
+  explain code** ("NaN is special-cased to keep parity" — remove the sentence
+  and the special case looks deletable), and **test-vector provenance in test
+  files** ("oracle-verified", "transcribed from CyberChef's fixtures"), which
+  records where expected values came from and how to regenerate them.
 
 ### 4. Release
 

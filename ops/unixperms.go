@@ -44,7 +44,7 @@ func (ParseUNIXFilePermissions) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseUNIXFilePermissions) Args() []core.ArgDef { return nil }
 
-// Run parses the permissions. Ported from CyberChef ParseUNIXFilePermissions.mjs.
+// Run parses the permissions.
 func (ParseUNIXFilePermissions) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	var p unixPerms

@@ -40,7 +40,7 @@ func (ToDecimal) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToDecimal.mjs.
+// Run encodes the input.
 func (ToDecimal) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	signed := args[1].(bool)
@@ -79,7 +79,7 @@ func (FromDecimal) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromDecimal.mjs.
+// Run decodes the input.
 func (FromDecimal) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	signed := args[1].(bool)

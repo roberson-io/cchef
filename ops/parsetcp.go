@@ -110,7 +110,7 @@ func (ParseTCP) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Input format", Type: core.ArgOption, Value: []string{"Hex", "Raw"}}}
 }
 
-// Run parses the segment. Ported from CyberChef ParseTCP.mjs.
+// Run parses the segment.
 func (ParseTCP) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := bytestream.New(parseNetInput(in.String(), args[0].(string)))
 	if s.Length() < 20 {

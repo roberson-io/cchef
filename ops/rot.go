@@ -66,7 +66,7 @@ func (ROT13) Args() []core.ArgDef {
 	}
 }
 
-// Run applies the rotation. Ported from CyberChef ROT13.mjs.
+// Run applies the rotation.
 func (ROT13) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	rotLower := args[0].(bool)
 	rotUpper := args[1].(bool)
@@ -111,7 +111,7 @@ func (ROT47) Args() []core.ArgDef {
 	}
 }
 
-// Run applies the rotation. Ported from CyberChef ROT47.mjs.
+// Run applies the rotation.
 func (ROT47) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	amount := int(args[0].(float64))
 	out := append([]byte(nil), in.Bytes()...)
@@ -185,7 +185,7 @@ func (ROT13BruteForce) Args() []core.ArgDef {
 	}
 }
 
-// Run enumerates the rotations. Ported from CyberChef ROT13BruteForce.mjs.
+// Run enumerates the rotations.
 func (ROT13BruteForce) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	rotateLower, rotateUpper, rotateNum := args[0].(bool), args[1].(bool), args[2].(bool)
 	sampleLength, sampleOffset := int(args[3].(float64)), int(args[4].(float64))
@@ -225,7 +225,7 @@ func (ROT47BruteForce) Args() []core.ArgDef {
 	}
 }
 
-// Run enumerates the rotations. Ported from CyberChef ROT47BruteForce.mjs.
+// Run enumerates the rotations.
 func (ROT47BruteForce) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sampleLength, sampleOffset := int(args[0].(float64)), int(args[1].(float64))
 	printAmount := args[2].(bool)

@@ -38,7 +38,7 @@ func (ShowBase64Offsets) Args() []core.ArgDef {
 	}
 }
 
-// Run builds the offsets view. Ported from CyberChef ShowBase64Offsets.mjs.
+// Run builds the offsets view.
 func (ShowBase64Offsets) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alphabet := args[0].(string)
 	showVariable := args[1].(bool)

@@ -5,7 +5,7 @@ package ops
 // Nickolaev). It implements GOST 28147-89 / GOST R 34.12-2015 "Magma" (64-bit)
 // and "Kuznyechik" (128-bit) in the ES (encrypt/decrypt), MAC (imitovstavka)
 // and KW (key wrapping) modes. The port follows the JavaScript arithmetic
-// faithfully — including its little-endian typed-array semantics and a couple
+// exactly — including its little-endian typed-array semantics and a couple
 // of upstream quirks (e.g. "PKCS5" falling through to zero padding, and the
 // CTR-2015 counter loop) — so output matches CyberChef byte for byte.
 
@@ -1112,7 +1112,7 @@ func (c *gostCipher) assembleWrap(enc, mac []byte) []byte {
 
 // errGostNoUKM is CyberChef's verbatim message when a KW operation lacks a UKM.
 // It is unreachable through the operations (they always supply one, validated by
-// the constructor), but the wrap primitives are exported as a faithful port.
+// the constructor), but the wrap primitives are exported and keep its behavior.
 //
 //nolint:staticcheck,revive // CyberChef's verbatim DataError text
 var errGostNoUKM = errors.New("UKM must be defined")
@@ -1514,7 +1514,7 @@ func buildGostES(args []any) (*gostCipher, []byte, error) {
 	return cipher, key, nil
 }
 
-// Run performs the encryption. Ported from CyberChef GOSTEncrypt.mjs.
+// Run performs the encryption.
 func (GOSTEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cipher, key, err := buildGostES(args)
 	if err != nil {
@@ -1547,7 +1547,7 @@ func (GOSTDecrypt) Args() []core.ArgDef {
 	return gostCipherArgs([]string{"Hex", "Raw"}, []string{"Raw", "Hex"})
 }
 
-// Run performs the decryption. Ported from CyberChef GOSTDecrypt.mjs.
+// Run performs the decryption.
 func (GOSTDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cipher, key, err := buildGostES(args)
 	if err != nil {
@@ -1639,7 +1639,7 @@ func (GOSTKeyWrap) Args() []core.ArgDef {
 	return gostKeyWrapArgs([]string{"Raw", "Hex"}, []string{"Hex", "Raw"})
 }
 
-// Run performs the key wrapping. Ported from CyberChef GOSTKeyWrap.mjs.
+// Run performs the key wrapping.
 func (GOSTKeyWrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cipher, kek, err := buildGostKW(args)
 	if err != nil {
@@ -1672,7 +1672,7 @@ func (GOSTKeyUnwrap) Args() []core.ArgDef {
 	return gostKeyWrapArgs([]string{"Hex", "Raw"}, []string{"Raw", "Hex"})
 }
 
-// Run performs the key unwrapping. Ported from CyberChef GOSTKeyUnwrap.mjs.
+// Run performs the key unwrapping.
 func (GOSTKeyUnwrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cipher, kek, err := buildGostKW(args)
 	if err != nil {
@@ -1752,7 +1752,7 @@ func (GOSTSign) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (GOSTSign) Args() []core.ArgDef { return gostSignArgs() }
 
-// Run computes the MAC. Ported from CyberChef GOSTSign.mjs.
+// Run computes the MAC.
 func (GOSTSign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cipher, key, err := gostMACCipher(args[0], args[1], args[4].(string), args[5].(string), int(args[6].(float64)))
 	if err != nil {
@@ -1792,7 +1792,7 @@ func (GOSTVerify) Args() []core.ArgDef {
 	}
 }
 
-// Run verifies the MAC. Ported from CyberChef GOSTVerify.mjs.
+// Run verifies the MAC.
 func (GOSTVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	mac, err := gostToggleBytes(args[2])
 	if err != nil {

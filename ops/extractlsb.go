@@ -18,7 +18,7 @@ func init() {
 var lsbColourOptions = []string{"R", "G", "B", "A"}
 
 // ExtractLSB reads a chosen bit of chosen channels from every pixel of an
-// image. Ported from CyberChef ExtractLSB.mjs.
+// image.
 type ExtractLSB struct{}
 
 // Meta returns the operation metadata.

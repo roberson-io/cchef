@@ -253,7 +253,7 @@ func (PRESENTEncrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the encryption. Ported from CyberChef PRESENTEncrypt.mjs.
+// Run performs the encryption.
 func (PRESENTEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, err := presentDecodeKey(args[0].(core.ToggleString))
 	if err != nil {
@@ -299,7 +299,7 @@ func (PRESENTDecrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the decryption. Ported from CyberChef PRESENTDecrypt.mjs.
+// Run performs the decryption.
 func (PRESENTDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, err := presentDecodeKey(args[0].(core.ToggleString))
 	if err != nil {

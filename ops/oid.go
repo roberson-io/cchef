@@ -74,8 +74,7 @@ func (HexToObjectIdentifier) Run(in *core.Dish, args []any) (*core.Dish, error) 
 }
 
 // asn1OidIntToHex converts a dotted-decimal OID to the hex of its ASN.1 content
-// octets, a faithful port of jsrsasign's oidIntToHex including its JS quirks
-// (e.g. a single arc yields "NaN" because the second sub-identifier is absent).
+// octets.
 func asn1OidIntToHex(f string) (string, error) {
 	if !oidStrRe.MatchString(f) {
 		return "", errors.New("malformed oid string: " + f)

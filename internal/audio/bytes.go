@@ -8,9 +8,9 @@ import (
 )
 
 // Helpers for reading the byte layouts the audio containers are built from.
-// Ported from CyberChef's src/core/lib/AudioBytes.mjs. Reads that run off the
-// end of the buffer give zero or the empty string rather than failing, which is
-// how the JavaScript behaves when it indexes past a typed array.
+// Reads that run off the end of the buffer give zero or the empty string rather
+// than failing, which is how the JavaScript behaves when it indexes past a
+// typed array.
 
 // ascii4 reads the four-character tag that names a chunk or atom.
 func ascii4(b []byte, off int) string {

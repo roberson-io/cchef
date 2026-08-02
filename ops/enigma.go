@@ -320,7 +320,7 @@ func (Enigma) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the encryption/decryption. Ported from CyberChef Enigma.mjs.
+// Run performs the encryption/decryption.
 func (Enigma) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	model := args[0].(string)
 	removeOther := args[15].(bool)

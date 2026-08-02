@@ -27,7 +27,7 @@ func rotlByte(b byte) byte { return (b << 1) | (b >> 7) }
 func rotrByte(b byte) byte { return (b >> 1) | (b << 7) }
 
 // rotlCarry rotates the whole byte array left by amount bits, wrapping the bits
-// that fall off the front around to the end. Ported from lib/Rotate.mjs.
+// that fall off the front around to the end.
 func rotlCarry(data []byte, amount int) []byte {
 	out := make([]byte, len(data))
 	if len(data) == 0 {
@@ -45,7 +45,7 @@ func rotlCarry(data []byte, amount int) []byte {
 }
 
 // rotrCarry rotates the whole byte array right by amount bits, wrapping the bits
-// that fall off the end around to the front. Ported from lib/Rotate.mjs.
+// that fall off the end around to the front.
 func rotrCarry(data []byte, amount int) []byte {
 	out := make([]byte, len(data))
 	if len(data) == 0 {
@@ -86,7 +86,7 @@ func (RotateLeft) Args() []core.ArgDef {
 	}
 }
 
-// Run rotates left. Ported from CyberChef RotateLeft.mjs.
+// Run rotates left.
 func (RotateLeft) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	amount := int(args[0].(float64))
 	if args[1].(bool) {
@@ -119,7 +119,7 @@ func (RotateRight) Args() []core.ArgDef {
 	}
 }
 
-// Run rotates right. Ported from CyberChef RotateRight.mjs.
+// Run rotates right.
 func (RotateRight) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	amount := int(args[0].(float64))
 	if args[1].(bool) {

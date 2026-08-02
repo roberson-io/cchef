@@ -17,7 +17,7 @@ func init() {
 	core.Register(Return{})
 }
 
-// Comment is a note in a recipe. Ported from CyberChef Comment.mjs.
+// Comment is a note in a recipe.
 type Comment struct{}
 
 // Meta returns the operation metadata.
@@ -42,8 +42,7 @@ func (Comment) Run(in *core.Dish, args []any) (*core.Dish, error) { return in, n
 // RunFlow leaves the recipe alone.
 func (Comment) RunFlow(state *core.FlowState) error { return nil }
 
-// Label marks a place in a recipe for a jump to return to. Ported from
-// CyberChef Label.mjs.
+// Label marks a place in a recipe for a jump to return to.
 type Label struct{}
 
 // Meta returns the operation metadata.
@@ -68,7 +67,7 @@ func (Label) Run(in *core.Dish, args []any) (*core.Dish, error) { return in, nil
 // RunFlow leaves the recipe alone; the jumps look the label up themselves.
 func (Label) RunFlow(state *core.FlowState) error { return nil }
 
-// Merge closes a Fork or Subsection. Ported from CyberChef Merge.mjs.
+// Merge closes a Fork or Subsection.
 type Merge struct{}
 
 // Meta returns the operation metadata.
@@ -94,7 +93,7 @@ func (Merge) Run(in *core.Dish, args []any) (*core.Dish, error) { return in, nil
 // found this step while collecting its sub-recipe.
 func (Merge) RunFlow(state *core.FlowState) error { return nil }
 
-// Return ends a recipe early. Ported from CyberChef Return.mjs.
+// Return ends a recipe early.
 type Return struct{}
 
 // Meta returns the operation metadata.

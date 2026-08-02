@@ -22,7 +22,7 @@ func init() {
 // JSONBeautify indents and pretty-prints JSON. Ported from CyberChef
 // JSONBeautify.mjs, which parses the input leniently with JSON5 and re-emits it
 // with JSON.stringify(value, null, indent). cchef reproduces run()'s plain-string
-// output over a from-scratch JSON5 parser feeding the shared order-preserving JSON
+// output over a JSON5 parser feeding the shared order-preserving JSON
 // serialiser (jsonvalue.go).
 //
 // The third argument (Formatted) is inert in cchef: it only controls CyberChef's

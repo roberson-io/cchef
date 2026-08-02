@@ -35,7 +35,7 @@ func (SHA3) Args() []core.ArgDef {
 	}
 }
 
-// Run computes the digest. Ported from CyberChef SHA3.mjs.
+// Run computes the digest.
 func (SHA3) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var h hash.Hash
 	switch args[0].(string) {

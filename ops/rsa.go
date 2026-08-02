@@ -172,7 +172,7 @@ func (RSAEncrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run encrypts the input. Ported from CyberChef RSAEncrypt.mjs (node-forge).
+// Run encrypts the input.
 func (RSAEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyPem := args[0].(string)
 	if len(strings.Replace(keyPem, "-----BEGIN RSA PUBLIC KEY-----", "", 1)) == 0 {
@@ -236,7 +236,7 @@ func (RSADecrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run decrypts the input. Ported from CyberChef RSADecrypt.mjs (node-forge).
+// Run decrypts the input.
 func (RSADecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyPem := args[0].(string)
 	if len(strings.Replace(keyPem, "-----BEGIN RSA PRIVATE KEY-----", "", 1)) == 0 {
@@ -290,7 +290,7 @@ func (RSASign) Args() []core.ArgDef {
 	}
 }
 
-// Run signs the input. Ported from CyberChef RSASign.mjs (RSASSA-PKCS1-v1_5).
+// Run signs the input.
 func (RSASign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyPem := args[0].(string)
 	if len(strings.Replace(keyPem, "-----BEGIN RSA PRIVATE KEY-----", "", 1)) == 0 {
@@ -334,7 +334,7 @@ func (RSAVerify) Args() []core.ArgDef {
 	}
 }
 
-// Run verifies the input signature. Ported from CyberChef RSAVerify.mjs.
+// Run verifies the input signature.
 func (RSAVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyPem := args[0].(string)
 	if len(strings.Replace(keyPem, "-----BEGIN RSA PUBLIC KEY-----", "", 1)) == 0 {
@@ -410,7 +410,7 @@ type rsaKeyJSON struct {
 	QInv string `json:"qInv"`
 }
 
-// Run generates the key pair. Ported from CyberChef GenerateRSAKeyPair.mjs.
+// Run generates the key pair.
 func (GenerateRSAKeyPair) Run(_ *core.Dish, args []any) (*core.Dish, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, rsaKeyBits(args[0].(string)))
 	if err != nil {

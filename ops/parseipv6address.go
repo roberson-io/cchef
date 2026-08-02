@@ -79,7 +79,7 @@ func (ParseIPv6Address) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseIPv6Address) Args() []core.ArgDef { return nil }
 
-// Run parses the address. Ported from CyberChef ParseIPv6Address.mjs.
+// Run parses the address.
 func (ParseIPv6Address) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	m, _ := groupIPv6Re.FindStringMatch(in.String())
 	if m == nil {

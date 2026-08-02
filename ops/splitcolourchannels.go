@@ -15,10 +15,8 @@ func init() {
 }
 
 // SplitColourChannels separates an image into its red, green and blue channels.
-// Ported from CyberChef's Split Colour Channels, which zeroes the other two
-// channels with Jimp's colour({apply: "…", params: [-255]}). Alpha is kept and
-// every channel is written as PNG regardless of the input format, as CyberChef
-// does. The three images are pixel-identical to CyberChef.
+// Alpha is kept and every channel is written as PNG regardless of the input
+// format, as CyberChef does. The three images are pixel-identical to CyberChef.
 type SplitColourChannels struct{}
 
 // Meta returns the operation metadata.

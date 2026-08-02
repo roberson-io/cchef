@@ -19,8 +19,7 @@ func init() {
 }
 
 // ParseX509Certificate renders an X.509 certificate in an openssl-like human
-// readable form, ported from CyberChef's ParseX509Certificate.mjs (jsrsasign
-// X509). The certificate is walked directly over its DER hex.
+// readable form. The certificate is walked directly over its DER hex.
 type ParseX509Certificate struct{}
 
 // Meta returns the operation metadata.

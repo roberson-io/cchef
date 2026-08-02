@@ -11,8 +11,7 @@ func init() {
 	core.Register(CoverImage{})
 }
 
-// CoverImage scales an image to fill a box and crops the overflow. Ported from
-// CyberChef's Cover Image (Jimp's cover).
+// CoverImage scales an image to fill a box and crops the overflow.
 type CoverImage struct{}
 
 // Meta returns the operation metadata.

@@ -45,7 +45,7 @@ func (ParseEthernetFrame) Args() []core.ArgDef {
 	}
 }
 
-// Run parses the frame. Ported from CyberChef ParseEthernetFrame.mjs.
+// Run parses the frame.
 func (ParseEthernetFrame) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	format := args[0].(string)
 	outputFormat := args[1].(string)

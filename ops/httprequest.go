@@ -40,8 +40,8 @@ func (HTTPRequest) Args() []core.ArgDef {
 	}
 }
 
-// Run makes the HTTP request. Ported from CyberChef HTTPRequest.mjs. The Mode
-// argument (browser CORS) is accepted for parity but has no effect here.
+// Run makes the HTTP request. The Mode argument (browser CORS) is accepted
+// for parity but has no effect here.
 func (HTTPRequest) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	method := args[0].(string)
 	url := args[1].(string)

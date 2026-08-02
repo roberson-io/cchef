@@ -1,10 +1,8 @@
 package ops
 
-// Pure-Go MD6, reimplemented from the self-contained node-md6 package CyberChef's
-// MD6 operation wraps (a standard MD6 implementation). MD6 is not in Go's
-// x/crypto. The reference uses two 32-bit halves to emulate 64-bit words; Go's
-// uint64 replaces that directly, since every operation is a standard 64-bit
-// logical shift / XOR / AND.
+// Pure-Go MD6. MD6 is not in Go's x/crypto. The reference uses two 32-bit halves
+// to emulate 64-bit words; Go's uint64 replaces that directly, since every
+// operation is a standard 64-bit logical shift / XOR / AND.
 
 import (
 	"encoding/binary"

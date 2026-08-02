@@ -20,13 +20,11 @@ func init() {
 	core.Register(OpticalCharacterRecognition{})
 }
 
-// OpticalCharacterRecognition reads text out of an image. Ported from
-// CyberChef's Optical Character Recognition, which runs Tesseract compiled to
-// WebAssembly in the browser. cchef drives the locally installed `tesseract`
-// binary instead: the only cgo-free Go bindings run Tesseract under a
-// WebAssembly runtime, and the one library doing so is unmaintained, so shelling
-// out is what keeps cchef a single static binary. Same engine and language data,
-// so the recognised text matches.
+// OpticalCharacterRecognition reads text out of an image. cchef drives the
+// locally installed `tesseract` binary instead: the only cgo-free Go bindings
+// run Tesseract under a WebAssembly runtime, and the one library doing so is
+// unmaintained, so shelling out is what keeps cchef a single static binary. Same
+// engine and language data, so the recognised text matches.
 type OpticalCharacterRecognition struct{}
 
 // Meta returns the operation metadata.

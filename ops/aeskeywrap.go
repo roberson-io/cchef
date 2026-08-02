@@ -67,7 +67,6 @@ func aesKeyWrapOutput(data []byte, outputType string) *core.Dish {
 // --- AES Key Wrap ---
 
 // AESKeyWrap wraps key material using the RFC3394 AES key-wrap algorithm.
-// Ported from CyberChef AESKeyWrap.mjs.
 type AESKeyWrap struct{}
 
 // Meta returns the operation metadata.
@@ -127,7 +126,6 @@ func (AESKeyWrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // --- AES Key Unwrap ---
 
 // AESKeyUnwrap unwraps key material using the RFC3394 AES key-wrap algorithm.
-// Ported from CyberChef AESKeyUnwrap.mjs.
 type AESKeyUnwrap struct{}
 
 // Meta returns the operation metadata.

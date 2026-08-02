@@ -43,7 +43,7 @@ func (XORBruteForce) Args() []core.ArgDef {
 	}
 }
 
-// Run enumerates the keys. Ported from CyberChef XORBruteForce.mjs.
+// Run enumerates the keys.
 func (XORBruteForce) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyLength := int(args[0].(float64))
 	sampleLength := int(args[1].(float64))

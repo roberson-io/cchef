@@ -299,7 +299,7 @@ func (ParseIPRange) Args() []core.ArgDef {
 	}
 }
 
-// Run parses the range. Ported from CyberChef ParseIPRange.mjs.
+// Run parses the range.
 func (ParseIPRange) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	netInfo := args[0].(bool)
 	enumerate := args[1].(bool)

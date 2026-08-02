@@ -12,7 +12,7 @@
 // accessors read a node's properties, which are typed as any.
 package jsparse
 
-// Recursive-descent parser for the JavaScript Parser operation — a faithful
+// Recursive-descent parser for the JavaScript Parser operation — a
 // transliteration of esprima's Parser (esprima/dist/esprima.js module 8). AST
 // nodes are built as ordered jsonval.Object values mirroring esprima's Node
 // constructors (module 7), so JSON.stringify(ast, null, 2) via the shared

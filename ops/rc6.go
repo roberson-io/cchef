@@ -450,7 +450,7 @@ func (RC6Encrypt) Args() []core.ArgDef {
 	return rc6Args([]string{"Raw", "Hex"}, []string{"Hex", "Raw"})
 }
 
-// Run performs the encryption. Ported from CyberChef RC6Encrypt.mjs.
+// Run performs the encryption.
 func (RC6Encrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return rc6Run(in, args, false)
 }
@@ -475,7 +475,7 @@ func (RC6Decrypt) Args() []core.ArgDef {
 	return rc6Args([]string{"Hex", "Raw"}, []string{"Raw", "Hex"})
 }
 
-// Run performs the decryption. Ported from CyberChef RC6Decrypt.mjs.
+// Run performs the decryption.
 func (RC6Decrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return rc6Run(in, args, true)
 }

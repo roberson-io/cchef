@@ -152,7 +152,7 @@ func (PGPEncrypt) Args() []core.ArgDef {
 	return []core.ArgDef{pgpArgString("Public key of recipient")}
 }
 
-// Run encrypts the input. Ported from CyberChef PGPEncrypt.mjs.
+// Run encrypts the input.
 func (PGPEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	pubKey := args[0].(string)
 	if pubKey == "" {
@@ -198,7 +198,7 @@ func (PGPDecrypt) Args() []core.ArgDef {
 	return []core.ArgDef{pgpArgString("Private key of recipient"), pgpArgString("Private key passphrase")}
 }
 
-// Run decrypts the input. Ported from CyberChef PGPDecrypt.mjs.
+// Run decrypts the input.
 func (PGPDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	privKey := args[0].(string)
 	if privKey == "" {
@@ -235,7 +235,7 @@ func (PGPSign) Args() []core.ArgDef {
 	return []core.ArgDef{pgpArgString("Private key of signer"), pgpArgString("Private key passphrase (optional)")}
 }
 
-// Run signs the input. Ported from CyberChef PGPSign.mjs.
+// Run signs the input.
 func (PGPSign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	privKey := args[0].(string)
 	if privKey == "" {
@@ -281,7 +281,7 @@ func (PGPVerify) Args() []core.ArgDef {
 	return []core.ArgDef{pgpArgString("Public key of signer")}
 }
 
-// Run verifies the input. Ported from CyberChef PGPVerify.mjs.
+// Run verifies the input.
 func (PGPVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	pubKey := args[0].(string)
 	if pubKey == "" {
@@ -326,7 +326,7 @@ func (PGPEncryptAndSign) Args() []core.ArgDef {
 	}
 }
 
-// Run encrypts and signs the input. Ported from CyberChef PGPEncryptAndSign.mjs.
+// Run encrypts and signs the input.
 func (PGPEncryptAndSign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	privKey := args[0].(string)
 	pubKey := args[2].(string)
@@ -384,7 +384,7 @@ func (PGPDecryptAndVerify) Args() []core.ArgDef {
 	}
 }
 
-// Run decrypts and verifies the input. Ported from CyberChef PGPDecryptAndVerify.mjs.
+// Run decrypts and verifies the input.
 func (PGPDecryptAndVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	pubKey := args[0].(string)
 	privKey := args[1].(string)
@@ -461,7 +461,7 @@ func pgpGenConfig(keyType string) *packet.Config {
 	return cfg
 }
 
-// Run generates the key pair. Ported from CyberChef GeneratePGPKeyPair.mjs.
+// Run generates the key pair.
 func (GeneratePGPKeyPair) Run(_ *core.Dish, args []any) (*core.Dish, error) {
 	cfg := pgpGenConfig(args[0].(string))
 	password := args[1].(string)

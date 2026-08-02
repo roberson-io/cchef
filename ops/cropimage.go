@@ -13,8 +13,7 @@ func init() {
 	core.Register(CropImage{})
 }
 
-// CropImage crops an image to a region, or auto-crops a uniform border. Ported
-// from CyberChef's Crop Image (Jimp's crop/autocrop).
+// CropImage crops an image to a region, or auto-crops a uniform border.
 type CropImage struct{}
 
 // Meta returns the operation metadata.
@@ -138,7 +137,6 @@ func autocropSides(img *image.NRGBA, target rgba, tol float64) (north, west, sou
 }
 
 // jimpAutocrop trims a uniform border matching the top-left pixel colour.
-// Ported from @jimp/plugin-crop's autocrop.
 func jimpAutocrop(img *image.NRGBA, tolerance float64, cropOnlyFrames, cropSymmetric bool, leaveBorder float64) (*image.NRGBA, error) {
 	w, h := img.Rect.Dx(), img.Rect.Dy()
 	target := pixelRGBA(img, 0, 0)

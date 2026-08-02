@@ -36,7 +36,7 @@ var analyseHashFunctions = map[int][]string{
 }
 
 // AnalyseHash guesses which hashing functions could have produced a given hash,
-// based on its length. Ported from CyberChef's AnalyseHash.
+// based on its length.
 type AnalyseHash struct{}
 
 // Meta returns the operation metadata.

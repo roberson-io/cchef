@@ -486,7 +486,7 @@ func (TwofishEncrypt) Args() []core.ArgDef {
 	return twofishArgs([]string{"Raw", "Hex"}, []string{"Hex", "Raw"})
 }
 
-// Run encrypts with Twofish. Ported from CyberChef TwofishEncrypt.mjs.
+// Run encrypts with Twofish.
 func (TwofishEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, err := twofishInputs(in, args)
 	if err != nil {
@@ -519,7 +519,7 @@ func (TwofishDecrypt) Args() []core.ArgDef {
 	return twofishArgs([]string{"Hex", "Raw"}, []string{"Raw", "Hex"})
 }
 
-// Run decrypts with Twofish. Ported from CyberChef TwofishDecrypt.mjs.
+// Run decrypts with Twofish.
 func (TwofishDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, err := twofishInputs(in, args)
 	if err != nil {

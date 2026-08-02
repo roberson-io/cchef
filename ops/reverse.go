@@ -27,7 +27,7 @@ func (Reverse) Args() []core.ArgDef {
 	}
 }
 
-// Run reverses the input. Ported from CyberChef Reverse.mjs.
+// Run reverses the input.
 func (Reverse) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	switch args[0].(string) {

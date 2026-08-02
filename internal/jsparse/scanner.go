@@ -1,6 +1,6 @@
 package jsparse
 
-// Scanner for the JavaScript Parser operation — a faithful transliteration of
+// Scanner for the JavaScript Parser operation — a transliteration of
 // esprima's Scanner (esprima/dist/esprima.js module 12). esprima operates on
 // UTF-16 code units, so the source is held as []uint16 and all indexing is by
 // code unit. esprima throws on malformed input; this port mirrors that control

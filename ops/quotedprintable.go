@@ -33,7 +33,7 @@ func (ToQuotedPrintable) Meta() core.OpMeta {
 func (ToQuotedPrintable) Args() []core.ArgDef { return nil }
 
 // QP soft-break helpers. After mimeEncode the string is pure ASCII, so all the
-// substring/regex work below is byte-safe. Ported from ToQuotedPrintable.mjs.
+// substring/regex work below is byte-safe.
 var (
 	qpNewlineRE = regexp.MustCompile(`\r\n|\n|\r`)
 	// Trailing whitespace before a CRLF or at end of input. (JS uses /[\t ]+$/gm,
@@ -65,7 +65,7 @@ func qpKeep(b byte) bool {
 	return false
 }
 
-// Run encodes the input. Ported from ToQuotedPrintable.mjs.
+// Run encodes the input.
 func (ToQuotedPrintable) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var mb strings.Builder
 	for _, b := range in.Bytes() {
@@ -218,7 +218,7 @@ func (FromQuotedPrintable) Args() []core.ArgDef { return nil }
 // which From QP strips before decoding.
 var qpSoftBreakRE = regexp.MustCompile(`=(?:\r?\n|$)`)
 
-// Run decodes the input. Ported from FromQuotedPrintable.mjs.
+// Run decodes the input.
 func (FromQuotedPrintable) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := qpSoftBreakRE.ReplaceAllString(in.String(), "")
 

@@ -14,7 +14,7 @@ func init() {
 }
 
 // tcpipChecksum computes the 16-bit ones-complement header checksum, rendered as
-// hex. Ported from CyberChef TCPIPChecksum.
+// hex.
 func tcpipChecksum(data []byte) string {
 	csum := 0
 	for i, b := range data {
@@ -52,7 +52,7 @@ func (ParseIPv4Header) Args() []core.ArgDef {
 	}
 }
 
-// Run parses the header. Ported from CyberChef ParseIPv4Header.mjs.
+// Run parses the header.
 func (ParseIPv4Header) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	format := args[0].(string)
 	outputFormat := args[1].(string)

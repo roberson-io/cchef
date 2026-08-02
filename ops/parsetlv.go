@@ -81,7 +81,7 @@ type tlvEntry struct {
 	Value  []any  `json:"value"`
 }
 
-// tlvParser is a faithful port of CyberChef's lib/TLVParser.mjs.
+// tlvParser follows CyberChef's lib/TLVParser.mjs.
 type tlvParser struct {
 	input         []byte
 	location      int

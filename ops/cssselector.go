@@ -20,12 +20,12 @@ func init() {
 // Ported from CyberChef CSSSelector.mjs, which wraps @xmldom/xmldom (a lenient
 // XML DOM parser) and nwmatcher (a CSS3 selector engine): the matched nodes are
 // serialized via the DOM's node.toString() and joined by a delimiter. cchef
-// reimplements the parser and serializer from scratch and evaluates selection by
+// evaluates selection by
 // translating the CSS selector to XPath (cssToXPath) over the parsed tree via
 // antchfx/xpath, reproducing xmldom+nwmatcher's exact output.
 //
 // Known minor divergences (all confined to inputs that essentially never occur
-// in real, lowercase HTML, verified against the CyberChef-server oracle):
+// in real, lowercase HTML):
 //   - Selectors that combine a mixed/upper-case type with a structural pseudo
 //     (e.g. "P:first-child" against "<P>") hit an nwmatcher code path that is
 //     case-sensitive for XML documents; cchef stays case-insensitive.

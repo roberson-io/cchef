@@ -38,7 +38,7 @@ func (ParseURI) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseURI) Args() []core.ArgDef { return nil }
 
-// Run parses the URI. Ported from CyberChef ParseURI.mjs (Node url -> net/url).
+// Run parses the URI.
 func (ParseURI) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	u, err := url.Parse(strings.TrimSpace(in.String()))
 	if err != nil {

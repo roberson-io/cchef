@@ -68,8 +68,7 @@ type bifidToken struct {
 	col    int
 }
 
-// bifidPrepare validates the keyword and tokenises the input. Ported from the
-// shared preamble of BifidCipherEncode/Decode.mjs.
+// bifidPrepare validates the keyword and tokenises the input.
 func bifidPrepare(input, keyword string) ([25]byte, []bifidToken, error) {
 	// keywordStr = args[0].toUpperCase().replace("J", "I") — replace only the
 	// first "J", matching JS String.replace with a non-global pattern.
@@ -147,7 +146,7 @@ func (BifidCipherEncode) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Keyword", Type: core.ArgString, Value: ""}}
 }
 
-// Run encodes the input. Ported from CyberChef BifidCipherEncode.mjs.
+// Run encodes the input.
 func (BifidCipherEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sq, toks, err := bifidPrepare(in.String(), args[0].(string))
 	if err != nil {
@@ -194,7 +193,7 @@ func (BifidCipherDecode) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Keyword", Type: core.ArgString, Value: ""}}
 }
 
-// Run decodes the input. Ported from CyberChef BifidCipherDecode.mjs.
+// Run decodes the input.
 func (BifidCipherDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sq, toks, err := bifidPrepare(in.String(), args[0].(string))
 	if err != nil {

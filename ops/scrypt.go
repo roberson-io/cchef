@@ -64,12 +64,12 @@ func scryptValidate(n, r, p int) error {
 	return nil
 }
 
-// Run derives the scrypt key. Ported from CyberChef Scrypt.mjs (scryptsy). The
-// parameter validation mirrors scryptsy; the derivation itself uses the
-// canonical golang.org/x/crypto/scrypt (an RFC 7914 implementation), so outputs
-// match byte-for-byte on all standard parameters. cchef diverges from scryptsy
-// only at RFC-forbidden degenerate parameters (e.g. N=1 or p=0, which scryptsy
-// still computes but the standard scrypt rejects).
+// Run derives the scrypt key. The parameter validation mirrors scryptsy; the
+// derivation itself uses the canonical golang.org/x/crypto/scrypt (an RFC 7914
+// implementation), so outputs match byte-for-byte on all standard parameters.
+// cchef diverges from scryptsy only at RFC-forbidden degenerate parameters
+// (e.g. N=1 or p=0, which scryptsy still computes but the standard scrypt
+// rejects).
 func (Scrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	salt, err := convertToByteArray(args[0].(core.ToggleString).Value, args[0].(core.ToggleString).Option)
 	if err != nil {

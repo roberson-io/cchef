@@ -13,7 +13,7 @@ func init() {
 	core.Register(FromBase92{})
 }
 
-// base92Chr returns the byte for a Base92 value (0-90). Ported from lib/Base92.mjs.
+// base92Chr returns the byte for a Base92 value (0-90).
 func base92Chr(val int) byte {
 	switch {
 	case val == 0:
@@ -57,7 +57,7 @@ func (ToBase92) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ToBase92) Args() []core.ArgDef { return nil }
 
-// Run encodes the input. Ported from CyberChef ToBase92.mjs.
+// Run encodes the input.
 func (ToBase92) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.Bytes()
 	var res []byte
@@ -113,7 +113,7 @@ func (FromBase92) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (FromBase92) Args() []core.ArgDef { return nil }
 
-// Run decodes the input. Ported from CyberChef FromBase92.mjs.
+// Run decodes the input.
 func (FromBase92) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.Bytes()
 	var res []byte

@@ -50,7 +50,7 @@ func (ToFloat) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from ToFloat.mjs.
+// Run decodes the input.
 func (ToFloat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	isLE := args[0].(string) == "Little Endian"
 	byteSize := 4
@@ -106,7 +106,7 @@ func (FromFloat) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from FromFloat.mjs.
+// Run encodes the input.
 func (FromFloat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := in.String()
 	if len(s) == 0 {

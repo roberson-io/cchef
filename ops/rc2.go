@@ -230,7 +230,7 @@ func (RC2Encrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the encryption. Ported from CyberChef RC2Encrypt.mjs (node-forge).
+// Run performs the encryption.
 func (RC2Encrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyArg := args[0].(core.ToggleString)
 	key, err := convertToByteArray(keyArg.Value, keyArg.Option)
@@ -270,7 +270,7 @@ func (RC2Decrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the decryption. Ported from CyberChef RC2Decrypt.mjs (node-forge).
+// Run performs the decryption.
 func (RC2Decrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyArg := args[0].(core.ToggleString)
 	key, err := convertToByteArray(keyArg.Value, keyArg.Option)

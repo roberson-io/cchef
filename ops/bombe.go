@@ -619,7 +619,7 @@ func (Bombe) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the attack. Ported from CyberChef Bombe.mjs (+ present()).
+// Run performs the attack.
 func (Bombe) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	model := args[0].(string)
 	crib := args[6].(string)
@@ -726,8 +726,7 @@ func multiBombeValidateRotor(rstr string) (string, error) {
 	return rstr, nil
 }
 
-// Run performs the multi-configuration attack. Ported from CyberChef
-// MultipleBombe.mjs (+ present()).
+// Run performs the multi-configuration attack.
 func (MultipleBombe) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	crib := args[4].(string)
 	offset := int(args[5].(float64))

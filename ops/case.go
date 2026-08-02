@@ -13,7 +13,7 @@ func init() {
 }
 
 // Scope regexes for To Upper case, matching the first word character within
-// each scope. Ported from CyberChef ToUpperCase.mjs.
+// each scope.
 var (
 	reWord      = regexp.MustCompile(`\b\w`)
 	reSentence  = regexp.MustCompile(`(?:\.|^)\s*\b\w`)

@@ -13,7 +13,7 @@ func init() {
 
 // SM3 cryptographic hash (GM/T 0004-2012), a 256-bit Merkle–Damgård hash. It is
 // used internally by the SM2 public-key operations (for the C3 tag and the KDF)
-// and exposed as the "SM3" operation. This is a from-scratch port of the
+// and exposed as the "SM3" operation. This is an in-repo port of the
 // crypto-api SM3 module CyberChef wraps, including its configurable output
 // Length and Rounds (and their unusual out-of-bounds behaviour).
 

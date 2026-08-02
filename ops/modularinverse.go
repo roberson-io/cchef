@@ -12,7 +12,6 @@ func init() {
 }
 
 // ModularInverse finds the number that multiplies with a to give one, modulo m.
-// Ported from CyberChef ModularInverse.mjs.
 type ModularInverse struct{}
 
 // Meta returns the operation metadata.

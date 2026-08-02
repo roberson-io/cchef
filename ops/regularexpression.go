@@ -52,7 +52,7 @@ func (RegularExpression) Args() []core.ArgDef {
 	}
 }
 
-// Run applies the regex. Ported from CyberChef RegularExpression.mjs.
+// Run applies the regex.
 func (RegularExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	userRegex := args[1].(string)
 	input := in.String()
@@ -94,7 +94,7 @@ func (RegularExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return core.NewDish([]byte(out), core.TypeString), nil
 }
 
-// regexList lists matches and/or capture groups. Ported from RegularExpression.mjs.
+// regexList lists matches and/or capture groups.
 func regexList(input string, re *regexp.Regexp, displayTotal, matches, captureGroups bool) string {
 	var b strings.Builder
 	total := 0
@@ -119,7 +119,7 @@ func regexList(input string, re *regexp.Regexp, displayTotal, matches, captureGr
 	return strings.TrimSuffix(out, "\n")
 }
 
-// regexHighlight wraps matches in <span> tags. Ported from RegularExpression.mjs.
+// regexHighlight wraps matches in <span> tags.
 func regexHighlight(input string, re *regexp.Regexp, displayTotal bool) string {
 	var spans []string
 	hl, total := 1, 0

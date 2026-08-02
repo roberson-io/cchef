@@ -15,8 +15,7 @@ func init() {
 }
 
 // bitwise applies a per-byte function against a repeating key. An empty key is
-// treated as a single zero byte. Ported from lib/BitwiseOp.mjs bitOp (the plain
-// Standard, non-null-preserving form used by ADD/SUB/AND/OR/NOT).
+// treated as a single zero byte.
 func bitwise(input, key []byte, f func(o, k byte) byte) []byte {
 	if len(key) == 0 {
 		key = []byte{0}
@@ -57,7 +56,7 @@ func (ADD) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: xorDelims}}
 }
 
-// Run applies the ADD. Ported from CyberChef ADD.mjs / lib bitOp.
+// Run applies the ADD.
 func (ADD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runBitwise(in, args[0].(core.ToggleString), func(o, k byte) byte { return o + k })
 }
@@ -82,7 +81,7 @@ func (SUB) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: xorDelims}}
 }
 
-// Run applies the SUB. Ported from CyberChef SUB.mjs / lib bitOp.
+// Run applies the SUB.
 func (SUB) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runBitwise(in, args[0].(core.ToggleString), func(o, k byte) byte { return o - k })
 }
@@ -107,7 +106,7 @@ func (AND) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: xorDelims}}
 }
 
-// Run applies the AND. Ported from CyberChef AND.mjs / lib bitOp.
+// Run applies the AND.
 func (AND) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runBitwise(in, args[0].(core.ToggleString), func(o, k byte) byte { return o & k })
 }
@@ -132,7 +131,7 @@ func (OR) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: xorDelims}}
 }
 
-// Run applies the OR. Ported from CyberChef OR.mjs / lib bitOp.
+// Run applies the OR.
 func (OR) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runBitwise(in, args[0].(core.ToggleString), func(o, k byte) byte { return o | k })
 }
@@ -155,7 +154,7 @@ func (NOT) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (NOT) Args() []core.ArgDef { return nil }
 
-// Run inverts each byte. Ported from CyberChef NOT.mjs / lib bitOp.
+// Run inverts each byte.
 func (NOT) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return core.NewDish(bitwise(in.Bytes(), nil, func(o, _ byte) byte { return ^o }), core.TypeByteArray), nil
 }
@@ -181,7 +180,7 @@ func (BitShiftLeft) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Amount", Type: core.ArgNumber, Integer: true, Value: 1, Min: &minAmt, Max: &maxAmt}}
 }
 
-// Run shifts each byte left. Ported from CyberChef BitShiftLeft.mjs.
+// Run shifts each byte left.
 func (BitShiftLeft) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	amount := uint(args[0].(float64))
 	data := in.Bytes()

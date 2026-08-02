@@ -18,8 +18,7 @@ import (
 	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
-// Shared data parsing for the chart operations, ported from CyberChef's
-// src/core/lib/Charts.mjs.
+// Shared data parsing for the chart operations.
 
 // RecordDelimiterOptions and FieldDelimiterOptions are the delimiter choices the
 // chart operations offer.

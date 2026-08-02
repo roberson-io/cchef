@@ -21,7 +21,7 @@ const risonDesc = "Rison, a data serialization format optimized for compactness 
 
 // RisonEncode serialises a JSON value into Rison, a compact URI-friendly format.
 //
-// This is a from-scratch port of the `rison` npm library CyberChef wraps (a pure
+// This is an in-repo port of the `rison` npm library CyberChef wraps (a pure
 // JS encoder/parser), reusing cchef's JSON dish model. It reproduces the
 // library's behaviour, including object-key sorting on encode and the
 // replace-first-only quirk in its URI quoting.

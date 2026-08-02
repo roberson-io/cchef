@@ -41,8 +41,7 @@ func (ProtobufEncode) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input JSON. Ported from CyberChef ProtobufEncode.mjs /
-// lib/Protobuf.mjs encode.
+// Run encodes the input JSON.
 func (ProtobufEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	schema := args[0].(string)
 

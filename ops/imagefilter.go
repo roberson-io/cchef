@@ -11,8 +11,7 @@ func init() {
 	core.Register(ImageFilter{})
 }
 
-// ImageFilter applies a greyscale or sepia filter to an image. Ported from
-// CyberChef's Image Filter (Jimp's greyscale/sepia).
+// ImageFilter applies a greyscale or sepia filter to an image.
 type ImageFilter struct{}
 
 // Meta returns the operation metadata.

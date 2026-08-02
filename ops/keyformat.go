@@ -9,11 +9,9 @@ import (
 
 // Decoding for key and operand arguments that arrive as a toggleString: the
 // user picks the spelling (Hex, Decimal, Binary, Base64, UTF8 or Latin1) and
-// the operation needs the raw bytes. Ported from CyberChef's
-// Utils.convertToByteArray as the bitwise and cipher operations call it.
+// the operation needs the raw bytes.
 
 // convertToByteArray decodes a key string according to its encoding mode.
-// Ported from CyberChef Utils.convertToByteArray.
 func convertToByteArray(str, mode string) ([]byte, error) {
 	switch strings.ToLower(mode) {
 	case "hex":

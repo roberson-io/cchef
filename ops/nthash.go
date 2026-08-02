@@ -24,8 +24,7 @@ func init() {
 	core.Register(NTHash{})
 }
 
-// NTHash computes an NT (NTLM) hash: MD4 over the UTF-16LE-encoded input. Ported
-// from CyberChef NTHash.mjs.
+// NTHash computes an NT (NTLM) hash: MD4 over the UTF-16LE-encoded input.
 type NTHash struct{}
 
 // Meta returns the operation metadata.

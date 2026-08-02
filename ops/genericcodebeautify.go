@@ -82,7 +82,7 @@ var gcbPhase2 = []gcbReplace{
 	{regexp.MustCompile(`(?i)}\s*(else|catch|except|finally|elif|elseif|else if)`), "} ${1}"},
 }
 
-// Run beautifies C-style code. Ported from GenericCodeBeautify.mjs.
+// Run beautifies C-style code.
 func (GenericCodeBeautify) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	code := in.String()
 	var tokens []string

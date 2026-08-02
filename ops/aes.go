@@ -301,8 +301,7 @@ func aesGCMDecrypt(block cipher.Block, iv, ciphertext, aad, wantTag []byte) (pla
 
 // --- AES Encrypt ---
 
-// AESEncrypt encrypts input with AES in a selectable mode. Ported from
-// CyberChef AESEncrypt.mjs.
+// AESEncrypt encrypts input with AES in a selectable mode.
 type AESEncrypt struct{}
 
 // Meta returns the operation metadata.
@@ -433,8 +432,7 @@ func formatAESOutput(out, tag []byte, mode, outputType string) *core.Dish {
 
 // --- AES Decrypt ---
 
-// AESDecrypt decrypts AES ciphertext in a selectable mode. Ported from
-// CyberChef AESDecrypt.mjs.
+// AESDecrypt decrypts AES ciphertext in a selectable mode.
 type AESDecrypt struct{}
 
 // Meta returns the operation metadata.

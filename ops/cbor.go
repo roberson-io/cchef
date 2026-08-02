@@ -33,7 +33,7 @@ const cborDesc = "Concise Binary Object Representation (CBOR) is a binary data s
 // CBOREncode serializes JSON into canonical CBOR (RFC 8949).
 //
 // CyberChef wraps the `cbor` npm library's Cbor.encodeCanonical; this is a
-// from-scratch port of its canonical rules: shortest integer/float forms
+// port of its canonical rules: shortest integer/float forms
 // (including half-precision and the negative-zero special case), the
 // MAX_SAFE_INTEGER-to-float fallback, and length-first map key ordering.
 type CBOREncode struct{}

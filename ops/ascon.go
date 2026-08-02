@@ -24,7 +24,7 @@ var asconToggleValues = []string{"Hex", "UTF8", "Latin1", "Base64"}
 
 // --- Ascon-AEAD128 core (NIST SP 800-232) ---
 //
-// Reimplemented from scratch to match the js-ascon package CyberChef wraps
+// Matches the js-ascon package CyberChef uses
 // (github.com/brainfoolong/js-ascon, v1.3.0). The 320-bit state is five 64-bit
 // words in little-endian byte order; AEAD128 uses 12 initialisation/finalisation
 // rounds, 8 intermediate rounds and a 16-byte rate.

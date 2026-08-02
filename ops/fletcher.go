@@ -24,8 +24,7 @@ func fletcherHex(v uint64, length int) string {
 }
 
 // The Fletcher checksums (Fletcher, 1982) are position-dependent running sums
-// modulo 2^n − 1, ported from CyberChef's Fletcher{8,16,32,64}Checksum. Each
-// takes raw bytes and returns the checksum as hex.
+// modulo 2^n − 1. Each takes raw bytes and returns the checksum as hex.
 
 // fletcherMeta builds the shared metadata for a Fletcher operation of the given
 // bit width.

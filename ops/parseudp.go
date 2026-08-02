@@ -43,7 +43,7 @@ func (ParseUDP) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Input format", Type: core.ArgOption, Value: []string{"Hex", "Raw"}}}
 }
 
-// Run parses the datagram. Ported from CyberChef ParseUDP.mjs.
+// Run parses the datagram.
 func (ParseUDP) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := bytestream.New(parseNetInput(in.String(), args[0].(string)))
 	if s.Length() < 8 {

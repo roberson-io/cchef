@@ -454,7 +454,7 @@ func newX86Decoder(bitMode, compatibility int) *x86Decoder {
 	return d
 }
 
-// reset clears the per-instruction state. Ported from the engine's Reset().
+// reset clears the per-instruction state.
 func (d *x86Decoder) reset() {
 	d.opcode = 0
 	d.sizeAttrSelect = 1
@@ -569,10 +569,9 @@ func (d *x86Decoder) reg8(rexActive, value float64) string {
    ---------------------------------------------------------------------------
 */
 
-// loadBinCode converts the hex input into bytes. Ported from LoadBinCode(),
-// including its four-byte rotation and the sign-bit correction that goes with
-// it. Invalid hex stops the conversion and leaves whatever decoded before it,
-// which is why bad input disassembles to nothing at all.
+// loadBinCode converts the hex input into bytes. Invalid hex stops the
+// conversion and leaves whatever decoded before it, which is why bad input
+// disassembles to nothing at all.
 func (d *x86Decoder) loadBinCode(hexStr string) bool {
 	d.binCode = nil
 	d.codePos = 0
@@ -654,7 +653,7 @@ func (d *x86Decoder) getPosition() string {
 }
 
 // gotoPosition moves the decoder to an address, reporting whether it landed
-// inside the loaded bytes. Ported from GotoPosition().
+// inside the loaded bytes.
 func (d *x86Decoder) gotoPosition(address string) bool {
 	locPos32, locPos64, locCodeSeg := d.pos32, d.pos64, d.codeSeg
 
@@ -695,7 +694,7 @@ func (d *x86Decoder) gotoPosition(address string) bool {
 }
 
 // nextByte records the byte just consumed and advances both the buffer
-// position and the instruction address. Ported from NextByte().
+// position and the instruction address.
 func (d *x86Decoder) nextByte() {
 	if d.codePos >= len(d.binCode) {
 		return
@@ -724,8 +723,7 @@ func (d *x86Decoder) nextByte() {
 */
 
 // x86HighBitPosition finds the highest set bit of a size-attribute byte,
-// returning its index. Ported from the repeated expression in
-// GetOperandSize().
+// returning its index.
 func x86HighBitPosition(s float64) float64 {
 	var a, b, c float64
 	if jsAnd(s, 0xF0) != 0 {
@@ -745,7 +743,7 @@ func x86HighBitPosition(s float64) float64 {
 
 // getOperandSize turns a size-attribute bitmap into an index into the register
 // and pointer tables, picking between the attribute's three sizes according to
-// the current prefixes. Ported from GetOperandSize().
+// the current prefixes.
 func (d *x86Decoder) getOperandSize(sizeAttribute float64) float64 {
 	s1, s2, s3 := x86SizeAttributeTriple(sizeAttribute)
 	s1, s2, s3 = d.clampSizesToBitMode(s1, s2, s3)
@@ -819,7 +817,6 @@ func (d *x86Decoder) clampSizesToBitMode(s1, s2, s3 float64) (float64, float64, 
 
 // decodeModRMSIBValue splits the byte at the current position into its mode,
 // reg and r/m fields, which the SIB byte reuses as scale, index and base.
-// Ported from Decode_ModRM_SIB_Value().
 func (d *x86Decoder) decodeModRMSIBValue() [3]float64 {
 	v := d.cur()
 	out := [3]float64{
@@ -884,7 +881,7 @@ func (d *x86Decoder) resolveDisplacement(v32, n, s float64) (float64, int) {
 
 // decodeImmediate reads an immediate and renders it as CyberChef prints it:
 // zero-padded hexadecimal, sign-extended where the size attribute asks for it,
-// and prefixed with + or - for displacements. Ported from DecodeImmediate().
+// and prefixed with + or - for displacements.
 func (d *x86Decoder) decodeImmediate(typ int, bySize bool, sizeSetting float64) string {
 	var v32, v64 float64
 	var pad32, pad64 int
@@ -959,7 +956,6 @@ func (d *x86Decoder) decodeImmediate(typ int, bySize bool, sizeSetting float64) 
 }
 
 // decodeRegValue names a register by value and size setting.
-// Ported from DecodeRegValue().
 func (d *x86Decoder) decodeRegValue(rValue float64, bySize bool, setting float64) string {
 	if d.vect && d.extension == 0 {
 		d.sizeAttrSelect = 0
@@ -994,7 +990,7 @@ const x86ModRMRegisterMode = 3
 
 // decodeModRMSIBAddress renders a ModR/M operand: either a register, or an
 // effective address including any SIB byte, displacement and vector conversion
-// suffix. Ported from Decode_ModRM_SIB_Address().
+// suffix.
 func (d *x86Decoder) decodeModRMSIBAddress(modRM [3]float64, bySize bool, setting float64) string {
 	out := ""
 	sc := "{"
@@ -1332,8 +1328,7 @@ func x86Leaf(s string) x86Node { return x86Node{str: s} }
 const x86Invalid = "???"
 
 // decodePrefixAdjustments consumes every prefix byte, applying its effect to
-// the decoder, and leaves d.opcode holding a real operation code. Ported from
-// DecodePrefixAdjustments(), whose tail recursion becomes a loop here.
+// the decoder, and leaves d.opcode holding a real operation code.
 func (d *x86Decoder) decodePrefixAdjustments() {
 	for {
 		d.opcode = jsOr(jsAnd(d.opcode, 0x300), d.cur())
@@ -1705,7 +1700,7 @@ func (d *x86Decoder) narrowBySize(instr, oper x86Node) (x86Node, x86Node) {
 
 // decodeOpcode narrows the opcode's table entries down to one mnemonic and one
 // operand string, following the ModR/M bits, SIMD mode, vector extension and
-// operand size. Ported from DecodeOpcode().
+// operand size.
 func (d *x86Decoder) decodeOpcode() {
 	instr := d.mnemonic(d.opcode)
 	oper := d.operandEntry(d.opcode)
@@ -1789,7 +1784,7 @@ const (
 )
 
 // decodeOperandString reads the four-hex-digit operand codes and marks the
-// decoder slots each instruction uses. Ported from DecodeOperandString().
+// decoder slots each instruction uses.
 func (d *x86Decoder) decodeOperandString() {
 	slots := x86SlotAssigner{imm: x86SlotImm1, explicit: x86SlotExplicit}
 	opNum := 0
@@ -1889,7 +1884,7 @@ func (d *x86Decoder) applyOperandSettings(bySize bool, setting float64) {
 }
 
 // decodeOperands walks the decoder slots in the order the CPU decodes them and
-// builds the printed operand list. Ported from DecodeOperands().
+// builds the printed operand list.
 func (d *x86Decoder) decodeOperands() {
 	out := &x86OperandList{}
 
@@ -2061,7 +2056,6 @@ func x86LookupOrInvalid(list []string, i float64) (string, bool) {
 }
 
 // decodeInstruction decodes one instruction and returns its printed form.
-// Ported from DecodeInstruction().
 func (d *x86Decoder) decodeInstruction() string {
 	d.reset()
 	d.instructionPos = d.getPosition()
@@ -2220,7 +2214,6 @@ func (d *x86Decoder) enforceInstructionLimit() {
 }
 
 // disassemble decodes the loaded bytes in one linear pass.
-// Ported from LDisassemble().
 func (d *x86Decoder) disassemble() string {
 	var out strings.Builder
 	basePos64, basePos32 := d.pos64, d.pos32

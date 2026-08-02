@@ -12,8 +12,7 @@ func init() {
 }
 
 // LuhnChecksum computes the Luhn mod-N checksum, check digit, and the validated
-// string. Ported from CyberChef's LuhnChecksum, generalised to any even radix in
-// [2, 36].
+// string.
 type LuhnChecksum struct{}
 
 // Meta returns the operation metadata.

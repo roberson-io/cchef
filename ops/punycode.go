@@ -44,7 +44,7 @@ const punyDesc = "Punycode is a way to represent Unicode with the limited charac
 // ToPunycode converts Unicode to Punycode.
 //
 // CyberChef wraps punycode.js's encode (raw) and toASCII (IDN); this is a
-// from-scratch RFC 3492 port of both.
+// RFC 3492 implementation serving both.
 type ToPunycode struct{}
 
 // Meta returns the operation metadata.
@@ -84,7 +84,7 @@ func (ToPunycode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // FromPunycode converts Punycode to Unicode.
 //
 // CyberChef wraps punycode.js's decode (raw) and toUnicode (IDN); this is a
-// from-scratch RFC 3492 port of both.
+// RFC 3492 implementation serving both.
 type FromPunycode struct{}
 
 // Meta returns the operation metadata.

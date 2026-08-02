@@ -12,8 +12,7 @@ func init() {
 	core.Register(ImageBrightnessContrast{})
 }
 
-// ImageBrightnessContrast adjusts image brightness and contrast. Ported from
-// CyberChef's Image Brightness / Contrast (Jimp's brightness/contrast).
+// ImageBrightnessContrast adjusts image brightness and contrast.
 type ImageBrightnessContrast struct{}
 
 // Meta returns the operation metadata.

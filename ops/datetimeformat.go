@@ -55,7 +55,7 @@ func (ParseDateTime) Args() []core.ArgDef {
 	}
 }
 
-// Run parses and describes the datetime. Ported from CyberChef ParseDateTime.mjs.
+// Run parses and describes the datetime.
 func (ParseDateTime) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[1].(string)
 	loc := loadMomentZone(args[2].(string))
@@ -106,7 +106,7 @@ func (TranslateDateTimeFormat) Args() []core.ArgDef {
 	}
 }
 
-// Run reformats the datetime. Ported from CyberChef TranslateDateTimeFormat.mjs.
+// Run reformats the datetime.
 func (TranslateDateTimeFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[1].(string)
 	inputTZ := args[2].(string)
@@ -149,7 +149,7 @@ func (DateTimeDelta) Args() []core.ArgDef {
 	}
 }
 
-// Run applies the delta. Ported from CyberChef DateTimeDelta.mjs.
+// Run applies the delta.
 func (DateTimeDelta) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[1].(string)
 	operationType := args[2].(string)

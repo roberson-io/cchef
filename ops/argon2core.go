@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-// A from-scratch Argon2d implementation (RFC 9106). It exists because
+// An Argon2d implementation (RFC 9106). It exists because
 // golang.org/x/crypto/argon2 only provides Argon2i and Argon2id; the Argon2 and
 // Argon2 compare operations use x/crypto for those two and this for Argon2d.
 // Argon2d uses purely data-dependent addressing, so the data-independent

@@ -31,7 +31,7 @@ func (VarIntDecode) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (VarIntDecode) Args() []core.ArgDef { return nil }
 
-// Run decodes the VarInt. Ported from CyberChef VarIntDecode.mjs.
+// Run decodes the VarInt.
 func (VarIntDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.Bytes()
 	result := new(big.Int)
@@ -65,7 +65,7 @@ func (VarIntEncode) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (VarIntEncode) Args() []core.ArgDef { return nil }
 
-// Run encodes the VarInt. Ported from CyberChef VarIntEncode.mjs.
+// Run encodes the VarInt.
 func (VarIntEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	value, ok := new(big.Int).SetString(strings.TrimSpace(in.String()), 10)
 	if !ok {

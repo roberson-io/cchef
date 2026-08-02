@@ -12,8 +12,7 @@ func init() {
 	core.Register(MOD{})
 }
 
-// MOD reduces every number in a list by a modulus. Ported from CyberChef
-// MOD.mjs.
+// MOD reduces every number in a list by a modulus.
 type MOD struct{}
 
 // Meta returns the operation metadata.

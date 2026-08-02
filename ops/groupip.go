@@ -53,10 +53,10 @@ func ipv4ToStr(ip uint32) string {
 }
 
 // strToIpv6 parses an IPv6 address string into eight 16-bit blocks, expanding a
-// "::" shorthand. Ported from IP.mjs strToIpv6. Callers that feed it a string
-// pre-validated by groupIPv6Re (Parse IPv6 address, Parse IP range) cannot
-// trigger its error returns: the regex guarantees 3–8 blocks of at most 4 hex
-// digits, so neither the block-count nor the out-of-range check can fire.
+// "::" shorthand. Callers that feed it a string pre-validated by groupIPv6Re
+// (Parse IPv6 address, Parse IP range) cannot trigger its error returns: the
+// regex guarantees 3–8 blocks of at most 4 hex digits, so neither the
+// block-count nor the out-of-range check can fire.
 func strToIpv6(ipStr string) ([8]int, error) {
 	var ipv6 [8]int
 	blocks := strings.Split(ipStr, ":")
@@ -96,7 +96,7 @@ func strToIpv6(ipStr string) ([8]int, error) {
 }
 
 // ipv6ToStr renders eight 16-bit blocks as an IPv6 string, using "::" shorthand
-// for the longest zero run when compact. Ported from IP.mjs ipv6ToStr.
+// for the longest zero run when compact.
 func ipv6ToStr(ipv6 [8]int, compact bool) string {
 	var output strings.Builder
 	if compact {
@@ -135,8 +135,7 @@ func ipv6ToStr(ipv6 [8]int, compact bool) string {
 	return out[:len(out)-1]
 }
 
-// genIpv6Mask builds an 8-block network mask for the given CIDR. Ported from
-// IP.mjs genIpv6Mask.
+// genIpv6Mask builds an 8-block network mask for the given CIDR.
 func genIpv6Mask(cidr int) [8]uint32 {
 	var mask [8]uint32
 	for i := range 8 {
@@ -174,7 +173,7 @@ func (GroupIPAddresses) Args() []core.ArgDef {
 	}
 }
 
-// Run groups the addresses. Ported from CyberChef GroupIPAddresses.mjs.
+// Run groups the addresses.
 func (GroupIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	cidr := int(args[1].(float64))

@@ -106,7 +106,7 @@ func (TEAEncrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (TEAEncrypt) Args() []core.ArgDef { return teaArgs() }
 
-// Run encrypts with TEA. Ported from CyberChef TEAEncrypt.mjs.
+// Run encrypts with TEA.
 func (TEAEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, padding, outType, err := teaInputs(in, args, "TEA")
 	if err != nil {
@@ -137,7 +137,7 @@ func (TEADecrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (TEADecrypt) Args() []core.ArgDef { return teaArgs() }
 
-// Run decrypts with TEA. Ported from CyberChef TEADecrypt.mjs.
+// Run decrypts with TEA.
 func (TEADecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, padding, outType, err := teaInputs(in, args, "TEA")
 	if err != nil {
@@ -176,7 +176,7 @@ func (XTEAEncrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (XTEAEncrypt) Args() []core.ArgDef { return xteaArgs() }
 
-// Run encrypts with XTEA. Ported from CyberChef XTEAEncrypt.mjs.
+// Run encrypts with XTEA.
 func (XTEAEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, padding, outType, err := teaInputs(in, args, "XTEA")
 	if err != nil {
@@ -211,7 +211,7 @@ func (XTEADecrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (XTEADecrypt) Args() []core.ArgDef { return xteaArgs() }
 
-// Run decrypts with XTEA. Ported from CyberChef XTEADecrypt.mjs.
+// Run decrypts with XTEA.
 func (XTEADecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, padding, outType, err := teaInputs(in, args, "XTEA")
 	if err != nil {
@@ -230,9 +230,8 @@ func (XTEADecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return teaOutput(out, outType), nil
 }
 
-// TEA / XTEA block ciphers, ported from CyberChef lib/TEA.mjs. Both operate on
-// 64-bit blocks with a 128-bit key; the block-cipher modes (ECB/CBC/CFB/OFB/CTR)
-// and padding follow the same file.
+// TEA / XTEA block ciphers. Both operate on 64-bit blocks with a 128-bit key;
+// the block-cipher modes (ECB/CBC/CFB/OFB/CTR) and padding follow the same file.
 
 // teaDelta is the golden-ratio key-schedule constant.
 const teaDelta = 0x9E3779B9

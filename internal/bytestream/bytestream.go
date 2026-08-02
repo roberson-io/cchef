@@ -115,7 +115,7 @@ func (s *Stream) At(i int) int {
 }
 
 // ReadBits reads numBits big-endian bits, tracking the intra-byte position so
-// successive sub-byte reads compose correctly. Ported from Stream.ReadBits (be).
+// successive sub-byte reads compose correctly.
 func (s *Stream) ReadBits(numBits int) int {
 	bitBuf := int(s.Bytes[s.Pos]) & ((1 << (8 - s.bitPos)) - 1)
 	s.Pos++
@@ -170,7 +170,7 @@ func (s *Stream) MoveBackwardsBy(n int) { s.MoveTo(s.Pos - n) }
 
 // ReadString reads numBytes bytes as a string, stopping the string at the first
 // null byte but still consuming the whole width. A negative width reads to the
-// end. Ported from Stream.ReadString.
+// end.
 func (s *Stream) ReadString(numBytes int) string {
 	if s.Pos > len(s.Bytes) {
 		return ""

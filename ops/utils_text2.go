@@ -44,8 +44,7 @@ func (Split) Args() []core.ArgDef {
 	}
 }
 
-// Run splits then joins, using the delimiters literally. Ported from CyberChef
-// Split.mjs.
+// Run splits then joins, using the delimiters literally.
 func (Split) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	parts := strings.Split(in.String(), args[0].(string))
 	return core.NewDish([]byte(strings.Join(parts, args[1].(string))), core.TypeString), nil
@@ -72,7 +71,7 @@ func (CountOccurrences) Args() []core.ArgDef {
 	}
 }
 
-// Run counts occurrences. Ported from CyberChef CountOccurrences.mjs.
+// Run counts occurrences.
 func (CountOccurrences) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	search := args[0].(core.ToggleString)
 	input := in.String()
@@ -116,7 +115,7 @@ func (AddLineNumbers) Args() []core.ArgDef {
 	}
 }
 
-// Run adds line numbers. Ported from CyberChef AddLineNumbers.mjs.
+// Run adds line numbers.
 func (AddLineNumbers) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	offset := int(args[0].(float64))
 	lines := strings.Split(in.String(), "\n")
@@ -158,7 +157,7 @@ func (RemoveLineNumbers) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RemoveLineNumbers) Args() []core.ArgDef { return nil }
 
-// Run removes line numbers. Ported from CyberChef RemoveLineNumbers.mjs.
+// Run removes line numbers.
 func (RemoveLineNumbers) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	out := reLineNumbers.ReplaceAllString(in.String(), "")
 	return core.NewDish([]byte(out), core.TypeString), nil
@@ -181,7 +180,7 @@ func (AlternatingCaps) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (AlternatingCaps) Args() []core.ArgDef { return nil }
 
-// Run alternates caps. Ported from CyberChef AlternatingCaps.mjs.
+// Run alternates caps.
 func (AlternatingCaps) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
 	previousCaps := true
@@ -220,7 +219,7 @@ func (RemoveANSIEscapeCodes) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RemoveANSIEscapeCodes) Args() []core.ArgDef { return nil }
 
-// Run strips ANSI codes. Ported from CyberChef RemoveANSIEscapeCodes.mjs.
+// Run strips ANSI codes.
 func (RemoveANSIEscapeCodes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	out := reANSI.ReplaceAllString(in.String(), "")
 	return core.NewDish([]byte(out), core.TypeString), nil
@@ -247,7 +246,7 @@ func (ExpandAlphabetRange) Args() []core.ArgDef {
 	}
 }
 
-// Run expands the range. Ported from CyberChef ExpandAlphabetRange.mjs.
+// Run expands the range.
 func (ExpandAlphabetRange) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := opsutil.ParseEscapedChars(args[0].(string))
 	expanded := opsutil.ExpandAlphRange(in.String())

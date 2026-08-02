@@ -1,6 +1,6 @@
 package ops
 
-// Lorenz SZ40/42 machine, ported from CyberChef Lorenz.mjs run().
+// Lorenz SZ40/42 machine.
 
 // Chi (X1-5) and Psi (S1-5) wheel sizes, indexed 0-based.
 var (

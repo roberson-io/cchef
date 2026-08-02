@@ -44,7 +44,7 @@ func (ToHexdump) Args() []core.ArgDef {
 	}
 }
 
-// Run renders the hexdump. Ported from ToHexdump.mjs.
+// Run renders the hexdump.
 func (ToHexdump) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	length := args[0].(float64)
 	upperCase := args[1].(bool)
@@ -136,8 +136,8 @@ func (FromHexdump) Args() []core.ArgDef {
 // FromHexdump.mjs; it uses no lookahead/backreferences, so RE2 handles it.
 var fromHexdumpRE = regexp.MustCompile(`(?im)^\s*(?:[\dA-F]{4,16}h?:?)?[ \t]+((?:[\dA-F]{2} ){1,8}(?:[ \t]|[\dA-F]{2}-)(?:[\dA-F]{2} ){1,8}|(?:[\dA-F]{4} )+(?:[\dA-F]{2})?|(?:[\dA-F]{2} )*[\dA-F]{2})`)
 
-// Run parses the hexdump. Ported from FromHexdump.mjs. The upstream width/CR
-// detection only toggles UI highlighting, so it is omitted here.
+// Run parses the hexdump. The upstream width/CR detection only toggles UI
+// highlighting, so it is omitted here.
 func (FromHexdump) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var out []byte
 	for _, m := range fromHexdumpRE.FindAllStringSubmatch(in.String(), -1) {

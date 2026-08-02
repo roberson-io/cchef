@@ -47,7 +47,7 @@ func lmDESHalf(half []byte) []byte {
 }
 
 // LMHash computes an LM (LAN Manager) hash. Ported from CyberChef LMHash.mjs
-// (which wraps the ntlm npm package); the algorithm is reimplemented from scratch
+// (which wraps the ntlm npm package); the algorithm is implemented in-repo
 // using the standard crypto/des primitive.
 type LMHash struct{}
 

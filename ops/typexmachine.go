@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
-// Typex machine, ported from CyberChef lib/Typex.mjs. It reuses the Enigma rotor
-// and reflector types (enigma.go); Typex differs in having five rotors (the two
-// right-hand ones static), reversible rotors, a Rotor-based input plugboard, and
-// a special keyboard mode for symbols.
+// Typex machine. It reuses the Enigma rotor and reflector types (enigma.go);
+// Typex differs in having five rotors (the two right-hand ones static),
+// reversible rotors, a Rotor-based input plugboard, and a special keyboard mode
+// for symbols.
 
 // typexRotors are the example rotor wirings (no real Typex wirings are public, so
 // CyberChef ships a randomised set). Index i is the editableOption default for

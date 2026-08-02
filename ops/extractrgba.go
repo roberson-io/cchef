@@ -12,8 +12,7 @@ func init() {
 	core.Register(ExtractRGBA{})
 }
 
-// ExtractRGBA lists every pixel's channel values. Ported from CyberChef
-// ExtractRGBA.mjs.
+// ExtractRGBA lists every pixel's channel values.
 type ExtractRGBA struct{}
 
 // Meta returns the operation metadata.

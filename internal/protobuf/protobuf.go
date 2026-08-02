@@ -93,7 +93,7 @@ func (p *Parser) parseField() (string, any, error) {
 }
 
 // fieldNumber reads the varint-encoded field number from the tag, whose low 3
-// bits are the wire type (already read). Ported from _fieldNumber.
+// bits are the wire type (already read).
 func (p *Parser) fieldNumber() int {
 	shift := -3
 	fieldNumber := 0
@@ -171,7 +171,7 @@ func (p *Parser) uint32() float64 {
 }
 
 // lenDelim reads a length-delimited field: a nested message when it parses
-// cleanly, otherwise the raw bytes as a latin1 string. Ported from _lenDelim.
+// cleanly, otherwise the raw bytes as a latin1 string.
 func (p *Parser) lenDelim(fieldNum string) (any, error) {
 	// The length comes off the wire and can name more bytes than exist, or more
 	// than an int can hold. JavaScript keeps it as a float and simply runs off
@@ -221,7 +221,7 @@ func typeInfo(wireType int) string {
 }
 
 // ShowRawTypes rewrites raw-decode field-number keys to include the wire type,
-// recursing into submessages. Ported from Protobuf.ShowRawTypes.
+// recursing into submessages.
 func ShowRawTypes(raw *jsonval.OMap, fieldTypes map[string]any) *jsonval.OMap {
 	out := jsonval.NewOMap()
 	for _, fieldNum := range raw.Keys() {

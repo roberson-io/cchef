@@ -145,7 +145,6 @@ func (SSDEEP) Run(in *core.Dish, args []any) (*core.Dish, error) {
 }
 
 // CompareSSDEEPHashes compares two SSDEEP hashes, returning a 0–100 similarity.
-// Ported from CyberChef CompareSSDEEPHashes.mjs.
 type CompareSSDEEPHashes struct{}
 
 // Meta returns the operation metadata.

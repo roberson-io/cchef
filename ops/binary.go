@@ -45,7 +45,7 @@ func (ToBinary) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef lib/Binary.mjs toBinary.
+// Run encodes the input.
 func (ToBinary) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	padding := int(args[1].(float64))
@@ -84,7 +84,7 @@ func (FromBinary) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef lib/Binary.mjs fromBinary.
+// Run decodes the input.
 func (FromBinary) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	byteLen := int(args[1].(float64))
 	if byteLen < 1 {

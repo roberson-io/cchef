@@ -12,8 +12,7 @@ func init() {
 	core.Register(BlurImage{})
 }
 
-// BlurImage blurs an image with a fast box blur or a Gaussian blur. Ported from
-// CyberChef's Blur Image (Jimp's blur/gaussian).
+// BlurImage blurs an image with a fast box blur or a Gaussian blur.
 type BlurImage struct{}
 
 // Meta returns the operation metadata.

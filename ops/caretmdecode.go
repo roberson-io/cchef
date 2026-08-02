@@ -45,9 +45,9 @@ const (
 	metaBit     = 128
 )
 
-// Run decodes the input. Ported from CaretMdecode.mjs. Each input byte is
-// treated as a character code (0-255), matching CyberChef's charCodeAt over its
-// Latin-1 string view of the bytes.
+// Run decodes the input. Each input byte is treated as a character code
+// (0-255), matching CyberChef's charCodeAt over its Latin-1 string view of the
+// bytes.
 func (CaretMDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	d := &cmDecoder{out: make([]byte, 0, len(data))}

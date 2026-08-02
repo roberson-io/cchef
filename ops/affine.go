@@ -50,7 +50,7 @@ func (AffineCipherEncode) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef affineEncode (lib/Ciphers.mjs).
+// Run encodes the input.
 func (AffineCipherEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	a, b, err := affineArgs(args)
 	if err != nil {
@@ -85,7 +85,7 @@ func (AffineCipherDecode) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef AffineCipherDecode.mjs.
+// Run decodes the input.
 func (AffineCipherDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	a, b, err := affineArgs(args)
 	if err != nil {

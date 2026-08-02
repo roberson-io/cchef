@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// bigNum is a faithful subset of CyberChef's bignumber.js: an arbitrary-precision
+// bigNum is a subset of bignumber.js semantics: an arbitrary-precision
 // value that may also be NaN or ±Infinity. Finite values are held exactly as a
 // big.Rat. Division, mean and square-root round to bignumber's default
 // DECIMAL_PLACES = 20 using ROUND_HALF_UP (ties away from zero); addition,

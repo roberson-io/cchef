@@ -37,7 +37,7 @@ func (Substitute) Args() []core.ArgDef {
 
 // substituteChar converts one character using the dictionary. When ignoreCase is
 // set, the value takes the case of the input character (and a case-insensitive
-// key lookup is attempted). Ported from CyberChef Substitute.cipherSingleChar.
+// key lookup is attempted).
 func substituteChar(ch string, dict map[string]string, ignoreCase bool) string {
 	if !ignoreCase {
 		if v, ok := dict[ch]; ok {
@@ -62,7 +62,7 @@ func substituteChar(ch string, dict map[string]string, ignoreCase bool) string {
 	return ch
 }
 
-// Run performs the substitution. Ported from CyberChef Substitute.mjs.
+// Run performs the substitution.
 func (Substitute) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	plaintext := []rune(opsutil.ExpandAlphRange(opsutil.ParseEscapedChars(args[0].(string))))
 	ciphertext := []rune(opsutil.ExpandAlphRange(opsutil.ParseEscapedChars(args[1].(string))))

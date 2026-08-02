@@ -12,11 +12,10 @@ func init() {
 	core.Register(RotateImage{})
 }
 
-// RotateImage rotates an image by a number of degrees. Ported from CyberChef's
-// Rotate Image (Jimp's rotate). Multiples of 90 degrees use Jimp's exact
-// matrix rotation (pixel-identical); other angles use an approximate rotation
-// with the same output canvas size (Jimp upscales first, so pixels differ —
-// reduced fidelity, documented).
+// RotateImage rotates an image by a number of degrees. Multiples of 90 degrees
+// use Jimp's exact matrix rotation (pixel-identical); other angles use an
+// approximate rotation with the same output canvas size (Jimp upscales first,
+// so pixels differ — reduced fidelity, documented).
 type RotateImage struct{}
 
 // Meta returns the operation metadata.

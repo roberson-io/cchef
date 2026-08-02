@@ -204,7 +204,7 @@ func (DESEncrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (DESEncrypt) Args() []core.ArgDef { return desEncArgs() }
 
-// Run performs the encryption. Ported from CyberChef DESEncrypt.mjs.
+// Run performs the encryption.
 func (DESEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	block, err := desBuildBlock(args[0].(core.ToggleString))
 	if err != nil {
@@ -231,7 +231,7 @@ func (DESDecrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (DESDecrypt) Args() []core.ArgDef { return desDecArgs() }
 
-// Run performs the decryption. Ported from CyberChef DESDecrypt.mjs.
+// Run performs the decryption.
 func (DESDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	block, err := desBuildBlock(args[0].(core.ToggleString))
 	if err != nil {
@@ -258,7 +258,7 @@ func (TripleDESEncrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (TripleDESEncrypt) Args() []core.ArgDef { return desEncArgs() }
 
-// Run performs the encryption. Ported from CyberChef TripleDESEncrypt.mjs.
+// Run performs the encryption.
 func (TripleDESEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	block, err := tripleDESBuildBlock(args[0].(core.ToggleString))
 	if err != nil {
@@ -285,7 +285,7 @@ func (TripleDESDecrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (TripleDESDecrypt) Args() []core.ArgDef { return desDecArgs() }
 
-// Run performs the decryption. Ported from CyberChef TripleDESDecrypt.mjs.
+// Run performs the decryption.
 func (TripleDESDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	block, err := tripleDESBuildBlock(args[0].(core.ToggleString))
 	if err != nil {

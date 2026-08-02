@@ -90,8 +90,7 @@ func (ROT8000) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ROT8000) Args() []core.ArgDef { return nil }
 
-// Run applies the rotation. Ported from CyberChef ROT8000.mjs: map each mapped
-// character to its rotated counterpart, passing everything else through.
+// Run applies the rotation.
 func (ROT8000) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	table := rot8000Table()
 	var b strings.Builder

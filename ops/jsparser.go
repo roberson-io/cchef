@@ -14,7 +14,7 @@ func init() {
 
 // JavaScriptParser returns the ESTree AST (as pretty JSON) for JavaScript code.
 // Ported from CyberChef JavaScriptParser.mjs, which wraps esprima.parseScript;
-// the parser is a from-scratch transliteration of esprima (see jsparser_*.go).
+// the parser mirrors esprima (see jsparser_*.go).
 // The full script grammar is supported byte-for-byte — including classes,
 // async/await, generators/yield, destructuring, and Unicode identifiers. Only the
 // output-shaping options (loc/range/tokens/comment/tolerant) are not yet ported

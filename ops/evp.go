@@ -63,9 +63,9 @@ func (DeriveEVPKey) Args() []core.ArgDef {
 	}
 }
 
-// Run derives the key. Ported from CyberChef DeriveEVPKey.mjs. Note the salt is
-// the parsed argument value (empty → no salt); despite the description, this
-// operation does not generate a random salt.
+// Run derives the key. Note the salt is the parsed argument value (empty → no
+// salt); despite the description, this operation does not generate a random
+// salt.
 func (DeriveEVPKey) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	pass := args[0].(core.ToggleString)
 	keySizeBits := args[1].(float64)

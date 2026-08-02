@@ -13,7 +13,6 @@ func init() {
 }
 
 // ScanForEmbeddedFiles looks for file signatures at every offset of the input.
-// Ported from CyberChef ScanForEmbeddedFiles.mjs.
 type ScanForEmbeddedFiles struct{}
 
 // Meta returns the operation metadata.

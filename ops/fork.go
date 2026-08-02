@@ -68,8 +68,7 @@ func parseFlowDelim(s string) string {
 	).Replace(s)
 }
 
-// Fork splits the data and runs the rest of the recipe over each piece. Ported
-// from CyberChef Fork.mjs.
+// Fork splits the data and runs the rest of the recipe over each piece.
 type Fork struct{}
 
 // Meta returns the operation metadata.

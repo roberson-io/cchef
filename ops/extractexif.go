@@ -13,9 +13,7 @@ func init() {
 	core.Register(ExtractEXIF{})
 }
 
-// ExtractEXIF extracts EXIF metadata from an image. Ported from CyberChef's
-// Extract EXIF, a from-scratch port of the npm "exif-parser" library (see
-// exif.go).
+// ExtractEXIF extracts EXIF metadata from an image.
 type ExtractEXIF struct{}
 
 // Meta returns the operation metadata.

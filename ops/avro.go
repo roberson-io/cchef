@@ -17,7 +17,7 @@ import (
 // AvroToJSON converts Avro Object Container File data into JSON.
 //
 // CyberChef's operation is a thin wrapper around the avsc npm library's
-// BlockDecoder. This is a from-scratch port of the Avro OCF format (BIP-less;
+// BlockDecoder. This reads the Avro OCF format (BIP-less;
 // see https://avro.apache.org/docs/1.11.1/specification/) that reproduces
 // avsc's value representation: bytes/fixed render as Node Buffers
 // ({"type":"Buffer","data":[...]}), records/maps keep field order, and unions

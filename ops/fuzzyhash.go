@@ -1,8 +1,6 @@
 package ops
 
-// Shared helpers for the CTPH and SSDEEP fuzzy-hashing operations, ported from
-// the ctph.js / ssdeep.js npm packages (their similarity and Levenshtein logic
-// is byte-identical, so it lives here).
+// Shared helpers for the CTPH and SSDEEP fuzzy-hashing operations.
 
 import (
 	"errors"
@@ -14,8 +12,7 @@ import (
 // fuzzyB64 is the base64 alphabet the fuzzy hashers index into.
 const fuzzyB64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-// fuzzyLevenshtein is the Levenshtein edit distance between two strings, ported
-// from the fast-levenshtein implementation the packages use.
+// fuzzyLevenshtein is the Levenshtein edit distance between two strings.
 func fuzzyLevenshtein(str1, str2 string) int {
 	if str1 == str2 {
 		return 0

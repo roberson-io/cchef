@@ -13,7 +13,6 @@ func init() {
 }
 
 // parseCSV parses delimited data into rows of cells, honouring quoted fields.
-// Ported from CyberChef Utils.parseCSV.
 func parseCSV(data string, cellDelims, lineDelims []rune) [][]string {
 	r := []rune(data)
 	if len(r) > 0 && r[0] == '\uFEFF' { // strip BOM
@@ -111,7 +110,7 @@ func (ToTable) Args() []core.ArgDef {
 	}
 }
 
-// Run renders the table. Ported from CyberChef ToTable.mjs.
+// Run renders the table.
 func (ToTable) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cellDelims := []rune(opsutil.ParseEscapedChars(args[0].(string)))
 	rowDelims := []rune(opsutil.ParseEscapedChars(args[1].(string)))

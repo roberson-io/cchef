@@ -12,7 +12,7 @@ func init() {
 }
 
 // GenerateAllChecksums runs every built-in checksum over the input and lists the
-// results. A faithful port of CyberChef's GenerateAllChecksums: the same ordered
+// results, in CyberChef's GenerateAllChecksums shape: the same ordered
 // set of CRC variants plus the Fletcher and Adler-32 checksums, optionally
 // filtered by bit width and labelled with aligned names.
 type GenerateAllChecksums struct{}

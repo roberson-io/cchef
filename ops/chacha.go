@@ -70,7 +70,7 @@ func chachaLEToInt(b []byte) uint64 {
 }
 
 // chachaBlock computes one 64-byte ChaCha keystream block for the given key,
-// nonce, counter and round count. Ported from the chacha() helper in ChaCha.mjs.
+// nonce, counter and round count.
 func chachaBlock(key, nonce, counter []byte, rounds int) []byte {
 	state := make([]byte, 0, 64)
 	if len(key) == 16 {
@@ -119,7 +119,7 @@ func chachaBlock(key, nonce, counter []byte, rounds int) []byte {
 	return out
 }
 
-// Run applies the cipher. Ported from CyberChef ChaCha.mjs.
+// Run applies the cipher.
 func (ChaCha) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyArg := args[0].(core.ToggleString)
 	nonceArg := args[1].(core.ToggleString)

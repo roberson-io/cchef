@@ -33,7 +33,7 @@ func (OffsetChecker) Args() []core.ArgDef {
 	}
 }
 
-// Run highlights common offsets. Ported from CyberChef OffsetChecker.mjs.
+// Run highlights common offsets.
 func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sampleDelim := opsutil.ParseEscapedChars(args[0].(string))
 	parts := strings.Split(in.String(), sampleDelim)
@@ -81,7 +81,7 @@ func offsetAllMatch(samples [][]rune, i int, chr rune) bool {
 // writeOffsetSample appends sample s's character at offset i to its output,
 // opening/closing the highlight <span> as the match state changes. inMatch (the
 // shared highlight state) is only updated on the last sample, so it is threaded
-// through the return value. Ported faithfully from OffsetChecker.mjs.
+// through the return value.
 func writeOffsetSample(out *strings.Builder, samples [][]rune, s0 []rune, s, i, n int, match, inMatch bool) bool {
 	smp := samples[s]
 	isLast := s == n-1

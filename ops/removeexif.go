@@ -15,8 +15,7 @@ func init() {
 // swallows this and returns the input unchanged. The text is never surfaced.
 var errExifNotFound = errors.New("exif not found")
 
-// RemoveEXIF removes EXIF metadata from a JPEG. Ported from CyberChef's vendored
-// piexifjs remove-exif.mjs.
+// RemoveEXIF removes EXIF metadata from a JPEG.
 type RemoveEXIF struct{}
 
 // Meta returns the operation metadata.

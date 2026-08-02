@@ -8,7 +8,7 @@ import (
 )
 
 // Number-theory helpers shared by the operations that work on whole numbers of
-// any size. Ported from CyberChef lib/BigIntUtils.mjs.
+// any size.
 
 // bigIntDecimal and bigIntHex are the two shapes such a number may be written
 // in: an optionally signed decimal, or an unsigned hexadecimal with an 0x

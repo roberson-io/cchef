@@ -11,8 +11,7 @@ func init() {
 	core.Register(DitherImage{})
 }
 
-// DitherImage applies an ordered dither effect. Ported from CyberChef's Dither
-// Image (Jimp's dither, an RGB565 ordered dither).
+// DitherImage applies an ordered dither effect.
 type DitherImage struct{}
 
 // Meta returns the operation metadata.

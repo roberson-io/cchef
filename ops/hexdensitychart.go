@@ -11,7 +11,7 @@ func init() {
 }
 
 // HexDensityChart groups two-variable data into hexagonal cells and shades each
-// by how many points it holds. Ported from CyberChef's Hex Density chart.
+// by how many points it holds.
 type HexDensityChart struct{}
 
 // Meta returns the operation metadata.

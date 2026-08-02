@@ -14,7 +14,7 @@ func init() {
 }
 
 // urlSafePartial is the set of characters left unencoded when "Encode all
-// special chars" is false. Ported from CyberChef URLEncode.encodeBytes.
+// special chars" is false.
 const urlSafePartial = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" +
 	":/?#[]@!$&'()*+,;=%"
 
@@ -86,7 +86,7 @@ func (URLDecode) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef URLDecode.mjs.
+// Run decodes the input.
 func (URLDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	plusIsSpace := args[0].(bool)
 	data := in.String()

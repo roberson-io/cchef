@@ -62,7 +62,7 @@ func bigNumHexString(n bigNum) string {
 }
 
 // filetimeFlipToLE reverses the byte order of a hex string for little-endian
-// output. Ported from UNIXTimestampToWindowsFiletime.mjs.
+// output.
 func filetimeFlipToLE(result string) string {
 	var b strings.Builder
 	for i := len(result) - 2; i >= 0; i -= 2 {
@@ -77,7 +77,6 @@ func filetimeFlipToLE(result string) string {
 }
 
 // filetimeFlipFromLE reverses a little-endian hex string back to big-endian.
-// Ported from WindowsFiletimeToUNIXTimestamp.mjs.
 func filetimeFlipFromLE(input string) string {
 	var b strings.Builder
 	if len(input)%2 != 0 {
@@ -113,7 +112,7 @@ func (UNIXTimestampToWindowsFiletime) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the timestamp. Ported from CyberChef UNIXTimestampToWindowsFiletime.mjs.
+// Run converts the timestamp.
 func (UNIXTimestampToWindowsFiletime) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	units := args[0].(string)
 	format := args[1].(string)
@@ -166,7 +165,7 @@ func (WindowsFiletimeToUNIXTimestamp) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the filetime. Ported from CyberChef WindowsFiletimeToUNIXTimestamp.mjs.
+// Run converts the filetime.
 func (WindowsFiletimeToUNIXTimestamp) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	units := args[0].(string)
 	format := args[1].(string)

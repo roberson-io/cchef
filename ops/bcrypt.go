@@ -60,7 +60,7 @@ func (Bcrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run generates a bcrypt hash. Ported from CyberChef Bcrypt.mjs (bcryptjs).
+// Run generates a bcrypt hash.
 func (Bcrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	rounds := int(args[0].(float64))
 
@@ -95,8 +95,7 @@ func (BcryptCompare) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Hash", Type: core.ArgString, Value: ""}}
 }
 
-// Run compares the password against the hash. Ported from CyberChef
-// BcryptCompare.mjs (bcryptjs).
+// Run compares the password against the hash.
 func (BcryptCompare) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	hash := args[0].(string)
 	input := in.String()
@@ -167,9 +166,8 @@ func (BcryptParse) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (BcryptParse) Args() []core.ArgDef { return nil }
 
-// Run parses the hash. Ported from CyberChef BcryptParse.mjs (bcryptjs
-// getRounds/getSalt). The doubled "Error: " prefix matches CyberChef wrapping
-// bcryptjs's already-"Error:"-prefixed message.
+// Run parses the hash. The doubled "Error: " prefix matches CyberChef
+// wrapping bcryptjs's already-"Error:"-prefixed message.
 func (BcryptParse) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	// bcryptjs getSalt requires a 60-character hash.

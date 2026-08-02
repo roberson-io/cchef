@@ -6,8 +6,7 @@ import (
 	"math/bits"
 )
 
-// HAS-160 is a Korean 160-bit hash (TTAS.KO-12.0011/R1). Ported from crypto-api's
-// has160 hasher (little-endian, SHA-1-like with a fixed message-expansion table).
+// HAS-160 is a Korean 160-bit hash (TTAS.KO-12.0011/R1).
 
 var (
 	has160K    = [4]uint32{0x00000000, 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc}

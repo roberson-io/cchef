@@ -12,7 +12,6 @@ func init() {
 }
 
 // ContainImage scales an image to fit within a bounding box, letterboxing it.
-// Ported from CyberChef's Contain Image (Jimp's contain + optional background).
 type ContainImage struct{}
 
 // Meta returns the operation metadata.

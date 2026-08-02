@@ -14,8 +14,7 @@ import (
 	"github.com/roberson-io/cchef/internal/jimp"
 )
 
-// BMFont (AngelCode bitmap font) parsing and text rendering, ported from Jimp's
-// @jimp/plugin-print as CyberChef's Add Text To Image uses it. The glyphs come
+// BMFont (AngelCode bitmap font) parsing and text rendering. The glyphs come
 // from the same 72px Roboto atlases CyberChef ships, so rendered text is
 // pixel-identical.
 

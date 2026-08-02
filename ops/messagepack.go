@@ -29,7 +29,7 @@ const (
 
 // ToMessagePack serialises JSON into MessagePack.
 //
-// CyberChef wraps the `notepack.io` library's encode; this is a from-scratch
+// CyberChef wraps the `notepack.io` library's encode; this is an in-repo
 // port of its rules: shortest integer forms, the always-float-64 fallback for
 // non-integers, JavaScript ECMAScript key ordering, and the (lossy) bit
 // operations notepack uses to split integers beyond 2^32.

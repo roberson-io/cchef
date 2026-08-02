@@ -60,7 +60,7 @@ func (Typex) Args() []core.ArgDef {
 	)
 }
 
-// Run performs the encryption/decryption. Ported from CyberChef Typex.mjs.
+// Run performs the encryption/decryption.
 func (Typex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	reflectorStr := args[20].(string)
 	plugboardStr := args[21].(string)

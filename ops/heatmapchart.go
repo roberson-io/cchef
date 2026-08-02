@@ -15,7 +15,7 @@ func init() {
 }
 
 // HeatmapChart bins two-variable data into a grid and shades each cell by how
-// many points fall in it. Ported from CyberChef's Heatmap chart.
+// many points fall in it.
 type HeatmapChart struct{}
 
 // Meta returns the operation metadata.

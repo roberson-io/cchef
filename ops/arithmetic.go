@@ -23,7 +23,7 @@ func init() {
 var arithmeticDelims = []string{"Line feed", "Space", "Comma", "Semi-colon", "Colon", "CRLF"}
 
 // createNumArray splits the input on the named delimiter and parses each token as
-// a bignumber, excluding any that are NaN. Ported from lib/Arithmetic.mjs.
+// a bignumber, excluding any that are NaN.
 func createNumArray(input, delimName string) []bigNum {
 	parts := strings.Split(input, charRep(delimName))
 	nums := make([]bigNum, 0, len(parts))
@@ -60,7 +60,7 @@ func meanNums(data []bigNum) bigNum {
 }
 
 // medianNums returns the median, averaging the two middle values for an even
-// count. Ported from lib/Arithmetic.mjs.
+// count.
 func medianNums(data []bigNum) bigNum {
 	if len(data) == 0 {
 		return bnNaN
@@ -125,7 +125,7 @@ func (Sum) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef Sum.mjs.
+// Run computes the result.
 func (Sum) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), sumNums), nil
 }
@@ -150,7 +150,7 @@ func (Subtract) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef Subtract.mjs.
+// Run computes the result.
 func (Subtract) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), func(d []bigNum) bigNum { return reduceNums(d, bigNum.minus) }), nil
 }
@@ -175,7 +175,7 @@ func (Multiply) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef Multiply.mjs.
+// Run computes the result.
 func (Multiply) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), func(d []bigNum) bigNum { return reduceNums(d, bigNum.times) }), nil
 }
@@ -200,7 +200,7 @@ func (Divide) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef Divide.mjs.
+// Run computes the result.
 func (Divide) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), func(d []bigNum) bigNum { return reduceNums(d, bigNum.div) }), nil
 }
@@ -225,7 +225,7 @@ func (Mean) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef Mean.mjs.
+// Run computes the result.
 func (Mean) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), meanNums), nil
 }
@@ -250,7 +250,7 @@ func (Median) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef Median.mjs.
+// Run computes the result.
 func (Median) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), medianNums), nil
 }
@@ -275,7 +275,7 @@ func (StandardDeviation) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Delimiter", Type: core.ArgOption, Value: arithmeticDelims}}
 }
 
-// Run computes the result. Ported from CyberChef StandardDeviation.mjs.
+// Run computes the result.
 func (StandardDeviation) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return runArith(in, args[0].(string), stdDevNums), nil
 }

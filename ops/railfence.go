@@ -59,7 +59,7 @@ func (RailFenceEncode) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RailFenceEncode) Args() []core.ArgDef { return railFenceArgs() }
 
-// Run performs the encoding. Ported from CyberChef RailFenceCipherEncode.mjs.
+// Run performs the encoding.
 func (RailFenceEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, offset := int(args[0].(float64)), int(args[1].(float64))
 	text := []rune(in.String())
@@ -101,7 +101,7 @@ func (RailFenceDecode) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (RailFenceDecode) Args() []core.ArgDef { return railFenceArgs() }
 
-// Run performs the decoding. Ported from CyberChef RailFenceCipherDecode.mjs.
+// Run performs the decoding.
 func (RailFenceDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, offset := int(args[0].(float64)), int(args[1].(float64))
 	cipher := []rune(in.String())

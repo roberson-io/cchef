@@ -11,7 +11,7 @@ func init() {
 	core.Register(CRCChecksum{})
 }
 
-// CRCChecksum computes a Cyclic Redundancy Check. A faithful port of CyberChef's
+// CRCChecksum computes a Cyclic Redundancy Check. It follows CyberChef's
 // CRCChecksum: ~170 named CRC variants plus a fully custom width/polynomial/
 // initialisation/reflection/xor configuration, using the Rocksoft parameterised
 // model computed bit-by-bit over big integers (so arbitrary widths up to 82 bits
@@ -457,7 +457,7 @@ func crcCustom(args []any, data []byte) (string, error) {
 }
 
 // crcCompute runs the parameterised CRC bit-by-bit, returning the result as hex
-// padded to ceil(width/4) digits. Ported from CyberChef's calculateCrcBitPerBit.
+// padded to ceil(width/4) digits.
 func crcCompute(width int, data []byte, poly, init *big.Int, refIn, refOut bool, xor *big.Int) string {
 	one := big.NewInt(1)
 	topBit := new(big.Int).Lsh(one, uint(width-1))
@@ -492,7 +492,7 @@ func crcCompute(width int, data []byte, poly, init *big.Int, refIn, refOut bool,
 	return s
 }
 
-// crcReflect reverses the low nbits bits of data. Ported from reflectData.
+// crcReflect reverses the low nbits bits of data.
 func crcReflect(data *big.Int, nbits int) *big.Int {
 	value := new(big.Int)
 	d := new(big.Int).Set(data)

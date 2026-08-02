@@ -8,9 +8,7 @@ import (
 )
 
 // The line generator CyberChef's entropy views draw with: d3.line() carrying
-// d3-shape's monotone curve, written through d3-path. Ported from
-// ../CyberChef/node_modules/d3-shape/src/curve/monotone.js and
-// ../CyberChef/node_modules/d3-path/src/path.js.
+// d3-shape's monotone curve, written through d3-path.
 
 // Point is one point on a line.
 type Point struct{ X, Y float64 }

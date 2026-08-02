@@ -36,8 +36,7 @@ func (ProtobufDecode) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the protobuf data. Ported from CyberChef ProtobufDecode.mjs /
-// lib/Protobuf.mjs.
+// Run decodes the protobuf data.
 func (ProtobufDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	schema := args[0].(string)
 	showUnknown := args[1].(bool)

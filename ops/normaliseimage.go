@@ -11,8 +11,7 @@ func init() {
 	core.Register(NormaliseImage{})
 }
 
-// NormaliseImage stretches each colour channel to the full 0-255 range. Ported
-// from CyberChef's Normalise Image (Jimp's normalize).
+// NormaliseImage stretches each colour channel to the full 0-255 range.
 type NormaliseImage struct{}
 
 // Meta returns the operation metadata.

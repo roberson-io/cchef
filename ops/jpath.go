@@ -25,7 +25,7 @@ func init() {
 // byte-for-byte like jsonpath-plus's results.map(JSON.stringify).join(delimiter),
 // including ECMAScript object key ordering.
 //
-// Known minor divergences (all on degenerate inputs, verified against the
+// Known minor divergences (all on degenerate inputs, compared with the
 // oracle): a query with a trailing unterminated '[' errors here but is ignored by
 // jsonpath-plus; a bare null document returns null here whereas jsonpath-plus
 // throws an uncaught TypeError; and string-coercing an array/object inside a

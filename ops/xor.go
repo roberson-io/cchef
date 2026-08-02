@@ -80,7 +80,7 @@ func (XOR) Args() []core.ArgDef {
 	}
 }
 
-// Run applies the XOR. Ported from CyberChef XOR.mjs / lib bitOp.
+// Run applies the XOR.
 func (XOR) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyArg := args[0].(core.ToggleString)
 	scheme := args[1].(string)

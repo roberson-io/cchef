@@ -17,7 +17,7 @@ func init() {
 }
 
 // ParseASN1HexString parses ASN.1 data given as a hex string into a text tree.
-// It is a faithful port of jsrsasign's ASN1HEX.dump (the library CyberChef's
+// It follows jsrsasign's ASN1HEX.dump (the library CyberChef's
 // "Parse ASN.1 hex string" operation wraps): a recursive walk over BER/DER
 // Type-Length-Value structures producing an indented, human-readable dump.
 type ParseASN1HexString struct{}

@@ -10,8 +10,7 @@ func init() {
 	core.Register(ConvertLeetSpeak{})
 }
 
-// ConvertLeetSpeak converts text to and from leet speak. Ported from CyberChef
-// ConvertLeetSpeak.mjs.
+// ConvertLeetSpeak converts text to and from leet speak.
 type ConvertLeetSpeak struct{}
 
 // Meta returns the operation metadata.

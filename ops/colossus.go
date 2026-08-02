@@ -99,7 +99,7 @@ func (Colossus) Args() []core.ArgDef {
 	return defs
 }
 
-// Run emulates a Colossus run. Ported from CyberChef Colossus.mjs + lib/Colossus.mjs.
+// Run emulates a Colossus run.
 func (Colossus) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := strings.ToUpper(in.String())
 	if err := colossusValidateInput(input); err != nil {
@@ -216,8 +216,7 @@ func colNum(v any) int {
 	return 0
 }
 
-// colossusSelectProgram rewrites the switch args for a named preset program,
-// ported from Colossus.mjs selectProgram.
+// colossusSelectProgram rewrites the switch args for a named preset program.
 func colossusSelectProgram(prog string, args []any) []any {
 	switch prog {
 	case "Letter Count":

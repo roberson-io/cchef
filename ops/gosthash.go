@@ -26,7 +26,7 @@ func init() {
 	decodeStreebogTables()
 }
 
-// gostB64decode is a faithful port of the upstream base64 decoder used to
+// gostB64decode mirrors the upstream base64 decoder used to
 // unpack the Streebog constant tables (standard base64 alphabet, no padding).
 func gostB64decode(s string) []byte {
 	n := len(s)
@@ -372,7 +372,7 @@ func (GOSTHash) Args() []core.ArgDef {
 	}
 }
 
-// Run computes the digest. Ported from CyberChef GOSTHash.mjs.
+// Run computes the digest.
 func (GOSTHash) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	algorithm := args[0].(string)
 	sBox := args[2].(string)

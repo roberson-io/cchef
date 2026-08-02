@@ -215,8 +215,7 @@ func ecdsaDetectFormat(input, inputFormat string) (format string, jsonMap map[st
 }
 
 // ecdsaInputToASN1 detects (when inputFormat is "Auto") and converts a signature
-// in any supported format to ASN.1 hex. Ported from the shared detection logic in
-// ECDSAVerify/ECDSASignatureConversion.
+// in any supported format to ASN.1 hex.
 func ecdsaInputToASN1(input, inputFormat string) (string, error) {
 	format, jsonMap, jwsBytes := ecdsaDetectFormat(input, inputFormat)
 	switch format {
@@ -403,7 +402,7 @@ func (ECDSASign) Args() []core.ArgDef {
 	}
 }
 
-// Run signs the input. Ported from CyberChef ECDSASign.mjs.
+// Run signs the input.
 func (ECDSASign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyPem := args[0].(string)
 	if len(strings.Replace(keyPem, "-----BEGIN EC PRIVATE KEY-----", "", 1)) == 0 {
@@ -456,7 +455,7 @@ func (ECDSAVerify) Args() []core.ArgDef {
 	}
 }
 
-// Run verifies the signature. Ported from CyberChef ECDSAVerify.mjs.
+// Run verifies the signature.
 func (ECDSAVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyPem := args[2].(string)
 	if len(strings.Replace(keyPem, "-----BEGIN PUBLIC KEY-----", "", 1)) == 0 {
@@ -514,7 +513,7 @@ func (ECDSASignatureConversion) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the signature. Ported from CyberChef ECDSASignatureConversion.mjs.
+// Run converts the signature.
 func (ECDSASignatureConversion) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	asn1Hex, err := ecdsaInputToASN1(in.String(), args[0].(string))
 	if err != nil {
@@ -573,7 +572,7 @@ func ecdsaCurveByName(name string) (elliptic.Curve, int) {
 	}
 }
 
-// Run generates the key pair. Ported from CyberChef GenerateECDSAKeyPair.mjs.
+// Run generates the key pair.
 func (GenerateECDSAKeyPair) Run(_ *core.Dish, args []any) (*core.Dish, error) {
 	curveName := args[0].(string)
 	curve, byteLen := ecdsaCurveByName(curveName)

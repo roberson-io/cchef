@@ -88,7 +88,7 @@ func (ParseSSHHostKey) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Input Format", Type: core.ArgOption, Value: []string{"Auto", "Base64", "Hex"}}}
 }
 
-// Run parses the key. Ported from CyberChef ParseSSHHostKey.mjs.
+// Run parses the key.
 func (ParseSSHHostKey) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, err := sshConvertKeyToBinary(strings.TrimSpace(in.String()), args[0].(string))
 	if err != nil {

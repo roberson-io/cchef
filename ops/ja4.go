@@ -176,8 +176,7 @@ func commaEvery4(s string) string {
 	return strings.Join(parts, ",")
 }
 
-// toJA4 computes the JA4 fingerprints from a TLS Client Hello. Ported from
-// lib/JA4.mjs toJA4.
+// toJA4 computes the JA4 fingerprints from a TLS Client Hello.
 func toJA4(data []byte) (map[string]string, error) {
 	h, err := parseJA4Hello(data)
 	if err != nil || h.handshakeType != 0x01 {
@@ -272,8 +271,7 @@ func ja4Extensions(h *ja4Hello) (extLen, sortedRaw, origRaw string) {
 	return extLen, sortedRaw, origRaw
 }
 
-// toJA4S computes the JA4S fingerprints from a TLS Server Hello. Ported from
-// lib/JA4.mjs toJA4S.
+// toJA4S computes the JA4S fingerprints from a TLS Server Hello.
 func toJA4S(data []byte) (map[string]string, error) {
 	h, err := parseJA4Hello(data)
 	if err != nil || h.handshakeType != 0x02 {

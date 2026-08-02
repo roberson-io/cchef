@@ -193,7 +193,7 @@ func (Salsa20) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (Salsa20) Args() []core.ArgDef { return salsaArgs() }
 
-// Run performs the Salsa20 stream cipher. Ported from CyberChef Salsa20.mjs.
+// Run performs the Salsa20 stream cipher.
 func (Salsa20) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, err := salsaKey(args[0].(core.ToggleString), "Salsa20")
 	if err != nil {
@@ -227,7 +227,7 @@ func (XSalsa20) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (XSalsa20) Args() []core.ArgDef { return salsaArgs() }
 
-// Run performs the XSalsa20 stream cipher. Ported from CyberChef XSalsa20.mjs.
+// Run performs the XSalsa20 stream cipher.
 func (XSalsa20) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, err := salsaKey(args[0].(core.ToggleString), "XSalsa20")
 	if err != nil {

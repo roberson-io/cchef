@@ -10,7 +10,6 @@ func init() {
 }
 
 // ChiSquare measures how far the byte distribution strays from a flat one.
-// Ported from CyberChef's Chi Square.
 type ChiSquare struct{}
 
 // Meta returns the operation metadata.

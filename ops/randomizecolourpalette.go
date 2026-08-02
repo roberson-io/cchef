@@ -16,8 +16,7 @@ func init() {
 }
 
 // RandomizeColourPalette recolours an image so that every distinct colour
-// becomes a new one derived from a seed. Ported from CyberChef
-// RandomizeColourPalette.mjs.
+// becomes a new one derived from a seed.
 type RandomizeColourPalette struct{}
 
 // Meta returns the operation metadata.

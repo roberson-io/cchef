@@ -292,7 +292,7 @@ func (ParseTLSRecord) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseTLSRecord) Args() []core.ArgDef { return nil }
 
-// Run parses the records. Ported from CyberChef ParseTLSRecord.mjs.
+// Run parses the records.
 func (ParseTLSRecord) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := bytestream.New(in.Bytes())
 	records := []*jsonval.OMap{}

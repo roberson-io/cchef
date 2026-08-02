@@ -39,7 +39,7 @@ func (ParseColourCode) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseColourCode) Args() []core.ArgDef { return nil }
 
-// Run parses the colour. Ported from CyberChef ParseColourCode.mjs.
+// Run parses the colour.
 func (ParseColourCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	var r, g, b, a float64 = 0, 0, 0, 1
@@ -120,7 +120,7 @@ CMYK: %s
 func parseHex(s string) float64 { v, _ := strconv.ParseInt(s, 16, 64); return float64(v) }
 func atof(s string) float64     { v, _ := strconv.ParseFloat(s, 64); return v }
 
-// rgbToHSL converts RGB (0-255) to HSL (each 0-1). Ported from ParseColourCode.
+// rgbToHSL converts RGB (0-255) to HSL (each 0-1).
 func rgbToHSL(r, g, b float64) (float64, float64, float64) {
 	r, g, b = r/255, g/255, b/255
 	cmax := math.Max(r, math.Max(g, b))
@@ -151,7 +151,7 @@ func rgbToHSL(r, g, b float64) (float64, float64, float64) {
 	return h / 6, s, l
 }
 
-// hslToRGB converts HSL (each 0-1) to RGB (0-255, rounded). Ported from ParseColourCode.
+// hslToRGB converts HSL (each 0-1) to RGB (0-255, rounded).
 func hslToRGB(h, s, l float64) (float64, float64, float64) {
 	if s == 0 {
 		v := math.Round(l * 255)

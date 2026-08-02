@@ -122,7 +122,7 @@ func uaField(res map[string]string, key string) string {
 }
 
 // ParseUserAgent identifies the browser, device, engine, OS and CPU described
-// by a user-agent string. Ported from CyberChef ParseUserAgent.mjs.
+// by a user-agent string.
 type ParseUserAgent struct{}
 
 // Meta returns the operation metadata.

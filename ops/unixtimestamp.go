@@ -72,7 +72,7 @@ func (FromUNIXTimestamp) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Units", Type: core.ArgOption, Value: dateTimeUnits}}
 }
 
-// Run renders the timestamp. Ported from CyberChef FromUNIXTimestamp.mjs.
+// Run renders the timestamp.
 func (FromUNIXTimestamp) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	units := args[0].(string)
 	f, err := strconv.ParseFloat(strings.TrimSpace(in.String()), 64)
@@ -125,7 +125,7 @@ func (ToUNIXTimestamp) Args() []core.ArgDef {
 	}
 }
 
-// Run parses the datetime. Ported from CyberChef ToUNIXTimestamp.mjs.
+// Run parses the datetime.
 func (ToUNIXTimestamp) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	units := args[0].(string)
 	treatAsUTC := args[1].(bool)
@@ -181,7 +181,7 @@ func (GetTime) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Granularity", Type: core.ArgOption, Value: dateTimeUnits}}
 }
 
-// Run returns the current time. Ported from CyberChef GetTime.mjs.
+// Run returns the current time.
 func (GetTime) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ns := float64(time.Now().UnixNano())
 	var v float64

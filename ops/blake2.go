@@ -92,7 +92,7 @@ func (BLAKE2b) Run(in *core.Dish, args []any) (*core.Dish, error) {
 }
 
 // BLAKE2s computes the BLAKE2s hash (8- to 32-bit optimised) with an optional
-// key. A from-scratch port (RFC 7693): x/crypto/blake2s only offers 256-bit and
+// key. An implementation of RFC 7693: x/crypto/blake2s only offers 256-bit and
 // keyed 128-bit digests, so it cannot produce the 160-bit / unkeyed 128-bit
 // variants this operation needs.
 type BLAKE2s struct{}

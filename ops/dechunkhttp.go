@@ -71,7 +71,7 @@ func (DechunkHTTPResponse) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (DechunkHTTPResponse) Args() []core.ArgDef { return nil }
 
-// Run reassembles the body. Ported from CyberChef DechunkHTTPResponse.mjs.
+// Run reassembles the body.
 func (DechunkHTTPResponse) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	var chunks strings.Builder

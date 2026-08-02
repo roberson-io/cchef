@@ -162,7 +162,7 @@ func (XXTEAEncrypt) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues}}
 }
 
-// Run encrypts with XXTEA. Ported from CyberChef XXTEAEncrypt.mjs.
+// Run encrypts with XXTEA.
 func (XXTEAEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ks := args[0].(core.ToggleString)
 	key, err := convertToByteArray(ks.Value, ks.Option)
@@ -192,7 +192,7 @@ func (XXTEADecrypt) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgToggleString, Value: "", ToggleValues: aesToggleValues}}
 }
 
-// Run decrypts with XXTEA. Ported from CyberChef XXTEADecrypt.mjs.
+// Run decrypts with XXTEA.
 func (XXTEADecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ks := args[0].(core.ToggleString)
 	key, err := convertToByteArray(ks.Value, ks.Option)

@@ -28,7 +28,7 @@ func (StripHTTPHeaders) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (StripHTTPHeaders) Args() []core.ArgDef { return nil }
 
-// Run strips the headers. Ported from CyberChef StripHTTPHeaders.mjs.
+// Run strips the headers.
 func (StripHTTPHeaders) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	headerEnd := strings.Index(input, "\r\n\r\n")

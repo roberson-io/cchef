@@ -110,7 +110,6 @@ func (CTPH) Run(in *core.Dish, args []any) (*core.Dish, error) {
 }
 
 // CompareCTPHHashes compares two CTPH hashes, returning a 0–100 similarity.
-// Ported from CyberChef CompareCTPHHashes.mjs.
 type CompareCTPHHashes struct{}
 
 // Meta returns the operation metadata.

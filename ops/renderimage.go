@@ -12,10 +12,10 @@ func init() {
 }
 
 // RenderImage validates that the input is an image and passes the bytes through.
-// Ported from CyberChef RenderImage.mjs. CyberChef renders the bytes as an
-// <img> in the browser via presentType=html; cchef drops that browser-only
-// presentation and instead offers an "Output" option: Raw bytes (the default,
-// save with -o or a pipe), a base64 data-URI, or an inline terminal preview.
+// CyberChef renders the bytes as an <img> in the browser via presentType=html;
+// cchef drops that browser-only presentation and instead offers an "Output"
+// option: Raw bytes (the default, save with -o or a pipe), a base64 data-URI, or
+// an inline terminal preview.
 type RenderImage struct{}
 
 // Meta returns the operation metadata.

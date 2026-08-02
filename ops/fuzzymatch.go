@@ -57,7 +57,7 @@ func (FuzzyMatch) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the fuzzy match. Ported from CyberChef FuzzyMatch.mjs + lib/FuzzyMatch.mjs.
+// Run performs the fuzzy match.
 func (FuzzyMatch) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	search := opsutil.ParseEscapedChars(args[0].(string))
 	w := fuzzyWeights{
@@ -184,7 +184,7 @@ const fuzzyBaseScore = 100
 
 // fuzzyScore computes the score for a completed match: the base score, the
 // leading- and unmatched-letter penalties, and per-match sequential / camelCase
-// / separator / first-letter bonuses. Ported from FuzzyMatch.mjs.
+// / separator / first-letter bonuses.
 func fuzzyScore(matches []int, nextMatch int, str []rune, w fuzzyWeights) float64 {
 	outScore := float64(fuzzyBaseScore)
 	penalty := w.leadingLetterPenalty * float64(matches[0])

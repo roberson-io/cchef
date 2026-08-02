@@ -13,8 +13,6 @@ func init() {
 }
 
 // ImageHueSaturationLightness adjusts an image's hue, saturation and lightness.
-// Ported from CyberChef's operation (Jimp's color() with tinycolor's
-// spin/saturate/lighten).
 type ImageHueSaturationLightness struct{}
 
 // Meta returns the operation metadata.

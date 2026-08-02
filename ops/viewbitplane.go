@@ -17,7 +17,7 @@ func init() {
 var viewBitPlaneColours = []string{"Red", "Green", "Blue", "Alpha"}
 
 // ViewBitPlane renders a single bit of a single channel as a black-and-white
-// image. Ported from CyberChef ViewBitPlane.mjs.
+// image.
 type ViewBitPlane struct{}
 
 // Meta returns the operation metadata.

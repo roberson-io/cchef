@@ -2,7 +2,7 @@ package ops
 
 import "regexp"
 
-// Shared helpers for the from-scratch port of the vkbeautify library
+// Shared helpers for the port of the vkbeautify library
 // (https://github.com/vkiryukhin/vkBeautify), which backs the CyberChef
 // JSON/XML/CSS/SQL Beautify and Minify operations. Each operation lives in its own
 // <op>.go; the pieces genuinely shared across them live here.
@@ -27,8 +27,7 @@ var xmlTagWSRe = regexp.MustCompile(">[" + jsWSChars + "]*<")
 var vkNumericStep = regexp.MustCompile("^[" + jsWSChars + "]*[+-]?[0-9]")
 
 // createShiftArr builds the indentation ladder used by XML/CSS Beautify:
-// ["\n", "\n"+unit, "\n"+unit+unit, ...] with 101 entries. Ported from
-// vkbeautify.createShiftArr, including its numeric-step quirk.
+// ["\n", "\n"+unit, "\n"+unit+unit, ...] with 101 entries.
 func createShiftArr(step string) []string {
 	space := step
 	if vkNumericStep.MatchString(step) {

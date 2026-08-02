@@ -17,7 +17,7 @@ var escapeNamed = map[rune]string{
 	'\b': `\b`, '\t': `\t`, '\n': `\n`, '\v': `\v`, '\f': `\f`, '\r': `\r`,
 }
 
-// EscapeString escapes special characters in a string. This is a from-scratch
+// EscapeString escapes special characters in a string. This is an in-repo
 // implementation of the behaviour CyberChef gets from the jsesc library; it
 // covers the documented options but is not guaranteed byte-identical to jsesc in
 // every edge case.

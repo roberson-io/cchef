@@ -97,7 +97,7 @@ func padStartZero(s string, length int) string {
 }
 
 // ipv6IPTransition builds the four transition addresses for an IPv4 address or
-// /24 range. Ported from IPv6TransitionAddresses.mjs ipTransition.
+// /24 range.
 func ipv6IPTransition(input string, isRange, removeHeaders bool) string {
 	hexip := strings.Split(input, ".")
 	var b strings.Builder
@@ -123,8 +123,7 @@ func ipv6IPTransition(input string, isRange, removeHeaders bool) string {
 	return b.String()
 }
 
-// ipv6MACTransition converts a MAC address to its EUI-64 interface ID. Ported
-// from IPv6TransitionAddresses.mjs macTransition.
+// ipv6MACTransition converts a MAC address to its EUI-64 interface ID.
 func ipv6MACTransition(input string, removeHeaders bool) string {
 	p := strings.Split(input, ":")
 	mac := p[0] + p[1] + ":" + p[2] + "ff:fe" + p[3] + ":" + p[4] + p[5]
@@ -139,7 +138,7 @@ func ipv6MACTransition(input string, removeHeaders bool) string {
 }
 
 // ipv6UnTransition converts an IPv6 transition address back to its original IPv4
-// or MAC address. Ported from IPv6TransitionAddresses.mjs unTransition.
+// or MAC address.
 func ipv6UnTransition(input string, removeHeaders bool) string {
 	var b strings.Builder
 	header := func(h string) {
@@ -195,7 +194,7 @@ func ipv6UnTransition(input string, removeHeaders bool) string {
 	return b.String()
 }
 
-// Run performs the transition. Ported from CyberChef IPv6TransitionAddresses.mjs.
+// Run performs the transition.
 func (IPv6TransitionAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ignoreRanges := args[0].(bool)
 	removeHeaders := args[1].(bool)

@@ -11,8 +11,7 @@ func init() {
 	core.Register(ResizeImage{})
 }
 
-// ResizeImage resizes an image. Ported from CyberChef's Resize Image (Jimp's
-// resize/scaleToFit with the five ResizeStrategy algorithms).
+// ResizeImage resizes an image.
 type ResizeImage struct{}
 
 // Meta returns the operation metadata.

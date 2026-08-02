@@ -17,8 +17,7 @@ func init() {
 	core.Register(UnicodeTextFormat{})
 }
 
-// UnicodeTextFormat decorates text with Unicode combining characters. Ported
-// from CyberChef UnicodeTextFormat.mjs.
+// UnicodeTextFormat decorates text with Unicode combining characters.
 type UnicodeTextFormat struct{}
 
 // Meta returns the operation metadata.

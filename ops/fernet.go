@@ -158,8 +158,7 @@ func (FernetEncrypt) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgString, Value: ""}}
 }
 
-// Run encrypts the input. Ported from CyberChef FernetEncrypt.mjs (a wrapper
-// over the fernet npm library). A fresh random IV and the current time are used.
+// Run encrypts the input. A fresh random IV and the current time are used.
 func (FernetEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	signKey, block, err := fernetSecret(args[0].(string))
 	if err != nil {
@@ -194,7 +193,7 @@ func (FernetDecrypt) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Key", Type: core.ArgString, Value: ""}}
 }
 
-// Run decrypts the token. Ported from CyberChef FernetDecrypt.mjs.
+// Run decrypts the token.
 func (FernetDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	signKey, block, err := fernetSecret(args[0].(string))
 	if err != nil {

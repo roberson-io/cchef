@@ -58,8 +58,7 @@ func (c unitConverter) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the conversion. Ported from CyberChef Convert*.mjs:
-// value * factor[in] / factor[out].
+// Run performs the conversion.
 func (c unitConverter) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	table := unitTables[c.kind]
 	value, ok := new(big.Rat).SetString(strings.TrimSpace(in.String()))

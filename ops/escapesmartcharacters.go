@@ -34,7 +34,7 @@ func (EscapeSmartCharacters) Args() []core.ArgDef {
 	}
 }
 
-// Run escapes the smart characters. Ported from CyberChef EscapeSmartCharacters.mjs.
+// Run escapes the smart characters.
 func (EscapeSmartCharacters) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	unmappable := args[0].(string)
 	var sb strings.Builder
@@ -59,8 +59,8 @@ func (EscapeSmartCharacters) Run(in *core.Dish, args []any) (*core.Dish, error) 
 }
 
 // smartCharMap maps typographic Unicode characters to their ASCII equivalents.
-// Ported from CyberChef's SMART_MAP. Every value is non-empty, so a zero-value
-// lookup means "not a smart character".
+// Every value is non-empty, so a zero-value lookup means "not a smart
+// character".
 var smartCharMap = map[rune]string{
 	// Smart double quotes: “ ” „ ‟ ″
 	'“': `"`, '”': `"`, '„': `"`, '‟': `"`, '″': `"`,

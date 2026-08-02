@@ -41,7 +41,7 @@ func (LevenshteinDistance) Args() []core.ArgDef {
 	}
 }
 
-// Run computes the distance. Ported from CyberChef LevenshteinDistance.mjs.
+// Run computes the distance.
 func (LevenshteinDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := opsutil.ParseEscapedChars(args[0].(string))
 	insCost := int(args[1].(float64))
@@ -164,7 +164,7 @@ func (HammingDistance) Args() []core.ArgDef {
 	}
 }
 
-// Run computes the distance. Ported from CyberChef HammingDistance.mjs.
+// Run computes the distance.
 func (HammingDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := opsutil.ParseEscapedChars(args[0].(string))
 	byByte := args[1].(string) == "Byte"

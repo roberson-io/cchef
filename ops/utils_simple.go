@@ -31,7 +31,7 @@ func (SwapCase) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (SwapCase) Args() []core.ArgDef { return nil }
 
-// Run swaps case. Ported from CyberChef SwapCase.mjs.
+// Run swaps case.
 func (SwapCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
 	for _, r := range dishText(in) {
@@ -70,7 +70,7 @@ func (RemoveWhitespace) Args() []core.ArgDef {
 	}
 }
 
-// Run removes the selected characters. Ported from CyberChef RemoveWhitespace.mjs.
+// Run removes the selected characters.
 func (RemoveWhitespace) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.String()
 	repl := func(on bool, old string) {
@@ -139,7 +139,7 @@ func (PadLines) Args() []core.ArgDef {
 	}
 }
 
-// Run pads each line. Ported from CyberChef PadLines.mjs.
+// Run pads each line.
 func (PadLines) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	position := args[0].(string)
 	n := int(args[1].(float64))

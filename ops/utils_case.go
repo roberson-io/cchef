@@ -40,7 +40,7 @@ func (GetAllCasings) Args() []core.ArgDef { return nil }
 // would cost the machine's memory rather than the caller's patience.
 const maxCasingLength = 20
 
-// Run produces all casings. Ported from CyberChef GetAllCasings.mjs.
+// Run produces all casings.
 func (GetAllCasings) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	lower := []rune(strings.ToLower(in.String()))
 	n := len(lower)
@@ -83,7 +83,7 @@ func (UnescapeString) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (UnescapeString) Args() []core.ArgDef { return nil }
 
-// Run unescapes the string. Ported from CyberChef UnescapeString.mjs.
+// Run unescapes the string.
 func (UnescapeString) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return core.NewDish([]byte(opsutil.ParseEscapedChars(in.String())), core.TypeString), nil
 }
@@ -153,7 +153,7 @@ func (ToCaseInsensitiveRegex) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ToCaseInsensitiveRegex) Args() []core.ArgDef { return nil }
 
-// Run rewrites the regex. Ported from CyberChef ToCaseInsensitiveRegex.mjs.
+// Run rewrites the regex.
 func (ToCaseInsensitiveRegex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// Wrap each standalone letter as [lL], simulating the upstream pre-process.
 	r := []rune(in.String())
@@ -196,7 +196,7 @@ func (FromCaseInsensitiveRegex) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (FromCaseInsensitiveRegex) Args() []core.ArgDef { return nil }
 
-// Run collapses the pairs. Ported from CyberChef FromCaseInsensitiveRegex.mjs.
+// Run collapses the pairs.
 func (FromCaseInsensitiveRegex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	out := reFromCI.ReplaceAllStringFunc(in.String(), func(m string) string {
 		a, b := rune(m[1]), rune(m[2])

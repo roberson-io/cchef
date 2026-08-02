@@ -36,7 +36,7 @@ func (ToBase) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the input number to the target radix. Ported from CyberChef ToBase.mjs.
+// Run converts the input number to the target radix.
 func (ToBase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := strings.TrimSpace(in.String())
 	if s == "" {
@@ -72,8 +72,7 @@ func (FromBase) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the input from the given radix to decimal. Ported from CyberChef
-// FromBase.mjs (integer part only).
+// Run converts the input from the given radix to decimal.
 func (FromBase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	radix := int(args[0].(float64))
 	if radix < 2 || radix > 36 {

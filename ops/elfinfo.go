@@ -26,7 +26,7 @@ const (
 )
 
 // ELFInfo reports the header, program headers, section headers and symbol table
-// of an ELF file. Ported from CyberChef ELFInfo.mjs.
+// of an ELF file.
 type ELFInfo struct{}
 
 // Meta returns the operation metadata.

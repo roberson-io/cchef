@@ -13,7 +13,7 @@ func init() {
 }
 
 // ExtendedGCD finds the greatest common divisor of two numbers along with the
-// coefficients that express it. Ported from CyberChef ExtendedGCD.mjs.
+// coefficients that express it.
 type ExtendedGCD struct{}
 
 // Meta returns the operation metadata.

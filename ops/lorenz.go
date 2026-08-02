@@ -92,7 +92,7 @@ func (Lorenz) Args() []core.ArgDef {
 	return defs
 }
 
-// Run enciphers/deciphers with the Lorenz machine. Ported from CyberChef Lorenz.mjs.
+// Run enciphers/deciphers with the Lorenz machine.
 func (Lorenz) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cfg := lorenzConfig{
 		model:   args[0].(string),
@@ -238,7 +238,7 @@ func readLugs(s string) []int {
 
 // lorenzToITA2 converts the input to an ITA2 stream. In ITA2/Receive modes the
 // input must already be valid ITA2; in Plaintext/Send mode it is converted with
-// figure/letter shifts. Ported from Lorenz.mjs convertToITA2.
+// figure/letter shifts.
 func lorenzToITA2(input, intype, mode string) (string, error) {
 	if intype == "ITA2" || mode == "Receive" {
 		return lorenzValidateITA2(input)
@@ -341,8 +341,7 @@ func lorenzFromITA2(input, outtype, mode string) string {
 	return b.String()
 }
 
-// Lorenz-specific ITA2 resources (plaintext<->ITA2 figure/letter shifting),
-// ported from CyberChef Lorenz.mjs.
+// Lorenz-specific ITA2 resources (plaintext<->ITA2 figure/letter shifting).
 
 const (
 	lorenzValidChars      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890+-'()/:=?,. \n\r"

@@ -28,7 +28,7 @@ var (
 )
 
 // defangURLStr neutralises a single URL/domain: dots, the scheme and the "://"
-// separator each optionally escaped. Ported from DefangURL.mjs defangURL.
+// separator each optionally escaped.
 func defangURLStr(url string, dots, http, slashes bool) string {
 	if dots {
 		url = strings.ReplaceAll(url, ".", "[.]")
@@ -69,7 +69,7 @@ func (DefangIPAddresses) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (DefangIPAddresses) Args() []core.ArgDef { return nil }
 
-// Run defangs IP addresses. Ported from CyberChef DefangIPAddresses.mjs.
+// Run defangs IP addresses.
 func (DefangIPAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := defangIPv4Re.ReplaceAllStringFunc(in.String(), func(m string) string {
 		return strings.ReplaceAll(m, ".", "[.]")
@@ -105,7 +105,7 @@ func (DefangURL) Args() []core.ArgDef {
 	}
 }
 
-// Run defangs the URL. Ported from CyberChef DefangURL.mjs.
+// Run defangs the URL.
 func (DefangURL) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	dots := args[0].(bool)
 	http := args[1].(bool)
@@ -150,7 +150,7 @@ func (FangURL) Args() []core.ArgDef {
 	}
 }
 
-// Run fangs the URL. Ported from CyberChef FangURL.mjs.
+// Run fangs the URL.
 func (FangURL) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	dots := args[0].(bool)
 	http := args[1].(bool)

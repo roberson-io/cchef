@@ -11,7 +11,7 @@ func init() {
 }
 
 // Subsection runs the rest of the recipe over only the parts of the data that
-// match a pattern. Ported from CyberChef Subsection.mjs.
+// match a pattern.
 type Subsection struct{}
 
 // Meta returns the operation metadata.

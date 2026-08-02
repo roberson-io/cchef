@@ -13,7 +13,7 @@ func init() {
 }
 
 // ipFromNumber splits a whole 32-bit IP (parsed in the given radix) into its four
-// bytes, big-endian. Ported from ChangeIPFormat.mjs fromNumber.
+// bytes, big-endian.
 func ipFromNumber(value string, radix int) []byte {
 	dec, _ := strconv.ParseUint(strings.TrimSpace(value), radix, 64)
 	d := uint32(dec)                                                   // #nosec G115 -- 32-bit coercion of the parsed IP matches CyberChef
@@ -47,7 +47,7 @@ func (ChangeIPFormat) Args() []core.ArgDef {
 	}
 }
 
-// Run converts the IP format. Ported from CyberChef ChangeIPFormat.mjs.
+// Run converts the IP format.
 func (ChangeIPFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inFormat := args[0].(string)
 	outFormat := args[1].(string)

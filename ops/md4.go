@@ -6,8 +6,7 @@ import (
 	"math/bits"
 )
 
-// MD4 (RFC 1320). Ported from crypto-api's md4 hasher (little-endian, standard
-// Merkle–Damgård padding).
+// MD4 (RFC 1320).
 
 func md4FF(x, y, z uint32) uint32 { return (x & y) | (^x & z) }
 func md4GG(x, y, z uint32) uint32 { return (x & y) | (x & z) | (y & z) }

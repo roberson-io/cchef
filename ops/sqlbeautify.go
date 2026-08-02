@@ -17,7 +17,7 @@ func init() {
 // which wraps the sql-formatter npm library with a fixed configuration (MySQL
 // dialect, "standard" indent style, keywordCase "preserve") and a bind-variable
 // placeholder shuffle. cchef reimplements sql-formatter's tokenizer and layout
-// formatter from scratch (the WS/Layout/Indentation engine is ported directly);
+// formatter (the WS/Layout/Indentation engine follows sql-formatter's);
 // keyword categories that drive the layout are curated for the MySQL dialect.
 type SQLBeautify struct{}
 

@@ -7,7 +7,7 @@ import (
 )
 
 // reEscapedChars matches the backslash escape sequences recognised by
-// ParseEscapedChars. Ported from CyberChef Utils.ParseEscapedChars.
+// ParseEscapedChars.
 var reEscapedChars = regexp.MustCompile(`\\([abfnrtv'"]|[0-3][0-7]{2}|[0-7]{1,2}|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]{1,6}\}|\\)`)
 
 // ParseEscapedChars converts recognised backslash escape sequences into their
@@ -55,7 +55,6 @@ func ParseEscapedChars(s string) string {
 
 // ExpandAlphRange expands an alphabet specification such as "A-Za-z0-9+/=" into
 // its full character sequence. A backslash escapes a literal dash ("\\-").
-// Ported from CyberChef's Utils.ExpandAlphRange.
 func ExpandAlphRange(alph string) string {
 	r := []rune(alph)
 	var out strings.Builder

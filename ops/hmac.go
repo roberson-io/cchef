@@ -51,7 +51,7 @@ func (HMAC) Args() []core.ArgDef {
 	}
 }
 
-// Run computes the HMAC. Ported from CyberChef HMAC.mjs.
+// Run computes the HMAC.
 func (HMAC) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	keyArg := args[0].(core.ToggleString)
 	key, err := convertToByteArray(keyArg.Value, keyArg.Option)

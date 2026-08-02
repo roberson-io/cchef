@@ -330,7 +330,7 @@ var (
 )
 
 // Contain scales img to fit within w×h and centres it (per alignment) on a
-// transparent canvas. Ported from @jimp/plugin-contain.
+// transparent canvas.
 func Contain(img *image.NRGBA, w, h, alignH, alignV int, mode string) *image.NRGBA {
 	W, H := float64(img.Rect.Dx()), float64(img.Rect.Dy())
 	var f float64
@@ -347,8 +347,7 @@ func Contain(img *image.NRGBA, w, h, alignH, alignV int, mode string) *image.NRG
 	return canvas
 }
 
-// Cover scales img to fill w×h and crops the aligned region. Ported from
-// @jimp/plugin-cover.
+// Cover scales img to fill w×h and crops the aligned region.
 func Cover(img *image.NRGBA, w, h, alignH, alignV int, mode string) (*image.NRGBA, error) {
 	W, H := float64(img.Rect.Dx()), float64(img.Rect.Dy())
 	var f float64

@@ -6,8 +6,8 @@ import (
 	"math/bits"
 )
 
-// RIPEMD-128/256/320, ported from crypto-api's ripemd hasher. RIPEMD-160 is
-// provided by golang.org/x/crypto/ripemd160; these are the other three lengths.
+// RIPEMD-128/256/320. RIPEMD-160 is provided by golang.org/x/crypto/ripemd160;
+// these are the other three lengths.
 
 var (
 	ripZL = [80]int{

@@ -25,7 +25,6 @@
 // [github.com/roberson-io/cchef/core.CoerceArgs] first when they come from
 // somewhere untrusted, which is what recipe execution does.
 //
-// The operations follow CyberChef's behavior, verified against its own test
-// fixtures or against a running CyberChef. Where cchef differs deliberately,
-// PLAN.md records what and why.
+// The operations follow CyberChef's behavior. Where cchef differs
+// deliberately, PLAN.md records what and why.
 package ops

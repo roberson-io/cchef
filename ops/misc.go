@@ -40,7 +40,7 @@ func (ParseObjectIDTimestamp) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ParseObjectIDTimestamp) Args() []core.ArgDef { return nil }
 
-// Run parses the timestamp. Ported from CyberChef ParseObjectIDTimestamp.mjs.
+// Run parses the timestamp.
 func (ParseObjectIDTimestamp) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := strings.TrimSpace(in.String())
 	if len(s) != 24 {
@@ -75,7 +75,7 @@ func (Sleep) Args() []core.ArgDef {
 	}
 }
 
-// Run sleeps then returns the input. Ported from CyberChef Sleep.mjs.
+// Run sleeps then returns the input.
 func (Sleep) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	ms := int(args[0].(float64))
 	if ms > 0 {
@@ -106,7 +106,7 @@ func (FileTree) Args() []core.ArgDef {
 	}
 }
 
-// Run builds the tree. Ported from CyberChef FileTree.mjs.
+// Run builds the tree.
 func (FileTree) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	const arrow, pipe = "|---", "|   "
 	fileDelim := opsutil.ParseEscapedChars(args[0].(string))
@@ -171,8 +171,7 @@ func (Shuffle) Args() []core.ArgDef {
 	}
 }
 
-// Run shuffles the input. Ported from CyberChef Shuffle.mjs (Fisher-Yates with a
-// cryptographic RNG).
+// Run shuffles the input.
 func (Shuffle) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if in.String() == "" {
 		return core.NewDish(nil, core.TypeString), nil
@@ -219,7 +218,7 @@ func (PRNG) Args() []core.ArgDef {
 	}
 }
 
-// Run generates the random data. Ported from CyberChef PseudoRandomNumberGenerator.mjs.
+// Run generates the random data.
 func (PRNG) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	n := int(args[0].(float64))
 	b := make([]byte, n)

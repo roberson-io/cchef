@@ -7,8 +7,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// octalDelims are the delimiter options for the octal operations. Ported from
-// CyberChef's DELIM_OPTIONS (lib/Delim.mjs).
+// octalDelims are the delimiter options for the octal operations.
 var octalDelims = []string{"Space", "Comma", "Semi-colon", "Colon", "Line feed", "CRLF"}
 
 func init() {
@@ -38,7 +37,7 @@ func (ToOctal) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToOctal.mjs.
+// Run encodes the input.
 func (ToOctal) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	data := in.Bytes()
@@ -71,7 +70,7 @@ func (FromOctal) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromOctal.mjs.
+// Run decodes the input.
 func (FromOctal) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.String()
 	if len(data) == 0 {

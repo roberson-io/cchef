@@ -37,7 +37,7 @@ func (HASSHClientFingerprint) Args() []core.ArgDef {
 	}
 }
 
-// Run generates the HASSH fingerprint. Ported from CyberChef HASSHClientFingerprint.mjs.
+// Run generates the HASSH fingerprint.
 func (HASSHClientFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[0].(string)
 	outputFormat := args[1].(string)

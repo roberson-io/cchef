@@ -40,7 +40,7 @@ func (DNSOverHTTPS) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the DNS-over-HTTPS lookup. Ported from CyberChef DNSOverHTTPS.mjs.
+// Run performs the DNS-over-HTTPS lookup.
 func (DNSOverHTTPS) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	resolver := args[0].(string)
 	requestType := args[1].(string)

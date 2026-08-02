@@ -17,9 +17,9 @@ func init() {
 	core.Register(ParseX509CRL{})
 }
 
-// ParseX509CRL parses a Certificate Revocation List into a human-readable dump,
-// ported from CyberChef's ParseX509CRL.mjs (jsrsasign X509CRL). The container is
-// walked directly over its DER hex using the shared asn1* helpers.
+// ParseX509CRL parses a Certificate Revocation List into a human-readable dump.
+// The container is walked directly over its DER hex using the shared asn1*
+// helpers.
 type ParseX509CRL struct{}
 
 // Meta returns the operation metadata.

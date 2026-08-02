@@ -17,7 +17,7 @@ func init() {
 var registerRef = regexp.MustCompile(`(\\*)\$R(\d{1,2})`)
 
 // Register extracts data from the input into registers that later steps can
-// refer to. Ported from CyberChef Register.mjs.
+// refer to.
 type Register struct{}
 
 // Meta returns the operation metadata.

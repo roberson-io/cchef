@@ -39,7 +39,7 @@ func CompileSchema(schema string) (protoreflect.MessageDescriptor, error) {
 
 // SchemaDecode decodes protobuf data against a .proto schema, mirroring
 // protobufjs toObject conventions (bytes as strings, longs as numbers, enums as
-// names, defaults included). Ported from lib/Protobuf.mjs mergeDecodes.
+// names, defaults included).
 func SchemaDecode(data []byte, raw *jsonval.OMap, schema string, showUnknown, showTypes bool) ([]byte, error) {
 	md, err := CompileSchema(schema)
 	if err != nil {
@@ -163,8 +163,7 @@ func protobufExtractFieldID(key string) (int, bool) {
 }
 
 // protobufCompareFields returns the raw-decode fields not represented in the
-// schema, plus annotations for repeated/submessage mismatches. Ported from
-// Protobuf.compareFields.
+// schema, plus annotations for repeated/submessage mismatches.
 func protobufCompareFields(raw *jsonval.OMap, md protoreflect.MessageDescriptor) *jsonval.OMap {
 	schemaByID := map[int]protoreflect.FieldDescriptor{}
 	fields := md.Fields()

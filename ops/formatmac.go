@@ -62,7 +62,7 @@ func (FormatMACAddresses) Args() []core.ArgDef {
 	}
 }
 
-// Run reformats the addresses. Ported from CyberChef FormatMACAddresses.mjs.
+// Run reformats the addresses.
 func (FormatMACAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	if input == "" {

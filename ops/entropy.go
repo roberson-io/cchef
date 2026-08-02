@@ -11,8 +11,7 @@ func init() {
 	core.Register(Entropy{})
 }
 
-// Entropy measures how evenly the bytes of the input are spread. Ported from
-// CyberChef's Entropy.
+// Entropy measures how evenly the bytes of the input are spread.
 type Entropy struct{}
 
 // Meta returns the operation metadata.

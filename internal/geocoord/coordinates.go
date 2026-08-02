@@ -128,7 +128,7 @@ func convDDToDDM(decDegrees float64, precision int) string {
 	return out
 }
 
-// findDirs finds the compass directions of an input, ported from ConvertCoordinates.mjs.
+// findDirs finds the compass directions of an input.
 func findDirs(input, delim string) (string, string) {
 	upper := strings.ToUpper(input)
 	if dirs := reCoordDirs.FindAllString(upper, -1); dirs != nil {
@@ -716,7 +716,7 @@ func Convert(input, inFormat, inDelim, outFormat, outDelim string, includeDir st
 }
 
 // applyInputDirections negates lat/lon for S/W direction markers found in a
-// degree-based input, preserving CyberChef's faithful, quirky precedence.
+// degree-based input, preserving CyberChef's quirky precedence.
 func applyInputDirections(inFormat, input string, lat, lon float64) (float64, float64) {
 	if !strings.Contains(inFormat, "Degrees") {
 		return lat, lon

@@ -45,7 +45,7 @@ func jumpTo(state *core.FlowState, label string, maxJumps int) bool {
 	return true
 }
 
-// Jump moves execution to a label. Ported from CyberChef Jump.mjs.
+// Jump moves execution to a label.
 type Jump struct{}
 
 // Meta returns the operation metadata.
@@ -76,8 +76,7 @@ func (Jump) RunFlow(state *core.FlowState) error {
 	return nil
 }
 
-// ConditionalJump moves execution to a label when the data matches. Ported from
-// CyberChef ConditionalJump.mjs.
+// ConditionalJump moves execution to a label when the data matches.
 type ConditionalJump struct{}
 
 // Meta returns the operation metadata.

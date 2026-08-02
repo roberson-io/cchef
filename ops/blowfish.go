@@ -78,7 +78,7 @@ func (BlowfishEncrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the encryption. Ported from CyberChef BlowfishEncrypt.mjs.
+// Run performs the encryption.
 func (BlowfishEncrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	mode := args[2].(string)
 	key, iv, err := blowfishArgs(args[0].(core.ToggleString), args[1].(core.ToggleString), mode)
@@ -136,7 +136,7 @@ func (BlowfishDecrypt) Args() []core.ArgDef {
 	}
 }
 
-// Run performs the decryption. Ported from CyberChef BlowfishDecrypt.mjs.
+// Run performs the decryption.
 func (BlowfishDecrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	mode := args[2].(string)
 	key, iv, err := blowfishArgs(args[0].(core.ToggleString), args[1].(core.ToggleString), mode)

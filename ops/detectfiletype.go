@@ -16,7 +16,6 @@ func init() {
 var detectFileTypeCats = []string{"Images", "Video", "Audio", "Documents", "Applications", "Archives", "Miscellaneous"}
 
 // DetectFileType guesses the MIME type of the input from its magic bytes.
-// Ported from CyberChef DetectFileType.mjs.
 type DetectFileType struct{}
 
 // Meta returns the operation metadata.

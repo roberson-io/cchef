@@ -20,7 +20,6 @@ func init() {
 // would produce it.
 
 // Magic detects what data might be and suggests recipes to make sense of it.
-// Ported from CyberChef Magic.mjs and lib/Magic.mjs.
 type Magic struct{}
 
 // Meta returns the operation metadata.

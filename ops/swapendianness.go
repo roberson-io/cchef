@@ -34,7 +34,7 @@ func (SwapEndianness) Args() []core.ArgDef {
 	}
 }
 
-// Run swaps endianness. Ported from CyberChef SwapEndianness.mjs.
+// Run swaps endianness.
 func (SwapEndianness) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	dataFormat := args[0].(string)
 	wordLength := int(args[1].(float64))

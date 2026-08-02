@@ -15,7 +15,7 @@ func init() {
 	core.Register(SM2Decrypt{})
 }
 
-// SM2 public-key encryption (GM/T 0003) over the sm2p256v1 curve, a from-scratch
+// SM2 public-key encryption (GM/T 0003) over the sm2p256v1 curve, an in-repo
 // port of CyberChef's lib/SM2.mjs. jsrsasign supplies the elliptic-curve
 // arithmetic and crypto-api the SM3 hash in CyberChef; both are reimplemented
 // here (see sm3.go for SM3). Encryption output is C1 ‖ C3 ‖ C2 or C1 ‖ C2 ‖ C3

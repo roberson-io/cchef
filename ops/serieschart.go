@@ -14,7 +14,6 @@ func init() {
 }
 
 // SeriesChart draws one line graph per named series over a shared x axis.
-// Ported from CyberChef's Series chart.
 type SeriesChart struct{}
 
 // Meta returns the operation metadata.

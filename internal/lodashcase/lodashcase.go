@@ -17,7 +17,7 @@ import (
 	"github.com/dlclark/regexp2"
 )
 
-// Shared from-scratch port of lodash's case helpers, backing To Snake / Camel /
+// Port of lodash's case helpers, backing To Snake / Camel /
 // Kebab case. CyberChef wraps lodash's snakeCase/camelCase/kebabCase; each of
 // those is createCompounder(words(deburr(string).replace(apos, ""))) with a
 // per-case join. The word splitter's Unicode regex uses lookahead, which Go's RE2

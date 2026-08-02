@@ -44,8 +44,8 @@ func (ToHTMLEntity) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from ToHTMLEntity.mjs. Iterates code points
-// (like Utils.strToCharcode, which merges surrogate pairs).
+// Run encodes the input. Iterates code points (like Utils.strToCharcode,
+// which merges surrogate pairs).
 func (ToHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	convertAll := args[0].(bool)
 	mode := args[1].(string)
@@ -128,9 +128,8 @@ var (
 	htmlHexRE     = regexp.MustCompile(`(?i)^#x[\da-f]{2,8}$`)
 )
 
-// Run decodes the input. Ported from FromHTMLEntity.mjs. Named entities resolve
-// via the table, then numeric (&#d;) and hex (&#xH;) forms; anything else is left
-// verbatim.
+// Run decodes the input. Named entities resolve via the table, then numeric
+// (&#d;) and hex (&#xH;) forms; anything else is left verbatim.
 func (FromHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	var sb strings.Builder

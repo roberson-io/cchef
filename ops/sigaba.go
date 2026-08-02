@@ -73,7 +73,7 @@ func (SIGABA) Args() []core.ArgDef {
 	return args
 }
 
-// Run enciphers or deciphers with SIGABA. Ported from CyberChef SIGABA.mjs.
+// Run enciphers or deciphers with SIGABA.
 func (SIGABA) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	cipher := make([]*sigabaRotor, 5)
 	control := make([]*sigabaRotor, 5)

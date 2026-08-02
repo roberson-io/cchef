@@ -27,8 +27,7 @@ const (
 	randomPrimeCryptoRounds = 40
 )
 
-// RandomPrime generates a probable prime of a given size. Ported from
-// CyberChef's Pseudo-Random Prime Generator.
+// RandomPrime generates a probable prime of a given size.
 type RandomPrime struct{}
 
 // Meta returns the operation metadata.

@@ -29,7 +29,7 @@ func (EncodeNetBIOSName) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Offset", Type: core.ArgNumber, Integer: true, Value: 65}}
 }
 
-// Run encodes the name. Ported from CyberChef EncodeNetBIOSName.mjs.
+// Run encodes the name.
 func (EncodeNetBIOSName) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	offset := byte(int(args[0].(float64))) // #nosec G115 -- offset arg coerced to a byte, matching NetBIOS byte arithmetic
 	input := in.Bytes()
@@ -70,7 +70,7 @@ func (DecodeNetBIOSName) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "Offset", Type: core.ArgNumber, Integer: true, Value: 65}}
 }
 
-// Run decodes the name. Ported from CyberChef DecodeNetBIOSName.mjs.
+// Run decodes the name.
 func (DecodeNetBIOSName) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	offset := int(args[0].(float64))
 	input := in.Bytes()

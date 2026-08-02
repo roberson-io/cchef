@@ -37,7 +37,7 @@ func (ToCharcode) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToCharcode.mjs.
+// Run encodes the input.
 func (ToCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	base := int(args[1].(float64))
@@ -97,7 +97,7 @@ func (FromCharcode) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromCharcode.mjs.
+// Run decodes the input.
 func (FromCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	base := int(args[1].(float64))

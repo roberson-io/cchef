@@ -10,10 +10,9 @@ import (
 	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
-// Readers for each audio container. Ported from CyberChef's
-// src/core/lib/AudioParsers.mjs. Each fills in the report it is given rather
-// than returning one, so that a container carrying several metadata systems
-// contributes all of them.
+// Readers for each audio container. Each fills in the report it is given
+// rather than returning one, so that a container carrying several metadata
+// systems contributes all of them.
 
 // The tables mapping each format's own tag names onto the common ones the report
 // boils everything down to.

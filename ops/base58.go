@@ -49,7 +49,7 @@ func (ToBase58) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToBase58.mjs.
+// Run encodes the input.
 func (ToBase58) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alphabet, err := expandB58Alphabet(args[0].(string))
 	if err != nil {
@@ -112,7 +112,7 @@ func (FromBase58) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromBase58.mjs.
+// Run decodes the input.
 func (FromBase58) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	alphabet, err := expandB58Alphabet(args[0].(string))
 	if err != nil {

@@ -14,8 +14,7 @@ func init() {
 	core.Register(FromHex{})
 }
 
-// toHexDelims are the named delimiter options for To Hex. Ported from
-// CyberChef's TO_HEX_DELIM_OPTIONS / Utils.charRep.
+// toHexDelims are the named delimiter options for To Hex.
 var toHexDelims = []string{
 	"Space", "Percent", "Comma", "Semi-colon", "Colon",
 	"Line feed", "CRLF", "0x", "0x with comma", "\\x", "None",
@@ -77,9 +76,9 @@ func toHex(data []byte, delim, extraDelim string) string {
 }
 
 // toHexLines is toHex with a line break after every lineSize bytes, or none at
-// all when lineSize is zero. Ported from lib/Hex.mjs toHex. The break comes
-// after the delimiter, so a delimiter is left at the end of each line; only the
-// one closing the last line is dropped.
+// all when lineSize is zero. The break comes after the delimiter, so a
+// delimiter is left at the end of each line; only the one closing the last line
+// is dropped.
 func toHexLines(data []byte, delim, extraDelim string, lineSize int) string {
 	if len(data) == 0 {
 		return ""
@@ -169,7 +168,7 @@ func (FromHex) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from lib/Hex.mjs fromHex.
+// Run decodes the input.
 func (FromHex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := args[0].(string)
 	data := in.String()

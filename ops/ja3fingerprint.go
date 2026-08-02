@@ -37,7 +37,7 @@ func (JA3Fingerprint) Args() []core.ArgDef {
 	}
 }
 
-// Run generates the JA3 fingerprint. Ported from CyberChef JA3Fingerprint.mjs.
+// Run generates the JA3 fingerprint.
 func (JA3Fingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[0].(string)
 	outputFormat := args[1].(string)

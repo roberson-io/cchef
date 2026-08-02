@@ -29,9 +29,7 @@ func (ROR13) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ROR13) Args() []core.ArgDef { return nil }
 
-// Run computes the hash. Ported from CyberChef ROR13.mjs: rotate the 32-bit
-// accumulator right 13 bits then add each byte, emitting "0x" + 8-digit
-// uppercase hex.
+// Run computes the hash.
 func (ROR13) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var hash uint32
 	for _, chr := range in.Bytes() {

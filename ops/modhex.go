@@ -86,7 +86,7 @@ var (
 )
 
 // toModhex converts bytes to a delimited modhex string, optionally inserting a
-// line break after every lineSize bytes. Ported from lib/Modhex.mjs toModhex.
+// line break after every lineSize bytes.
 func toModhex(data []byte, delim string, lineSize int) string {
 	if len(data) == 0 {
 		return ""
@@ -116,10 +116,9 @@ func toModhex(data []byte, delim string, lineSize int) string {
 	return s
 }
 
-// fromModhex converts a modhex string back into bytes. Ported from
-// lib/Modhex.mjs fromModhex. Each modhex letter's position in the alphabet is
-// its nibble value (the alphabet is parallel to "0123456789abcdef"), so pairs of
-// letters map directly to bytes.
+// fromModhex converts a modhex string back into bytes. Each modhex letter's
+// position in the alphabet is its nibble value (the alphabet is parallel to
+// "0123456789abcdef"), so pairs of letters map directly to bytes.
 func fromModhex(data, delim string) []byte {
 	data = whitespaceRE.ReplaceAllString(strings.ToLower(data), "")
 

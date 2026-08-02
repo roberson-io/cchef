@@ -12,8 +12,7 @@ func init() {
 	core.Register(FrequencyDistribution{})
 }
 
-// FrequencyDistribution reports how often each byte value occurs. Ported from
-// CyberChef's Frequency distribution.
+// FrequencyDistribution reports how often each byte value occurs.
 type FrequencyDistribution struct{}
 
 // Meta returns the operation metadata.

@@ -20,7 +20,7 @@ var cipherSaberRandIV = func(b []byte) error {
 
 // cipherSaber2Encode is the CipherSaber (RC4) keystream cipher shared by both
 // operations. The state is keyed with key||iv, mixed over the given number of
-// rounds, then used to XOR the input. Ported from lib/CipherSaber2.mjs.
+// rounds, then used to XOR the input.
 func cipherSaber2Encode(iv, key []byte, rounds int, input []byte) []byte {
 	ivp := make([]byte, 0, len(key)+len(iv))
 	ivp = append(ivp, key...)

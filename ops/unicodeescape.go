@@ -42,8 +42,7 @@ func (EscapeUnicodeCharacters) Args() []core.ArgDef {
 	}
 }
 
-// Run escapes the input. Ported from EscapeUnicodeCharacters.mjs, iterating
-// UTF-16 code units so non-BMP characters escape as surrogate pairs (as in JS).
+// Run escapes the input.
 func (EscapeUnicodeCharacters) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	prefix := args[0].(string)
 	encodeAll := args[1].(bool)
@@ -93,9 +92,8 @@ func (UnescapeUnicodeCharacters) Args() []core.ArgDef {
 // unescapePrefixRegex maps each prefix option to its regex-escaped form.
 var unescapePrefixRegex = map[string]string{"\\u": `\\u`, "%u": `%u`, "U+": `U\+`}
 
-// Run unescapes the input. Ported from UnescapeUnicodeCharacters.mjs. Only the
-// U+ prefix admits 4-6 hex digits (for astral code points); the others are
-// fixed at 4.
+// Run unescapes the input. Only the U+ prefix admits 4-6 hex digits (for
+// astral code points); the others are fixed at 4.
 func (UnescapeUnicodeCharacters) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	prefix := args[0].(string)
 	quant := "{4}"

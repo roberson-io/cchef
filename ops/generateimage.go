@@ -16,8 +16,7 @@ func init() {
 	core.Register(GenerateImage{})
 }
 
-// GenerateImage builds an image whose pixels come from the input bytes. Ported
-// from CyberChef's Generate Image (pixel-exact).
+// GenerateImage builds an image whose pixels come from the input bytes.
 type GenerateImage struct{}
 
 // Meta returns the operation metadata.

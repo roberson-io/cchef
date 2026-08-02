@@ -44,7 +44,7 @@ func (ToHexContent) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToHexContent.mjs.
+// Run encodes the input.
 func (ToHexContent) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.Bytes()
 	convert := args[0].(string)

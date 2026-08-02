@@ -33,7 +33,7 @@ func fingerprintBytes(s, format string) []byte {
 }
 
 // parseJA3Segment reads size-byte integers from the stream and joins the
-// non-GREASE values with "-". Ported from JA3Fingerprint.mjs.
+// non-GREASE values with "-".
 func parseJA3Segment(s *bytestream.Stream, size int) string {
 	var segment []string
 	for s.HasMore() {

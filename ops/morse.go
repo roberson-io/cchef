@@ -83,7 +83,7 @@ func (ToMorseCode) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToMorseCode.mjs.
+// Run encodes the input.
 func (ToMorseCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	format := strings.SplitN(args[0].(string), "/", 2)
 	dash, dot := format[0], format[1]
@@ -139,7 +139,7 @@ func (FromMorseCode) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromMorseCode.mjs.
+// Run decodes the input.
 func (FromMorseCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	letterDelim := charRep(args[0].(string))
 	wordDelim := charRep(args[1].(string))

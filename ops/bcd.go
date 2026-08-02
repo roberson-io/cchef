@@ -66,7 +66,7 @@ func (ToBCD) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from ToBCD.mjs.
+// Run encodes the input.
 func (ToBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	s := strings.TrimSpace(in.String())
 	if strings.ContainsRune(s, '.') {
@@ -197,7 +197,7 @@ func (FromBCD) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from FromBCD.mjs.
+// Run decodes the input.
 func (FromBCD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	encoding := bcdEncodingLookup[args[0].(string)]
 	packed := args[1].(bool)

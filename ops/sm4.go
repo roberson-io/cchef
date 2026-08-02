@@ -79,7 +79,7 @@ func (SM4Encrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (SM4Encrypt) Args() []core.ArgDef { return sm4Args() }
 
-// Run encrypts with SM4. Ported from CyberChef SM4Encrypt.mjs.
+// Run encrypts with SM4.
 func (SM4Encrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, noPad, err := sm4Inputs(in, args)
 	if err != nil {
@@ -110,7 +110,7 @@ func (SM4Decrypt) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (SM4Decrypt) Args() []core.ArgDef { return sm4Args() }
 
-// Run decrypts with SM4. Ported from CyberChef SM4Decrypt.mjs.
+// Run decrypts with SM4.
 func (SM4Decrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, iv, input, mode, noPad, err := sm4Inputs(in, args)
 	if err != nil {
@@ -123,8 +123,8 @@ func (SM4Decrypt) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return sm4Output(out, args[4].(string)), nil
 }
 
-// SM4 (GB/T 32907-2016) block cipher, ported from CyberChef lib/SM4.mjs. Modes
-// follow IETF draft-ribose-cfrg-sm4-09.
+// SM4 (GB/T 32907-2016) block cipher. Modes follow IETF
+// draft-ribose-cfrg-sm4-09.
 
 const sm4Rounds = 32
 

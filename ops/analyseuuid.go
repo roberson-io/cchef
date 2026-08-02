@@ -14,8 +14,7 @@ import (
 
 // uuidLayout is what the operation will read. Only the versions the standard
 // defines are accepted, and only the four variant digits that go with them; the
-// two UUIDs reserved by name are let through as themselves. Ported from
-// ../CyberChef/node_modules/uuid/dist/regex.js.
+// two UUIDs reserved by name are let through as themselves.
 var uuidLayout = regexp.MustCompile(`^(?i:` +
 	`[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}` +
 	`|00000000-0000-0000-0000-000000000000` +

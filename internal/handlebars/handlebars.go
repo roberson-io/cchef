@@ -1,4 +1,4 @@
-// Package handlebars renders Handlebars templates, written from scratch.
+// Package handlebars renders Handlebars templates.
 //
 // CyberChef's Template operation calls the handlebars npm package; there is
 // no maintained Go port, so this covers the part of the language a template
@@ -17,7 +17,7 @@ import (
 	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
-// A Handlebars renderer, written from scratch. CyberChef's Template operation
+// A Handlebars renderer. CyberChef's Template operation
 // calls the handlebars npm package; there is no maintained Go port of it, so
 // this covers the part of the language a template can usefully be written in
 // against JSON input: variables, paths, comments, the built-in block helpers,

@@ -36,7 +36,7 @@ func (ToBase32) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef ToBase32.mjs.
+// Run encodes the input.
 func (ToBase32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	if len(data) == 0 {
@@ -113,7 +113,7 @@ func (FromBase32) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef FromBase32.mjs.
+// Run decodes the input.
 func (FromBase32) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := []rune(in.String())
 	if len(data) == 0 {

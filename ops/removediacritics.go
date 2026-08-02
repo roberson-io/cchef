@@ -12,8 +12,7 @@ func init() {
 	core.Register(RemoveDiacritics{})
 }
 
-// RemoveDiacritics strips accents from characters. Ported from CyberChef
-// RemoveDiacritics.mjs.
+// RemoveDiacritics strips accents from characters.
 type RemoveDiacritics struct{}
 
 // Meta returns the operation metadata.

@@ -12,7 +12,7 @@ func init() {
 }
 
 // IndexOfCoincidence measures how often two letters drawn from the text are the
-// same. Ported from CyberChef's Index of Coincidence.
+// same.
 type IndexOfCoincidence struct{}
 
 // Meta returns the operation metadata.

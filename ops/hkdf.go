@@ -54,7 +54,7 @@ func (DeriveHKDFKey) Args() []core.ArgDef {
 	}
 }
 
-// Run derives the key. Ported from CyberChef DeriveHKDFKey.mjs.
+// Run derives the key.
 func (DeriveHKDFKey) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	saltArg := args[0].(core.ToggleString)
 	infoArg := args[1].(core.ToggleString)

@@ -18,7 +18,7 @@ func init() {
 
 // XPathExpression extracts information from an XML document with an XPath query.
 // Ported from CyberChef XPathExpression.mjs, which wraps @xmldom/xmldom and the
-// npm `xpath` library. cchef reuses the from-scratch xmldom parser/serializer and
+// npm `xpath` library. cchef reuses the internal xmldom parser/serializer and
 // evaluates the query with antchfx/xpath over the parsed tree. Only node-set
 // results are supported (as in the original): a number/string/boolean result is
 // an error, matching the `xpath` library's "Cannot convert X to nodeset".

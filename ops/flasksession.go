@@ -151,7 +151,7 @@ func (FlaskSessionDecode) Args() []core.ArgDef {
 	return []core.ArgDef{{Name: "View TimeStamp", Type: core.ArgBoolean, Value: false}}
 }
 
-// Run decodes the token. Ported from CyberChef FlaskSessionDecode.mjs.
+// Run decodes the token.
 func (FlaskSessionDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	parts := strings.Split(strings.TrimSpace(in.String()), ".")
 	if len(parts) != 3 {
@@ -191,7 +191,7 @@ func (FlaskSessionSign) Args() []core.ArgDef {
 	}
 }
 
-// Run signs the payload. Ported from CyberChef FlaskSessionSign.mjs.
+// Run signs the payload.
 func (FlaskSessionSign) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, salt, err := flaskParseKeySalt(args[0].(core.ToggleString), args[1].(core.ToggleString))
 	if err != nil {
@@ -231,7 +231,7 @@ func (FlaskSessionVerify) Args() []core.ArgDef {
 	}
 }
 
-// Run verifies the token. Ported from CyberChef FlaskSessionVerify.mjs.
+// Run verifies the token.
 func (FlaskSessionVerify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	key, salt, err := flaskParseKeySalt(args[0].(core.ToggleString), args[1].(core.ToggleString))
 	if err != nil {

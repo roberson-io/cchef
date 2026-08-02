@@ -82,8 +82,6 @@ var genAllHashesList = []genHashEntry{
 const genHashNameWidth = 13
 
 // GenerateAllHashes runs every available hash and checksum over the input.
-// Ported from CyberChef GenerateAllHashes.mjs; it composes the individual hash
-// operations rather than reimplementing them.
 type GenerateAllHashes struct{}
 
 // Meta returns the operation metadata.

@@ -148,7 +148,7 @@ func (SetIntersection) Meta() core.OpMeta {
 func (SetIntersection) Args() []core.ArgDef { return setDelimArgs() }
 
 // Run computes the intersection: items of the first set that are also in the
-// second, deduplicated (CyberChef PR #2286). Ported from SetIntersection.mjs.
+// second, deduplicated (CyberChef PR #2286).
 func (SetIntersection) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sets, itemDelim, err := splitSets(in.String(), args[0].(string), args[1].(string), true)
 	if err != nil {
@@ -185,7 +185,7 @@ func (SetDifference) Meta() core.OpMeta {
 func (SetDifference) Args() []core.ArgDef { return setDelimArgs() }
 
 // Run computes the relative complement: items of the first set not in the second,
-// deduplicated (CyberChef PR #2286). Ported from SetDifference.mjs.
+// deduplicated (CyberChef PR #2286).
 func (SetDifference) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sets, itemDelim, err := splitSets(in.String(), args[0].(string), args[1].(string), true)
 	if err != nil {
@@ -222,7 +222,7 @@ func (SymmetricDifference) Meta() core.OpMeta {
 func (SymmetricDifference) Args() []core.ArgDef { return setDelimArgs() }
 
 // Run computes the symmetric difference (items in exactly one set). It preserves
-// duplicates within each side. Ported from SymmetricDifference.mjs.
+// duplicates within each side.
 func (SymmetricDifference) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sets, itemDelim, err := splitSets(in.String(), args[0].(string), args[1].(string), true)
 	if err != nil {
@@ -251,7 +251,7 @@ func (CartesianProduct) Meta() core.OpMeta {
 func (CartesianProduct) Args() []core.ArgDef { return setDelimArgs() }
 
 // Run computes the cartesian product of two or more sets, formatting each
-// combination as "(a,b,...)". Ported from CartesianProduct.mjs.
+// combination as "(a,b,...)".
 func (CartesianProduct) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	sets, itemDelim, err := splitSets(in.String(), args[0].(string), args[1].(string), false)
 	if err != nil {
@@ -296,7 +296,7 @@ func (PowerSet) Args() []core.ArgDef {
 
 // Run computes the power set of the input. Each subset is joined by the item
 // delimiter, subsets are ordered by their joined-string length, and each is
-// followed by a newline. Ported from PowerSet.mjs.
+// followed by a newline.
 func (PowerSet) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	itemDelim := opsutil.ParseEscapedChars(args[0].(string))
 	var items []string

@@ -41,7 +41,7 @@ func (A1Z26CipherEncode) Args() []core.ArgDef {
 	}
 }
 
-// Run encodes the input. Ported from CyberChef A1Z26CipherEncode.mjs.
+// Run encodes the input.
 func (A1Z26CipherEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	lower := strings.ToLower(in.String())
@@ -79,7 +79,7 @@ func (A1Z26CipherDecode) Args() []core.ArgDef {
 	}
 }
 
-// Run decodes the input. Ported from CyberChef A1Z26CipherDecode.mjs.
+// Run decodes the input.
 func (A1Z26CipherDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
 	input := in.String()

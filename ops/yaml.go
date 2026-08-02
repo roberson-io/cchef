@@ -21,7 +21,7 @@ func init() {
 // CyberChef backs these two operations with different JavaScript libraries —
 // JSON to YAML uses `yaml` (eemeli), YAML to JSON uses `js-yaml` — both of which
 // follow the YAML 1.2 core schema. cchef uses the Go `go.yaml.in/yaml/v3`
-// library for both. Output is faithful for the common cases; it differs on a few
+// library for both. Output matches CyberChef for the common cases; it differs on a few
 // YAML 1.1-vs-1.2 points documented in docs/data-format.md (e.g. yes/no/on are
 // quoted on output and parsed as booleans on input; quoting style may differ).
 

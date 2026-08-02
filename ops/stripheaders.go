@@ -30,7 +30,7 @@ func (StripIPv4Header) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (StripIPv4Header) Args() []core.ArgDef { return nil }
 
-// Run strips the header. Ported from CyberChef StripIPv4Header.mjs.
+// Run strips the header.
 func (StripIPv4Header) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	if len(data) < 20 {
@@ -61,7 +61,7 @@ func (StripTCPHeader) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (StripTCPHeader) Args() []core.ArgDef { return nil }
 
-// Run strips the header. Ported from CyberChef StripTCPHeader.mjs.
+// Run strips the header.
 func (StripTCPHeader) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	if len(data) < 20 {
@@ -93,7 +93,7 @@ func (StripUDPHeader) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (StripUDPHeader) Args() []core.ArgDef { return nil }
 
-// Run strips the header. Ported from CyberChef StripUDPHeader.mjs.
+// Run strips the header.
 func (StripUDPHeader) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	data := in.Bytes()
 	if len(data) < 8 {

@@ -45,7 +45,7 @@ func (ShowOnMap) Args() []core.ArgDef {
 	}
 }
 
-// Run parses the coordinates. Ported from CyberChef ShowOnMap.mjs (run, not the GUI present).
+// Run parses the coordinates.
 func (ShowOnMap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	if reMapBlank.ReplaceAllString(input, "") == "" {

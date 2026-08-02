@@ -18,7 +18,7 @@ func init() {
 const cobsMaxRun = 0xFF
 
 // toCOBS removes every zero byte from the data by replacing it with a count of
-// how far away the next one is. Ported from CyberChef lib/COBS.mjs.
+// how far away the next one is.
 func toCOBS(data []byte) []byte {
 	if len(data) == 0 {
 		return nil
@@ -58,7 +58,7 @@ func toCOBS(data []byte) []byte {
 	return out
 }
 
-// fromCOBS puts the zero bytes back. Ported from CyberChef lib/COBS.mjs.
+// fromCOBS puts the zero bytes back.
 func fromCOBS(data []byte) ([]byte, error) {
 	if len(data) == 0 {
 		return nil, nil
@@ -111,8 +111,7 @@ func cobsDrop(data []byte, n int) []byte {
 	return data[n:]
 }
 
-// ToCOBS encodes bytes so that none of them is zero. Ported from CyberChef
-// ToCOBS.mjs.
+// ToCOBS encodes bytes so that none of them is zero.
 type ToCOBS struct{}
 
 // Meta returns the operation metadata.
@@ -135,8 +134,7 @@ func (ToCOBS) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	return core.NewDish(toCOBS(in.Bytes()), core.TypeByteArray), nil
 }
 
-// FromCOBS puts back the zero bytes COBS removed. Ported from CyberChef
-// FromCOBS.mjs.
+// FromCOBS puts back the zero bytes COBS removed.
 type FromCOBS struct{}
 
 // Meta returns the operation metadata.

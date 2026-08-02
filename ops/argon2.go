@@ -27,9 +27,9 @@ var argon2PHCName = map[string]string{
 	"Argon2id": "argon2id",
 }
 
-// Argon2 derives a hash from a password with the Argon2 KDF. A faithful port of
+// Argon2 derives a hash from a password with the Argon2 KDF. It follows
 // CyberChef's Argon2 (backed by the argon2-browser WASM): Argon2i and Argon2id
-// use golang.org/x/crypto/argon2; Argon2d uses the from-scratch implementation
+// use golang.org/x/crypto/argon2; Argon2d uses the in-repo implementation
 // in argon2core.go. Output can be the PHC-encoded hash, hex or raw bytes.
 type Argon2 struct{}
 
@@ -107,7 +107,7 @@ func (Argon2) Run(in *core.Dish, args []any) (*core.Dish, error) {
 }
 
 // argon2Compute produces the raw Argon2 tag for the given type, using x/crypto
-// for Argon2i/Argon2id and the from-scratch core for Argon2d.
+// for Argon2i/Argon2id and the in-repo implementation for Argon2d.
 func argon2Compute(typ string, password, salt []byte, time, memory, parallelism, hashLen uint32) []byte {
 	switch typ {
 	case "Argon2i":
@@ -148,7 +148,7 @@ func argon2Encode(typ string, memory, time, parallelism int, salt, hash []byte) 
 }
 
 // Argon2Compare tests whether the input password matches a given Argon2 encoded
-// hash. Ported from CyberChef's Argon2 compare.
+// hash.
 type Argon2Compare struct{}
 
 // Meta returns the operation metadata.

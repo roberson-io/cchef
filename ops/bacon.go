@@ -13,7 +13,7 @@ func init() {
 	core.Register(BaconCipherDecode{})
 }
 
-// Bacon cipher resources, ported from CyberChef lib/Bacon.mjs.
+// Bacon cipher resources.
 
 // baconAlphabet pairs the letter set with an optional A-Z index → code table.
 // The Standard alphabet folds I/J and U/V together (24 letters, 26-entry codes);
@@ -58,7 +58,7 @@ func swapZeroAndOne(s string) string {
 }
 
 // BaconCipherEncode conceals a message as groups of five binary digits (or A/B),
-// one per letter. Ported from CyberChef BaconCipherEncode.mjs.
+// one per letter.
 type BaconCipherEncode struct{}
 
 // Meta returns the operation metadata.
@@ -153,8 +153,7 @@ func baconMapBytes(s string, m map[byte]byte) string {
 	return string(b)
 }
 
-// BaconCipherDecode recovers the concealed message. Ported from CyberChef
-// BaconCipherDecode.mjs.
+// BaconCipherDecode recovers the concealed message.
 type BaconCipherDecode struct{}
 
 // Meta returns the operation metadata.

@@ -25,7 +25,6 @@ var natoWords = map[rune]string{
 }
 
 // ConvertToNATOAlphabet spells characters out in the NATO phonetic alphabet.
-// Ported from CyberChef ConvertToNATOAlphabet.mjs.
 type ConvertToNATOAlphabet struct{}
 
 // Meta returns the operation metadata.

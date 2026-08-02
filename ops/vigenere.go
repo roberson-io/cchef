@@ -21,8 +21,7 @@ var vigenereKeyRe = regexp.MustCompile(`^[a-zA-Z]+$`)
 
 // vigenere applies the Vigenère cipher to input with the given key. decode
 // selects decryption. Non-alphabet characters pass through unchanged and do not
-// advance the key (matching CyberChef's fail counter). Ported from CyberChef
-// Vigenère{Encode,Decode}.mjs.
+// advance the key (matching CyberChef's fail counter).
 func vigenere(input, keyRaw string, decode bool) (string, error) {
 	key := strings.ToLower(keyRaw)
 	if key == "" {

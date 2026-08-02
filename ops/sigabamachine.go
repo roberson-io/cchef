@@ -2,7 +2,7 @@ package ops
 
 import "strings"
 
-// SIGABA (ECM Mark II) machine, ported from CyberChef lib/SIGABA.mjs.
+// SIGABA (ECM Mark II) machine.
 
 // sigabaCRExamples are the example cipher/control (C/R) rotor wirings; index 0 is
 // the editableOption default.

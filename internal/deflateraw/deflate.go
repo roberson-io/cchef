@@ -10,7 +10,7 @@ import "hash/adler32"
 
 // A DEFLATE encoder whose output matches zlib's byte for byte, ported from
 // pako (../CyberChef/node_modules/pako/lib/zlib/{deflate,trees}.js), which is a
-// faithful transcription of zlib's deflate.c and trees.c. Byte-exactness is not
+// transcription of zlib's deflate.c and trees.c. Byte-exactness is not
 // incidental: CyberChef's Generate QR Code embeds the compressed bitmap in a
 // PNG, and its fixture asserts the whole file.
 //
