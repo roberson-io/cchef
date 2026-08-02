@@ -16,7 +16,7 @@ func asconDec(key, nonce, ad core.ToggleString, in, out string) core.Recipe {
 	return core.Recipe{{Op: "Ascon Decrypt", Args: []any{key, nonce, ad, in, out}}}
 }
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Ascon.mjs (only the
+// Cases transcribed from CyberChef's tests/operations/tests/Ascon.mjs (only the
 // Encrypt/Decrypt cases; the Hash/MAC ops are separate). These include official
 // NIST SP 800-232 / ascon-c KAT vectors.
 func TestAsconFixtures(t *testing.T) {

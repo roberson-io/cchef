@@ -17,7 +17,7 @@ func presentRecipe(op, key, iv, mode, inType, outType, padding string) core.Reci
 }
 
 // PRESENT fixtures transcribed from
-// ../CyberChef/tests/operations/tests/PRESENT.mjs. The official vectors come
+// CyberChef's tests/operations/tests/PRESENT.mjs. The official vectors come
 // from the PRESENT paper (Bogdanov et al., CHES 2007), Table 3.
 func TestPRESENTOfficialVectors(t *testing.T) {
 	const zeroKey80 = "00000000000000000000"

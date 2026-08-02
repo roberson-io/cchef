@@ -15,7 +15,7 @@ func emailRecipe(total, sorted, unique bool) core.Recipe {
 }
 
 // TestExtractEmailAddressesFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/ExtractEmailAddresses.mjs).
+// (CyberChef's tests/operations/tests/ExtractEmailAddresses.mjs).
 func TestExtractEmailAddressesFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

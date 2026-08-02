@@ -79,7 +79,7 @@ func TestSigabaIndexOf(t *testing.T) {
 }
 
 // TestSIGABAFixtures transcribes the cases from
-// ../CyberChef/tests/operations/tests/SIGABA.mjs.
+// CyberChef's tests/operations/tests/SIGABA.mjs.
 func TestSIGABAFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

@@ -107,7 +107,7 @@ func TestBcdFormatOutput(t *testing.T) {
 	}
 }
 
-// Transcribed from ../CyberChef/tests/operations/tests/BCD.mjs.
+// Transcribed from CyberChef's tests/operations/tests/BCD.mjs.
 func TestBCDFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

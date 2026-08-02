@@ -13,19 +13,19 @@ from that project.
 
 The following third-party material is included in this repository:
 
-1. Bitmap font atlases — internal/ops/bmfonts/
+1. Bitmap font atlases — ops/bmfonts/
 
    Taken unmodified from CyberChef, which generated them from the Roboto
    typeface by Christian Robertson (https://github.com/googlefonts/roboto).
    Licensed under the Apache License, Version 2.0. Used so that text rendered
    by the "Add Text To Image" operation is pixel-identical to CyberChef's.
 
-2. x86-64 opcode tables — internal/ops/x86tables/
+2. x86-64 opcode tables — ops/x86tables/
 
    Extracted from CyberChef's vendored X86-64-Disassembler-JS by Damian
    Recoskie (https://github.com/Recoskie/X86-64-Disassembler-JS), Copyright
    (c) 2019 Damian Recoskie, licensed under the MIT License. The full license
-   text is in internal/ops/x86tables/LICENSE.
+   text is in ops/x86tables/LICENSE.
 
 3. WHATWG named character reference set — tools/htmlentgen/entity.json
 
@@ -35,8 +35,133 @@ The following third-party material is included in this repository:
    portions are incorporated into source code, those portions are licensed
    under the BSD 3-Clause License. See tools/htmlentgen/entity.txt.
 
-4. UTM coordinate conversion — internal/ops/utm.go
+4. UTM coordinate conversion — internal/geocoord/utm.go
 
    Ported from the utm Python package by Tobias Bieniek
    (https://github.com/Turbo87/utm), Copyright (c) 2012-2017 Tobias Bieniek,
    licensed under the MIT License.
+
+--------------------------------------------------------------------------------
+
+Portions of this repository are Go ports or transcriptions of third-party
+libraries (in most cases the library CyberChef itself uses for the same
+operation, so that output matches). The original copyrights and licenses of
+those works are acknowledged below:
+
+5. zlib — internal/deflateraw/
+
+   The raw-deflate compressor is a transcription of deflate.c and trees.c
+   from zlib (https://zlib.net), Copyright (C) 1995-2024 Jean-loup Gailly and
+   Mark Adler, licensed under the zlib License.
+
+6. esprima, escodegen and estraverse — internal/jsparse/, internal/jsbeautify/
+
+   The JavaScript parser, code generator and comment-attachment logic are
+   transliterations of esprima (https://esprima.org), escodegen and
+   estraverse (https://github.com/estools), Copyright their contributors,
+   licensed under the BSD 2-Clause License.
+
+7. jsdiff — ops/diff.go
+
+   The diff engine is a port of the jsdiff package
+   (https://github.com/kpdecker/jsdiff), Copyright (c) Kevin Decker,
+   licensed under the BSD 3-Clause License.
+
+8. Jimp — internal/jimp/
+
+   The image resize, blur, crop, blit, contain/cover and pixel-transform
+   primitives are ports of the Jimp library and its plugins
+   (https://github.com/jimp-dev/jimp), Copyright (c) its contributors,
+   licensed under the MIT License.
+
+9. vkbeautify — ops/vkbeautify.go and the CSS/XML/SQL/JSON minifiers
+
+   Ported from vkBeautify (https://github.com/vkiryukhin/vkBeautify),
+   Copyright (c) 2012 Vadim Kiryukhin, licensed under the MIT License.
+
+10. sql-formatter — ops/sqlbeautify.go
+
+    The SQL layout engine is a port of sql-formatter
+    (https://github.com/sql-formatter-org/sql-formatter), Copyright (c) its
+    contributors, licensed under the MIT License.
+
+11. jsQR — internal/qr/ (reader and decoder)
+
+    The QR reader is a port of jsQR (https://github.com/cozmo/jsQR),
+    Copyright (c) 2016 Cosmo Wolfe, licensed under the Apache License,
+    Version 2.0.
+
+12. qr-image — internal/qr/ (matrix generation and renderers)
+
+    The QR generator is a port of qr-image
+    (https://github.com/alexeyten/qr-image), Copyright (c) its contributors,
+    licensed under the MIT License.
+
+13. crypto-api — internal/snefru/, ops/sm3.go
+
+    The Snefru and SM3 hashes are ports of crypto-api
+    (https://github.com/nf404/crypto-api), Copyright (c) its contributors,
+    licensed under the MIT License.
+
+14. node-md6 — ops/md6core.go
+
+    The MD6 implementation is derived from node-md6 by Amrit Panesar
+    (https://github.com/Neo-Desktop/node-md6), dedicated to the public domain
+    under CC0 1.0.
+
+15. exif-parser — internal/exif/
+
+    The EXIF parser is a port of exif-parser by Bruno Windels
+    (https://github.com/bwindels/exif-parser), licensed under the MIT
+    License.
+
+16. otpauth — ops/otpsecret.go
+
+    The one-time-password machinery is ported from otpauth
+    (https://github.com/hectorm/otpauth), Copyright (c) its contributors,
+    licensed under the MIT License.
+
+17. bcrypt.js — ops/bcrypt.go
+
+    The bcrypt implementation follows bcrypt.js
+    (https://github.com/dcodeIO/bcrypt.js), Copyright (c) its contributors,
+    licensed under the BSD 3-Clause License.
+
+18. ssdeep.js and ctph.js — ops/ssdeep.go, ops/ctph.go, ops/fuzzyhash.go
+
+    The fuzzy hashes are ports of ssdeep.js (Copyright (c) ThreatPinch) and
+    ctph.js (Copyright (c) 2015 Hu Wenshuo), both licensed under the MIT
+    License; the shared Levenshtein routine follows fast-levenshtein
+    (Copyright (c) Ramesh Nair), licensed under the MIT License.
+
+19. bignumber.js — ops/bignum.go
+
+    The arbitrary-precision decimal subset follows bignumber.js
+    (https://github.com/MikeMcl/bignumber.js), Copyright (c) Michael
+    Mclaughlin, licensed under the MIT License.
+
+20. lodash — internal/lodashcase/
+
+    The case-conversion word splitter is a port of lodash
+    (https://lodash.com), Copyright OpenJS Foundation and contributors,
+    licensed under the MIT License.
+
+21. rison — ops/rison.go
+
+    The Rison codec is a port of the rison npm package
+    (https://github.com/Nanonid/rison), Copyright (c) its contributors, as
+    licensed in that package (Apache-2.0 per its metadata; the format
+    originates with Tim McCormack's rison, MIT).
+
+22. notepack.io — ops/messagepack.go
+
+    The MessagePack codec follows notepack.io
+    (https://github.com/darrachequesne/notepack), Copyright (c) its
+    contributors, licensed under the MIT License.
+
+23. geodesy — internal/geocoord/coordinates.go
+
+    The OSGB National Grid conversion (Redfearn series and Helmert
+    transformation) is ported from the geodesy library
+    (https://github.com/chrisveness/geodesy), Copyright (c) Chris Veness,
+    licensed under the MIT License.

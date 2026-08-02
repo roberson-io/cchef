@@ -12,7 +12,7 @@ func jpathRecipe(query, delim string) core.Recipe {
 	return core.Recipe{{Op: "JPath expression", Args: []any{query, delim}}}
 }
 
-// JPath expression has no upstream fixture file (../CyberChef wraps jsonpath-plus);
+// JPath expression has no upstream fixture file (CyberChef wraps jsonpath-plus);
 // these are authoritative outputs captured from the CyberChef-server oracle. cchef
 // reimplements JSONPath over the order-preserving jsonvalue.go representation so
 // each matched value serializes byte-for-byte like jsonpath-plus's

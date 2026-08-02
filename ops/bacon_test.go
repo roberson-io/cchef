@@ -26,7 +26,7 @@ func baconEnc(alpha, translation string, keep, invert bool) core.Recipe {
 	return core.Recipe{{Op: "Bacon Cipher Encode", Args: []any{alpha, translation, keep, invert}}}
 }
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/BaconCipher.mjs.
+// Cases transcribed from CyberChef's tests/operations/tests/BaconCipher.mjs.
 func TestBaconDecodeFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{"Bacon Decode: no input", "", "", baconDec(baconStd, bacon01, false)},
@@ -144,7 +144,7 @@ func TestBaconDecodeFixtures(t *testing.T) {
 	})
 }
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/BaconCipher.mjs.
+// Cases transcribed from CyberChef's tests/operations/tests/BaconCipher.mjs.
 func TestBaconEncodeFixtures(t *testing.T) {
 	fox := "There's a fox, and it jumps over the fence."
 	runCases(t, []opCase{

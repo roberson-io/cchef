@@ -9,7 +9,7 @@ import (
 )
 
 // TestHaversineFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/HaversineDistance.mjs).
+// (CyberChef's tests/operations/tests/HaversineDistance.mjs).
 func TestHaversineFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

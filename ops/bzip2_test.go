@@ -225,7 +225,7 @@ func bzip2Bytes(t *testing.T, s string) string {
 }
 
 // TestBzip2DecompressFixture covers CyberChef's own case
-// (../CyberChef/tests/operations/tests/Compress.mjs).
+// (CyberChef's tests/operations/tests/Compress.mjs).
 func TestBzip2DecompressFixture(t *testing.T) {
 	runCases(t, []opCase{
 		{

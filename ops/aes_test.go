@@ -15,7 +15,7 @@ func aesEnc(key, iv core.ToggleString, mode, in, out string, aad core.ToggleStri
 }
 
 // TestAESEncryptFixtures transcribes the AES Encrypt cases from
-// ../CyberChef/tests/operations/tests/Crypt.mjs.
+// CyberChef's tests/operations/tests/Crypt.mjs.
 func TestAESEncryptFixtures(t *testing.T) {
 	none := aesTS("Hex", "")
 	k128 := aesTS("Hex", "00112233445566778899aabbccddeeff")
@@ -219,7 +219,7 @@ func aesDec(key, iv core.ToggleString, ivLen int, mode, in, out string, tag, aad
 }
 
 // TestAESDecryptFixtures transcribes the AES Decrypt cases from
-// ../CyberChef/tests/operations/tests/Crypt.mjs.
+// CyberChef's tests/operations/tests/Crypt.mjs.
 func TestAESDecryptFixtures(t *testing.T) {
 	none := aesTS("Hex", "")
 	k128 := aesTS("Hex", "00112233445566778899aabbccddeeff")

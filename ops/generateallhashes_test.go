@@ -1,7 +1,7 @@
 package ops
 
 // Generate all hashes fixtures transcribed from
-// ../CyberChef/tests/operations/tests/GenerateAllHashes.mjs. Input is an
+// CyberChef's tests/operations/tests/GenerateAllHashes.mjs. Input is an
 // ArrayBuffer; args are [Length (bits), Include names].
 
 import (

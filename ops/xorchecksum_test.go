@@ -10,7 +10,7 @@ func xorRecipe(blocksize int) core.Recipe {
 	return core.Recipe{{Op: "XOR Checksum", Args: []any{blocksize}}}
 }
 
-// Vectors transcribed from ../CyberChef/tests/operations/tests/XORChecksum.mjs.
+// Vectors transcribed from CyberChef's tests/operations/tests/XORChecksum.mjs.
 const (
 	xorBasicString = "The ships hung in the sky in much the same way that bricks don't."
 	xorUTF8Str     = "ნუ პანიკას"

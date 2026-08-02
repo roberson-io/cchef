@@ -46,7 +46,7 @@ func loremSplitParagraphs(text string) []string {
 }
 
 // TestGenerateLoremIpsumLimits covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/GenerateLoremIpsum.mjs), which check the
+// (CyberChef's tests/operations/tests/GenerateLoremIpsum.mjs), which check the
 // bounds on the length rather than the text itself.
 func TestGenerateLoremIpsumLimits(t *testing.T) {
 	for _, tc := range []struct {

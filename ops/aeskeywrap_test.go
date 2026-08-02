@@ -13,7 +13,7 @@ func aesTS(option, s string) core.ToggleString {
 }
 
 // TestAESKeyWrapFixtures transcribes the RFC3394 vectors from
-// ../CyberChef/tests/operations/tests/AESKeyWrap.mjs.
+// CyberChef's tests/operations/tests/AESKeyWrap.mjs.
 func TestAESKeyWrapFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{
@@ -148,7 +148,7 @@ func TestAESKeyWrapRaw(t *testing.T) {
 }
 
 // TestAESKeyUnwrapFixtures transcribes the RFC3394 vectors from
-// ../CyberChef/tests/operations/tests/AESKeyWrap.mjs.
+// CyberChef's tests/operations/tests/AESKeyWrap.mjs.
 func TestAESKeyUnwrapFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

@@ -16,7 +16,7 @@ import (
 )
 
 // Key material and signature vectors transcribed from
-// ../CyberChef/tests/operations/tests/ECDSA.mjs.
+// CyberChef's tests/operations/tests/ECDSA.mjs.
 const (
 	p256PrivPkcs1 = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEINtTjwUkgfAiSwqgcGAXWyE0ueIW6n2k395dmQZ3vGr4oAoGCCqGSM49

@@ -12,7 +12,7 @@ import (
 )
 
 // jsonataFixture is one of CyberChef's own cases, read from its test file
-// (../CyberChef/tests/operations/tests/Jsonata.mjs).
+// (CyberChef's tests/operations/tests/Jsonata.mjs).
 type jsonataFixture struct {
 	Name     string `json:"name"`
 	Input    string `json:"input"`

@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Transcribed from ../CyberChef/tests/operations/tests/Float.mjs.
+// Transcribed from CyberChef's tests/operations/tests/Float.mjs.
 func TestFloatFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

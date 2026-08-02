@@ -59,7 +59,7 @@ func runARMFixtures(t *testing.T, cases []armFixture) {
 	}
 }
 
-// The fixtures transcribed from ../CyberChef/tests/operations/tests/DisassembleARM.mjs.
+// The fixtures transcribed from CyberChef's tests/operations/tests/DisassembleARM.mjs.
 func TestDisassembleARMFixtures(t *testing.T) {
 	a32 := armDefault(arm32)
 	a64 := armDefault(arm64)

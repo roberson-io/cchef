@@ -1,6 +1,6 @@
 package ops
 
-// LM Hash fixture transcribed from ../CyberChef/tests/operations/tests/NTLM.mjs.
+// LM Hash fixture transcribed from CyberChef's tests/operations/tests/NTLM.mjs.
 
 import (
 	"testing"

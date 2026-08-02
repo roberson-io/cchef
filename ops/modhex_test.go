@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Transcribed from ../CyberChef/tests/operations/tests/Modhex.mjs.
+// Transcribed from CyberChef's tests/operations/tests/Modhex.mjs.
 func TestModhexFixtures(t *testing.T) {
 	multiline := "fk,dc,ie,hb,ii,dc,ht,ik,ie,hg,hr,hh,dc,ie,hk,\n" +
 		"if,if,hk,hu,hi,dc,hk,hu,dc,if,hj,hg,dc,he,id,\n" +

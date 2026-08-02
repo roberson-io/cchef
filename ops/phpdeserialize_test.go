@@ -10,7 +10,7 @@ func phpDesRecipe(validJSON bool) core.Recipe {
 	return core.Recipe{{Op: "PHP Deserialize", Args: []any{validJSON}}}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/PHP.mjs. "Output
+// Fixtures transcribed from CyberChef's tests/operations/tests/PHP.mjs. "Output
 // valid JSON" quotes integer keys ("0":) vs leaving them bare (0:).
 func TestPHPDeserializeFixtures(t *testing.T) {
 	arr := `a:2:{s:1:"a";i:10;i:0;a:1:{s:2:"ab";b:1;}}`

@@ -9,7 +9,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// The operation counts quoted in PLAN.md and docs/README.md are maintained by
+// The operation counts quoted in AGENTS.md and docs/README.md are maintained by
 // hand and drift silently — nothing else fails when they go stale. These tests
 // pin every one of them to the registry.
 
@@ -45,8 +45,8 @@ func TestSubcommandCountsMatchRegistry(t *testing.T) {
 	// running total there would only go stale again.
 	for _, tc := range []struct{ file, pattern string }{
 		{"docs/README.md", `\*\*Scope:\*\* (\d+) operations, covering every CyberChef operation`},
-		{"PLAN.md", `curated set of (\d+)\s+operations`},
-		{"PLAN.md", `- \*\*(\d+) operations\*\* \(` + "`ops/`" + `\)`},
+		{"AGENTS.md", `curated set of (\d+)\s+operations`},
+		{"AGENTS.md", `- \*\*(\d+) operations\*\* \(` + "`ops/`" + `\)`},
 	} {
 		if got := countIn(t, tc.file, tc.pattern); got != want {
 			t.Errorf("%s: quoted %d subcommands, registry has %d", tc.file, got, want)
@@ -54,7 +54,7 @@ func TestSubcommandCountsMatchRegistry(t *testing.T) {
 	}
 }
 
-// TestUniqueOpCountMatchesRegistry checks PLAN.md's unique-operation count. It
+// TestUniqueOpCountMatchesRegistry checks AGENTS.md's unique-operation count. It
 // is a smaller number than the subcommand count because CyberChef's SHA2 backs
 // five subcommands, and the two have to move together.
 func TestUniqueOpCountMatchesRegistry(t *testing.T) {
@@ -62,7 +62,7 @@ func TestUniqueOpCountMatchesRegistry(t *testing.T) {
 	// of the five subcommands are not a further unique operation.
 	const sha2Extras = 4
 	want := len(core.Default.All()) - sha2Extras
-	if got := countIn(t, "PLAN.md", `cover\s+(\d+)\s+unique\s+CyberChef\s+operations`); got != want {
-		t.Errorf("PLAN.md quotes %d unique operations, registry implies %d", got, want)
+	if got := countIn(t, "AGENTS.md", `cover\s+(\d+)\s+unique\s+CyberChef\s+operations`); got != want {
+		t.Errorf("AGENTS.md quotes %d unique operations, registry implies %d", got, want)
 	}
 }

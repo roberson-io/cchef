@@ -22,39 +22,58 @@ Requires Go 1.26+. The result is a single static binary with no cgo.
 
 ## Quickstart
 
+An operation reads from a positional argument, `-i`, `--in-file`, or stdin —
+all three of these print `aGVsbG8=`:
+
 ```bash
-# An operation reads from a positional arg, -i, --in-file, or stdin:
-cchef to-base64 hello                 # aGVsbG8=
-cchef to-base64 -i hello              # aGVsbG8=
-echo -n hello | cchef to-base64       # aGVsbG8=
+cchef to-base64 hello
+cchef to-base64 -i hello
+echo -n hello | cchef to-base64
+```
 
-# Chain operations with pipes:
+Chain operations with pipes (`61 47 56 73 62 47 38 3d`):
+
+```bash
 echo -n hello | cchef to-base64 | cchef to-hex
-# 61 47 56 73 62 47 38 3d
+```
 
-# Hash something:
+Hash something:
+
+```bash
 cchef sha256 -i 'Hello, World!'
-# dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f
+```
 
-# Run a whole recipe at once (JSON or compact "Chef" format):
+Run a whole recipe at once (JSON or compact "Chef" format):
+
+```bash
 echo -n hello | cchef bake -e "To_Base64()To_Hex()"
+```
 
-# Work out what unknown data is, and how to decode it:
+Work out what unknown data is, and how to decode it:
+
+```bash
 cchef magic -i "41 42 43 44 45"
+```
 
-# Turn a recipe into a CyberChef share URL:
+Turn a recipe into a CyberChef share URL:
+
+```bash
 cchef url -e "ROT13()" -i hello
-# https://gchq.github.io/CyberChef/#recipe=ROT13()&input=aGVsbG8
+```
 
-# Discover what's available (grouped by category, with a one-line summary each):
+Discover what's available — every operation grouped by category with a
+one-line summary — and note that common operations have short aliases
+(`b64e` runs `to-base64`):
+
+```bash
 cchef list
-cchef --version
+cchef b64e hello
+```
 
-# Common operations have short aliases:
-cchef b64e hello                      # alias for to-base64  -> aGVsbG8=
+Process a whole directory of files (CyberChef's folder input):
 
-# Process a whole directory of files (CyberChef's folder input):
-cchef to-base64 --in-dir ./messages                    # results to stdout, per-file headers
+```bash
+cchef to-base64 --in-dir ./messages
 cchef to-base64 --in-dir ./messages --out-dir ./out --recursive
 ```
 
@@ -109,6 +128,21 @@ A recipe is an ordered list of operations, expressible in two formats (auto-dete
 Run one with `cchef bake -e <recipe>` / `-r <file>`, convert between formats with
 `cchef recipe convert`, or share it with `cchef url`.
 
+A recipe can also be built up interactively, one operation at a time. The
+staged recipe lives in `.cchef-recipe.json` in the working directory, and
+`bake`, `url` and `recipe convert` all use it when given no recipe of their own:
+
+```bash
+cchef recipe add "To_Base64()"
+cchef recipe add "To_Hex('Space')"
+cchef recipe show
+echo -n hello | cchef bake
+```
+
+`show` lists the staged steps numbered; `rm`, `move` and `toggle` edit them by
+number, and `clear` discards the recipe. See
+[`cchef recipe add` and friends](docs/recipes-and-urls.md#cchef-recipe-add-and-friends--build-a-recipe-step-by-step).
+
 ## Use as a Go library
 
 The engine is importable, so a Go program can bake recipes without shelling
@@ -142,63 +176,6 @@ out, err := op.Run(core.NewDish([]byte("hello"), core.TypeByteArray),
 
 Implement `core.Operation` and pass it to `core.Register` to add an operation of
 your own; it is then usable by name in any recipe, alongside the built-in ones.
-
-## Development
-
-```bash
-make all      # the full gate: fmt, fix, vet, test, build, lint, sec
-make test     # run all unit tests
-make lint     # golangci-lint (make install-tools to install it)
-make sec      # gosec SAST + govulncheck (dependency & stdlib CVEs)
-make complexity   # report functions over the cyclomatic threshold
-make sbom-audit   # generate + scan a CycloneDX SBOM
-make fuzz         # run every fuzz target (FUZZTIME=5m for a longer run)
-```
-
-Fuzzing covers the parsers that read data cchef did not write — the recipe
-parser, the file-format and rule parsers, the decoders — and checks that the
-reciprocal operations round-trip. `make fuzz` gives each target 30 seconds;
-a failing input is written under `testdata/fuzz/` and becomes a regression
-test from then on.
-
-CI runs on linux/amd64 while development is typically on arm64, so anything
-touching floating-point precision is worth checking on both:
-
-```bash
-docker run --rm --platform linux/amd64 -v "$PWD":/src -w /src \
-    -e GOFLAGS=-buildvcs=false -e GOGC=off golang:1.26 go test ./...
-```
-
-Security scanning uses [gosec](https://github.com/securego/gosec) (SAST) and
-[govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) (known,
-reachable CVEs in dependencies and the Go stdlib), on top of the SBOM/grype
-supply-chain scan. gosec findings that are by design for a CyberChef port —
-intentional MD5/SHA1 operations, bounded byte/bit conversions, reading
-user-supplied file paths — are annotated in-code with justified `// #nosec`
-comments; `make sec` requires every suppression to name its rule and reason, and
-prints the full suppression list for audit.
-
-Operations are developed **test-first**, with test cases transcribed from
-CyberChef's own fixtures (`../CyberChef/tests/operations/tests/*.mjs`) for
-byte-for-byte parity, and differential-tested against a running CyberChef where
-one can be reached. The repeatable workflow for porting an operation is captured
-in the [`/add-operation`](.claude/skills/add-operation/SKILL.md) skill.
-
-Where cchef's answer deliberately differs from CyberChef's, it is because
-CyberChef has a defect: those are cataloged, with reproductions, in the bug log
-kept alongside this repository, and noted in the relevant `docs/` page.
-
-### Generated tables
-
-Some operations are backed by large tables generated from an upstream source
-rather than written by hand. Each has a tool with its own README describing how
-to refresh it:
-
-- [`tools/htmlentgen`](tools/htmlentgen/) — HTML entity tables, from the WHATWG
-  named character reference set.
-- [`tools/magicgen`](tools/magicgen/) — the Magic operation's detection checks
-  and language byte-frequency profiles.
-- [`tools/cpgen`](tools/cpgen/) — code page tables for the text encodings.
 
 ## Contributing
 

@@ -17,7 +17,7 @@ func rc6Single(op, key, iv, mode, inFmt, outFmt, padding string, w, r float64) c
 }
 
 // RC6 fixtures transcribed from
-// ../CyberChef/tests/operations/tests/RC6.mjs (IETF draft-krovetz test vectors).
+// CyberChef's tests/operations/tests/RC6.mjs (IETF draft-krovetz test vectors).
 func TestRC6IETFVectors(t *testing.T) {
 	runCases(t, []opCase{
 		{

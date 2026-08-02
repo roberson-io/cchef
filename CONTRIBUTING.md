@@ -2,8 +2,8 @@
 
 Thanks for your interest in improving cchef. This document covers how to set
 up a development environment, the standards changes are held to, and how to
-submit them. For the project's design and planned work, see
-[PLAN.md](PLAN.md).
+submit them. For the project's constraints, verification workflow and deliberate
+differences from CyberChef, see [AGENTS.md](AGENTS.md).
 
 ## Ground rules
 
@@ -38,8 +38,18 @@ If `make all` passes on a fresh clone, you're set. The built binary lands in
 
 ## Making changes
 
-Use the Makefile targets (`make test`, `make build`, `make lint`, …) rather
-than raw `go` commands — several targets do more than the obvious command.
+Use the Makefile targets rather than raw `go` commands — several targets do
+more than the obvious command:
+
+```bash
+make all      # the full gate: fmt, fix, vet, test, build, lint, sec
+make test     # run all unit tests
+make lint     # golangci-lint (make install-tools to install it)
+make sec      # gosec SAST + govulncheck (dependency & stdlib CVEs)
+make complexity   # report functions over the cyclomatic threshold
+make sbom-audit   # generate + scan a CycloneDX SBOM
+make fuzz         # run every fuzz target (FUZZTIME=5m for a longer run)
+```
 
 ### Tests
 
@@ -54,6 +64,11 @@ than raw `go` commands — several targets do more than the obvious command.
 - An operation lives in `ops/<op>.go` with its tests in
   `ops/<op>_test.go` — one operation per file pair, edge cases
   included; don't add separate coverage-test files.
+- **Fuzzing covers the parsers that read data cchef did not write** — the
+  recipe parser, the file-format and rule parsers, the decoders — and checks
+  that reciprocal operations round-trip. `make fuzz` gives each target 30
+  seconds; a failing input is written under `testdata/fuzz/` and becomes a
+  regression test from then on.
 - **Floating-point tests must hold on more than one architecture.** CI runs
   linux/amd64, and Go's `math` functions can differ in the last bit across
   architectures. Derive tolerances from what the algorithm guarantees, not
@@ -73,12 +88,16 @@ Most standards are enforced by the gate — run `make all` and
 - `make complexity` reports functions over the cyclomatic threshold; split
   multi-phase logic into small named helpers instead of adding to the list.
 - gosec findings are fixed, not silenced. If a finding is genuinely by design
-  (a narrowing conversion, an intentional MD5), annotate the site with
-  `// #nosec <RULE> -- <reason>` — rule ID and reason are both required.
+  for a CyberChef port (an intentional MD5/SHA1 operation, a bounded byte/bit
+  conversion, reading a user-supplied file path), annotate the site with
+  `// #nosec <RULE> -- <reason>` — rule ID and reason are both required, and
+  `make sec` prints the full suppression list for audit. Alongside gosec,
+  `make sec` runs [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
+  for known, reachable CVEs, and CI adds an SBOM/grype supply-chain scan.
 - Give meaningful numeric literals named constants; match the style of the
   surrounding code.
 - **No vendoring** (`go mod vendor` is never used). New dependencies face a
-  high bar — see the dependency policy in PLAN.md — and GPL/AGPL-licensed
+  high bar — see the dependency policy in [AGENTS.md](AGENTS.md) — and GPL/AGPL-licensed
   code cannot be accepted, since the project is Apache-2.0. If you add one,
   run `go mod tidy` and mention what it pulls in transitively.
 
@@ -93,7 +112,19 @@ Operation changes usually touch `docs/`:
   Run every example against the built binary and paste the real output.
 - New operations also register CLI metadata in `cmd/` (a category entry, and
   a curated summary if the derived one reads badly) — tests enforce this, as
-  they do the operation counts quoted in PLAN.md and `docs/README.md`.
+  they do the operation counts quoted in AGENTS.md and `docs/README.md`.
+
+### Generated tables
+
+Some operations are backed by large tables generated from an upstream source
+rather than written by hand. Don't edit a generated file directly — each has a
+tool with its own README describing how to refresh it:
+
+- [`tools/htmlentgen`](tools/htmlentgen/) — HTML entity tables, from the WHATWG
+  named character reference set.
+- [`tools/magicgen`](tools/magicgen/) — the Magic operation's detection checks
+  and language byte-frequency profiles.
+- [`tools/cpgen`](tools/cpgen/) — code page tables for the text encodings.
 
 ## Pull requests
 

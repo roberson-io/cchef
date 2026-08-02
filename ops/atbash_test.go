@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Ciphers.mjs (the
+// Cases transcribed from CyberChef's tests/operations/tests/Ciphers.mjs (the
 // Atbash fixtures); the uppercase and self-inverse cases are authored and
 // verified against the CyberChef-server oracle.
 func TestAtbashFixtures(t *testing.T) {

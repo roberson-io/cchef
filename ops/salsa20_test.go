@@ -8,7 +8,7 @@ import (
 )
 
 // Salsa20/XSalsa20 fixtures transcribed from
-// ../CyberChef/tests/operations/tests/{Salsa20,XSalsa20}.mjs (ECRYPT vectors).
+// CyberChef's tests/operations/tests/{Salsa20,XSalsa20}.mjs (ECRYPT vectors).
 func TestSalsa20Fixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

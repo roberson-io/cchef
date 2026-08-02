@@ -10,7 +10,7 @@ import (
 // otherwise be unrepresentable in a Go raw string literal.
 const bt = "`"
 
-// Transcribed from ../CyberChef/tests/operations/tests/Hexdump.mjs.
+// Transcribed from CyberChef's tests/operations/tests/Hexdump.mjs.
 func TestHexdumpFixtures(t *testing.T) {
 	roundTrip := core.Recipe{
 		{Op: "To Hexdump", Args: []any{float64(16), false, false}},

@@ -12,7 +12,7 @@ const (
 	bifidSchrod = "Wc snpsigdd cpfrrcxnfi hikdnnp dm crc Fcb-Pdeug vueageacc vtyl sa zxm crebzp lyoeuaiwpv."
 )
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Ciphers.mjs.
+// Cases transcribed from CyberChef's tests/operations/tests/Ciphers.mjs.
 func TestBifidFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

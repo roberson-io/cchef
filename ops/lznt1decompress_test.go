@@ -27,7 +27,7 @@ type lznt1Golden struct {
 }
 
 // TestLZNT1Fixtures covers CyberChef's own case
-// (../CyberChef/tests/operations/tests/LZNT1Decompress.mjs).
+// (CyberChef's tests/operations/tests/LZNT1Decompress.mjs).
 func TestLZNT1Fixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

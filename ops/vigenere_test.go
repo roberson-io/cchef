@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Ciphers.mjs.
+// Cases transcribed from CyberChef's tests/operations/tests/Ciphers.mjs.
 func TestVigenere(t *testing.T) {
 	plain := "LUGGAGEBASEMENTVARENNESALLIESCANBECLOTHEDASENEMIESENEMIESCANBECLOTHEDASALLIESALWAYSUSEID"
 	cipher := "PXCGRJIEWSVPIQPVRUIQJEJDPOEEJFEQXETOSWDEUDWHJEDLIVANVPMHOCRQFHYLFWLHZAJDPOEEJDPZWYJXWHED"

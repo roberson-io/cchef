@@ -124,7 +124,7 @@ type lz4CommandFrame struct {
 }
 
 // TestLZ4Fixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/Compress.mjs).
+// (CyberChef's tests/operations/tests/Compress.mjs).
 func TestLZ4Fixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

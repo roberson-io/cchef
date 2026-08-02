@@ -39,7 +39,7 @@ func sm4Recipe(op, key, iv, mode string) core.Recipe {
 	}}}
 }
 
-// TestSM4Fixtures transcribes ../CyberChef/tests/operations/tests/SM4.mjs.
+// TestSM4Fixtures transcribes CyberChef's tests/operations/tests/SM4.mjs.
 func TestSM4Fixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{"Encrypt ECB1 no padding", sm4TwoBlockPlain, sm4ECB1, sm4Recipe("SM4 Encrypt", sm4Key1, "", "ECB/NoPadding")},

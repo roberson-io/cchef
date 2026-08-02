@@ -12,7 +12,7 @@ func rakeRecipe(word, sentence, stop string) core.Recipe {
 }
 
 // TestRAKEFixture covers CyberChef's own case
-// (../CyberChef/tests/operations/tests/RAKE.mjs).
+// (CyberChef's tests/operations/tests/RAKE.mjs).
 func TestRAKEFixture(t *testing.T) {
 	runCases(t, []opCase{{
 		"RAKE: Basic Example",

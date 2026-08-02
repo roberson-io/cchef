@@ -15,7 +15,7 @@ import (
 
 // audioGolden is one sample and the report CyberChef produces for it. The
 // samples are the ones CyberChef's own tests are built on
-// (../CyberChef/tests/samples/Audio.mjs); the reports came from the
+// (CyberChef's tests/samples/Audio.mjs); the reports came from the
 // CyberChef-server oracle, which returns the operation's value rather than the
 // HTML the upstream fixtures match against.
 type audioGolden struct {

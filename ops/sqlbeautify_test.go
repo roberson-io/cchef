@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/SQLBeautify.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/SQLBeautify.mjs.
 // CyberChef wraps the sql-formatter npm library with a fixed config (MySQL
 // dialect, "standard" indent style, keywordCase preserve) and a bind-variable
 // placeholder shuffle; cchef reimplements that formatter from scratch.

@@ -10,7 +10,7 @@ func jmRecipe() core.Recipe {
 	return core.Recipe{{Op: "JSON Minify", Args: []any{}}}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/JSONMinify.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/JSONMinify.mjs.
 // CyberChef's JSON Minify is vkbeautify.jsonmin = JSON.stringify(JSON.parse(text),
 // null, 0); cchef reproduces it over the shared order-preserving JSON serialiser
 // (jsonvalue.go). Strict JSON only (unlike JSON Beautify, which uses JSON5).

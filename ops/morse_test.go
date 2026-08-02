@@ -1,6 +1,6 @@
 package ops
 
-// Morse code tests. The two fixtures in ../CyberChef/tests/operations/tests/
+// Morse code tests. The two fixtures in CyberChef's tests/operations/tests/
 // MorseCode.mjs only cover "SOS", so the remaining expected values were produced
 // by the CyberChef-server oracle across the format options, delimiters, and the
 // UTF-16 code-unit iteration quirk (non-BMP characters split into two "letters").

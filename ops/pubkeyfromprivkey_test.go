@@ -7,7 +7,7 @@ import (
 )
 
 // Fixtures transcribed verbatim from
-// ../CyberChef/tests/operations/tests/PubKeyFromPrivKey.mjs. The RSA/EC/DSA
+// CyberChef's tests/operations/tests/PubKeyFromPrivKey.mjs. The RSA/EC/DSA
 // PUBLIC KEY expected outputs are identical to the PubKeyFromCert fixtures and
 // are reused here (pkcRSAPubKey/pkcECPubKey/pkcDSAPubKey).
 

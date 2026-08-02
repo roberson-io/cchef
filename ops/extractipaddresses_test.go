@@ -15,7 +15,7 @@ func ipRecipe(v4, v6, removeLocal, total, sorted, unique bool) core.Recipe {
 }
 
 // TestExtractIPAddressesFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/ExtractIPAddresses.mjs). Each runs with
+// (CyberChef's tests/operations/tests/ExtractIPAddresses.mjs). Each runs with
 // IPv4 alone, which is what the fixtures use.
 func TestExtractIPAddressesFixtures(t *testing.T) {
 	v4 := ipRecipe(true, false, false, false, false, false)

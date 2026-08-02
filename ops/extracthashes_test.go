@@ -15,7 +15,7 @@ func hashRecipe(length float64, all, total bool) core.Recipe {
 }
 
 // TestExtractHashesFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/ExtractHashes.mjs).
+// (CyberChef's tests/operations/tests/ExtractHashes.mjs).
 func TestExtractHashesFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

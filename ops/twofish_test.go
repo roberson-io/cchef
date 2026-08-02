@@ -21,7 +21,7 @@ func twoDec(key, iv core.ToggleString, mode, in, out, pad string) core.RecipeOp 
 }
 
 // TestTwofish covers the operations against CyberChef's own fixtures
-// (../CyberChef/tests/operations/tests/Twofish.mjs): the official Twofish-paper
+// (CyberChef's tests/operations/tests/Twofish.mjs): the official Twofish-paper
 // ECB vectors and round trips across every mode and key size.
 func TestTwofish(t *testing.T) {
 	z128 := twofishKey("00000000000000000000000000000000", "Hex")

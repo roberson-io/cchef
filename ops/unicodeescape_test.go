@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Transcribed from ../CyberChef/tests/operations/tests/UnescapeUnicodeCharacters.mjs.
+// Transcribed from CyberChef's tests/operations/tests/UnescapeUnicodeCharacters.mjs.
 func TestUnescapeUnicodeFixtures(t *testing.T) {
 	unesc := func(prefix string) core.Recipe {
 		return core.Recipe{{Op: "Unescape Unicode Characters", Args: []any{prefix}}}

@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Transcribed from ../CyberChef/tests/operations/tests/TextIntegerConverter.mjs.
+// Transcribed from CyberChef's tests/operations/tests/TextIntegerConverter.mjs.
 // (The oracle image predates this 2025 op, so the upstream fixtures are the
 // authoritative source.)
 func TestTextIntegerFixtures(t *testing.T) {

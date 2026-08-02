@@ -5,7 +5,7 @@ package ops
 // CyberChef backs these with two different YAML 1.2 JS libraries (`yaml` for
 // JSON to YAML, `js-yaml` for YAML to JSON). cchef uses the Go
 // `go.yaml.in/yaml/v3` library for both. The fixture cases come from
-// ../CyberChef/tests/operations/tests/JSONtoYAML.mjs; the larger tables were
+// CyberChef's tests/operations/tests/JSONtoYAML.mjs; the larger tables were
 // derived from the CyberChef-server oracle and cover cases where the Go library
 // agrees with CyberChef. TestYAMLDivergences documents the known YAML 1.1-vs-1.2
 // differences where cchef intentionally follows the Go library instead.

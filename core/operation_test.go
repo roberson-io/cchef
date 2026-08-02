@@ -237,7 +237,7 @@ func TestCoerceArgToggleStringNonEmpty(t *testing.T) {
 
 // TestCoerceArgMessages covers the wording of every complaint the argument
 // checker makes. CyberChef reports these to the user directly
-// (../CyberChef/src/core/Ingredient.mjs), and its own test fixtures assert the
+// (CyberChef's src/core/Ingredient.mjs), and its own test fixtures assert the
 // text, so cchef says the same thing.
 func TestCoerceArgMessages(t *testing.T) {
 	five, ten := 5.0, 10.0

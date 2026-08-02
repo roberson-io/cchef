@@ -10,7 +10,7 @@ func mdRecipe(args ...any) core.Recipe {
 	return core.Recipe{{Op: "Render Markdown", Args: args}}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/RenderMarkdown.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/RenderMarkdown.mjs.
 // CyberChef renders Markdown to HTML with markdown-it (html disabled) and wraps
 // it in a div; cchef reproduces this over goldmark. Args are
 // [convertLinks, enableHighlighting, openLinksInNewTab]; an empty Args list uses

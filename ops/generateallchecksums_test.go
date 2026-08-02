@@ -7,7 +7,7 @@ import (
 )
 
 // Fixtures transcribed from
-// ../CyberChef/tests/operations/tests/GenerateAllChecksums.mjs (input "123456789",
+// CyberChef's tests/operations/tests/GenerateAllChecksums.mjs (input "123456789",
 // the standard checksum "check" string). Covers the full listing (with and
 // without names) and every per-width filter.
 func TestGenerateAllChecksums(t *testing.T) {

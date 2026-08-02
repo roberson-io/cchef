@@ -16,7 +16,7 @@ func rabbitRecipe(key, iv, endian, inType, outType string) core.Recipe {
 	}}}
 }
 
-// Rabbit fixtures transcribed from ../CyberChef/tests/operations/tests/Rabbit.mjs.
+// Rabbit fixtures transcribed from CyberChef's tests/operations/tests/Rabbit.mjs.
 // The RFC vectors come from RFC 4503.
 func TestRabbitFixtures(t *testing.T) {
 	const zeros48 = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"

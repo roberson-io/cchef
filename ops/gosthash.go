@@ -1,7 +1,7 @@
 package ops
 
 // Pure-Go port of CyberChef's GOST hash engine
-// (../CyberChef/src/core/vendor/gost/gostDigest.mjs, by Rudolf Nickolaev,
+// (CyberChef's src/core/vendor/gost/gostDigest.mjs, by Rudolf Nickolaev,
 // derived from Alexey Degtyarev's streebog.net implementation). It covers the
 // two digests the GOST Hash operation exposes: GOST R 34.11-2012 "Streebog"
 // (256/512-bit) and the older GOST R 34.11-94 (based on the GOST 28147-89

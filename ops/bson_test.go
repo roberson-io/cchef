@@ -24,7 +24,7 @@ func bsonDeserRecipe() core.Recipe {
 	}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/BSON.mjs (basic
+// Fixtures transcribed from CyberChef's tests/operations/tests/BSON.mjs (basic
 // case) plus oracle-verified vectors covering the number-type rule (int32 vs
 // double), booleans, null, arrays, nested documents and ECMAScript key ordering.
 // CyberChef wraps js-bson's serialize(); cchef reimplements the codec from

@@ -3,7 +3,7 @@ package ops
 // Tests for the MIME Decoding operation (RFC 2047 encoded-word header decoding).
 //
 // The first ten cases are transcribed from CyberChef's fixture,
-// ../CyberChef/tests/operations/tests/MIMEDecoding.mjs; the remainder were
+// CyberChef's tests/operations/tests/MIMEDecoding.mjs; the remainder were
 // derived from the CyberChef-server oracle (charset edge cases, the unknown-
 // encoding path, and the two error messages).
 

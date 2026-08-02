@@ -14,7 +14,7 @@ import (
 )
 
 // The machinery the two one-time password operations share, ported from
-// ../CyberChef/node_modules/otpauth/dist/otpauth.node.mjs.
+// CyberChef's node_modules/otpauth/dist/otpauth.node.mjs.
 
 // otpAlphabet is the base32 alphabet of RFC 4648, which secrets are written in.
 const otpAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"

@@ -12,7 +12,7 @@ func xpathRecipe(query, delim string) core.Recipe {
 	return core.Recipe{{Op: "XPath expression", Args: []any{query, delim}}}
 }
 
-// XPath expression has no upstream fixture file (../CyberChef wraps @xmldom/xmldom
+// XPath expression has no upstream fixture file (CyberChef wraps @xmldom/xmldom
 // + the npm `xpath` library); these cases are authoritative outputs captured from
 // the CyberChef-server oracle. The document is parsed as XML (same lenient parser
 // as CSS selector) and each selected node is serialized via node.toString().

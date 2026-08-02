@@ -11,7 +11,7 @@ import (
 )
 
 // TestGenerateHOTPFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/OTP.mjs). The three that assert an
+// (CyberChef's tests/operations/tests/OTP.mjs). The three that assert an
 // argument being turned away are checked separately, because cchef reports
 // those from the engine rather than the operation.
 func TestGenerateHOTPFixtures(t *testing.T) {

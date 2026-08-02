@@ -11,7 +11,7 @@ func phpSerRecipe() core.Recipe {
 	return core.Recipe{{Op: "PHP Serialize", Args: []any{}}}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/PHPSerialize.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/PHPSerialize.mjs.
 // The input is JSON; strings use JS UTF-16 code-unit length.
 func TestPHPSerializeFixtures(t *testing.T) {
 	runCases(t, []opCase{

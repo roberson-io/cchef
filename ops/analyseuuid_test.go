@@ -12,7 +12,7 @@ func analyseUUIDRecipe(metadata bool) core.Recipe {
 }
 
 // TestAnalyseUUIDFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/AnalyseUUID.mjs).
+// (CyberChef's tests/operations/tests/AnalyseUUID.mjs).
 func TestAnalyseUUIDFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

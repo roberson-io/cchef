@@ -12,7 +12,7 @@ const (
 )
 
 // crcChecks are the per-variant CRC "check" values (CRC of "123456789"),
-// transcribed from ../CyberChef/tests/operations/tests/CRCChecksum.mjs.
+// transcribed from CyberChef's tests/operations/tests/CRCChecksum.mjs.
 var crcChecks = [][2]string{
 	{"CRC-3/GSM", "4"},
 	{"CRC-3/ROHC", "6"},

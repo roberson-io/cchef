@@ -85,7 +85,7 @@ func blankTarTime(data []byte) []byte {
 }
 
 // TestTarFixtures covers CyberChef's own cases
-// (../CyberChef/tests/node/tests/operations.mjs).
+// (CyberChef's tests/node/tests/operations.mjs).
 func TestTarFixtures(t *testing.T) {
 	out, err := runOp(t, "Tar", "some file content", "test.txt")
 	if err != nil {

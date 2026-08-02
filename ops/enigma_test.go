@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Enigma.mjs. The
+// Cases transcribed from CyberChef's tests/operations/tests/Enigma.mjs. The
 // fixtures omit the trailing "Strict output" arg, which CyberChef reads as
 // undefined (falsy); cchef fills omitted args with the ingredient default
 // (true), so the tests pass Strict output = false explicitly to match.

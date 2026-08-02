@@ -28,7 +28,7 @@ func bombeMatch(t *testing.T, op, input, pattern string, args ...any) {
 	}
 }
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Bombe.mjs.
+// Cases transcribed from CyberChef's tests/operations/tests/Bombe.mjs.
 func TestBombeFixtures(t *testing.T) {
 	// args: model, 4th rotor, left, middle, right, reflector, crib, offset, check
 	t.Run("3 rotor (self-stecker)", func(t *testing.T) {
@@ -70,7 +70,7 @@ func TestBombeErrors(t *testing.T) {
 	bombeMatch(t, "Bombe", "AAAAA", `Offset cannot be negative`, base("BBBBB", -1)...)
 }
 
-// Transcribed from ../CyberChef/tests/operations/tests/MultipleBombe.mjs.
+// Transcribed from CyberChef's tests/operations/tests/MultipleBombe.mjs.
 func TestMultipleBombeFixtures(t *testing.T) {
 	// args: standard enigmas, main rotors, 4th rotor, reflectors, crib, offset, check
 	t.Run("3 rotor", func(t *testing.T) {

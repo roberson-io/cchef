@@ -9,7 +9,7 @@ import (
 func fletcherRecipe(op string) core.Recipe { return core.Recipe{{Op: op, Args: []any{}}} }
 
 // Fletcher-16/32/64 vectors transcribed from
-// ../CyberChef/tests/operations/tests/FletcherChecksum.mjs. Fletcher-8 has no
+// CyberChef's tests/operations/tests/FletcherChecksum.mjs. Fletcher-8 has no
 // upstream fixtures, so those values come from the CyberChef-server oracle.
 func TestFletcherFixtures(t *testing.T) {
 	runCases(t, []opCase{

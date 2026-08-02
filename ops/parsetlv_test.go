@@ -9,7 +9,7 @@ import (
 )
 
 // TestParseTLVFixtures transcribes the CyberChef fixtures
-// (../CyberChef/tests/operations/tests/ParseTLV.mjs). cchef emits compact JSON.
+// (CyberChef's tests/operations/tests/ParseTLV.mjs). cchef emits compact JSON.
 func TestParseTLVFixtures(t *testing.T) {
 	lv := `[{"length":5,"value":[72,111,117,115,101]},{"length":4,"value":[114,111,111,109]},{"length":4,"value":[100,111,111,114]}]`
 	klv := `[{"key":[4],"length":5,"value":[72,111,117,115,101]},{"key":[5],"length":4,"value":[114,111,111,109]},{"key":[66],"length":4,"value":[100,111,111,114]}]`

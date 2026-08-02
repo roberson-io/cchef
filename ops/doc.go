@@ -26,5 +26,5 @@
 // somewhere untrusted, which is what recipe execution does.
 //
 // The operations follow CyberChef's behavior. Where cchef differs
-// deliberately, PLAN.md records what and why.
+// deliberately, AGENTS.md records what and why.
 package ops

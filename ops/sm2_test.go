@@ -10,7 +10,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Fixtures transcribed verbatim from ../CyberChef/tests/operations/tests/SM2.mjs.
+// Fixtures transcribed verbatim from CyberChef's tests/operations/tests/SM2.mjs.
 const (
 	sm2SmallPlain = "I am a small plaintext"
 	sm2LargePlain = "I am a larger plaintext, that will require the encryption KDF to generate a much larger key to properly encrypt me"

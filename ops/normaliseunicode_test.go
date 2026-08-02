@@ -4,7 +4,7 @@ package ops
 //
 // CyberChef wraps the `unorm` library; cchef uses golang.org/x/text/unicode/norm.
 // The four fixture cases come from
-// ../CyberChef/tests/operations/tests/NormaliseUnicode.mjs (transcribed to exact
+// CyberChef's tests/operations/tests/NormaliseUnicode.mjs (transcribed to exact
 // expected strings); the extras are oracle-verified.
 
 import (

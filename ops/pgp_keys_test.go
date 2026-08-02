@@ -1,7 +1,7 @@
 package ops
 
 // PGP fixture keys and messages transcribed from
-// ../CyberChef/tests/operations/tests/PGP.mjs (Keybase/kbpgp-generated).
+// CyberChef's tests/operations/tests/PGP.mjs (Keybase/kbpgp-generated).
 
 const (
 	pgpAlicePriv = `-----BEGIN PGP PRIVATE KEY BLOCK-----

@@ -73,7 +73,7 @@ func derTLV(tag, value string) string {
 }
 
 // opCase mirrors a CyberChef fixture case
-// (../CyberChef/tests/operations/tests/<Op>.mjs): an input, the expected output,
+// (CyberChef's tests/operations/tests/<Op>.mjs): an input, the expected output,
 // and the recipe that produces it. recipeConfig maps directly onto core.Recipe.
 type opCase struct {
 	name   string

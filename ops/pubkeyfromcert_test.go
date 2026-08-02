@@ -14,7 +14,7 @@ func crlf(s string) string {
 }
 
 // Fixtures transcribed verbatim from
-// ../CyberChef/tests/operations/tests/PubKeyFromCert.mjs.
+// CyberChef's tests/operations/tests/PubKeyFromCert.mjs.
 
 const pkcRSACert = `-----BEGIN CERTIFICATE-----
 MIIBfTCCASegAwIBAgIUeisK5Nwss2DGg5PCs4uSxxXyyNkwDQYJKoZIhvcNAQEL

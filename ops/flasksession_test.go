@@ -1,7 +1,7 @@
 package ops
 
 // Flask Session Decode/Sign/Verify tests. Fixtures transcribed from
-// ../CyberChef/tests/operations/tests/FlaskSession.mjs. Signing is normally
+// CyberChef's tests/operations/tests/FlaskSession.mjs. Signing is normally
 // non-deterministic (current timestamp); the byte-exact vectors reproduce the
 // fixture tokens by feeding their embedded timestamp to the internal seam, and
 // the public op is checked by Sign -> Verify round trips.

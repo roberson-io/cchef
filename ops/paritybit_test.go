@@ -10,7 +10,7 @@ func parityRecipe(mode, position, mode3, delim string) core.Recipe {
 	return core.Recipe{{Op: "Parity Bit", Args: []any{mode, position, mode3, delim}}}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/ParityBit.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/ParityBit.mjs.
 func TestParityBitFixtures(t *testing.T) {
 	toBinThenParity := func(mode, position, delim string) core.Recipe {
 		return core.Recipe{

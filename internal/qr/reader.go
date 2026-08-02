@@ -6,7 +6,7 @@ import (
 )
 
 // The image half of the QR reader, ported from jsQR
-// (../CyberChef/node_modules/jsqr/dist/jsQR.js), which is what CyberChef reads
+// (CyberChef's node_modules/jsqr/dist/jsQR.js), which is what CyberChef reads
 // codes with: threshold the image, find the three finder patterns and the
 // alignment pattern, then sample the modules through the perspective transform
 // those four points define.

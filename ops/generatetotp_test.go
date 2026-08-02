@@ -20,7 +20,7 @@ func atMoment(t *testing.T, milliseconds int64, body func()) {
 }
 
 // TestGenerateTOTPFixture covers CyberChef's own case
-// (../CyberChef/tests/operations/tests/OTP.mjs), which can only assert the
+// (CyberChef's tests/operations/tests/OTP.mjs), which can only assert the
 // shape of the output because the password moves with the clock. Holding the
 // clock still pins the password too.
 func TestGenerateTOTPFixture(t *testing.T) {

@@ -14,7 +14,7 @@ func jbRecipe(args ...any) core.Recipe {
 	return core.Recipe{{Op: "JSON Beautify", Args: args}}
 }
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/JSONBeautify.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/JSONBeautify.mjs.
 // CyberChef parses with JSON5 (lenient) and re-emits with JSON.stringify(_, null,
 // indent); cchef reproduces run()'s plain-string output. The upstream fixtures
 // pipe the string/object cases through "HTML To Text" to reverse the browser

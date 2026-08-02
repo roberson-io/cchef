@@ -16,7 +16,7 @@ const (
 )
 
 // TestPGPDecryptFixed decrypts a fixed kbpgp-produced message (interop with
-// Keybase's OpenPGP). From ../CyberChef/tests/operations/tests/PGP.mjs.
+// Keybase's OpenPGP). From CyberChef's tests/operations/tests/PGP.mjs.
 func TestPGPDecryptFixed(t *testing.T) {
 	got, err := runOp(t, "PGP Decrypt", pgpFixedDecMsg, pgpAlicePriv, "")
 	if err != nil {

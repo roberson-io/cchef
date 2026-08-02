@@ -168,7 +168,7 @@ func uuidV4Bytes(random []byte) []byte {
 // clock sequence and a node.
 //
 // The timestamp arithmetic is transliterated from
-// ../CyberChef/node_modules/uuid/dist/v1.js, which works the high half out by
+// CyberChef's node_modules/uuid/dist/v1.js, which works the high half out by
 // dividing before it multiplies. Doing that in floating point is what the
 // package does and what the bytes must match.
 func uuidV1Bytes(random []byte, msecs int64, nsecs, clockseq int, node []byte) []byte {

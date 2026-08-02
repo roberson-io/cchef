@@ -10,7 +10,7 @@ import (
 // typexArgs builds the 24-arg list for a Typex step from the shared fixture
 // rotor/reflector/plugboard settings, varying only the keyboard mode and strict
 // flag. The five rotors, reflectors, ring/initial settings and reversals match
-// ../CyberChef/tests/operations/tests/Typex.mjs.
+// CyberChef's tests/operations/tests/Typex.mjs.
 func typexArgs(keyboard string, strict bool) []any {
 	return []any{
 		"MCYLPQUVRXGSAOWNBJEZDTFKHI<BFHNQUW", false, "B", "C",
@@ -25,7 +25,7 @@ func typexArgs(keyboard string, strict bool) []any {
 }
 
 // TestTypex covers the operation against CyberChef's own fixtures
-// (../CyberChef/tests/operations/tests/Typex.mjs).
+// (CyberChef's tests/operations/tests/Typex.mjs).
 func TestTypex(t *testing.T) {
 	msg := "hello world, this is a test message."
 	runCases(t, []opCase{

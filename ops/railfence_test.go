@@ -8,7 +8,7 @@ import (
 )
 
 // Rail Fence fixtures transcribed from
-// ../CyberChef/tests/operations/tests/Ciphers.mjs.
+// CyberChef's tests/operations/tests/Ciphers.mjs.
 func TestRailFenceFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

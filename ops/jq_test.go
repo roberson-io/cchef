@@ -12,7 +12,7 @@ func jqRecipe(query string, raw bool) core.Recipe {
 	return core.Recipe{{Op: "Jq", Args: []any{query, raw}}}
 }
 
-// The first two cases are transcribed from ../CyberChef/tests/operations/tests/Jq.mjs;
+// The first two cases are transcribed from CyberChef's tests/operations/tests/Jq.mjs;
 // the rest are authoritative outputs captured from the CyberChef-server oracle.
 // CyberChef wraps jq-web (jq compiled to WASM); cchef reimplements the operation
 // over gojq (a pure-Go jq), reproducing jq-web's .json() output collapse: zero

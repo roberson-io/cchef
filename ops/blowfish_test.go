@@ -19,7 +19,7 @@ func blowfishRec(op, key, iv, mode, in, out string) core.Recipe {
 	}}}
 }
 
-// Cases transcribed from ../CyberChef/tests/operations/tests/Crypt.mjs.
+// Cases transcribed from CyberChef's tests/operations/tests/Crypt.mjs.
 func TestBlowfishFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

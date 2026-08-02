@@ -76,7 +76,7 @@ func hexUnits(t *testing.T, s string) []uint16 {
 }
 
 // TestLZStringFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/LZString.mjs).
+// (CyberChef's tests/operations/tests/LZString.mjs).
 func TestLZStringFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

@@ -2,7 +2,7 @@ package ops
 
 // Tests for the CSV to JSON and JSON to CSV operations.
 //
-// Fixtures are transcribed from ../CyberChef/tests/operations/tests/CSV.mjs and
+// Fixtures are transcribed from CyberChef's tests/operations/tests/CSV.mjs and
 // JSONtoCSV.mjs; the edge-case tables were derived from CyberChef (via the
 // CyberChef-server oracle). CSV to JSON is a port of Utils.parseCSV plus a
 // dictionary/array shaping step; JSON to CSV reproduces CyberChef's direct path

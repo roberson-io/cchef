@@ -13,7 +13,7 @@ func cssRecipe(query, delim string) core.Recipe {
 	return core.Recipe{{Op: "CSS selector", Args: []any{query, delim}}}
 }
 
-// CSS selector has no upstream fixture file (../CyberChef wraps @xmldom/xmldom +
+// CSS selector has no upstream fixture file (CyberChef wraps @xmldom/xmldom +
 // nwmatcher, which have no CyberChef-side logic), so these cases are authoritative
 // outputs captured from the CyberChef-server oracle. Selection and node.toString()
 // serialization are reproduced from the oracle; the delimiter follows cchef's

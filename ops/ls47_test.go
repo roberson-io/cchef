@@ -7,7 +7,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// LS47 fixtures transcribed from ../CyberChef/tests/operations/tests/LS47.mjs.
+// LS47 fixtures transcribed from CyberChef's tests/operations/tests/LS47.mjs.
 func TestLS47Fixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

@@ -94,7 +94,7 @@ func loadLZMAGoldens(t *testing.T) []lzmaGolden {
 }
 
 // TestLZMAFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/Compress.mjs). The two decompression
+// (CyberChef's tests/operations/tests/Compress.mjs). The two decompression
 // cases read streams the lzma command wrote, which state no size in the header.
 func TestLZMAFixtures(t *testing.T) {
 	runCases(t, []opCase{

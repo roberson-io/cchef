@@ -5,7 +5,7 @@ package ops
 // CyberChef's CBOR operations are thin wrappers around the `cbor` npm library
 // (v10.0.12), calling Cbor.encodeCanonical / Cbor.decodeFirstSync. This is a
 // from-scratch port; the transcribed fixtures below come from
-// ../CyberChef/tests/operations/tests/CBOR{Encode,Decode}.mjs, and the larger
+// CyberChef's tests/operations/tests/CBOR{Encode,Decode}.mjs, and the larger
 // vector tables were derived from that exact library used as an oracle (via the
 // CyberChef-server /bake endpoint). They are ordinary tests — edit as needed.
 

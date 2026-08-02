@@ -11,7 +11,7 @@ import (
 )
 
 // templateFixture is one of CyberChef's own cases
-// (../CyberChef/tests/operations/tests/Template.mjs).
+// (CyberChef's tests/operations/tests/Template.mjs).
 type templateFixture struct {
 	Name     string `json:"name"`
 	Input    string `json:"input"`

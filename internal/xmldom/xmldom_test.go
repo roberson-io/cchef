@@ -8,7 +8,7 @@ import "testing"
 //   - attribute value escapes [<>&"\t\n\r] via numeric/named refs
 //   - text escapes [<&>]
 //   - comment -> "<!--data-->", CDATA -> "<![CDATA[data]]>"
-// See ../CyberChef/node_modules/@xmldom/xmldom/lib/dom.js serializeToString.
+// See CyberChef's node_modules/@xmldom/xmldom/lib/dom.js serializeToString.
 
 func el(name string, attrs []Attr, children ...*Node) *Node {
 	n := &Node{typ: xmlElement, name: name, Attrs: attrs}

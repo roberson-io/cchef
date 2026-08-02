@@ -9,7 +9,7 @@ import (
 )
 
 // TestGzipFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/Gzip.mjs). The first four drop the
+// (CyberChef's tests/operations/tests/Gzip.mjs). The first four drop the
 // ten-byte header before comparing, because it records the time gzip ran.
 func TestGzipFixtures(t *testing.T) {
 	runCases(t, []opCase{
@@ -92,7 +92,7 @@ func TestGzipFixtures(t *testing.T) {
 }
 
 // TestGunzipFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/Gunzip.mjs).
+// (CyberChef's tests/operations/tests/Gunzip.mjs).
 func TestGunzipFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

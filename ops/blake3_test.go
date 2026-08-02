@@ -1,6 +1,6 @@
 package ops
 
-// BLAKE3 fixtures transcribed from ../CyberChef/tests/operations/tests/BLAKE3.mjs
+// BLAKE3 fixtures transcribed from CyberChef's tests/operations/tests/BLAKE3.mjs
 // (single-chunk cases and the official 0/7-byte test vectors). CyberChef wraps
 // @noble/hashes; the multi-chunk (>1024-byte) tree path has no upstream fixture,
 // so TestBLAKE3Tree adds official BLAKE3 test vectors (input byte i = i%251),

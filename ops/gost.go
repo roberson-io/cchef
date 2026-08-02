@@ -1,7 +1,7 @@
 package ops
 
 // Pure-Go port of the GOST block-cipher engine used by CyberChef's GOST
-// operations (../CyberChef/src/core/vendor/gost/gostCipher.mjs, by Rudolf
+// operations (CyberChef's src/core/vendor/gost/gostCipher.mjs, by Rudolf
 // Nickolaev). It implements GOST 28147-89 / GOST R 34.12-2015 "Magma" (64-bit)
 // and "Kuznyechik" (128-bit) in the ES (encrypt/decrypt), MAC (imitovstavka)
 // and KW (key wrapping) modes. The port follows the JavaScript arithmetic

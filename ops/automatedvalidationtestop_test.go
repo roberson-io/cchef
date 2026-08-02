@@ -23,7 +23,7 @@ func withArg(at int, value any) []any {
 }
 
 // TestAutomatedValidationFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/AutomatedValidation.mjs). The operation
+// (CyberChef's tests/operations/tests/AutomatedValidation.mjs). The operation
 // exists to exercise the argument checker, so each case is really a check on
 // what the engine says about an argument it will not take.
 func TestAutomatedValidationFixtures(t *testing.T) {

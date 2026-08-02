@@ -11,7 +11,7 @@ import (
 )
 
 // JWT fixtures transcribed from
-// ../CyberChef/tests/operations/tests/JWT{Decode,Sign,Verify}.mjs.
+// CyberChef's tests/operations/tests/JWT{Decode,Sign,Verify}.mjs.
 
 // jwtPayloadObject is JSON.stringify({String, Number, iat}, null, 4) — the shared
 // input/output object used across the upstream JWT fixtures.

@@ -1,11 +1,11 @@
 package ops
 
 // Fernet Encrypt/Decrypt tests. CyberChef wraps the `fernet` npm library; these
-// vectors were produced by that exact library (in ../CyberChef/node_modules).
+// vectors were produced by that exact library (in CyberChef's node_modules).
 // Encryption is normally non-deterministic (random IV + current time), so the
 // byte-exact encrypt vectors were generated with a fixed IV (00..0f) and time
 // (1622505600) via the internal fernetEncrypt seam; the public op is checked by
-// round-trip. The decrypt fixture is from ../CyberChef/tests/operations/tests/Fernet.mjs.
+// round-trip. The decrypt fixture is from CyberChef's tests/operations/tests/Fernet.mjs.
 
 import (
 	"crypto/hmac"

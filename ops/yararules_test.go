@@ -52,7 +52,7 @@ func TestYARAGoldens(t *testing.T) {
 }
 
 // TestYARAFixtures covers CyberChef's own cases
-// (../CyberChef/tests/operations/tests/YARA.mjs).
+// (CyberChef's tests/operations/tests/YARA.mjs).
 func TestYARAFixtures(t *testing.T) {
 	const consoleRule = `import "console"
 rule a

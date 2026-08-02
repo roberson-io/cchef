@@ -13,7 +13,7 @@ import (
 )
 
 // The QR code foundation, ported from the qr-image package CyberChef wraps
-// (../CyberChef/node_modules/qr-image/lib/{encode,errorcode,qr-base,matrix}.js).
+// (CyberChef's node_modules/qr-image/lib/{encode,errorcode,qr-base,matrix}.js).
 // The matrix is spec-deterministic, but the choices around it — which mode
 // encodes the data, which version holds it, and which mask is applied — are the
 // library's, and every renderer depends on all three agreeing.

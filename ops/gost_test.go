@@ -2,7 +2,7 @@ package ops
 
 // Tests for the GOST block-cipher operations (Encrypt, Decrypt, Key Wrap, Key
 // Unwrap, Sign, Verify). Cases marked "fixture" are transcribed from
-// ../CyberChef/tests/operations/tests/GOST.mjs; the rest were produced by the
+// CyberChef's tests/operations/tests/GOST.mjs; the rest were produced by the
 // CyberChef-server oracle (which wraps the same @wavesenterprise crypto-gost-js
 // engine this file ports). ASCII input + Hex output are used where possible so
 // there is no Latin1/UTF-8 ambiguity.

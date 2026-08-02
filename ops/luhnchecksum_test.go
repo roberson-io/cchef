@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// luhnTuple is a fixture from ../CyberChef/tests/operations/tests/LuhnChecksum.mjs:
+// luhnTuple is a fixture from CyberChef's tests/operations/tests/LuhnChecksum.mjs:
 // radix, input, and the expected checksum / check digit (rendered in that radix).
 type luhnTuple struct {
 	radix         int

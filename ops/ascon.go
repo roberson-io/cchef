@@ -247,7 +247,7 @@ func asconHash256(message []byte) []byte {
 
 // --- Ascon-Mac (NIST SP 800-232) ---
 //
-// Ported from the vendored ../CyberChef/src/core/vendor/ascon.mjs the Ascon MAC
+// Ported from the vendored CyberChef's src/core/vendor/ascon.mjs the Ascon MAC
 // operation wraps. It absorbs the message in 8-byte words cycling through
 // s[0..3] (permuting after four), pads the final partial word, applies domain
 // separation, and squeezes a 16-byte tag from s[0]‖s[1].

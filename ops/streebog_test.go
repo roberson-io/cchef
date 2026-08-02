@@ -1,6 +1,6 @@
 package ops
 
-// Streebog fixtures transcribed from ../CyberChef/tests/operations/tests/Hash.mjs
+// Streebog fixtures transcribed from CyberChef's tests/operations/tests/Hash.mjs
 // (Streebog-256/512 Test Cases 1 & 2). Streebog is GOST R 34.11-2012; the digest
 // engine (gostDigest2012) is shared with GOST Hash and covered in gosthash_test.go.
 

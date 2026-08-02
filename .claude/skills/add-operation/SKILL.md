@@ -28,7 +28,7 @@ CyberChef. Neither lives in this repo; set them up as siblings of it.
   cd ../CyberChef && npm install
   ```
 
-  Check out the version cchef is aligned with (named in PLAN.md's Status
+  Check out the version cchef is aligned with (named in AGENTS.md's Orientation
   section) unless the task is porting something newer. `npm install` matters:
   many operations wrap an npm library, and the authoritative source for those
   is the library's code under `../CyberChef/node_modules/` — read it rather
@@ -303,11 +303,11 @@ tests will fail:
 
 ## 7. Update the operation counts
 
-PLAN.md no longer tracks per-operation status — every CyberChef operation is
+AGENTS.md does not track per-operation status — every CyberChef operation is
 ported — but the total appears in several count-bearing spots that tests do
 **not** catch:
 
-1. **`PLAN.md` Status section:** the "curated set of **N operations**" sentence,
+1. **`AGENTS.md` Orientation section:** the "curated set of **N operations**" sentence,
    the "**N operations** (`ops/`)" bullet, and the unique-CyberChef-op count in
    the same paragraph (subcommands can outnumber unique ops — `SHA2` is one op
    but four subcommands).
@@ -315,7 +315,7 @@ ported — but the total appears in several count-bearing spots that tests do
    If the new op exists only in a CyberChef version newer than the one cchef is
    aligned with, say so there rather than claiming blanket coverage.
 
-Grep the old number across `PLAN.md docs/README.md README.md` to confirm none
+Grep the old number across `AGENTS.md docs/README.md README.md` to confirm none
 were missed. The authoritative subcommand count is the registry size:
 `./dist/cchef list` (or count `cmd/opmeta.go` entries).
 
@@ -340,8 +340,8 @@ make all   # fmt-check + fix-check + vet + test + build + lint + sec
   op could touch that (a new dependency especially), verify with
   `CGO_ENABLED=0 go build ./...`.
 - **SBOM:** only if the op added a dependency, run `make sbom-audit` and confirm
-  no high vulns; note the dep (and its transitive deps, after `go mod tidy`) in
-  PLAN.md. Never vendor (`go mod vendor`), and check `git status` afterwards so
+  no high vulns; note the dep (and its transitive deps, after `go mod tidy`) in the PR
+  description. Never vendor (`go mod vendor`), and check `git status` afterwards so
   no stray files land in the tree.
 
 Then sanity-check the new subcommand end-to-end (`make build` + a real
@@ -364,7 +364,7 @@ invocation). Do not commit unless the user asks.
 - **CLI metadata is central**: `cmd/opmeta.go` category entry (all categories,
   enforced by test); curated summary in `cmd/opsummaries.go` if the derived one
   truncates.
-- **Keep counts in sync**: PLAN.md Status and `docs/README.md` — no test
+- **Keep counts in sync**: AGENTS.md Orientation and `docs/README.md` — no test
   catches these.
 - **`make all` must be clean** before finishing; also run **`make complexity`**;
   annotate by-design gosec findings with justified `// #nosec`.

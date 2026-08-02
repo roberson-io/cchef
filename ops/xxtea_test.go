@@ -11,7 +11,7 @@ import (
 func xxteaKey(v, opt string) core.ToggleString { return core.ToggleString{Value: v, Option: opt} }
 
 // TestXXTEA covers XXTEA encrypt/decrypt. The first two cases are the upstream
-// fixtures (../CyberChef/tests/operations/tests/XXTEA.mjs); the rest are verified
+// fixtures (CyberChef's tests/operations/tests/XXTEA.mjs); the rest are verified
 // against the CyberChef-server oracle.
 func TestXXTEA(t *testing.T) {
 	k := xxteaKey("1234567890", "UTF8")

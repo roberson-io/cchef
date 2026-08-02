@@ -13,7 +13,7 @@ func blake2Recipe(op, size, format, key, keyOpt string) core.Recipe {
 	return core.Recipe{{Op: op, Args: []any{size, format, core.ToggleString{Value: key, Option: keyOpt}}}}
 }
 
-// BLAKE2b fixtures transcribed from ../CyberChef/tests/operations/tests/BLAKE2b.mjs.
+// BLAKE2b fixtures transcribed from CyberChef's tests/operations/tests/BLAKE2b.mjs.
 func TestBLAKE2bFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{
@@ -44,7 +44,7 @@ func TestBLAKE2bFixtures(t *testing.T) {
 	})
 }
 
-// BLAKE2s fixtures transcribed from ../CyberChef/tests/operations/tests/BLAKE2s.mjs.
+// BLAKE2s fixtures transcribed from CyberChef's tests/operations/tests/BLAKE2s.mjs.
 func TestBLAKE2sFixtures(t *testing.T) {
 	runCases(t, []opCase{
 		{

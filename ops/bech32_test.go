@@ -10,7 +10,7 @@ import (
 )
 
 // TestToBech32Fixtures transcribes the To Bech32 cases from
-// ../CyberChef/tests/operations/tests/Bech32.mjs (official BIP-0173/BIP-0350
+// CyberChef's tests/operations/tests/Bech32.mjs (official BIP-0173/BIP-0350
 // vectors).
 func TestToBech32Fixtures(t *testing.T) {
 	runCases(t, []opCase{

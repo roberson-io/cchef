@@ -6,7 +6,7 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
-// Fixtures transcribed from ../CyberChef/tests/operations/tests/MurmurHash3.mjs.
+// Fixtures transcribed from CyberChef's tests/operations/tests/MurmurHash3.mjs.
 func TestMurmurHash3Fixtures(t *testing.T) {
 	mmh := func(args ...any) core.Recipe {
 		return core.Recipe{{Op: "MurmurHash3", Args: args}}

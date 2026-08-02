@@ -1,6 +1,6 @@
 package ops
 
-// CMAC fixtures transcribed from ../CyberChef/tests/operations/tests/CMAC.mjs
+// CMAC fixtures transcribed from CyberChef's tests/operations/tests/CMAC.mjs
 // (NIST CSRC example values). Non-empty inputs are hex, decoded via From Hex as
 // in the upstream recipes.
 

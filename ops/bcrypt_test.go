@@ -15,7 +15,7 @@ import (
 const dolphinHash = "$2a$10$qyon0LQCmMxpFFjwWH6Qh.dDdhqntQh./IN0RXCc3XIMILuOYZKgK"
 
 // Bcrypt compare success paths ("Match: ..."/"No match" are outputs, not errors).
-// The dolphin case is transcribed from ../CyberChef/tests/operations/tests/Hash.mjs;
+// The dolphin case is transcribed from CyberChef's tests/operations/tests/Hash.mjs;
 // the rest are oracle-verified.
 func TestBcryptCompareFixtures(t *testing.T) {
 	runCases(t, []opCase{
