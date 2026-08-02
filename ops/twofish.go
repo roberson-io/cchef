@@ -6,6 +6,7 @@ import (
 	"math/bits"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -462,7 +463,7 @@ func twofishOutput(out []byte, outType string) *core.Dish {
 	if outType == "Hex" {
 		return core.NewDish([]byte(hex.EncodeToString(out)), core.TypeString)
 	}
-	return core.NewDish([]byte(byteArrayToUtf8(out)), core.TypeString)
+	return core.NewDish([]byte(opsutil.BytesAsText(out)), core.TypeString)
 }
 
 // TwofishEncrypt encrypts with the Twofish block cipher.

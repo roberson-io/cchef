@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -108,7 +109,7 @@ func (FileTree) Args() []core.ArgDef {
 // Run builds the tree. Ported from CyberChef FileTree.mjs.
 func (FileTree) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	const arrow, pipe = "|---", "|   "
-	fileDelim := parseEscapedChars(args[0].(string))
+	fileDelim := opsutil.ParseEscapedChars(args[0].(string))
 	entryDelim := charRep(args[1].(string))
 
 	paths := uniqueSorted(splitByDelim(in.String(), entryDelim))

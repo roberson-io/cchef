@@ -1,4 +1,12 @@
-package ops
+// Package handlebars renders Handlebars templates, written from scratch.
+//
+// CyberChef's Template operation calls the handlebars npm package; there is
+// no maintained Go port, so this covers the part of the language a template
+// can usefully be written in: variables with HTML escaping, path and literal
+// arguments, block helpers (#if, #unless, #each, #with), partials, and
+// comments. [Compile] parses a source string and [Template.Render] evaluates
+// it against decoded JSON data.
+package handlebars
 
 import (
 	"fmt"
@@ -22,13 +30,13 @@ import (
 
 // hbNode is one piece of a parsed template.
 type hbNode interface {
-	render(out *strings.Builder, ctx *hbContext) error
+	Render(out *strings.Builder, ctx *hbContext) error
 }
 
 // hbText is literal template text.
 type hbText string
 
-func (t hbText) render(out *strings.Builder, _ *hbContext) error {
+func (t hbText) Render(out *strings.Builder, _ *hbContext) error {
 	out.WriteString(string(t))
 	return nil
 }
@@ -40,7 +48,7 @@ type hbVariable struct {
 	escape bool
 }
 
-func (v hbVariable) render(out *strings.Builder, ctx *hbContext) error {
+func (v hbVariable) Render(out *strings.Builder, ctx *hbContext) error {
 	out.WriteString(hbFormat(ctx.lookup(v.path), v.escape))
 	return nil
 }
@@ -61,7 +69,7 @@ type hbPartialDef struct {
 	body []hbNode
 }
 
-func (p hbPartialDef) render(_ *strings.Builder, ctx *hbContext) error {
+func (p hbPartialDef) Render(_ *strings.Builder, ctx *hbContext) error {
 	ctx.partials[p.name] = p.body
 	return nil
 }
@@ -72,7 +80,7 @@ type hbPartialUse struct {
 	indent string
 }
 
-func (p hbPartialUse) render(out *strings.Builder, ctx *hbContext) error {
+func (p hbPartialUse) Render(out *strings.Builder, ctx *hbContext) error {
 	body, ok := ctx.partials[p.name]
 	if !ok {
 		//nolint:staticcheck,revive // Handlebars' verbatim error text
@@ -106,18 +114,18 @@ func hbIndentLines(s, indent string) string {
 // hbRenderAll renders a run of nodes in order.
 func hbRenderAll(out *strings.Builder, nodes []hbNode, ctx *hbContext) error {
 	for _, n := range nodes {
-		if err := n.render(out, ctx); err != nil {
+		if err := n.Render(out, ctx); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// hbTemplate is a parsed template ready to be rendered against a value.
-type hbTemplate struct{ nodes []hbNode }
+// Template is a parsed template ready to be rendered against a value.
+type Template struct{ nodes []hbNode }
 
-// hbCompile reads a template.
-func hbCompile(source string) (*hbTemplate, error) {
+// Compile reads a template.
+func Compile(source string) (*Template, error) {
 	tokens, err := hbLex(source)
 	if err != nil {
 		return nil, err
@@ -132,11 +140,11 @@ func hbCompile(source string) (*hbTemplate, error) {
 	if p.pos < len(p.tokens) {
 		return nil, fmt.Errorf("unexpected %s", p.tokens[p.pos].text)
 	}
-	return &hbTemplate{nodes: nodes}, nil
+	return &Template{nodes: nodes}, nil
 }
 
-// render renders the template against a value.
-func (t *hbTemplate) render(data any) (string, error) {
+// Render renders the template against a value.
+func (t *Template) Render(data any) (string, error) {
 	ctx := &hbContext{
 		value:    data,
 		root:     data,

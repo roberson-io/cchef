@@ -1,4 +1,4 @@
-package ops
+package protobuf
 
 import (
 	"context"
@@ -15,9 +15,9 @@ import (
 	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
-// protobufCompileSchema compiles .proto text and returns the first top-level
+// CompileSchema compiles .proto text and returns the first top-level
 // message descriptor (CyberChef's mainMessageName is the first message defined).
-func protobufCompileSchema(schema string) (protoreflect.MessageDescriptor, error) {
+func CompileSchema(schema string) (protoreflect.MessageDescriptor, error) {
 	compiler := protocompile.Compiler{
 		Resolver: protocompile.WithStandardImports(&protocompile.SourceResolver{
 			Accessor: protocompile.SourceAccessorFromMap(map[string]string{"schema.proto": schema}),
@@ -37,11 +37,11 @@ func protobufCompileSchema(schema string) (protoreflect.MessageDescriptor, error
 	return msgs.Get(0), nil
 }
 
-// protobufSchemaDecode decodes protobuf data against a .proto schema, mirroring
+// SchemaDecode decodes protobuf data against a .proto schema, mirroring
 // protobufjs toObject conventions (bytes as strings, longs as numbers, enums as
 // names, defaults included). Ported from lib/Protobuf.mjs mergeDecodes.
-func protobufSchemaDecode(data []byte, raw *jsonval.OMap, schema string, showUnknown, showTypes bool) ([]byte, error) {
-	md, err := protobufCompileSchema(schema)
+func SchemaDecode(data []byte, raw *jsonval.OMap, schema string, showUnknown, showTypes bool) ([]byte, error) {
+	md, err := CompileSchema(schema)
 	if err != nil {
 		return nil, err
 	}

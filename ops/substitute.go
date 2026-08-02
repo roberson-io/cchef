@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -63,8 +64,8 @@ func substituteChar(ch string, dict map[string]string, ignoreCase bool) string {
 
 // Run performs the substitution. Ported from CyberChef Substitute.mjs.
 func (Substitute) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	plaintext := []rune(expandAlphRange(parseEscapedChars(args[0].(string))))
-	ciphertext := []rune(expandAlphRange(parseEscapedChars(args[1].(string))))
+	plaintext := []rune(opsutil.ExpandAlphRange(opsutil.ParseEscapedChars(args[0].(string))))
+	ciphertext := []rune(opsutil.ExpandAlphRange(opsutil.ParseEscapedChars(args[1].(string))))
 	ignoreCase := args[2].(bool)
 
 	var out strings.Builder

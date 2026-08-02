@@ -75,20 +75,3 @@ func TestFindReplaceBranches(t *testing.T) {
 		t.Fatal("invalid regex: expected an error")
 	}
 }
-
-// TestParseEscapedChars covers the escape-sequence decoder's less-common arms
-// (backslash, \x, \u, \u{...}) directly.
-func TestParseEscapedChars(t *testing.T) {
-	cases := map[string]string{
-		`\\`:        "\\",
-		`\x41`:      "A",
-		`\u0041`:    "A",
-		`\u{1F600}`: "\U0001F600",
-		`\a`:        "\x07",
-	}
-	for in, want := range cases {
-		if got := parseEscapedChars(in); got != want {
-			t.Errorf("parseEscapedChars(%q) = %q, want %q", in, got, want)
-		}
-	}
-}

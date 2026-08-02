@@ -113,8 +113,8 @@ func (ToTable) Args() []core.ArgDef {
 
 // Run renders the table. Ported from CyberChef ToTable.mjs.
 func (ToTable) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	cellDelims := []rune(parseEscapedChars(args[0].(string)))
-	rowDelims := []rune(parseEscapedChars(args[1].(string)))
+	cellDelims := []rune(opsutil.ParseEscapedChars(args[0].(string)))
+	rowDelims := []rune(opsutil.ParseEscapedChars(args[1].(string)))
 	header := args[2].(bool)
 	format := args[3].(string)
 

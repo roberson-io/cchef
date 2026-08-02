@@ -8,6 +8,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/jsonval"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -46,8 +47,8 @@ func (CSVToJSON) Args() []core.ArgDef {
 
 // Run converts the CSV input into JSON.
 func (CSVToJSON) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	cellDelims := []rune(parseEscapedChars(args[0].(string)))
-	rowDelims := []rune(parseEscapedChars(args[1].(string)))
+	cellDelims := []rune(opsutil.ParseEscapedChars(args[0].(string)))
+	rowDelims := []rune(opsutil.ParseEscapedChars(args[1].(string)))
 	dict := args[2].(string) == "Array of dictionaries"
 
 	rows := parseCSV(in.String(), cellDelims, rowDelims)
@@ -123,8 +124,8 @@ func (JSONToCSV) Args() []core.ArgDef {
 
 // Run converts the JSON input into CSV.
 func (JSONToCSV) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	cellDelim := parseEscapedChars(args[0].(string))
-	rowDelim := parseEscapedChars(args[1].(string))
+	cellDelim := opsutil.ParseEscapedChars(args[0].(string))
+	rowDelim := opsutil.ParseEscapedChars(args[1].(string))
 
 	v, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // stdBase64Alphabet is the RFC 4648 alphabet (the CyberChef default).
@@ -23,36 +24,13 @@ func init() {
 	core.Register(FromBase64{})
 }
 
-// expandAlphRange expands an alphabet specification such as "A-Za-z0-9+/=" into
-// its full character sequence. A backslash escapes a literal dash ("\\-").
-// Ported from CyberChef's Utils.expandAlphRange.
-func expandAlphRange(alph string) string {
-	r := []rune(alph)
-	var out strings.Builder
-	for i := 0; i < len(r); i++ {
-		switch {
-		case i < len(r)-2 && r[i+1] == '-' && r[i] != '\\':
-			for c := r[i]; c <= r[i+2]; c++ {
-				out.WriteRune(c)
-			}
-			i += 2
-		case i < len(r)-1 && r[i] == '\\' && r[i+1] == '-':
-			out.WriteRune('-')
-			i++
-		default:
-			out.WriteRune(r[i])
-		}
-	}
-	return out.String()
-}
-
 // toBase64 encodes data using the given (possibly custom) alphabet. A 65th
 // character is used as padding; a 64-character alphabet produces no padding.
 func toBase64(data []byte, alph string) string {
 	if len(data) == 0 {
 		return ""
 	}
-	alphabet := []rune(expandAlphRange(alph))
+	alphabet := []rune(opsutil.ExpandAlphRange(alph))
 	pad := ""
 	if len(alphabet) == base64PaddedSize {
 		pad = string(alphabet[base64AlphabetSize])
@@ -172,7 +150,7 @@ func base64EmitQuad(out []byte, e1, e2, e3, e4, padIndex int) []byte {
 // alphabet has no padding character). It errors unless the alphabet is 64
 // characters, or 65 with padding.
 func buildBase64Alphabet(alph string) (alphabet []rune, idx map[rune]int, padIndex int, err error) {
-	alphabet = []rune(expandAlphRange(alph))
+	alphabet = []rune(opsutil.ExpandAlphRange(alph))
 	if len(alphabet) != base64AlphabetSize && len(alphabet) != base64PaddedSize {
 		return nil, nil, 0, fmt.Errorf("Base64 alphabet must be %d characters, or %d with padding; got %d", base64AlphabetSize, base64PaddedSize, len(alphabet))
 	}

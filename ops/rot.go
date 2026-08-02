@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -143,11 +144,11 @@ func rotBruteForce(sample []byte, maxAmount int, printAmount bool, crib string, 
 		for i, b := range sample {
 			rotated[i] = rot(b, amount)
 		}
-		s := byteArrayToUtf8(rotated)
+		s := opsutil.BytesAsText(rotated)
 		if crib != "" && !strings.Contains(strings.ToLower(s), crib) {
 			continue
 		}
-		record := escapeWhitespace(s)
+		record := opsutil.EscapeWhitespace(s)
 		if printAmount {
 			record = fmt.Sprintf("Amount = %2d: ", amount) + record
 		}

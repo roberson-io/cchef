@@ -12,6 +12,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/jsonval"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -56,7 +57,7 @@ func (JSONBeautify) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if input == "" {
 		return core.NewDish([]byte(""), core.TypeString), nil
 	}
-	indentStr := parseEscapedChars(args[0].(string))
+	indentStr := opsutil.ParseEscapedChars(args[0].(string))
 	sortKeys := args[1].(bool)
 	// args[2] (Formatted) is inert here; it only affects CyberChef's HTML view.
 

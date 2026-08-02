@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -87,7 +88,7 @@ func (CountOccurrences) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	default:
 		needle := search.Value
 		if strings.HasPrefix(search.Option, "Extended") {
-			needle = parseEscapedChars(needle)
+			needle = opsutil.ParseEscapedChars(needle)
 		}
 		count = strings.Count(input, needle)
 	}
@@ -248,8 +249,8 @@ func (ExpandAlphabetRange) Args() []core.ArgDef {
 
 // Run expands the range. Ported from CyberChef ExpandAlphabetRange.mjs.
 func (ExpandAlphabetRange) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	delim := parseEscapedChars(args[0].(string))
-	expanded := expandAlphRange(in.String())
+	delim := opsutil.ParseEscapedChars(args[0].(string))
+	expanded := opsutil.ExpandAlphRange(in.String())
 	// Join the expanded characters with the delimiter.
 	chars := make([]string, 0, utf8.RuneCountInString(expanded))
 	for _, r := range expanded {

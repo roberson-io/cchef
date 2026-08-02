@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -35,7 +36,7 @@ func (XMLBeautify) Args() []core.ArgDef {
 
 // Run beautifies the XML input.
 func (XMLBeautify) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	indentStr := parseEscapedChars(args[0].(string))
+	indentStr := opsutil.ParseEscapedChars(args[0].(string))
 	return core.NewDish([]byte(vkXMLBeautify(in.String(), indentStr)), core.TypeString), nil
 }
 

@@ -3,9 +3,9 @@ package ops
 import (
 	"fmt"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -63,7 +63,7 @@ func (XORBruteForce) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 	for key := 1; key < limit; key++ {
 		result := bitOp(input, intToByteArray(key, keyLength), xorByte, nullPreserving, scheme)
-		resultUtf8 := byteArrayToUtf8(result)
+		resultUtf8 := opsutil.BytesAsText(result)
 		if crib != "" && !strings.Contains(strings.ToLower(resultUtf8), crib) {
 			continue
 		}
@@ -74,7 +74,7 @@ func (XORBruteForce) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		if outputHex {
 			record.WriteString(toHexSpace(result))
 		} else {
-			record.WriteString(escapeWhitespace(resultUtf8))
+			record.WriteString(opsutil.EscapeWhitespace(resultUtf8))
 		}
 		output = append(output, record.String())
 	}
@@ -103,42 +103,4 @@ func intToByteArray(n, length int) []byte {
 		n >>= 8
 	}
 	return res
-}
-
-// byteArrayToUtf8 decodes bytes as UTF-8, falling back to a per-byte character
-// mapping (Latin1) when the bytes are not valid UTF-8. Ported from
-// Utils.byteArrayToUtf8 / Utils.byteArrayToChars.
-func byteArrayToUtf8(b []byte) string {
-	if utf8.Valid(b) {
-		return string(b)
-	}
-	var sb strings.Builder
-	for _, by := range b {
-		sb.WriteRune(rune(by))
-	}
-	return sb.String()
-}
-
-// escapeWhitespace maps control characters 0x09–0x10 into the Private Use Area
-// (0xE000 + code) so they render, matching Utils.escapeWhitespace.
-func escapeWhitespace(s string) string {
-	var sb strings.Builder
-	for _, r := range s {
-		if r >= 0x09 && r <= 0x10 {
-			sb.WriteRune(0xe000 + r)
-		} else {
-			sb.WriteRune(r)
-		}
-	}
-	return sb.String()
-}
-
-// toHexSpace renders bytes as space-delimited two-digit lowercase hex, matching
-// lib/Hex.mjs toHex with its default delimiter.
-func toHexSpace(b []byte) string {
-	parts := make([]string, len(b))
-	for i, by := range b {
-		parts[i] = fmt.Sprintf("%02x", by)
-	}
-	return strings.Join(parts, " ")
 }

@@ -1,4 +1,4 @@
-package ops
+package jimp
 
 // Code generated from @jimp/plugin-blur blur-tables.js. DO NOT EDIT.
 

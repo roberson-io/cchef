@@ -35,7 +35,7 @@ func (OffsetChecker) Args() []core.ArgDef {
 
 // Run highlights common offsets. Ported from CyberChef OffsetChecker.mjs.
 func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	sampleDelim := parseEscapedChars(args[0].(string))
+	sampleDelim := opsutil.ParseEscapedChars(args[0].(string))
 	parts := strings.Split(in.String(), sampleDelim)
 	if len(parts) < 2 {
 		return nil, fmt.Errorf("not enough samples; modify the sample delimiter or add more data")

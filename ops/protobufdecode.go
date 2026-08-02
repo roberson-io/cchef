@@ -5,6 +5,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/jsonval"
+	"github.com/roberson-io/cchef/internal/protobuf"
 )
 
 func init() {
@@ -43,15 +44,15 @@ func (ProtobufDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	showTypes := args[2].(bool)
 	data := in.Bytes()
 
-	parser := newProtobufParser(data)
-	raw, err := parser.parse()
+	parser := protobuf.NewParser(data)
+	raw, err := parser.Parse()
 	if err != nil {
 		return nil, err
 	}
 
 	rawForOutput := raw
 	if showTypes {
-		rawForOutput = showRawTypes(raw, parser.fieldTypes)
+		rawForOutput = protobuf.ShowRawTypes(raw, parser.FieldTypes)
 	}
 
 	if strings.TrimSpace(schema) == "" {
@@ -62,7 +63,7 @@ func (ProtobufDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return core.NewDish(out, core.TypeJSON), nil
 	}
 
-	out, err := protobufSchemaDecode(data, rawForOutput, schema, showUnknown, showTypes)
+	out, err := protobuf.SchemaDecode(data, rawForOutput, schema, showUnknown, showTypes)
 	if err != nil {
 		return nil, err
 	}

@@ -55,7 +55,7 @@ func (JPathExpression) Args() []core.ArgDef {
 // Run evaluates the JSONPath query and joins the serialized matches.
 func (JPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	query := args[0].(string)
-	delim := parseEscapedChars(args[1].(string))
+	delim := opsutil.ParseEscapedChars(args[1].(string))
 
 	root, err := jsonval.ParseOrdered(in.Bytes())
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 const base58Bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -15,7 +16,7 @@ func init() {
 
 // expandB58Alphabet expands and validates a 58-character alphabet.
 func expandB58Alphabet(spec string) ([]rune, error) {
-	alphabet := []rune(expandAlphRange(spec))
+	alphabet := []rune(opsutil.ExpandAlphRange(spec))
 	seen := make(map[rune]bool, len(alphabet))
 	for _, c := range alphabet {
 		seen[c] = true

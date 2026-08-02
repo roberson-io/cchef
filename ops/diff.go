@@ -640,7 +640,7 @@ func (Diff) Args() []core.ArgDef {
 
 // Run computes the diff.
 func (Diff) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	sampleDelim := parseEscapedChars(args[0].(string))
+	sampleDelim := opsutil.ParseEscapedChars(args[0].(string))
 	diffBy := args[1].(string)
 	showAdded := args[2].(bool)
 	showRemoved := args[3].(bool)

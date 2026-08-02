@@ -3,10 +3,10 @@ package ops
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -62,7 +62,7 @@ func (FindReplace) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case find.Option == "Regex":
 		// use pattern as-is
 	case strings.HasPrefix(find.Option, "Extended"):
-		pattern = regexp.QuoteMeta(parseEscapedChars(find.Value))
+		pattern = regexp.QuoteMeta(opsutil.ParseEscapedChars(find.Value))
 	default: // Simple string
 		pattern = regexp.QuoteMeta(find.Value)
 	}
@@ -95,51 +95,4 @@ func replaceFirst(re *regexp.Regexp, input, replace string) string {
 	out = re.ExpandString(out, replace, input, m)
 	out = append(out, input[m[1]:]...)
 	return string(out)
-}
-
-// reEscapedChars matches the backslash escape sequences recognised by
-// parseEscapedChars. Ported from CyberChef Utils.parseEscapedChars.
-var reEscapedChars = regexp.MustCompile(`\\([abfnrtv'"]|[0-3][0-7]{2}|[0-7]{1,2}|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]{1,6}\}|\\)`)
-
-// parseEscapedChars converts recognised backslash escape sequences into their
-// literal characters. Unrecognised sequences (e.g. "\d") are left intact.
-func parseEscapedChars(s string) string {
-	return reEscapedChars.ReplaceAllStringFunc(s, func(m string) string {
-		a := m[1:] // drop the leading backslash
-		switch a[0] {
-		case '\\':
-			return "\\"
-		case 'a':
-			return "\x07"
-		case 'b':
-			return "\b"
-		case 't':
-			return "\t"
-		case 'n':
-			return "\n"
-		case 'v':
-			return "\v"
-		case 'f':
-			return "\f"
-		case 'r':
-			return "\r"
-		case '"':
-			return "\""
-		case '\'':
-			return "'"
-		case 'x':
-			v, _ := strconv.ParseInt(a[1:], 16, 32)
-			return string(rune(v))
-		case 'u':
-			if a[1] == '{' {
-				v, _ := strconv.ParseInt(a[2:len(a)-1], 16, 32)
-				return string(rune(v))
-			}
-			v, _ := strconv.ParseInt(a[1:], 16, 32)
-			return string(rune(v))
-		default: // octal 0-7
-			v, _ := strconv.ParseInt(a, 8, 32)
-			return string(rune(v))
-		}
-	})
 }

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -155,7 +156,7 @@ func salsaOutput(out []byte, outType string) *core.Dish {
 	if outType == "Hex" {
 		return core.NewDish([]byte(toHexSpace(out)), core.TypeString)
 	}
-	return core.NewDish([]byte(byteArrayToUtf8(out)), core.TypeString)
+	return core.NewDish([]byte(opsutil.BytesAsText(out)), core.TypeString)
 }
 
 // salsaNonceToggles are the nonce input formats (Salsa's toggle adds "Integer").

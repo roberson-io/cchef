@@ -5,6 +5,7 @@ import (
 	"math/bits"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -57,7 +58,7 @@ func sm4Output(out []byte, outType string) *core.Dish {
 	if outType == "Hex" {
 		return core.NewDish([]byte(toHexSpace(out)), core.TypeString)
 	}
-	return core.NewDish([]byte(byteArrayToUtf8(out)), core.TypeString)
+	return core.NewDish([]byte(opsutil.BytesAsText(out)), core.TypeString)
 }
 
 // SM4Encrypt encrypts with the SM4 block cipher.

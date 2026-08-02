@@ -59,7 +59,7 @@ func (FuzzyMatch) Args() []core.ArgDef {
 
 // Run performs the fuzzy match. Ported from CyberChef FuzzyMatch.mjs + lib/FuzzyMatch.mjs.
 func (FuzzyMatch) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	search := parseEscapedChars(args[0].(string))
+	search := opsutil.ParseEscapedChars(args[0].(string))
 	w := fuzzyWeights{
 		sequentialBonus: args[1].(float64), separatorBonus: args[2].(float64),
 		camelBonus: args[3].(float64), firstLetterBonus: args[4].(float64),

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/argon2"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -98,7 +99,7 @@ func (Argon2) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "Hex hash":
 		out = hex.EncodeToString(raw)
 	case "Raw hash":
-		out = byteArrayToUtf8(raw)
+		out = opsutil.BytesAsText(raw)
 	default: // Encoded hash
 		out = argon2Encode(typ, memory, time, parallelism, salt, raw)
 	}

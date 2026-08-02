@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // Base85 named alphabet specifications (CyberChef ALPHABET_OPTIONS).
@@ -29,7 +30,7 @@ func init() {
 // alphabetName returns the name of a known Base85 alphabet, or "" if custom.
 func base85AlphabetName(expanded string) string {
 	for _, o := range base85Options {
-		if expandAlphRange(o.value) == expanded {
+		if opsutil.ExpandAlphRange(o.value) == expanded {
 			return o.name
 		}
 	}
@@ -38,7 +39,7 @@ func base85AlphabetName(expanded string) string {
 
 // expandB85Alphabet expands and validates an 85-character alphabet.
 func expandB85Alphabet(spec string) ([]rune, error) {
-	alphabet := []rune(expandAlphRange(spec))
+	alphabet := []rune(opsutil.ExpandAlphRange(spec))
 	seen := make(map[rune]bool, len(alphabet))
 	for _, c := range alphabet {
 		seen[c] = true

@@ -11,6 +11,24 @@ import (
 	"github.com/roberson-io/cchef/core"
 )
 
+// runOp runs a single registered operation against input, returning output/error.
+func runOp(t *testing.T, name, input string, args ...any) (string, error) {
+	t.Helper()
+	op, ok := core.Default.Get(name)
+	if !ok {
+		t.Fatalf("op %q not registered", name)
+	}
+	coerced, err := core.CoerceArgs(op.Args(), args)
+	if err != nil {
+		t.Fatalf("coerce args: %v", err)
+	}
+	out, err := op.Run(core.NewDish([]byte(input), op.Meta().InputType), coerced)
+	if err != nil {
+		return "", err
+	}
+	return out.String(), nil
+}
+
 // mustHex decodes a hex literal for tests that need exact bytes, which is most
 // of the binary-format ones.
 func mustHex(t *testing.T, s string) []byte {

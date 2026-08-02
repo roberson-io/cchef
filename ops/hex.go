@@ -196,3 +196,35 @@ func (FromHex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 	return core.NewDish(out, core.TypeByteArray), nil
 }
+
+// hexToBytes decodes a hex string (ignoring non-hex characters) into bytes,
+// matching CyberChef's fromHex for the delimiter-free case.
+func hexToBytes(s string) []byte {
+	clean := nonHex.ReplaceAllString(s, "")
+	out := make([]byte, 0, len(clean)/2)
+	for i := 0; i+2 <= len(clean); i += 2 {
+		v, _ := strconv.ParseUint(clean[i:i+2], 16, 8)
+		out = append(out, byte(v))
+	}
+	return out
+}
+
+// toHexSpace renders bytes as space-delimited two-digit lowercase hex, matching
+// lib/Hex.mjs toHex with its default delimiter.
+func toHexSpace(b []byte) string {
+	parts := make([]string, len(b))
+	for i, by := range b {
+		parts[i] = fmt.Sprintf("%02x", by)
+	}
+	return strings.Join(parts, " ")
+}
+
+// utilsHex renders c as hex, left-padded with zeros to at least length digits
+// (CyberChef Utils.hex).
+func utilsHex(c, length int) string {
+	s := strconv.FormatInt(int64(c), 16)
+	for len(s) < length {
+		s = "0" + s
+	}
+	return s
+}

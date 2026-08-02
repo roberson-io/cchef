@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -113,7 +114,7 @@ func (GenerateAllHashes) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	bufDish := core.NewDish(in.Bytes(), core.TypeArrayBuffer)
 	// str-input hashes receive the Latin-1 decode of the bytes, as CyberChef's
 	// arrayBufferToStr(input, false) produces.
-	strDish := core.NewDish([]byte(byteArrayToChars(in.Bytes())), core.TypeString)
+	strDish := core.NewDish([]byte(opsutil.BytesAsLatin1(in.Bytes())), core.TypeString)
 
 	var out strings.Builder
 	for _, e := range genAllHashesList {

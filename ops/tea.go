@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -67,7 +68,7 @@ func teaOutput(out []byte, outType string) *core.Dish {
 	if outType == "Hex" {
 		return core.NewDish([]byte(hex.EncodeToString(out)), core.TypeString)
 	}
-	return core.NewDish([]byte(byteArrayToUtf8(out)), core.TypeString)
+	return core.NewDish([]byte(opsutil.BytesAsText(out)), core.TypeString)
 }
 
 // XTEA round-count limits, declared on the Rounds argument so a value outside

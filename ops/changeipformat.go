@@ -20,18 +20,6 @@ func ipFromNumber(value string, radix int) []byte {
 	return []byte{byte(d >> 24), byte(d >> 16), byte(d >> 8), byte(d)} // #nosec G115 -- extracting the four big-endian octets of a 32-bit IP
 }
 
-// hexToBytes decodes a hex string (ignoring non-hex characters) into bytes,
-// matching CyberChef's fromHex for the delimiter-free case.
-func hexToBytes(s string) []byte {
-	clean := nonHex.ReplaceAllString(s, "")
-	out := make([]byte, 0, len(clean)/2)
-	for i := 0; i+2 <= len(clean); i += 2 {
-		v, _ := strconv.ParseUint(clean[i:i+2], 16, 8)
-		out = append(out, byte(v))
-	}
-	return out
-}
-
 // ipFormats are the input/output radix options for Change IP format.
 var ipFormats = []string{"Dotted Decimal", "Decimal", "Octal", "Hex"}
 

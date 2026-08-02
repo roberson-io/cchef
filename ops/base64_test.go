@@ -58,14 +58,6 @@ func TestBase64Fixtures(t *testing.T) {
 	})
 }
 
-func TestExpandAlphRange(t *testing.T) {
-	got := expandAlphRange("A-Za-z0-9+/=")
-	want := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-	if got != want {
-		t.Fatalf("expandAlphRange = %q\nwant %q", got, want)
-	}
-}
-
 func TestBase64Branches(t *testing.T) {
 	// Non-strict (the default) is lenient: invalid or partial input decodes the
 	// bytes it can and never errors, matching CyberChef's fromBase64.

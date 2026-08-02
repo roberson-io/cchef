@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // base45Alphabet is the default Base45 alphabet specification (RFC 9285).
@@ -42,7 +43,7 @@ func (ToBase45) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(data) == 0 {
 		return core.NewDish(nil, core.TypeString), nil
 	}
-	alphabet := []rune(expandAlphRange(args[0].(string)))
+	alphabet := []rune(opsutil.ExpandAlphRange(args[0].(string)))
 
 	var res []rune
 	for i := 0; i < len(data); i += 2 {
@@ -99,7 +100,7 @@ func (FromBase45) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(in.Bytes()) == 0 {
 		return core.NewDish(nil, core.TypeByteArray), nil
 	}
-	alphabet := expandAlphRange(args[0].(string))
+	alphabet := opsutil.ExpandAlphRange(args[0].(string))
 	removeNonAlph := args[1].(bool)
 
 	idx := make(map[rune]int)

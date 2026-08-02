@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -84,7 +85,7 @@ func (UnescapeString) Args() []core.ArgDef { return nil }
 
 // Run unescapes the string. Ported from CyberChef UnescapeString.mjs.
 func (UnescapeString) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	return core.NewDish([]byte(parseEscapedChars(in.String())), core.TypeString), nil
+	return core.NewDish([]byte(opsutil.ParseEscapedChars(in.String())), core.TypeString), nil
 }
 
 // ciRange is one of the sequential character-range expansions applied by

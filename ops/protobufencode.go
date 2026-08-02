@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/protobuf"
 )
 
 func init() {
@@ -45,7 +46,7 @@ func (ProtobufEncode) Args() []core.ArgDef {
 func (ProtobufEncode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	schema := args[0].(string)
 
-	md, err := protobufCompileSchema(schema)
+	md, err := protobuf.CompileSchema(schema)
 	if err != nil {
 		return nil, err
 	}

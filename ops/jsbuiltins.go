@@ -8,6 +8,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/roberson-io/cchef/internal/jsnum"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // Shims for the JavaScript built-ins operations lean on where Go's own answer
@@ -95,4 +96,115 @@ func jsEncodeURIComponent(s string) string {
 		b.WriteByte(hexDigits[c&0x0f])
 	}
 	return b.String()
+}
+
+// jsSubstr mirrors JavaScript String.prototype.substr(start, length).
+func jsSubstr(s string, start, length int) string {
+	n := len(s)
+	if start < 0 {
+		start = max(n+start, 0)
+	}
+	if start > n {
+		start = n
+	}
+	if length < 0 {
+		length = 0
+	}
+	end := max(min(start+length, n), start)
+	return s[start:end]
+}
+
+// jsSubstrFrom mirrors String.prototype.substr(start) (to end of string).
+func jsSubstrFrom(s string, start int) string {
+	n := len(s)
+	if start < 0 {
+		start = max(n+start, 0)
+	}
+	if start > n {
+		start = n
+	}
+	return s[start:]
+}
+
+// jsToUint32 reproduces ECMAScript's ToUint32: truncate toward zero, then reduce
+// modulo 2^32 into [0, 2^32).
+func jsToUint32(f float64) uint32 {
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		return 0
+	}
+	m := math.Mod(math.Trunc(f), two32)
+	if m < 0 {
+		m += two32
+	}
+	return uint32(m) // #nosec G115 -- m is in [0, 2^32) by construction
+}
+
+// jsToString reproduces JavaScript's String(value) for the values a decoded
+// MessagePack map key can take: objects become "[object Object]", arrays join
+// their elements with commas (null/undefined as empty), and everything else
+// follows its primitive conversion.
+func jsToString(v any) string {
+	switch x := v.(type) {
+	case nil:
+		return "null"
+	case bool:
+		if x {
+			return "true"
+		}
+		return "false"
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		return jsNumberToString(x)
+	case string:
+		return x
+	case jsonval.Undefined:
+		return "undefined"
+	case []any:
+		return jsArrayJoin(x)
+	default: // jsonval.Object (including Buffer/ArrayBuffer)
+		return "[object Object]"
+	}
+}
+
+// jsNumberToString reproduces JavaScript's Number.prototype.toString for the
+// finite/non-finite cases; it differs from jsonval.FormatNumber (JSON.stringify) only
+// in rendering NaN and ±Infinity literally rather than as null.
+func jsNumberToString(f float64) string {
+	switch {
+	case math.IsNaN(f):
+		return "NaN"
+	case math.IsInf(f, 1):
+		return "Infinity"
+	case math.IsInf(f, -1):
+		return "-Infinity"
+	}
+	return jsonval.FormatNumber(f)
+}
+
+// byteSliceFrom / byteSliceRange clamp to bounds, mirroring JS Array.slice.
+func byteSliceFrom(b []byte, start int) []byte {
+	if start < 0 {
+		start = 0
+	}
+	if start > len(b) {
+		start = len(b)
+	}
+	return b[start:]
+}
+
+func byteSliceRange(b []byte, start, end int) []byte {
+	if start < 0 {
+		start = 0
+	}
+	if start > len(b) {
+		start = len(b)
+	}
+	if end > len(b) {
+		end = len(b)
+	}
+	if end < start {
+		end = start
+	}
+	return b[start:end]
 }

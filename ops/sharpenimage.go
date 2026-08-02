@@ -59,7 +59,7 @@ func (SharpenImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // jimpSharpen applies the unsharp mask in place and returns img.
 func jimpSharpen(img *image.NRGBA, radius, amount, threshold float64) *image.NRGBA {
 	blur := jimp.Clone(img)
-	jimpGaussian(blur, radius)
+	jimp.Gaussian(blur, radius)
 
 	// mask = max(0, original - blur) per RGB channel.
 	mask := jimp.Clone(img)

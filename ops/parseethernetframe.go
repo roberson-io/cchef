@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -84,7 +85,7 @@ func (ParseEthernetFrame) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	switch outputFormat {
 	case "Packet data":
-		return core.NewDish([]byte(escapeHTMLChars.Replace(byteArrayToChars(packetData))), core.TypeString), nil
+		return core.NewDish([]byte(opsutil.EscapeHTML(opsutil.BytesAsLatin1(packetData))), core.TypeString), nil
 	case "Packet data (hex)":
 		return core.NewDish([]byte(toHexSpace(packetData)), core.TypeString), nil
 	default: // Text output

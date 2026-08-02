@@ -1,4 +1,4 @@
-package ops
+package handlebars
 
 import (
 	"errors"
@@ -137,8 +137,8 @@ var hbMissingArgument = map[string]string{
 	"each":   "Must pass iterator to #each",
 }
 
-// render runs a block helper.
-func (b *hbBlock) render(out *strings.Builder, ctx *hbContext) error {
+// Render runs a block helper.
+func (b *hbBlock) Render(out *strings.Builder, ctx *hbContext) error {
 	if b.arg == "" {
 		if message, known := hbMissingArgument[b.helper]; known {
 			return errors.New(message)

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -34,8 +35,8 @@ const errWrongSampleCount = "Incorrect number of sets, perhaps you need to modif
 // the sample delimiter, validates the sample count, and splits each sample on the
 // item delimiter. Mirrors the shared run() preamble of the two-argument set ops.
 func splitSets(input, sampleDelimArg, itemDelimArg string, exactlyTwo bool) (sets [][]string, itemDelim string, err error) {
-	sampleDelim := parseEscapedChars(sampleDelimArg)
-	itemDelim = parseEscapedChars(itemDelimArg)
+	sampleDelim := opsutil.ParseEscapedChars(sampleDelimArg)
+	itemDelim = opsutil.ParseEscapedChars(itemDelimArg)
 	samples := strings.Split(input, sampleDelim)
 	if (exactlyTwo && len(samples) != 2) || (!exactlyTwo && len(samples) < 2) {
 		return nil, itemDelim, fmt.Errorf("%s", errWrongSampleCount)
@@ -297,7 +298,7 @@ func (PowerSet) Args() []core.ArgDef {
 // delimiter, subsets are ordered by their joined-string length, and each is
 // followed by a newline. Ported from PowerSet.mjs.
 func (PowerSet) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	itemDelim := parseEscapedChars(args[0].(string))
+	itemDelim := opsutil.ParseEscapedChars(args[0].(string))
 	var items []string
 	for item := range strings.SplitSeq(in.String(), itemDelim) {
 		if item != "" {

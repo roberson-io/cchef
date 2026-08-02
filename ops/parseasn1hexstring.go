@@ -231,34 +231,6 @@ func oid2name(dotted string) string {
 
 // --- string / number helpers mirroring the relevant JS semantics --------------
 
-// jsSubstr mirrors JavaScript String.prototype.substr(start, length).
-func jsSubstr(s string, start, length int) string {
-	n := len(s)
-	if start < 0 {
-		start = max(n+start, 0)
-	}
-	if start > n {
-		start = n
-	}
-	if length < 0 {
-		length = 0
-	}
-	end := max(min(start+length, n), start)
-	return s[start:end]
-}
-
-// jsSubstrFrom mirrors String.prototype.substr(start) (to end of string).
-func jsSubstrFrom(s string, start int) string {
-	n := len(s)
-	if start < 0 {
-		start = max(n+start, 0)
-	}
-	if start > n {
-		start = n
-	}
-	return s[start:]
-}
-
 // byteToBin returns the 8-bit, zero-padded binary string of a byte value.
 func byteToBin(v int) string {
 	s := strconv.FormatInt(int64(v&0xff), 2)

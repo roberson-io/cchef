@@ -46,7 +46,7 @@ func (ShowBase64Offsets) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	input := in.Bytes()
 	if format == "Base64" {
-		input, _ = fromBase64(byteArrayToUtf8(input), "A-Za-z0-9+/=", true, false)
+		input, _ = fromBase64(opsutil.BytesAsText(input), "A-Za-z0-9+/=", true, false)
 	}
 	if len(input) < 1 {
 		return nil, fmt.Errorf("please enter a string")
@@ -91,7 +91,7 @@ func b64OffsetSection(offsetStr string, n int, alphabet string, showVariable boo
 
 	decodeTip := func(static string, dropEnd int) string {
 		b, _ := fromBase64(prefixA+static, alphabet, true, false)
-		return opsutil.EscapeHTML(sliceUTF16(byteArrayToUtf8(b), n, dropEnd))
+		return opsutil.EscapeHTML(sliceUTF16(opsutil.BytesAsText(b), n, dropEnd))
 	}
 	tooltip := func(tip, static string) string {
 		return "<span data-toggle='tooltip' data-placement='top' title='" + tip + "'>" +

@@ -7,6 +7,7 @@ import (
 	"github.com/dlclark/regexp2"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // The sets of characters a run can be made of. The first three are ASCII; the
@@ -96,7 +97,7 @@ func (Strings) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// way it reads any byte array: as UTF-8 when the whole run is valid UTF-8,
 	// and a character per byte otherwise. Which of the two it lands on changes
 	// what counts as a letter, so it has to be the same reading here.
-	found := extractSearch(byteArrayToUtf8(in.Bytes()), re, nil, less, unique)
+	found := extractSearch(opsutil.BytesAsText(in.Bytes()), re, nil, less, unique)
 	return core.NewDish([]byte(extractResult(found, displayTotal)), core.TypeString), nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/antchfx/xpath"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 	"github.com/roberson-io/cchef/internal/xmldom"
 )
 
@@ -56,7 +57,7 @@ func (CSSSelector) Args() []core.ArgDef {
 // Run selects nodes matching the CSS selector and joins their serializations.
 func (CSSSelector) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	query := args[0].(string)
-	delim := parseEscapedChars(args[1].(string))
+	delim := opsutil.ParseEscapedChars(args[1].(string))
 	input := in.String()
 	if query == "" || input == "" {
 		return core.NewDish([]byte{}, core.TypeString), nil

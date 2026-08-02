@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 	"time"
 
@@ -258,19 +257,6 @@ func msgpackEncodeMap(buf *bytes.Buffer, obj jsonval.Object) error {
 		}
 	}
 	return nil
-}
-
-// jsToUint32 reproduces ECMAScript's ToUint32: truncate toward zero, then reduce
-// modulo 2^32 into [0, 2^32).
-func jsToUint32(f float64) uint32 {
-	if math.IsNaN(f) || math.IsInf(f, 0) {
-		return 0
-	}
-	m := math.Mod(math.Trunc(f), two32)
-	if m < 0 {
-		m += two32
-	}
-	return uint32(m) // #nosec G115 -- m is in [0, 2^32) by construction
 }
 
 // --- decoder ---
@@ -716,34 +702,6 @@ func jsDateToISO(ms float64) any {
 
 // --- JavaScript String() coercion for map keys ---
 
-// jsToString reproduces JavaScript's String(value) for the values a decoded
-// MessagePack map key can take: objects become "[object Object]", arrays join
-// their elements with commas (null/undefined as empty), and everything else
-// follows its primitive conversion.
-func jsToString(v any) string {
-	switch x := v.(type) {
-	case nil:
-		return "null"
-	case bool:
-		if x {
-			return "true"
-		}
-		return "false"
-	case int64:
-		return strconv.FormatInt(x, 10)
-	case float64:
-		return jsNumberToString(x)
-	case string:
-		return x
-	case jsonval.Undefined:
-		return "undefined"
-	case []any:
-		return jsArrayJoin(x)
-	default: // jsonval.Object (including Buffer/ArrayBuffer)
-		return "[object Object]"
-	}
-}
-
 // jsArrayJoin reproduces Array.prototype.toString: elements joined by commas,
 // with null and undefined rendered as the empty string.
 func jsArrayJoin(a []any) string {
@@ -758,19 +716,4 @@ func jsArrayJoin(a []any) string {
 		parts[i] = jsToString(e)
 	}
 	return strings.Join(parts, ",")
-}
-
-// jsNumberToString reproduces JavaScript's Number.prototype.toString for the
-// finite/non-finite cases; it differs from jsonval.FormatNumber (JSON.stringify) only
-// in rendering NaN and ±Infinity literally rather than as null.
-func jsNumberToString(f float64) string {
-	switch {
-	case math.IsNaN(f):
-		return "NaN"
-	case math.IsInf(f, 1):
-		return "Infinity"
-	case math.IsInf(f, -1):
-		return "-Infinity"
-	}
-	return jsonval.FormatNumber(f)
 }

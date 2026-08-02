@@ -101,7 +101,7 @@ only the ordering *within* a stage reflects a real dependency.
   Verified the way a caller would, from a separate module: baking a recipe by
   name, calling `ops.ToBase64{}` directly, and registering a caller's own
   operation and using it by name in a recipe.
-- [ ] **Split `ops`.** In progress. `ops` is one flat package implementing the
+- [x] **Split `ops`.** Done. `ops` is one flat package implementing the
   505 operations; the concern is navigability and build granularity, not
   correctness. Measured with a `go/types`-based tool rather than by grepping —
   a lexical pass counts local variables and builtins as declarations and
@@ -166,12 +166,34 @@ only the ordering *within* a stage reflects a real dependency.
   all. `opCategories` in `cmd/` stays as the metadata table it is, enforced
   against the registry by test.
 
-  Still open from the original note: audit file-splitting consistency, since
-  reciprocal operations normally share one file per algorithm, so anything
-  spread across several files should be re-justified or merged. The stage 1
-  extractions turned up related misfilings worth catching in the same pass —
-  `jsNumberString` living in `exif.go`, ordered-JSON-map helpers in
-  `parsenet.go` — where a file's name has stopped describing what is in it.
+  **The file-splitting audit is done**, closing the section. Every file whose
+  name no longer described what others took from it was fixed: three more
+  single-op engines moved out (`handlebars` — three files serving the Template
+  operation; `protobuf` — the wire parser and schema compiler behind the two
+  Protobuf operations; the Jimp blur kernels and tables joined `jimp`), the
+  generic escape/alphabet/Latin1 helpers joined `opsutil`, the JS
+  `substr`/`slice`/number-conversion mirrors joined `jsbuiltins.go`, the hex
+  spellings joined `hex.go`, and the toggleString key decoder got its own
+  `keyformat.go`. Three outright duplicates were deleted (`escapeHTMLChars`,
+  `byteArrayToUtf8`, and the near-duplicate direct tests they carried), and
+  `unixperms_branches_test.go` was folded into `unixperms_test.go` with the
+  shared `runOp` scaffolding moved to `fixtures_test.go`. `ops` ends at 358
+  non-test files / 78k lines, with 26 packages under `internal/`.
+
+  One near-duplicate was deliberately kept: `leadingInt` looks like
+  `jsnum.ParseInt(s, 10)` but rejects values that do not fit an int, which the
+  decimal-key path relies on. The oracle shows the underlying behaviour
+  diverges from CyberChef either way: a decimal XOR key of 300 errors upstream
+  ("Data is not a valid byteArray") because CyberChef validates the *output*
+  byte array, while cchef clamps the key to a byte up front. Aligning that
+  means reworking how the bitwise operations carry out-of-range values, so it
+  is noted here rather than half-fixed in a refactor.
+
+  The multi-file shapes that remain are each justified by what they hold: data
+  companions to one operation (`convert_data.go`, `parseasn1hexstring_oids.go`,
+  `useragent_rules.go`, `datetime_formatexamples.go`), `//go:embed` assets that
+  must sit beside their embedding file (`x86tables/`, `bmfonts/`), and the
+  `utils_*.go` groups, which are Utils-category operations, not helper files.
 
 ### 4. Documentation
 

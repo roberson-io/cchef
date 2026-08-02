@@ -8,6 +8,7 @@ import (
 	"github.com/antchfx/xpath"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 	"github.com/roberson-io/cchef/internal/xmldom"
 )
 
@@ -52,7 +53,7 @@ func (XPathExpression) Args() []core.ArgDef {
 // Run evaluates the XPath query and joins the serialized result nodes.
 func (XPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	query := args[0].(string)
-	delim := parseEscapedChars(args[1].(string))
+	delim := opsutil.ParseEscapedChars(args[1].(string))
 
 	expr, err := xpath.Compile(query)
 	if err != nil {

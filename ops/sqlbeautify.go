@@ -6,6 +6,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/jsnum"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -41,7 +42,7 @@ func (SQLBeautify) Args() []core.ArgDef {
 
 // Run formats the SQL input.
 func (SQLBeautify) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	indentStr := parseEscapedChars(args[0].(string))
+	indentStr := opsutil.ParseEscapedChars(args[0].(string))
 	// The .mjs passes useTabs=(indentStr==="\t") and tabWidth=indentStr.length||4
 	// to sql-formatter, whose indent unit is a tab or that many spaces.
 	indent := "\t"

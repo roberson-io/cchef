@@ -6,6 +6,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/protobuf"
 )
 
 // Protobuf Encode verified against the CyberChef-server oracle. The result is
@@ -168,7 +169,7 @@ func TestProtobufEncodeCoercion(t *testing.T) {
 // scalar/enum kinds, so a message kind (a caller bug) panics rather than silently
 // mis-encoding.
 func TestProtobufEncodeNonScalarKindPanics(t *testing.T) {
-	md, err := protobufCompileSchema(`syntax="proto3"; message M { Sub s = 1; } message Sub { int32 x = 1; }`)
+	md, err := protobuf.CompileSchema(`syntax="proto3"; message M { Sub s = 1; } message Sub { int32 x = 1; }`)
 	if err != nil {
 		t.Fatal(err)
 	}

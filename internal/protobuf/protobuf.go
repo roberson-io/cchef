@@ -1,4 +1,11 @@
-package ops
+// Package protobuf reads Protobuf wire data with or without a schema.
+//
+// [NewParser] walks raw wire format into an ordered field-number map, tracking
+// each field's wire type; [ShowRawTypes] annotates that output the way
+// CyberChef's Protobuf Decode does. [CompileSchema] compiles a .proto source
+// so decoding can use real field names and types, and [SchemaDecode] applies
+// it. The Protobuf Decode and Protobuf Encode operations are built on these.
+package protobuf
 
 import (
 	"errors"
@@ -7,28 +14,30 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/internal/jsonval"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
-// protobufParser performs a schema-less decode of protobuf wire data, mirroring
+// Parser performs a schema-less decode of protobuf wire data, mirroring
 // CyberChef's lib/Protobuf.mjs raw parser. It records per-field wire types (for
 // the "Show Types" option) and treats a length-delimited field as a nested
 // message when it parses cleanly, otherwise as a byte string.
-type protobufParser struct {
+type Parser struct {
 	data   []byte
 	offset int
-	// fieldTypes maps a field number to its wire type (int), or to a nested
+	// FieldTypes maps a field number to its wire type (int), or to a nested
 	// map[string]any of sub-field types for submessages.
-	fieldTypes map[string]any
+	FieldTypes map[string]any
 }
 
 var errProtobufOverrun = errors.New("exhausted buffer")
 
-func newProtobufParser(data []byte) *protobufParser {
-	return &protobufParser{data: data, fieldTypes: map[string]any{}}
+// NewParser returns a parser over raw wire data.
+func NewParser(data []byte) *Parser {
+	return &Parser{data: data, FieldTypes: map[string]any{}}
 }
 
-// parse reads all fields into an ordered map keyed by field number.
-func (p *protobufParser) parse() (*jsonval.OMap, error) {
+// Parse reads all fields into an ordered map keyed by field number.
+func (p *Parser) Parse() (*jsonval.OMap, error) {
 	obj := jsonval.NewOMap()
 	for p.offset < len(p.data) {
 		key, value, err := p.parseField()
@@ -44,7 +53,7 @@ func (p *protobufParser) parse() (*jsonval.OMap, error) {
 }
 
 // addField inserts value under key, collecting repeats into an array.
-func (p *protobufParser) addField(obj *jsonval.OMap, key string, value any) {
+func (p *Parser) addField(obj *jsonval.OMap, key string, value any) {
 	if existing, ok := obj.Get(key); ok {
 		if arr, isArr := existing.([]any); isArr {
 			obj.Set(key, append(arr, value))
@@ -56,7 +65,7 @@ func (p *protobufParser) addField(obj *jsonval.OMap, key string, value any) {
 	obj.Set(key, value)
 }
 
-func (p *protobufParser) parseField() (string, any, error) {
+func (p *Parser) parseField() (string, any, error) {
 	if p.offset >= len(p.data) {
 		p.offset = len(p.data) + 1
 		return "", nil, errProtobufOverrun
@@ -64,8 +73,8 @@ func (p *protobufParser) parseField() (string, any, error) {
 	wireType := int(p.data[p.offset]) & 0x07
 	key := strconv.Itoa(p.fieldNumber())
 
-	if _, isMap := p.fieldTypes[key].(map[string]any); !isMap {
-		p.fieldTypes[key] = wireType
+	if _, isMap := p.FieldTypes[key].(map[string]any); !isMap {
+		p.FieldTypes[key] = wireType
 	}
 
 	switch wireType {
@@ -85,7 +94,7 @@ func (p *protobufParser) parseField() (string, any, error) {
 
 // fieldNumber reads the varint-encoded field number from the tag, whose low 3
 // bits are the wire type (already read). Ported from _fieldNumber.
-func (p *protobufParser) fieldNumber() int {
+func (p *Parser) fieldNumber() int {
 	shift := -3
 	fieldNumber := 0
 	for {
@@ -111,7 +120,7 @@ func (p *protobufParser) fieldNumber() int {
 	return fieldNumber
 }
 
-func (p *protobufParser) varInt() float64 {
+func (p *Parser) varInt() float64 {
 	value := 0.0
 	shift := 0
 	for {
@@ -134,7 +143,7 @@ func (p *protobufParser) varInt() float64 {
 	return value
 }
 
-func (p *protobufParser) uint64() float64 {
+func (p *Parser) uint64() float64 {
 	b := func() float64 {
 		v := 0.0
 		if p.offset < len(p.data) {
@@ -148,7 +157,7 @@ func (p *protobufParser) uint64() float64 {
 	return upper*0x100000000 + lower
 }
 
-func (p *protobufParser) uint32() float64 {
+func (p *Parser) uint32() float64 {
 	v := 0.0
 	for i := range 4 {
 		bv := 0.0
@@ -163,7 +172,7 @@ func (p *protobufParser) uint32() float64 {
 
 // lenDelim reads a length-delimited field: a nested message when it parses
 // cleanly, otherwise the raw bytes as a latin1 string. Ported from _lenDelim.
-func (p *protobufParser) lenDelim(fieldNum string) (any, error) {
+func (p *Parser) lenDelim(fieldNum string) (any, error) {
 	// The length comes off the wire and can name more bytes than exist, or more
 	// than an int can hold. JavaScript keeps it as a float and simply runs off
 	// the end, so any length the buffer cannot satisfy is treated as exactly
@@ -180,24 +189,24 @@ func (p *protobufParser) lenDelim(fieldNum string) (any, error) {
 	fieldBytes := p.data[start:sliceEnd]
 
 	var field any
-	sub := newProtobufParser(fieldBytes)
-	if parsed, err := sub.parse(); err == nil {
+	sub := NewParser(fieldBytes)
+	if parsed, err := sub.Parse(); err == nil {
 		field = parsed
-		merged, _ := p.fieldTypes[fieldNum].(map[string]any)
+		merged, _ := p.FieldTypes[fieldNum].(map[string]any)
 		if merged == nil {
 			merged = map[string]any{}
 		}
-		maps.Copy(merged, sub.fieldTypes)
-		p.fieldTypes[fieldNum] = merged
+		maps.Copy(merged, sub.FieldTypes)
+		p.FieldTypes[fieldNum] = merged
 	} else {
-		field = byteArrayToChars(fieldBytes)
+		field = opsutil.BytesAsLatin1(fieldBytes)
 	}
 	p.offset = end
 	return field, nil
 }
 
-// protobufTypeInfo returns the wire-type description used by "Show Types".
-func protobufTypeInfo(wireType int) string {
+// typeInfo returns the wire-type description used by "Show Types".
+func typeInfo(wireType int) string {
 	switch wireType {
 	case 0:
 		return "VarInt (e.g. int32, bool)"
@@ -211,9 +220,9 @@ func protobufTypeInfo(wireType int) string {
 	return ""
 }
 
-// showRawTypes rewrites raw-decode field-number keys to include the wire type,
-// recursing into submessages. Ported from Protobuf.showRawTypes.
-func showRawTypes(raw *jsonval.OMap, fieldTypes map[string]any) *jsonval.OMap {
+// ShowRawTypes rewrites raw-decode field-number keys to include the wire type,
+// recursing into submessages. Ported from Protobuf.ShowRawTypes.
+func ShowRawTypes(raw *jsonval.OMap, fieldTypes map[string]any) *jsonval.OMap {
 	out := jsonval.NewOMap()
 	for _, fieldNum := range raw.Keys() {
 		value := raw.Value(fieldNum)
@@ -228,14 +237,14 @@ func showRawTypes(raw *jsonval.OMap, fieldTypes map[string]any) *jsonval.OMap {
 				instances := make([]any, 0, len(v))
 				for _, inst := range v {
 					if sub, ok := inst.(*jsonval.OMap); ok {
-						instances = append(instances, showRawTypes(sub, subTypes))
+						instances = append(instances, ShowRawTypes(sub, subTypes))
 					} else {
 						instances = append(instances, inst)
 					}
 				}
 				outValue = instances
 			case *jsonval.OMap:
-				outValue = showRawTypes(v, subTypes)
+				outValue = ShowRawTypes(v, subTypes)
 			default:
 				outValue = value
 			}
@@ -245,7 +254,7 @@ func showRawTypes(raw *jsonval.OMap, fieldTypes map[string]any) *jsonval.OMap {
 			}
 			outValue = value
 		}
-		out.Set(fmt.Sprintf("field #%s: %s", fieldNum, protobufTypeInfo(outType)), outValue)
+		out.Set(fmt.Sprintf("field #%s: %s", fieldNum, typeInfo(outType)), outValue)
 	}
 	return out
 }

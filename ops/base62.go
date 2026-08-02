@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 const base62Alphabet = "0-9A-Za-z"
@@ -84,7 +85,7 @@ func (ToBase62) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(input) == 0 {
 		return core.NewDish(nil, core.TypeString), nil
 	}
-	alphabet := []rune(expandAlphRange(args[0].(string)))
+	alphabet := []rune(opsutil.ExpandAlphRange(args[0].(string)))
 	n, _ := new(big.Int).SetString(hex.EncodeToString(input), 16)
 	return core.NewDish([]byte(bigIntToBaseN(n, alphabet)), core.TypeString), nil
 }
@@ -116,7 +117,7 @@ func (FromBase62) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if len(in.Bytes()) == 0 {
 		return core.NewDish(nil, core.TypeByteArray), nil
 	}
-	alphabet := []rune(expandAlphRange(args[0].(string)))
+	alphabet := []rune(opsutil.ExpandAlphRange(args[0].(string)))
 	n := baseNToBigInt(in.String(), alphabet)
 
 	h := n.Text(16)

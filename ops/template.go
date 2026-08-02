@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/handlebars"
 	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
@@ -41,11 +42,11 @@ func (Template) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return nil, fmt.Errorf("Error translating from ArrayBuffer to JSON: %w", err)
 	}
 
-	template, err := hbCompile(source)
+	template, err := handlebars.Compile(source)
 	if err != nil {
 		return nil, err
 	}
-	rendered, err := template.render(document)
+	rendered, err := template.Render(document)
 	if err != nil {
 		return nil, err
 	}

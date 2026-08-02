@@ -6,20 +6,11 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
 	core.Register(ParseIPv4Header{})
-}
-
-// utilsHex renders c as hex, left-padded with zeros to at least length digits
-// (CyberChef Utils.hex).
-func utilsHex(c, length int) string {
-	s := strconv.FormatInt(int64(c), 16)
-	for len(s) < length {
-		s = "0" + s
-	}
-	return s
 }
 
 // tcpipChecksum computes the 16-bit ones-complement header checksum, rendered as
@@ -35,49 +26,6 @@ func tcpipChecksum(data []byte) string {
 	}
 	csum = (csum >> 16) + (csum & 0xffff)
 	return utilsHex(0xffff-csum, 2)
-}
-
-// escapeHTMLChars escapes HTML-significant characters (CyberChef Utils.escapeHtml).
-var escapeHTMLChars = strings.NewReplacer(
-	"&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&quot;",
-	"'", "&#x27;", "`", "&#x60;", "\x00", "",
-)
-
-// byteArrayToChars maps each byte to a code point (Latin1), matching CyberChef's
-// Utils.byteArrayToChars.
-func byteArrayToChars(b []byte) string {
-	var sb strings.Builder
-	for _, by := range b {
-		sb.WriteRune(rune(by))
-	}
-	return sb.String()
-}
-
-// byteSliceFrom / byteSliceRange clamp to bounds, mirroring JS Array.slice.
-func byteSliceFrom(b []byte, start int) []byte {
-	if start < 0 {
-		start = 0
-	}
-	if start > len(b) {
-		start = len(b)
-	}
-	return b[start:]
-}
-
-func byteSliceRange(b []byte, start, end int) []byte {
-	if start < 0 {
-		start = 0
-	}
-	if start > len(b) {
-		start = len(b)
-	}
-	if end > len(b) {
-		end = len(b)
-	}
-	if end < start {
-		end = start
-	}
-	return b[start:end]
 }
 
 // ParseIPv4Header parses an IPv4 header, rendering it as a table or extracting
@@ -132,7 +80,7 @@ func (ParseIPv4Header) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "Data (hex)":
 		return core.NewDish([]byte(toHexSpace(data)), core.TypeString), nil
 	case "Data (raw)":
-		return core.NewDish([]byte(escapeHTMLChars.Replace(byteArrayToChars(data))), core.TypeString), nil
+		return core.NewDish([]byte(opsutil.EscapeHTML(opsutil.BytesAsLatin1(data))), core.TypeString), nil
 	}
 
 	// Table.

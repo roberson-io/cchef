@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -42,7 +43,7 @@ func (LevenshteinDistance) Args() []core.ArgDef {
 
 // Run computes the distance. Ported from CyberChef LevenshteinDistance.mjs.
 func (LevenshteinDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	delim := parseEscapedChars(args[0].(string))
+	delim := opsutil.ParseEscapedChars(args[0].(string))
 	insCost := int(args[1].(float64))
 	delCost := int(args[2].(float64))
 	subCost := int(args[3].(float64))
@@ -165,7 +166,7 @@ func (HammingDistance) Args() []core.ArgDef {
 
 // Run computes the distance. Ported from CyberChef HammingDistance.mjs.
 func (HammingDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	delim := parseEscapedChars(args[0].(string))
+	delim := opsutil.ParseEscapedChars(args[0].(string))
 	byByte := args[1].(string) == "Byte"
 	samples := strings.Split(in.String(), delim)
 	if len(samples) != 2 {

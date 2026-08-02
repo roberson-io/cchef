@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -52,7 +53,7 @@ func blake2Output(digest []byte, format string) string {
 	case "Base64":
 		return toBase64(digest, stdBase64Alphabet)
 	case "Raw":
-		return byteArrayToUtf8(digest)
+		return opsutil.BytesAsText(digest)
 	default: // Hex
 		return hex.EncodeToString(digest)
 	}

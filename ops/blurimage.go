@@ -43,15 +43,15 @@ func (BlurImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	gaussian := args[1].(string) == "Gaussian"
 	out, err := jimp.TransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
 		if gaussian {
-			jimpGaussian(img, amount)
+			jimp.Gaussian(img, amount)
 			return img, nil
 		}
 		r := int(amount)
-		if r < 1 || r >= len(blurMulTable) {
+		if r < 1 || r >= jimp.BlurMaxRadius {
 			//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 			return nil, errors.New("Error blurring image. (blur amount out of range)")
 		}
-		jimpBlurFast(img, r)
+		jimp.BlurFast(img, r)
 		return img, nil
 	})
 	if err != nil {

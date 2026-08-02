@@ -1,18 +1,20 @@
-package ops
+package jimp
 
 import (
 	"image"
 	"math"
-
-	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 // Blur kernels ported byte-for-byte from @jimp/plugin-blur (the Superfast Blur
-// box filter and a Gaussian filter). jimpGaussian is also used by Sharpen Image.
+// box filter and a Gaussian filter). Gaussian is also used by Sharpen Image.
 
-// jimpBlurFast applies Mario Klingemann's Superfast Blur (two passes) with the
+// BlurMaxRadius bounds BlurFast's radius: the fixed-point tables have one
+// entry per radius, so a radius at or past their length has no entry.
+var BlurMaxRadius = len(blurMulTable)
+
+// BlurFast applies Mario Klingemann's Superfast Blur (two passes) with the
 // mulTable/shgTable fixed-point tables. r must be in [1, 256].
-func jimpBlurFast(img *image.NRGBA, r int) {
+func BlurFast(img *image.NRGBA, r int) {
 	data := img.Pix
 	w, h := img.Rect.Dx(), img.Rect.Dy()
 	wm, hm := w-1, h-1
@@ -98,7 +100,7 @@ func jimpBlurFast(img *image.NRGBA, r int) {
 // Jimp's `limit255((sum * mul) >>> shg)` (an unsigned 32-bit shift).
 func blurSample(sum, mul int64, shg uint) byte {
 	// #nosec G115 -- ToUint32 of the product then a 0-255 limit; both intentional
-	return byte(jimp.Limit255(int(uint32(sum*mul) >> shg)))
+	return byte(Limit255(int(uint32(sum*mul) >> shg)))
 }
 
 // posOrZero returns v if positive, else 0 (Jimp's `p > 0 ? p : 0`).
@@ -109,10 +111,10 @@ func posOrZero(v int) int {
 	return 0
 }
 
-// jimpGaussian applies a Gaussian blur. It reproduces Jimp's in-place scan,
+// Gaussian applies a Gaussian blur. It reproduces Jimp's in-place scan,
 // where the destination pixel is written inside the kernel's row loop, so later
 // pixels convolve over already-blurred neighbours.
-func jimpGaussian(img *image.NRGBA, r float64) {
+func Gaussian(img *image.NRGBA, r float64) {
 	data := img.Pix
 	w, h := img.Rect.Dx(), img.Rect.Dy()
 	rs := int(math.Ceil(r * 2.57))
