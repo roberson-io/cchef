@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 		"  cchef to-hex --delimiter Colon hello\n" +
 		"  echo -n hello | cchef bake -e \"To_Base64()To_Hex()\"\n" +
 		"  cchef list                 # show every operation by category",
-	Version:       version,
+	Version:       version + " (operations aligned with CyberChef " + alignedCyberChef + ")",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 }

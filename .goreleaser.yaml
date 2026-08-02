@@ -1,0 +1,154 @@
+# GoReleaser configuration for cchef.
+# Build locally with:  goreleaser release --snapshot --clean
+# A real release is cut by the tag-triggered workflow in .github/workflows/.
+version: 2
+
+project_name: cchef
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+    # Generate shell completions from the built-in cobra command so the
+    # packages and archives can ship them.
+    - mkdir -p completions
+    - sh -c 'go run . completion bash > completions/cchef.bash'
+    - sh -c 'go run . completion zsh > completions/_cchef'
+    - sh -c 'go run . completion fish > completions/cchef.fish'
+
+builds:
+  - id: cchef
+    main: .
+    binary: cchef
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/roberson-io/cchef/cmd.version={{ .Version }}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: cchef
+    ids: [cchef]
+    # tar.gz everywhere, zip on Windows.
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+      - NOTICE
+      - SECURITY.md
+      - src: docs/*
+        dst: docs/
+      - src: man/cchef.1
+        dst: man/cchef.1
+      - src: completions/*
+        dst: completions/
+
+# One CycloneDX SBOM per archive, published alongside it.
+sboms:
+  - id: archive
+    artifacts: archive
+    documents:
+      - "{{ .ArtifactName }}.cyclonedx.sbom.json"
+    cmd: cyclonedx-gomod
+    args: ["app", "-json", "-output", "$document", "-main", ".", "../"]
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# Keyless Sigstore signing of the checksums file (verifiable with `cosign
+# verify-blob` against the release's OIDC identity).
+signs:
+  - id: checksums
+    cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-signature=${signature}"
+      - "--output-certificate=${certificate}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+nfpms:
+  - id: packages
+    package_name: cchef
+    vendor: Michael Roberson
+    homepage: https://github.com/roberson-io/cchef
+    maintainer: Michael Roberson <noreply@github.com>
+    description: |-
+      CyberChef on the command line.
+      A Go port of the data-transformation engine of CyberChef: every operation
+      is a subcommand that reads input and writes output.
+    license: Apache-2.0
+    formats: [deb, rpm]
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: man/cchef.1
+        dst: /usr/share/man/man1/cchef.1
+      - src: completions/cchef.bash
+        dst: /usr/share/bash-completion/completions/cchef
+      - src: completions/_cchef
+        dst: /usr/share/zsh/site-functions/_cchef
+      - src: completions/cchef.fish
+        dst: /usr/share/fish/vendor_completions.d/cchef.fish
+      - src: LICENSE
+        dst: /usr/share/doc/cchef/LICENSE
+      - src: NOTICE
+        dst: /usr/share/doc/cchef/NOTICE
+    recommends:
+      - tesseract-ocr
+
+homebrew_casks:
+  - name: cchef
+    ids: [cchef]
+    repository:
+      owner: roberson-io
+      name: homebrew-tap
+    homepage: https://github.com/roberson-io/cchef
+    description: CyberChef on the command line
+    license: Apache-2.0
+    binaries:
+      - cchef
+    manpages:
+      - man/cchef.1
+    completions:
+      bash: completions/cchef.bash
+      zsh: completions/_cchef
+      fish: completions/cchef.fish
+    # A downloaded binary is quarantined on macOS; clear the attribute on
+    # install so it runs without a Gatekeeper prompt.
+    hooks:
+      post:
+        install: |
+          if OS.mac? && File.exist?("#{staged_path}/cchef")
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/cchef"]
+          end
+
+release:
+  github:
+    owner: roberson-io
+    name: cchef
+  draft: true
+  footer: >-
+    **Verifying this release:** see the *Install from a release* section of the
+    [README](https://github.com/roberson-io/cchef#install).
+
+changelog:
+  disable: true
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"

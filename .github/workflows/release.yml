@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # create the release and upload assets
+  id-token: write # cosign keyless signing + build provenance (OIDC)
+  attestations: write # actions/attest-build-provenance
+
+jobs:
+  release:
+    name: GoReleaser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # GoReleaser needs full history and tags
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install signing and SBOM tools
+        uses: sigstore/cosign-installer@v3
+      - uses: anchore/sbom-action/download-syft@v0
+      - name: Install cyclonedx-gomod
+        run: go install github.com/cyclonedx/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          # Default token creates the release and uploads assets to this repo.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # A separate PAT is needed to push the Homebrew cask to the tap repo;
+          # if it is not set, GoReleaser skips the tap and the rest still runs.
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+      # SLSA build provenance for every published archive and package, verifiable
+      # with `gh attestation verify`.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: "dist/*.tar.gz,dist/*.zip,dist/*.deb,dist/*.rpm"

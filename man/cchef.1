@@ -1,0 +1,209 @@
+.\" Manpage for cchef.
+.TH CCHEF 1 "2026-08-02" "cchef" "User Commands"
+.SH NAME
+cchef \- CyberChef on the command line
+.SH SYNOPSIS
+.B cchef
+.I operation
+.RI [ flags ]
+.RI [ input ]
+.br
+.B cchef bake
+.BR \-e | \-r
+.I recipe
+.RI [ input ]
+.br
+.B cchef
+.RB [ list | url | recipe | version ]
+.SH DESCRIPTION
+.B cchef
+is a command-line port of the data-transformation engine of CyberChef, the
+"Cyber Swiss Army Knife". Every CyberChef operation is a subcommand that reads
+input and writes output, so operations chain through Unix pipes or run together
+as a single recipe, and any recipe can be turned into a shareable CyberChef URL.
+.PP
+Each operation reproduces its CyberChef counterpart's output. The operations
+this build is aligned with match CyberChef 11.3.0; run
+.B cchef \-\-version
+to confirm.
+.PP
+This tool is not recommended for production or critical-infrastructure use.
+.SH INPUT AND OUTPUT
+An operation takes its input, in order of precedence, from a positional
+argument, the
+.B \-i
+/
+.B \-\-input
+flag, the
+.B \-\-in\-file
+flag, or standard input. Output goes to standard output, or to a file with
+.B \-o
+/
+.BR \-\-output .
+Output is byte\-exact when piped or redirected; a trailing newline is added only
+when writing to a terminal. Use
+.B \-\-in\-file \-
+or
+.B \-\-output \-
+to force standard input or output within a pipeline.
+.PP
+Point an operation (or
+.BR bake )
+at a directory with
+.B \-\-in\-dir
+to run it once per file, top\-level by default or
+.B \-\-recursive
+to walk subdirectories; results go to standard output with
+.RI \(dq==> name <==\(dq
+headers, or to
+.B \-\-out\-dir
+as one output file per input.
+.SH GLOBAL FLAGS
+.TP
+.BR \-i ", " \-\-input " " \fIstring\fR
+Input data as a literal string.
+.TP
+.BR \-o ", " \-\-output " " \fIstring\fR
+Write output to a file (default standard output).
+.TP
+.B \-\-in\-file \fIpath\fR
+Read input from a file.
+.TP
+.B \-\-in\-dir \fIdir\fR
+Run the operation over every file in a directory.
+.TP
+.B \-\-out\-dir \fIdir\fR
+Write output into a directory, one file per input.
+.TP
+.B \-\-recursive
+With
+.BR \-\-in\-dir ,
+recurse into subdirectories.
+.TP
+.B \-\-preview
+Display image output inline (iTerm2, WezTerm or kitty terminals).
+.TP
+.B \-\-data\-uri
+Write output as a
+.RI \(dq data:<mime>;base64,... \(dq
+URI.
+.TP
+.B \-\-ansi \fIauto|always|never\fR
+Render highlighted output as ANSI color for a terminal (default
+.BR auto ).
+.TP
+.BR \-h ", " \-\-help
+Help for a command.
+.TP
+.B \-\-version
+Print the version and the aligned CyberChef release.
+.SH READING VALUES FROM FILES
+Every string\-valued argument flag has a
+.BI \-\- flag \-file
+companion that reads the value from a file instead of the command line, keeping
+keys and passphrases out of shell history and process listings. One trailing
+newline is stripped. Giving both a flag and its
+.B \-file
+companion is an error.
+.SH RECIPES
+A recipe is an ordered list of operations in one of two auto\-detected formats:
+JSON,
+.RI \(dq [{\(dqop\(dq:\(dqTo Base64\(dq}] \(dq,
+or the compact Chef format,
+.RI \(dq To_Base64('A\-Za\-z0\-9+/=') \(dq.
+Run one with
+.B cchef bake \-e
+.I recipe
+or
+.B \-r
+.IR file ,
+convert between the formats with
+.BR "cchef recipe convert" ,
+or turn it into a CyberChef share URL with
+.BR "cchef url" .
+.PP
+A recipe can also be staged interactively with
+.B cchef recipe add
+and edited with
+.BR show ", " rm ", " move ", " toggle " and " clear .
+The staged recipe lives in
+.B .cchef\-recipe.json
+in the working directory;
+.BR bake ", " url " and " "recipe convert"
+use it when given no recipe of their own.
+.SH COMMANDS
+.TP
+.B list
+List every operation, grouped by category, with a one\-line summary.
+.TP
+.B bake
+Run a whole recipe against the input.
+.TP
+.B url
+Print a CyberChef share URL for a recipe and optional input.
+.TP
+.B recipe
+Stage and edit a recipe step by step; also
+.B recipe convert
+between JSON and Chef formats.
+.TP
+.B version
+Print version information.
+.PP
+Run
+.B cchef list
+for the full set of operation subcommands, and
+.B cchef
+.I operation
+.B \-\-help
+for one operation's flags.
+.SH ENVIRONMENT
+.TP
+.B CCHEF_BASE_URL
+Base URL for
+.BR "cchef url" ,
+overriding the public CyberChef instance.
+.TP
+.B CCHEF_RECIPE
+Path to the staged\-recipe file, overriding
+.B .cchef\-recipe.json
+in the working directory.
+.TP
+.B NO_COLOR
+When set, disables ANSI color output (see also
+.BR \-\-ansi ).
+.SH FILES
+.TP
+.B $XDG_CONFIG_HOME/cchef/config.yaml
+Optional configuration file (defaults to
+.B ~/.config/cchef/config.yaml
+).
+.TP
+.B .cchef\-recipe.json
+The interactively staged recipe, in the working directory.
+.SH EXIT STATUS
+.B cchef
+exits 0 on success and non\-zero if an operation errors or an input file cannot
+be processed. Unlike CyberChef, which renders an operation error as its output,
+cchef writes the error to standard error and exits non\-zero.
+.SH OPTIONAL DEPENDENCIES
+The
+.B Optical Character Recognition
+operation drives an installed
+.BR tesseract (1)
+binary and returns a clear error if it is not present. Every other operation is
+self\-contained: cchef is a single static binary with no other runtime
+dependency.
+.SH SEE ALSO
+Full per\-operation documentation is at
+https://github.com/roberson-io/cchef .
+.SH BUGS
+Report issues at
+https://github.com/roberson-io/cchef/issues .
+Because cchef's behavior is defined by CyberChef's, a divergence between the two
+is the clearest possible report; include the recipe or a
+.I gchq.github.io/CyberChef
+URL demonstrating the expected output.
+.SH AUTHOR
+Michael Roberson. cchef is an independent port of CyberChef (GCHQ, Crown
+Copyright) and is not affiliated with or endorsed by GCHQ.
