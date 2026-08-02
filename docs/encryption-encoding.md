@@ -1024,7 +1024,7 @@ with height *h* into a box of width *w* is decoded by re-running it with height 
 
 | Option | Description |
 | --- | --- |
-| Box Height | The number of rows in the box. |
+| `--box-height` | The number of rows in the box. |
 
 Example — encode with a box three rows tall:
 
@@ -1109,12 +1109,12 @@ returns the plaintext.
 
 | Option | Description |
 | --- | --- |
-| Key | 16- or 32-byte key (128 or 256 bits), given as Hex, UTF8, Latin1 or Base64. |
-| Nonce | 8- or 12-byte nonce, as Hex/UTF8/Latin1/Base64, or an integer (which becomes a 12-byte nonce). The nonce and counter together must total 16 bytes. |
-| Counter | Starting block counter (default 0); incremented every 64 bytes of keystream. |
-| Rounds | Number of rounds: 20, 12 or 8. |
-| Input | How to read the input: `Hex` or `Raw`. |
-| Output | How to write the output: `Raw` or `Hex`. |
+| `--key` | 16- or 32-byte key (128 or 256 bits), given as Hex, UTF8, Latin1 or Base64. |
+| `--nonce` | 8- or 12-byte nonce, as Hex/UTF8/Latin1/Base64, or an integer (which becomes a 12-byte nonce). The nonce and counter together must total 16 bytes. |
+| `--counter` | Starting block counter (default 0); incremented every 64 bytes of keystream. |
+| `--rounds` | Number of rounds: 20, 12 or 8. |
+| `--input-format` | How to read the input: `Hex` or `Raw`. |
+| `--output-format` | How to write the output: `Raw` or `Hex`. |
 
 Encrypt a message (256-bit key, 12-byte nonce, 20 rounds, raw text in, hex out):
 
@@ -1166,14 +1166,14 @@ Output:
 Reference: [CipherSaber](https://wikipedia.org/wiki/CipherSaber)
 
 Decrypts CipherSaber-2 ciphertext. The first 10 bytes of the input are the
-initialisation vector and the rest is the message, keyed with the RC4 stream
+initialization vector and the rest is the message, keyed with the RC4 stream
 cipher mixed over the given number of rounds. Use the same key and round count
 that were used to encrypt.
 
 | Option | Description |
 | --- | --- |
-| Key | The shared key, as Hex, UTF8, Latin1 or Base64. |
-| Rounds | Number of key-scheduling rounds (20 for CipherSaber-2; 1 is classic CipherSaber/RC4). |
+| `--key` | The shared key, as Hex, UTF8, Latin1 or Base64. |
+| `--rounds` | Number of key-scheduling rounds (20 for CipherSaber-2; 1 is classic CipherSaber/RC4). |
 
 The classic worked example (key `asdfg`, 1 round), reading the raw ciphertext
 bytes on stdin:
@@ -1195,15 +1195,15 @@ This is a test of CipherSaber.
 
 Reference: [CipherSaber](https://wikipedia.org/wiki/CipherSaber)
 
-Encrypts with CipherSaber-2. A fresh random 10-byte initialisation vector is
+Encrypts with CipherSaber-2. A fresh random 10-byte initialization vector is
 generated and prepended to the output, so the ciphertext is always 10 bytes
 longer than the input and differs on each run. Decrypt with the same key and
 round count.
 
 | Option | Description |
 | --- | --- |
-| Key | The shared key, as Hex, UTF8, Latin1 or Base64. |
-| Rounds | Number of key-scheduling rounds (20 for CipherSaber-2; 1 is classic CipherSaber/RC4). |
+| `--key` | The shared key, as Hex, UTF8, Latin1 or Base64. |
+| `--rounds` | Number of key-scheduling rounds (20 for CipherSaber-2; 1 is classic CipherSaber/RC4). |
 
 Because the IV is random, encryption is shown here round-tripped back through
 decryption with the same key and rounds:
@@ -1391,9 +1391,8 @@ Runs the HMAC-based key derivation function of RFC 5869 (extract-then-expand)
 over the input keying material (IKM, taken from the operation input). The result
 is a lowercase hex string of `L` octets.
 
-All twenty hash functions CyberChef offers are supported, including ones outside
-Go's standard library that are reimplemented in-repo (MD2, SHA0, RIPEMD-128/256/320,
-HAS-160, Whirlpool/-0/-T, Snefru) — each verified byte-for-byte against CyberChef.
+All twenty hash functions CyberChef offers are supported, including the less
+common MD2, SHA0, RIPEMD-128/256/320, HAS-160, Whirlpool/-0/-T and Snefru.
 
 `Extract mode` selects how the pseudorandom key (PRK) is derived: `with salt`
 uses the salt argument, `no salt` uses a string of `HashLen` zero bytes, and
@@ -1425,7 +1424,7 @@ Output:
 3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865
 ```
 
-**With a reimplemented hash (Whirlpool)**
+**With a less common hash (Whirlpool)**
 
 ```bash
 echo -n message | cchef derive-hkdf-key --hashing-function Whirlpool --l-number-of-output-octets 32
@@ -1449,7 +1448,7 @@ The operation **input is ignored** — the passphrase and salt come from the
 arguments.
 
 The key size is given in **bits** and the output is `key-size / 8` bytes. Matching
-CyberChef's browser behaviour (pure-JS forge), a key size that is not a multiple
+CyberChef's browser behavior (pure-JS forge), a key size that is not a multiple
 of 8 is floored to the whole byte, and a key size of zero or below yields an empty
 key.
 
@@ -1837,7 +1836,7 @@ Reference: [Morse code](https://wikipedia.org/wiki/Morse_code)
 
 Translates International Morse Code back into upper-case text. Dashes (`-`, and
 the Unicode hyphen/minus/en-dash/em-dash/underscore variants, or the word `dash`)
-and dots (`.`, `·`, or the word `dot`) are all recognised. Signals are separated
+and dots (`.`, `·`, or the word `dot`) are all recognized. Signals are separated
 by the letter delimiter and words by the word delimiter; unknown signals are
 dropped.
 
@@ -2252,7 +2251,7 @@ uses a 7x7 grid of the 49-character alphabet
 a grid key. Before encryption, `Padding` random characters are prepended and the
 `Signature` is appended after a `---` separator; only the alphabet characters may
 appear in the input, password, or signature. With a non-zero `Padding` the output
-is randomised each run (decryption removes the padding); use `Padding` 0 for a
+is randomized each run (decryption removes the padding); use `Padding` 0 for a
 deterministic result.
 
 **Options**
@@ -2599,9 +2598,9 @@ password-based key derivation).
 | `--output-format` | option | `Latin1` | How to write the output. |
 
 > **Note:** `UTF8` output errors if the ciphertext is not valid UTF-8 (matching
-> CryptoJS). `UTF16*` output is faithful only for representable code units — the
-> lone surrogates CryptoJS can emit are not valid in a Go string and become U+FFFD;
-> use `Hex` or `Base64` for binary output.
+> CryptoJS). `UTF16*` output is exact only for representable code units — the lone
+> surrogates CryptoJS can emit become U+FFFD; use `Hex` or `Base64` for binary
+> output.
 
 **Simple example** — encrypt (the classic "Secret"/"Attack at dawn" vector):
 
@@ -2637,9 +2636,9 @@ input is ignored.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Bit length | number | 512 | From 2 to 4096. |
-| Crypto grade | boolean | false | Test more thoroughly: forty rounds rather than seven. |
-| Output format | option | `Decimal` | Or `Hexadecimal`, written with an `0x` prefix. |
+| `--bit-length` | number | 512 | From 2 to 4096. |
+| `--crypto-grade` | boolean | false | Test more thoroughly: forty rounds rather than seven. |
+| `--output-format` | option | `Decimal` | Or `Hexadecimal`, written with an `0x` prefix. |
 
 One departure from CyberChef, fixing a fault in its version (also logged
 upstream): it sets a bit to stop the number being too short but never clears

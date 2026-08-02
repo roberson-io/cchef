@@ -36,13 +36,14 @@ Compresses the input into a [bzip2](https://wikipedia.org/wiki/Bzip2) stream —
 the format Julian Seward built around the Burrows-Wheeler transform. It
 compresses more tightly than Deflate and takes rather longer to do it.
 
+> **Alternative to** [`bzip2`](https://sourceware.org/bzip2/).
+
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Block size (100s of kb) | number | `9` | How much data one Burrows-Wheeler transform covers, from 1 to 9. Larger blocks compress better; input longer than one block is split across several. The size is recorded in the stream so the reader does not need telling. |
-| Work factor | number | `30` | Accepted and ignored. In bzip2 it decides when the block sort abandons its faster path for a slower one; both reach the same answer, so it affects how long compressing takes and nothing about what comes out. |
+| `--block-size-100s-of-kb` | number | `9` | How much data one Burrows-Wheeler transform covers, from 1 to 9. Larger blocks compress better; input longer than one block is split across several. The size is recorded in the stream so the reader does not need telling. |
+| `--work-factor` | number | `30` | Accepted and ignored. In bzip2 it decides when the block sort abandons its faster path for a slower one; both reach the same answer, so it affects how long compressing takes and nothing about what comes out. |
 
-The output is byte-for-byte what bzip2 itself produces, so `bzip2 -d` and any
-other reader will take it.
+The output is standard bzip2, so `bzip2 -d` and any other reader will take it.
 
 Empty input is refused with `Please provide an input.`
 
@@ -87,7 +88,7 @@ was made from.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Use low-memory, slower decompression algorithm | boolean | `false` | Accepted and ignored. In bzip2 it picks between two decoders that differ in how much they allocate, not in what they produce. |
+| `--low-memory` | boolean | `false` | Accepted and ignored. In bzip2 it picks between two decoders that differ in how much they allocate, not in what they produce. |
 
 Input that is not a bzip2 stream is reported as `not a bzip2 stream`, and one
 that stops part way through as `truncated bzip2 stream`. Empty input is refused
@@ -158,6 +159,8 @@ Reading a file written by `gzip` itself:
 gzip -c notes.txt | cchef gunzip
 ```
 
+> **Alternative to** [`gunzip`](https://man7.org/linux/man-pages/man1/gzip.1.html) / `gzip -d`.
+
 ## Gzip
 
 Compresses the input into a [gzip](https://wikipedia.org/wiki/Gzip) stream: a
@@ -165,6 +168,8 @@ DEFLATE stream behind a header that can carry a filename and a comment, and a
 trailer holding a checksum and the original length.
 
 The `Compression type` option chooses how each block is encoded:
+
+> **Alternative to** [`gzip`](https://man7.org/linux/man-pages/man1/gzip.1.html). Output bytes need not match `gzip`'s: CyberChef uses pako, so the compressed stream can differ while decompressing identically.
 
 | Setting | Does |
 | --- | --- |
@@ -174,10 +179,10 @@ The `Compression type` option chooses how each block is encoded:
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Compression type | option | `Dynamic Huffman Coding` | As above. |
-| Filename (optional) | string | (empty) | Recorded in the header. Left out when empty. |
-| Comment (optional) | string | (empty) | Likewise. |
-| Include file checksum | boolean | `false` | Adds a two-byte checksum of the header, which a reader can use to spot a damaged one. |
+| `--compression-type` | option | `Dynamic Huffman Coding` | As above. |
+| `--filename-optional` | string | (empty) | Recorded in the header. Left out when empty. |
+| `--comment-optional` | string | (empty) | Likewise. |
+| `--include-file-checksum` | boolean | `false` | Adds a two-byte checksum of the header, which a reader can use to spot a damaged one. |
 
 **The output is not the same twice.** The header records the time the stream was
 written, so compressing the same input a minute later gives four different
@@ -306,7 +311,7 @@ compresses more tightly than Deflate or bzip2 and takes longer to do it.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Compression Mode | option | `7` | How far back a repeat may reach, from 1 to 9. Larger costs memory and time and usually compresses better. The size chosen is recorded in the stream, so a reader needs no telling. |
+| `--compression-mode` | option | `7` | How far back a repeat may reach, from 1 to 9. Larger costs memory and time and usually compresses better. The size chosen is recorded in the stream, so a reader needs no telling. |
 
 The nine modes, as window sizes:
 
@@ -443,7 +448,7 @@ in characters rather than bytes and offers several shapes of output.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Compression Format | option | `default` | Which shape to write. See below. |
+| `--compression-format` | option | `default` | Which shape to write. See below. |
 
 | Format | Writes | Good for |
 | --- | --- | --- |
@@ -501,7 +506,7 @@ says which.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Compression Format | option | `default` | The shape the stream is in, as above. |
+| `--compression-format` | option | `default` | The shape the stream is in, as above. |
 
 A stream that stops before the mark that ends it, or that names a dictionary
 entry that was never built, is refused. CyberChef hands back what it had, or
@@ -539,7 +544,7 @@ hello world
 Compresses the input into a [DEFLATE](https://wikipedia.org/wiki/DEFLATE)
 stream with nothing around it — no header, no checksum, no length. Use
 [Gzip](#gzip) or [Zlib Deflate](#zlib-deflate) for a stream other tools will
-recognise.
+recognize.
 
 The `Compression type` option chooses how each block is encoded:
 
@@ -551,7 +556,7 @@ The `Compression type` option chooses how each block is encoded:
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Compression type | option | `Dynamic Huffman Coding` | As above. |
+| `--compression-type` | option | `Dynamic Huffman Coding` | As above. |
 
 ### Simple example
 
@@ -587,11 +592,11 @@ bytes it was made from.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Start index | number | `0` | Begin reading this many bytes into the input, for a stream that does not start at the beginning. |
-| Initial output buffer size | number | `0` | Accepted and ignored. |
-| Buffer expansion type | option | `Adaptive` | Accepted and ignored. |
-| Resize buffer after decompression | boolean | `false` | Accepted and ignored. |
-| Verify result | boolean | `false` | Accepted and ignored. |
+| `--start-index` | number | `0` | Begin reading this many bytes into the input, for a stream that does not start at the beginning. |
+| `--initial-output-buffer-size` | number | `0` | Accepted and ignored. |
+| `--buffer-expansion-type` | option | `Adaptive` | Accepted and ignored. |
+| `--resize-buffer` | boolean | `false` | Accepted and ignored. |
+| `--verify-result` | boolean | `false` | Accepted and ignored. |
 
 The last four size and grow the working buffer inside CyberChef's reader. They
 change how much memory it uses and nothing about what it produces, so cchef
@@ -626,7 +631,7 @@ each — so this is usually followed by Gzip or Bzip2 Compress.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Filename | string | `file.txt` | The name the file is stored under. Up to 100 bytes, which is all the header keeps for it. |
+| `--filename` | string | `file.txt` | The name the file is stored under. Up to 100 bytes, which is all the header keeps for it. |
 
 The archive is the ustar form: a 512-byte header, the data padded out to whole
 blocks, and two blocks of nothing to close it. Only one file goes in, as in
@@ -726,10 +731,12 @@ Unpacks the files from a [ZIP](https://wikipedia.org/wiki/Zip_(file_format))
 archive. Because it produces several files rather than one stream, it needs
 `--out-dir` to say where they should go.
 
+> **Alternative to** [`unzip`](https://linux.die.net/man/1/unzip).
+
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Password | string | (empty) | Needed for an archive whose entries are encrypted. |
-| Verify result | boolean | `false` | Check every file against the checksum recorded for it, and refuse the archive if one does not match. |
+| `--password` | string | (empty) | Needed for an archive whose entries are encrypted. |
+| `--verify-result` | boolean | `false` | Check every file against the checksum recorded for it, and refuse the archive if one does not match. |
 
 Entries stored either way are read, the directories inside an archive are
 recreated, and entries for the directories themselves are skipped. An entry
@@ -766,14 +773,16 @@ cchef unzip --in-file secrets.zip --password hunter2 --verify-result --out-dir .
 Packs the input into a [ZIP](https://wikipedia.org/wiki/Zip_(file_format))
 archive holding one file. Use [Unzip](#unzip) to read one back.
 
+> **Alternative to** [`zip`](https://linux.die.net/man/1/zip). cchef writes a single-member archive with CyberChef's options; it is not a drop-in for `zip`'s directory handling.
+
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Filename | string | `file.txt` | The name the file is given inside the archive. |
-| Comment | string | (empty) | Recorded against the file in the archive's directory. |
-| Password | string | (empty) | Encrypts the file. Leave empty for an archive anyone can open. |
-| Compression method | option | `Deflate` | `Deflate` compresses the file; `None (Store)` puts it in as it is. |
-| Operating system | option | `MSDOS` | Recorded in the directory and nothing depends on it. |
-| Compression type | option | `Dynamic Huffman Coding` | How each DEFLATE block is encoded, as for [Raw Deflate](#raw-deflate). Ignored when the method is `None (Store)`. |
+| `--filename` | string | `file.txt` | The name the file is given inside the archive. |
+| `--comment` | string | (empty) | Recorded against the file in the archive's directory. |
+| `--password` | string | (empty) | Encrypts the file. Leave empty for an archive anyone can open. |
+| `--compression-method` | option | `Deflate` | `Deflate` compresses the file; `None (Store)` puts it in as it is. |
+| `--operating-system` | option | `MSDOS` | Recorded in the directory and nothing depends on it. |
+| `--compression-type` | option | `Dynamic Huffman Coding` | How each DEFLATE block is encoded, as for [Raw Deflate](#raw-deflate). Ignored when the method is `None (Store)`. |
 
 **The output is not the same twice.** The archive records the time it was
 written, in two places. With a password it varies further, because encryption
@@ -827,7 +836,7 @@ The `Compression type` option chooses how each block is encoded:
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Compression type | option | `Dynamic Huffman Coding` | As above. |
+| `--compression-type` | option | `Dynamic Huffman Coding` | As above. |
 
 ### Simple example
 
@@ -863,11 +872,11 @@ was made from, checking the Adler-32 trailer as it goes.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Start index | number | `0` | Begin reading this many bytes into the input. |
-| Initial output buffer size | number | `0` | Accepted and ignored. |
-| Buffer expansion type | option | `Adaptive` | Accepted and ignored. |
-| Resize buffer after decompression | boolean | `false` | Accepted and ignored. |
-| Verify result | boolean | `false` | Accepted and ignored. |
+| `--start-index` | number | `0` | Begin reading this many bytes into the input. |
+| `--initial-output-buffer-size` | number | `0` | Accepted and ignored. |
+| `--buffer-expansion-type` | option | `Adaptive` | Accepted and ignored. |
+| `--resize-buffer` | boolean | `false` | Accepted and ignored. |
+| `--verify-result` | boolean | `false` | Accepted and ignored. |
 
 As with [Raw Inflate](#raw-inflate), the last four control the reader's working
 buffer and have no bearing on the result.
@@ -892,7 +901,6 @@ A stream whose checksum does not match the data is refused rather than returned:
 cchef zlib-deflate -i "hello" -o hello.zz
 ```
 
-
 ## A note on the compressed bytes
 
 Every writer here bar **LZMA Compress** and **Tar**, which say so in their own
@@ -901,8 +909,8 @@ free: any number of different DEFLATE streams decode to the same
 data, and which one a compressor writes depends on how it looks for repeats and
 how it builds its codes. CyberChef uses the zlibjs library, whose choices differ
 from those of zlib — the library behind `gzip`, `pigz` and most everything else
-— so cchef reproduces zlibjs rather than reaching for the nearest available
-compressor. Streams from either are read by any reader.
+— so cchef's compressed bytes match zlibjs, not zlib. Streams from either are read
+by any reader.
 
 The one place cchef deliberately differs is **empty input**. CyberChef writes a
 stream there that its own reader rejects: under `None (Store)` it returns a

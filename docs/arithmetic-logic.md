@@ -159,8 +159,8 @@ the input instead, so a number can be piped in.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Value a | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
-| Value b | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+| `--value-a` | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+| `--value-b` | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
 
 ### Simple example
 
@@ -205,7 +205,7 @@ values for an even-length list. Non-numeric items are excluded.
 > CyberChef fixed a bug in mid-2026
 > ([PR #2284](https://github.com/gchq/CyberChef/pull/2284)) where odd-length lists
 > were not sorted before the median was taken. `cchef` matches the corrected
-> behaviour (a true numeric median for all list lengths).
+> behavior (a true numeric median for all list lengths).
 
 **Options**
 
@@ -250,8 +250,8 @@ and a number with a fractional part keeps one.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Modulus | number | 2 | Cannot be zero. |
-| Delimiter | option | `Line feed` | Also `Space`, `Comma`, `Semi-colon`, `Colon`, `CRLF`. |
+| `--modulus` | number | 2 | Cannot be zero. |
+| `--delimiter` | option | `Line feed` | Also `Space`, `Comma`, `Semi-colon`, `Colon`, `CRLF`. |
 
 ### Simple example
 
@@ -290,8 +290,8 @@ and leaving one blank takes it from the input.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Value (a) | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
-| Modulus (m) | string | (empty) | Must be greater than zero. |
+| `--value-a` | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+| `--modulus-m` | string | (empty) | Must be greater than zero. |
 
 ### Simple example
 

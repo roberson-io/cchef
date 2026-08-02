@@ -167,10 +167,8 @@ Output:
 Disassembles ARM machine code into assembly language. The input is hexadecimal;
 whitespace is ignored.
 
-CyberChef runs the Capstone disassembly framework compiled to WebAssembly.
-cchef decodes ARM and AArch64 with `golang.org/x/arch` (pure Go) and decodes
-Thumb, the floating-point unit and Advanced SIMD from scratch, formatting them
-all to Capstone's conventions so the output matches.
+Output follows the formatting conventions of Capstone, the disassembly framework
+CyberChef uses.
 
 **Options**
 
@@ -530,10 +528,6 @@ Lorem ipsum dolor sit amet fug
 Generates a Quick Response (QR) code from the input text, as a raster or vector
 image.
 
-The QR matrix, the four renderers and the PNG's compression are all ported from
-the `qr-image` package CyberChef wraps, so every format is byte-for-byte what
-CyberChef produces.
-
 **Options**
 
 | Flag | Type | Default | Description |
@@ -553,7 +547,7 @@ else is encoded as bytes. The version is the smallest that holds the result.
 cchef generate-qr-code -i "Hello world!" -o hello.png
 ```
 
-The file written is a 145 by 145 greyscale PNG.
+The file written is a 145 by 145 grayscale PNG.
 
 **Complex example**
 
@@ -653,6 +647,8 @@ SHA-1. The remaining versions ignore the input: 1 and 6 are timestamp-based, 4
 is random throughout, and 7 counts milliseconds since the Unix epoch and sorts
 by the order it was made in.
 
+> **Alternative to** [`uuidgen`](https://man7.org/linux/man-pages/man1/uuidgen.1.html). cchef offers UUID versions 1–5 (and NIL/max); `uuidgen` does only v1 and v4.
+
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--version` | option | `v4` | One of `v1`, `v3`, `v4`, `v5`, `v6`, `v7` |
@@ -689,7 +685,7 @@ Output:
 
 ## Haversine distance
 
-Returns the distance in metres between two points given as latitude and
+Returns the distance in meters between two points given as latitude and
 longitude, using the
 [haversine formula](https://wikipedia.org/wiki/Haversine_formula) on a sphere of
 mean Earth radius.
@@ -703,10 +699,10 @@ This operation takes no options.
 > The last digit or two may differ from CyberChef's. Go's cosine and the one a
 > browser runs are different implementations that disagree by a unit in the last
 > place for some arguments; the difference is around 1 part in 10^15, or a few
-> nanometres across the whole globe.
+> nanometers across the whole globe.
 >
 > Two points that name the same place (a pole reached either way round, or the
-> two spellings of the date line) come out as a few nanometres rather than
+> two spellings of the date line) come out as a few nanometers rather than
 > nothing. The formula loses almost all its precision there, in any
 > implementation.
 
@@ -758,7 +754,7 @@ Letters only: everything else is ignored, and case does not matter.
 
 Zero means every letter is different; one means they are all the same. English
 text generally falls between 0.067 and 0.078, so a much lower figure suggests
-the text is random, compressed or encrypted. The normalised figure is the same
+the text is random, compressed or encrypted. The normalized figure is the same
 value measured in twenty-sixths, so English sits near 1.7 to 2.0.
 
 This operation takes no options.
@@ -848,8 +844,8 @@ plist => {
 Reads an image and returns the text of any QR code in it. The image may be a
 PNG, JPEG, GIF, BMP or WebP.
 
-The reader is ported from `jsQR`, which CyberChef uses: it thresholds the image
-over local regions, finds the three finder patterns and the alignment pattern,
+The reader thresholds the image over local regions, finds the three finder
+patterns and the alignment pattern,
 samples the modules through the perspective those four points define, and
 corrects the result with Reed-Solomon. A code photographed at an angle reads
 correctly, as does one mirrored or damaged within its correction level.
@@ -858,7 +854,7 @@ correctly, as does one mirrored or damaged within its correction level.
 
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--normalise-image` | bool | `false` | Convert to greyscale and stretch the contrast before reading, which helps with a faint or unevenly lit photograph. |
+| `--normalise-image` | bool | `false` | Convert to grayscale and stretch the contrast before reading, which helps with a faint or unevenly lit photograph. |
 
 > Codes in the kanji mode are refused rather than read, since the reader does
 > not carry the character table they need. Every other mode is supported.
@@ -877,7 +873,7 @@ Hello world!
 
 **Complex example**
 
-Generating a code and reading it back, with the image normalised first:
+Generating a code and reading it back, with the image normalized first:
 
 ```bash
 cchef generate-qr-code --error-correction High -i "cchef round trip" -o code.png
@@ -898,7 +894,7 @@ Draws random integers from a range, using the system's cryptographic source.
 The input is ignored.
 
 Values are drawn by rejection sampling, so every integer in the range is equally
-likely — no value is favoured by the remainder that simple folding would leave.
+likely — no value is favored by the remainder that simple folding would leave.
 
 Bounds may run from `-(2^53 - 1)` to `2^53 - 1`, and the span between them may
 be as wide as `2^53 - 1`. A bound that is not a whole number is drawn inwards,

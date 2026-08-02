@@ -1,6 +1,6 @@
 # Code tidy
 
-Operations for working with source code and serialised data formats. Some of
+Operations for working with source code and serialized data formats. Some of
 these operations belong to another category too, where their detailed
 description, options and examples live:
 [CSS selector](extractors.md#css-selector),
@@ -49,7 +49,7 @@ full below.
 
 ## BSON deserialise
 
-Deserialises [BSON](https://bsonspec.org/) (Binary JSON, MongoDB's binary
+Deserializes [BSON](https://bsonspec.org/) (Binary JSON, MongoDB's binary
 interchange format) bytes back into JSON. Input is raw BSON bytes; output is
 pretty-printed JSON (2-space indent), matching how CyberChef renders
 `JSON.stringify(deserialize(input), null, 2)`.
@@ -57,7 +57,7 @@ pretty-printed JSON (2-space indent), matching how CyberChef renders
 The richer BSON element types are rendered as js-bson's `JSON.stringify` does: an
 ObjectId as its hex string, a UTC datetime as an ISO-8601 string, a Binary as
 base64, a Timestamp as `{"$timestamp": "<n>"}`, and RegExp / MinKey / MaxKey as an
-empty object. cchef reimplements the codec from scratch (no dependency).
+empty object.
 
 > **Fidelity.** The common types (double, string, document, array, boolean, null,
 > int32, int64) and the types above are reproduced exactly. Decimal128 and other
@@ -66,7 +66,7 @@ empty object. cchef reimplements the codec from scratch (no dependency).
 
 ### Example
 
-Round-tripping a document through serialise and back:
+Round-tripping a document through serialize and back:
 
 ```bash
 cchef bson-serialise -i '{"hello":"world","n":42}' | cchef bson-deserialise
@@ -81,7 +81,7 @@ Output:
 }
 ```
 
-Deserialising raw bytes supplied as hex:
+Deserializing raw bytes supplied as hex:
 
 ```bash
 echo -n '160000000268656c6c6f0006000000776f726c640000' | cchef from-hex --delimiter None | cchef bson-deserialise
@@ -97,20 +97,19 @@ Output:
 
 ## BSON serialise
 
-Serialises JSON into [BSON](https://bsonspec.org/) (Binary JSON, MongoDB's binary
+Serializes JSON into [BSON](https://bsonspec.org/) (Binary JSON, MongoDB's binary
 interchange format) bytes. Input must be valid JSON; output is raw BSON bytes.
-cchef reimplements js-bson's `serialize()` from scratch (no dependency), matching
-it byte-for-byte, including its number-type rule — an integer in int32 range is
-written as an int32, everything else (larger integers, all fractional numbers, and
-negative zero) as a 64-bit double — and its ECMAScript key ordering (integer-like
-keys first, ascending).
+The number-type rule follows js-bson: an integer in int32 range is written as an
+int32, everything else (larger integers, all fractional numbers, and negative
+zero) as a 64-bit double. Keys are written in ECMAScript order (integer-like keys
+first, ascending).
 
-The top-level value must be an object (a JSON `null` serialises to an empty
+The top-level value must be an object (a JSON `null` serializes to an empty
 document); an array or scalar root is rejected, as in js-bson.
 
 ### Example
 
-Serialising to bytes (shown here piped through `to-hex` for display):
+Serializing to bytes (shown here piped through `to-hex` for display):
 
 ```bash
 cchef bson-serialise -i '{"hello":"world","n":42}' | cchef to-hex --delimiter Space
@@ -124,14 +123,12 @@ Output:
 
 ## CSS Beautify
 
-Indents and prettifies CSS. Ported from the [vkbeautify](https://github.com/vkiryukhin/vkBeautify)
-library CyberChef wraps — reimplemented from scratch in Go (no dependency),
-matching it byte-for-byte. Each declaration and block is placed on its own line,
+Indents and prettifies CSS. Each declaration and block is placed on its own line,
 indented by nesting depth.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Indent string | string | `\t` (tab) | The indentation unit. Backslash escapes are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. A step that begins with a digit falls back to four spaces (a vkbeautify quirk). |
+| `--indent-string` | string | `\t` (tab) | The indentation unit. Backslash escapes are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. A step that begins with a digit falls back to four spaces (a vkbeautify quirk). |
 
 ### Example
 
@@ -150,13 +147,13 @@ body{
 
 ## CSS Minify
 
-Compresses CSS. Ported from vkbeautify (from scratch, no dependency): comments are
+Compresses CSS: comments are
 stripped (unless preserved), whitespace runs are collapsed to a single space, and
 whitespace after `{`, `}`, `;`, `/*` and `*/` is removed.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Preserve comments | boolean | `false` | When `true`, comments are kept instead of stripped. |
+| `--preserve-comments` | boolean | `false` | When `true`, comments are kept instead of stripped. |
 
 ### Example
 
@@ -177,12 +174,11 @@ body {margin: 0;padding: 0;}
 ## Generic Code Beautify
 
 Attempts to pretty-print C-style languages (C, Java, PHP, JavaScript, …) with a
-generic, language-agnostic set of rules. A faithful from-scratch port of
-CyberChef's operation: strings, comments and regex literals are preserved verbatim
-while whitespace, braces and indentation are normalised.
+generic, language-agnostic set of rules: strings, comments and regex literals are
+preserved verbatim while whitespace, braces and indentation are normalized.
 
 This is a best-effort formatter, not a parser — it will not always produce ideal
-output, but it is deterministic and matches CyberChef byte-for-byte.
+output, but it is deterministic.
 
 ### Example
 
@@ -201,20 +197,17 @@ if (x)  {
 ## JavaScript Beautify
 
 Parses valid JavaScript (or JSON that is a valid JS expression, such as an array
-or a parenthesised object) and pretty-prints it — byte-for-byte identical to
-CyberChef's output.
+or a parenthesised object) and pretty-prints it with a fixed formatting style.
 
-The input is parsed with the [JavaScript Parser](#javascript-parser) port and
-regenerated with a from-scratch Go transliteration of
-[escodegen](https://github.com/estools/escodegen), using CyberChef's fixed
-formatting options. The full script grammar is supported.
+The input is parsed with the [JavaScript Parser](#javascript-parser); the full
+script grammar is supported.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Indent string | string | `\t` (tab) | The indentation unit. Backslash escapes (`\t`, `\n`, …) are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. |
-| Quotes | option | `Auto` | String quote style: `Auto` (whichever needs fewer escapes), `Single`, or `Double`. |
-| Semicolons before closing braces | boolean | `true` | When `false`, the optional semicolon before a closing brace is omitted. |
-| Include comments | boolean | `true` | When `true`, comments are collected with source ranges, attached to the nearest node (a port of estraverse's `attachComments`), and re-emitted; when `false`, comments are dropped. |
+| `--indent-string` | string | `\t` (tab) | The indentation unit. Backslash escapes (`\t`, `\n`, …) are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. |
+| `--quotes` | option | `Auto` | String quote style: `Auto` (whichever needs fewer escapes), `Single`, or `Double`. |
+| `--semicolons-before-closing-braces` | boolean | `true` | When `false`, the optional semicolon before a closing brace is omitted. |
+| `--include-comments` | boolean | `true` | When `true`, comments are collected with source ranges, attached to the nearest node (a port of estraverse's `attachComments`), and re-emitted; when `false`, comments are dropped. |
 
 A syntax error surfaces as `Unable to parse JavaScript.` followed by the parser's
 message.
@@ -294,11 +287,10 @@ function greet(e){return"Hello, "+e+"!"}
 
 Returns an [Abstract Syntax Tree](https://wikipedia.org/wiki/Abstract_syntax_tree)
 (ESTree/[esprima](https://esprima.org/) shape) for valid JavaScript source code,
-serialised as pretty-printed JSON — byte-for-byte identical to CyberChef's
-output.
+serialized as pretty-printed JSON.
 
-The parser is a from-scratch Go transliteration of esprima and supports the full
-script grammar exactly — classes, `async`/`await`, generators and `yield`,
+The parser supports the full script grammar — classes, `async`/`await`, generators
+and `yield`,
 destructuring (including assignment targets), object accessor/generator/async
 methods, `new.target`, and Unicode (non-ASCII and `\u`-escaped) identifiers. As
 with `esprima.parseScript`, ES modules (`import`/`export`) are syntax errors. The
@@ -307,11 +299,11 @@ enabled.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Location info | boolean | `false` | Not yet supported; rejected if `true`. |
-| Range info | boolean | `false` | Not yet supported; rejected if `true`. |
-| Include tokens array | boolean | `false` | Not yet supported; rejected if `true`. |
-| Include comments array | boolean | `false` | Not yet supported; rejected if `true`. |
-| Report errors and try to continue | boolean | `false` | Not yet supported; rejected if `true`. |
+| `--location-info` | boolean | `false` | Not yet supported; rejected if `true`. |
+| `--range-info` | boolean | `false` | Not yet supported; rejected if `true`. |
+| `--include-tokens-array` | boolean | `false` | Not yet supported; rejected if `true`. |
+| `--include-comments-array` | boolean | `false` | Not yet supported; rejected if `true`. |
+| `--report-errors` | boolean | `false` | Not yet supported; rejected if `true`. |
 
 A syntax error surfaces esprima's message in V8 form (`Line N: <reason>`).
 
@@ -413,30 +405,29 @@ Output:
 
 ## Jq
 
-Processes the JSON input with a [jq](https://github.com/jqlang/jq) query. CyberChef
-wraps jq-web (jq compiled to WebAssembly); cchef reimplements the operation over
-[gojq](https://github.com/itchyny/gojq), a pure-Go jq, so it stays a single static
-binary with no cgo.
+Processes the JSON input with a [jq](https://github.com/jqlang/jq) query.
 
 The input must be valid JSON. jq's output is a stream of values, which is
 collapsed the way jq-web's `jq.json()` does: **zero** results is an error, a
+
+> **Alternative to** [`jq`](https://jqlang.github.io/jq/). Built on gojq, so a few corner cases differ from jq proper; parity is with CyberChef's jq-web.
+
 **single** result is returned directly, and **multiple** results become a JSON
 array. The result is then printed raw (only when *Raw* is set and the result is a
-string) or serialised like JavaScript's `JSON.stringify` (compact, UTF-8
+string) or serialized like JavaScript's `JSON.stringify` (compact, UTF-8
 preserved).
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Query | string | (empty) | The jq program to run. |
-| Raw | boolean | `false` | When set, a string result is printed without surrounding quotes; non-string results are still JSON-encoded. |
+| `--query` | string | (empty) | The jq program to run. |
+| `--raw` | boolean | `false` | When set, a string result is printed without surrounding quotes; non-string results are still JSON-encoded. |
 
 An invalid query, or one that raises a runtime error, is reported as
 `Invalid jq expression: <message>`. A query that produces no output is reported as
 `Invalid jq expression: Unexpected end of JSON input`, matching jq-web.
 
-> As gojq is an independent reimplementation of jq, error message wording can
-> differ from jq-web, and rare numeric edge cases may vary; `NaN` serialises to
-> `null` (as `JSON.stringify` does).
+> Error message wording can differ from jq-web, and rare numeric edge cases may
+> vary; `NaN` serializes to `null` (as `JSON.stringify` does).
 
 ### Simple example
 
@@ -480,9 +471,7 @@ hello world
 Indents and pretty-prints JSON. CyberChef parses the input leniently with
 [JSON5](https://json5.org/) (allowing comments, trailing commas, unquoted and
 single-quoted keys, hexadecimal and non-finite numbers, and more) and re-emits it
-with `JSON.stringify(value, null, indent)`; cchef reproduces this over a
-from-scratch JSON5 parser feeding the shared JSON serialiser — no dependency is
-added.
+with `JSON.stringify(value, null, indent)`.
 
 Object keys are enumerated in ECMAScript order (integer-like keys first, in
 ascending numeric order, then the rest in insertion order). Non-finite numbers
@@ -491,9 +480,9 @@ Numbers do.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Indent string | string | 4 spaces | The indentation unit. Backslash escapes are interpreted, so `\t` indents with tabs. An empty string produces compact (single-line) output. |
-| Sort Object Keys | boolean | `false` | Recursively sort object keys alphabetically before emitting. |
-| Formatted | boolean | `true` | Inert in cchef: it only controls CyberChef's browser tree view. Kept so recipes round-trip. |
+| `--indent-string` | string | 4 spaces | The indentation unit. Backslash escapes are interpreted, so `\t` indents with tabs. An empty string produces compact (single-line) output. |
+| `--sort-object-keys` | boolean | `false` | Recursively sort object keys alphabetically before emitting. |
+| `--formatted` | boolean | `true` | Inert in cchef: it only controls CyberChef's browser tree view. Kept so recipes round-trip. |
 
 ### Simple example
 
@@ -539,7 +528,7 @@ Output:
 
 Compresses JSON by removing insignificant whitespace. Equivalent to
 `JSON.stringify(JSON.parse(text), null, 0)`; cchef reuses the shared
-order-preserving JSON serialiser, so output matches byte-for-byte. Strict JSON only
+shared JSON serializer. Strict JSON only
 (unlike JSON Beautify, which accepts JSON5). Empty input yields an empty string.
 
 ### Example
@@ -560,9 +549,8 @@ Output:
 ## Microsoft Script Decoder
 
 Decodes Microsoft Encoded Script files (`JScript.Encode` / `VBScript.Encode`,
-recognisable by the `#@~^…^#~@` markers). A faithful port of CyberChef's decoder,
-including its substitution tables; input that does not contain the encoded markers
-yields an empty string.
+recognizable by the `#@~^…^#~@` markers); input that does not contain the encoded
+markers yields an empty string.
 
 ### Example
 
@@ -578,13 +566,12 @@ Output:
 
 ## PHP Deserialize
 
-Deserialises [PHP serialized](https://www.php.net/manual/en/function.serialize.php)
-data, rendering keyed arrays as JSON-like objects. A faithful port of CyberChef's
-recursive parser.
+Deserializes [PHP serialized](https://www.php.net/manual/en/function.serialize.php)
+data, rendering keyed arrays as JSON-like objects.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Output valid JSON | boolean | `true` | When `true`, integer keys are quoted (`"0":`) and `"` in strings is escaped; when `false`, integer keys are left bare (`0:`). |
+| `--output-valid-json` | boolean | `true` | When `true`, integer keys are quoted (`"0":`) and `"` in strings is escaped; when `false`, integer keys are left bare (`0:`). |
 
 ### Example
 
@@ -601,8 +588,8 @@ Output:
 ## PHP Serialize
 
 Performs [PHP serialization](https://www.php.net/manual/en/function.serialize.php)
-on JSON input. A faithful port of CyberChef's serializer: arrays and objects both
-become `a:N:{…}`, and string lengths use JavaScript UTF-16 code-unit counts
+on JSON input: arrays and objects both become `a:N:{…}`, and string lengths use
+JavaScript UTF-16 code-unit counts
 (matching CyberChef; this differs from PHP's own byte-length semantics for
 multi-byte strings).
 
@@ -622,22 +609,21 @@ a:2:{s:4:"name";s:3:"Bob";s:3:"age";i:30;}
 
 Renders Markdown input as HTML, wrapped in a `<div>`. CyberChef uses the
 [markdown-it](https://github.com/markdown-it/markdown-it) library (with raw HTML
-disabled) plus [highlight.js](https://highlightjs.org/) to colour fenced code
-blocks; cchef reimplements it over the pure-Go
-[goldmark](https://github.com/yuin/goldmark) library.
+disabled). cchef renders with [goldmark](https://github.com/yuin/goldmark), which
+differs from markdown-it's fenced-code highlighting (see below).
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Autoconvert URLs to links | boolean | `false` | When set, bare URLs in the text become links (markdown-it's `linkify`). |
-| Enable syntax highlighting | boolean | `true` | Accepted for compatibility but has no effect (see below). |
-| Open links in new tab. | boolean | `false` | When set, `target="_blank"` is added to every link. |
+| `--autoconvert-urls-to-links` | boolean | `false` | When set, bare URLs in the text become links (markdown-it's `linkify`). |
+| `--enable-syntax-highlighting` | boolean | `true` | Accepted for compatibility but has no effect (see below). |
+| `--open-links-in-new-tab` | boolean | `false` | When set, `target="_blank"` is added to every link. |
 
 The common Markdown surface — headings, emphasis, strikethrough, lists (nested),
 links, images, inline code, fenced code, blockquotes, tables and linkify —
-matches CyberChef byte-for-byte.
+behaves as CyberChef does.
 
 > **Reduced fidelity.** goldmark is not markdown-it, and two areas differ and are
-> not ported: **syntax highlighting** of fenced code blocks (CyberChef colours
+> not ported: **syntax highlighting** of fenced code blocks (CyberChef colors
 > them with highlight.js; cchef emits the plain escaped code, so the *Enable
 > syntax highlighting* option has no effect) and **block-level raw HTML**
 > (markdown-it escapes it inside a paragraph; cchef escapes it without the
@@ -676,12 +662,8 @@ Output:
 
 ## SQL Beautify
 
-Indents and prettifies SQL. CyberChef wraps the
-[sql-formatter](https://github.com/sql-formatter-org/sql-formatter) npm library
-(MySQL dialect, standard indent style, keyword case preserved); cchef reimplements
-that formatter from scratch — a tokenizer, a small clause/expression parser and a
-port of sql-formatter's whitespace-layout engine — so no dependency is added and
-the output matches byte-for-byte across the common SQL surface.
+Indents and prettifies SQL in the sql-formatter MySQL dialect (standard indent
+style, keyword case preserved).
 
 Each top-level clause (`SELECT`, `FROM`, `WHERE`, `GROUP BY`, `JOIN`, …) starts a
 new line with its contents indented; comma-separated items each go on their own
@@ -691,11 +673,10 @@ untouched.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Indent string | string | `\t` (tab) | The indentation unit. A tab indents with tabs; anything else indents with that many spaces (`  ` → 2 spaces). Backslash escapes are interpreted. |
+| `--indent-string` | string | `\t` (tab) | The indentation unit. A tab indents with tabs; anything else indents with that many spaces (`  ` → 2 spaces). Backslash escapes are interpreted. |
 
-> **Fidelity.** This reproduces sql-formatter's MySQL/standard output for the
-> common SQL surface (verified byte-for-byte against the CyberChef-server oracle
-> over a broad corpus). Exotic dialect-specific constructs may differ.
+> **Fidelity.** This targets sql-formatter's MySQL/standard output; exotic
+> dialect-specific constructs may differ.
 
 ### Simple example
 
@@ -745,7 +726,7 @@ order by
 
 ## SQL Minify
 
-Compresses SQL. Ported from vkbeautify (from scratch, no dependency): whitespace
+Compresses SQL: whitespace
 runs are collapsed to a single space, then the space before the first `(` and the
 first `)` is removed (the library's replaces for those two are deliberately not
 global, and cchef preserves that).
@@ -771,8 +752,8 @@ incomplete sanitisation). Optionally tidies whitespace afterwards.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Remove indentation | boolean | `true` | Removes leading indentation on each line. |
-| Remove excess line breaks | boolean | `true` | Drops a leading blank line and collapses runs of blank lines. |
+| `--remove-indentation` | boolean | `true` | Removes leading indentation on each line. |
+| `--remove-excess-line-breaks` | boolean | `true` | Drops a leading blank line and collapses runs of blank lines. |
 
 ### Example
 
@@ -788,12 +769,10 @@ Hello World
 
 ## Syntax highlighter
 
-Adds syntax highlighting to source code. CyberChef highlights with
-[highlight.js](https://highlightjs.org/), emitting HTML `<span>`s that carry
-`hljs-*` CSS classes (or auto-detecting the language); cchef reimplements this
-over [chroma](https://github.com/alecthomas/chroma), mapping chroma's token types
-onto the same `hljs-*` class vocabulary so the HTML can be styled with a
-highlight.js theme.
+Adds syntax highlighting to source code, emitting HTML `<span>`s that carry
+highlight.js `hljs-*` CSS classes so the output can be styled with a highlight.js
+theme. cchef highlights with [chroma](https://github.com/alecthomas/chroma),
+auto-detecting the language unless one is given.
 
 HTML is not much use on a terminal, so when the output is going to one the spans
 are rendered as ANSI color instead. This is a property of where the output is
@@ -812,13 +791,11 @@ own; a global `--color` would take that name away from them.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Language | string | `auto detect` | A chroma language name or alias (case-insensitive, e.g. `go`, `javascript`, `python`), or `auto detect` to infer it from the input. An unrecognised name is an error. |
+| `--language` | string | `auto detect` | A chroma language name or alias (case-insensitive, e.g. `go`, `javascript`, `python`), or `auto detect` to infer it from the input. An unrecognized name is an error. |
 
 > **Fidelity.** chroma is not highlight.js, so token boundaries and, especially,
 > language auto-detection differ — the highlighted regions are not byte-identical
-> to CyberChef's. The `hljs-*` class vocabulary and output shape do match. This
-> operation is excluded from CyberChef's own Node build, so there are no upstream
-> test fixtures or oracle output to compare against.
+> to CyberChef's. The `hljs-*` class vocabulary and output shape do match.
 
 ### Simple example
 
@@ -874,14 +851,11 @@ Output:
 ## To Camel case
 
 Converts the input to camel case (all lower case except letters after word
-boundaries, which are upper case, e.g. `thisIsCamelCase`). CyberChef wraps lodash's
-`camelCase`; cchef reimplements lodash's word splitter from scratch (`deburr` +
-`words`), reusing the existing `regexp2` dependency for the splitter's lookahead
-regex.
+boundaries, which are upper case, e.g. `thisIsCamelCase`).
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Attempt to be context aware | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
+| `--attempt-to-be-context-aware` | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
 
 > **Fidelity.** Byte-for-byte identical to lodash across BMP text. lodash's word
 > regex is UTF-16-oriented, so astral characters (emoji, surrogate pairs) may split
@@ -907,7 +881,7 @@ e.g. `this-is-kebab-case`), wrapping lodash's `kebabCase`. See
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Attempt to be context aware | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
+| `--attempt-to-be-context-aware` | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
 
 ### Example
 
@@ -929,7 +903,7 @@ boundaries, e.g. `this_is_snake_case`), wrapping lodash's `snakeCase`. See
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Attempt to be context aware | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
+| `--attempt-to-be-context-aware` | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
 
 ### Simple example
 
@@ -960,15 +934,13 @@ var foo_bar = "leave This";
 
 ## XML Beautify
 
-Indents and prettifies XML. Ported from the [vkbeautify](https://github.com/vkiryukhin/vkBeautify)
-library CyberChef wraps — reimplemented from scratch in Go (no dependency),
-matching it byte-for-byte. Each nested element is placed on its own line indented
+Indents and prettifies XML. Each nested element is placed on its own line indented
 by depth; comments, CDATA and DOCTYPE content stay on one line, and each `xmlns`
 declaration is put on its own line.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Indent string | string | `\t` (tab) | The indentation unit. Backslash escapes are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. A step that begins with a digit falls back to four spaces (a vkbeautify quirk). |
+| `--indent-string` | string | `\t` (tab) | The indentation unit. Backslash escapes are interpreted, so `\t` yields a tab and `  ` (two spaces) indents with spaces. A step that begins with a digit falls back to four spaces (a vkbeautify quirk). |
 
 ### Example
 
@@ -987,13 +959,13 @@ Output:
 
 ## XML Minify
 
-Compresses XML. Ported from vkbeautify (from scratch, no dependency): comments are
+Compresses XML: comments are
 stripped (unless preserved) and whitespace before `xmlns` is collapsed, then
 whitespace between tags is removed.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Preserve comments | boolean | `false` | When `true`, comments are kept instead of stripped. |
+| `--preserve-comments` | boolean | `false` | When `true`, comments are kept instead of stripped. |
 
 ### Example
 

@@ -85,7 +85,7 @@ Output:
 
 ## Alternating Caps
 
-Applies aLtErNaTiNg capitalisation, starting with lower case (non-letters are
+Applies aLtErNaTiNg capitalization, starting with lower case (non-letters are
 left unchanged). Takes no options.
 
 **Simple example**
@@ -102,7 +102,7 @@ hElLo WoRlD
 
 ## Convert area
 
-Converts an area between units (square metres, hectares, acres, barns, …).
+Converts an area between units (square meters, hectares, acres, barns, …).
 
 **Options**
 
@@ -127,7 +127,7 @@ Output:
 
 ## Convert co-ordinate format
 
-Converts geographic co-ordinates between Decimal Degrees, Degrees Decimal Minutes,
+Converts geographic coordinates between Decimal Degrees, Degrees Decimal Minutes,
 Degrees Minutes Seconds, Geohash, MGRS, Ordnance Survey National Grid and UTM.
 
 **Options**
@@ -142,7 +142,7 @@ Degrees Minutes Seconds, Geohash, MGRS, Ordnance Survey National Grid and UTM.
 | `--precision` | number | `3` | Number of decimal places. |
 
 > UTM easting/northing are computed with a different projection implementation
-> than CyberChef, so the final (sub-millimetre) digit may occasionally differ at
+> than CyberChef, so the final (sub-millimeter) digit may occasionally differ at
 > high precision. OSNG, MGRS, Geohash and the lat/lon formats match exactly.
 > Single-digit UTM zones are zero-padded (`01 N`), matching CyberChef, and
 > longitude 180° converts as 180°W (zone 01), where CyberChef errors.
@@ -187,7 +187,7 @@ Output:
 
 ## Convert distance
 
-Converts a distance between units (metres, miles, light-years, …).
+Converts a distance between units (meters, miles, light-years, …).
 
 **Options**
 
@@ -287,6 +287,8 @@ Output:
 
 Compares two samples (separated by a delimiter) and highlights the differences
 with `<ins>` and `<del>` tags.
+
+> **Alternative to** [`diff`](https://man7.org/linux/man-pages/man1/diff.1.html). Output is inline `<ins>`/`<del>` markup over two samples in one input, not a unified patch, and it diffs by character/word/line/sentence rather than by line only.
 
 **Options**
 
@@ -395,8 +397,8 @@ non-ASCII characters).
 | `--es6-compatible` | bool | `true` | Use `\u{…}` for astral characters (otherwise UTF-16 surrogate pairs). |
 | `--uppercase-hex` | bool | `false` | Use uppercase hex digits. |
 
-> This is a from-scratch implementation of CyberChef's jsesc-backed behaviour,
-> validated against CyberChef but not guaranteed identical in every edge case.
+> Output follows CyberChef's jsesc-backed behavior but is not guaranteed identical
+> in every edge case.
 
 **Simple example**
 
@@ -723,8 +725,8 @@ Output:
 
 ## Parse colour code
 
-Parses a colour code in a standard format (hex, RGB, RGBA, HSL, HSLA, CMYK) and
-prints all the other representations (plus an HTML colour-picker for the GUI).
+Parses a color code in a standard format (hex, RGB, RGBA, HSL, HSLA, CMYK) and
+prints all the other representations (plus an HTML color-picker for the GUI).
 Takes no options.
 
 **Simple example**
@@ -830,7 +832,7 @@ Output:
 
 ## Remove ANSI Escape Codes
 
-Removes ANSI escape codes (e.g. terminal colour codes) from the input. Takes no
+Removes ANSI escape codes (e.g. terminal color codes) from the input. Takes no
 options.
 
 **Simple example**
@@ -946,7 +948,7 @@ one
 
 ## Show on map
 
-Parses co-ordinates (in any supported format) and returns the `latitude,longitude`
+Parses coordinates (in any supported format) and returns the `latitude,longitude`
 pair. In CyberChef the GUI renders an interactive map; here the operation returns
 the parsed pair that the map would use.
 
@@ -955,7 +957,7 @@ the parsed pair that the map would use.
 | Flag | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--zoom-level` | number | `13` | Map zoom level (used by the GUI only). |
-| `--input-format` | option | `Auto` | Input co-ordinate format (`Auto` detects it). |
+| `--input-format` | option | `Auto` | Input coordinate format (`Auto` detects it). |
 | `--input-delimiter` | option | `Auto` | How the latitude/longitude are separated. |
 
 **Simple example**

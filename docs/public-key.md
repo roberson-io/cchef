@@ -12,7 +12,7 @@ hex operations also belong to [Data format](data-format.md), and
 The RSA and ECDSA operations are backed by the Go standard library
 (`crypto/rsa`, `crypto/x509`); CyberChef backs them with node-forge and jsrsasign.
 Standard signatures (RSASSA-PKCS1-v1.5) and the RAW scheme are byte-identical to
-CyberChef; OAEP/PKCS#1 v1.5 encryption is randomised, so ciphertext differs each
+CyberChef; OAEP/PKCS#1 v1.5 encryption is randomized, so ciphertext differs each
 run but round-trips both ways. Two RSA fidelity notes: password-protected private
 keys are supported for PKCS#1 (legacy PEM) but not PKCS#8-encrypted keys, and the
 `Generate → JSON` output uses cchef's own key-parameter shape rather than
@@ -24,10 +24,9 @@ and interoperate with CyberChef's Keybase (`kbpgp`) implementation. Output is no
 byte-identical to CyberChef (ASCII-armor headers and key structure differ), but
 messages and keys round-trip in both directions.
 
-The SM2 operations (GM/T 0003, `sm2p256v1` curve) are a dependency-free port: the
-SM2 elliptic-curve arithmetic and the SM3 hash are reimplemented in Go, and match
-CyberChef byte-for-byte (encryption is randomised, so it is verified by
-round-trip).
+The SM2 operations use the GM/T 0003 `sm2p256v1` curve. Encryption is randomized,
+so an SM2 ciphertext round-trips through **SM2 Decrypt** rather than reproducing a
+fixed byte string.
 
 > Operations are listed alphabetically.
 
@@ -396,7 +395,7 @@ Encrypts the input with a PEM-encoded RSA public key (PKCS#1 `RSA PUBLIC KEY` or
 SPKI `PUBLIC KEY`). Three schemes are offered: `RSA-OAEP` (with a selectable
 digest for the label/MGF1 hash), `RSAES-PKCS1-V1_5`, and `RAW` (textbook RSA over
 the input bytes). The ciphertext is raw bytes. OAEP and PKCS#1 v1.5 are
-randomised; RAW is deterministic.
+randomized; RAW is deterministic.
 
 **Options**
 
@@ -449,8 +448,7 @@ with `Encrypted message length is invalid.`
 Reference: [RSA](https://wikipedia.org/wiki/RSA_(cryptosystem))
 
 Signs the input message with a PEM-encoded RSA private key, producing an
-RSASSA-PKCS1-v1.5 signature (raw bytes). The signature is deterministic, so it
-matches CyberChef byte-for-byte.
+RSASSA-PKCS1-v1.5 signature (raw bytes). The signature is deterministic.
 
 **Options**
 
@@ -644,10 +642,7 @@ Reference: [X.509](https://wikipedia.org/wiki/X.509)
 Displays the contents of an X.509 certificate in a human-readable form similar to
 `openssl x509 -text`: version, serial number, signature algorithm, validity,
 issuer/subject distinguished names, MD5/SHA-1/SHA-256 fingerprints, the public
-key (RSA or EC), the certificate signature, and the v3 extensions. This is a
-from-scratch port of CyberChef's jsrsasign-backed operation, walking the DER
-directly; output is byte-for-byte identical to CyberChef (differential-verified
-against the CyberChef-server oracle, which has no upstream fixture file for it).
+key (RSA or EC), the certificate signature, and the v3 extensions.
 
 **Options**
 
@@ -690,8 +685,7 @@ Reference: [CSR](https://wikipedia.org/wiki/Certificate_signing_request)
 
 Parses a PKCS#10 Certificate Signing Request, showing the subject, public key
 (RSA, EC or DSA), signature, and the requested extensions (basic constraints,
-key usage, extended key usage, subject alternative name). A from-scratch port of
-CyberChef's jsrsasign `CSRUtil.getParam`, byte-for-byte identical to CyberChef
+key usage, extended key usage, subject alternative name).
 (verified against its fixture suite).
 
 **Options**
@@ -737,9 +731,7 @@ Reference: [CRL](https://wikipedia.org/wiki/Certificate_revocation_list)
 
 Parses a Certificate Revocation List, showing its version, signature algorithm,
 issuer, update times, CRL extensions, the revoked-certificate entries (with their
-entry extensions such as reason code and invalidity date), and the signature. A
-from-scratch port of CyberChef's jsrsasign `X509CRL`, byte-for-byte identical to
-CyberChef (verified against its fixture suite).
+entry extensions such as reason code and invalidity date), and the signature.
 
 **Options**
 
@@ -784,8 +776,7 @@ Extracts the public key (the `SubjectPublicKeyInfo`) from one or more PEM X.509
 certificates and emits each as a `PUBLIC KEY` PEM block. If the input contains
 several certificates, every extracted key is returned in order. RSA, EC and DSA
 keys are supported; EdDSA (Ed25519/Ed448) certificates are rejected as an
-unsupported key type, matching CyberChef. A faithful port of CyberChef's
-jsrsasign-based operation — the output is byte-for-byte identical.
+unsupported key type, matching CyberChef.
 
 This operation takes no options.
 
@@ -814,8 +805,7 @@ Extracts the public key from one or more PEM private keys and emits each as a
 `PUBLIC KEY` PEM block. Traditional (PKCS#1 RSA, SEC1 EC, OpenSSL DSA) and PKCS#8
 keys are accepted; for RSA and DSA the public value is read directly, and for EC
 it is derived from the private scalar. DSA keys in PKCS#8 (which omit the public
-value) and EdDSA keys are rejected, matching CyberChef. A faithful port of
-CyberChef's jsrsasign-based operation — the output is byte-for-byte identical.
+value) and EdDSA keys are rejected, matching CyberChef.
 
 This operation takes no options.
 
@@ -844,8 +834,7 @@ Decrypts a message with the SM2 public-key algorithm (the Chinese GM/T 0003
 standard) over the `sm2p256v1` curve. The input is the hex-encoded ciphertext
 package (C1 ‖ C3 ‖ C2 or C1 ‖ C2 ‖ C3); the private key is 32 bytes of hex. The
 recovered plaintext is authenticated against the embedded C3 (SM3) tag — a
-mismatch is reported as an error. A from-scratch port (SM2 curve arithmetic and
-the SM3 hash reimplemented in Go), byte-for-byte identical to CyberChef.
+mismatch is reported as an error.
 
 **Options**
 
@@ -877,8 +866,7 @@ Encrypts a message with the SM2 public-key algorithm over the `sm2p256v1` curve,
 producing the hex-encoded ciphertext package. The public key is supplied as its
 two 32-byte coordinates (hex). Encryption draws a fresh random scalar each run,
 so the ciphertext differs every time; it round-trips back through **SM2 Decrypt**
-with the corresponding private key. A from-scratch port, interoperable with
-CyberChef.
+with the corresponding private key, and interoperates with CyberChef.
 
 **Options**
 
@@ -889,7 +877,7 @@ CyberChef.
 | `--output-format` | option | `C1C3C2` | Component order of the ciphertext: `C1C3C2` or `C1C2C3`. |
 | `--curve` | option | `sm2p256v1` | The elliptic curve (only `sm2p256v1` is defined). |
 
-**Example** (piped straight into SM2 Decrypt, since the ciphertext is randomised)
+**Example** (piped straight into SM2 Decrypt, since the ciphertext is randomized)
 
 ```bash
 echo -n "Secret message" | cchef sm2-encrypt \

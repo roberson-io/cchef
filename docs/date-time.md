@@ -19,9 +19,8 @@ reformat datetime strings.
 
 **Format strings.** `datetime-delta`, `parse-datetime` and
 `translate-datetime-format` take [moment.js format tokens](https://momentjs.com/docs/#/displaying/format/)
-(e.g. `DD/MM/YYYY HH:mm:ss`, `dddd Do MMMM YYYY`). cchef reimplements the
-formatter and parser rather than depending on moment, and reproduces CyberChef's
-output for the common tokens. Known fidelity gaps, matching or approximating
+(e.g. `DD/MM/YYYY HH:mm:ss`, `dddd Do MMMM YYYY`). The common tokens reproduce
+CyberChef's output. Known fidelity gaps, matching or approximating
 CyberChef where noted:
 
 - Timezone names are resolved via the system tz database, so the `z` abbreviation

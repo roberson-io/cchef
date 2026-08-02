@@ -77,35 +77,41 @@ only the ordering *within* a stage reflects a real dependency.
 
 ### 3. Documentation
 
-- [ ] **Name the actual flag in every options table.** Pages disagree on what
-  the first column holds: `date-time.md` and eight others give the flag
-  (`` `--days` ``), while `code-tidy.md`, `compression.md`, `extractors.md`,
-  `flow-control.md`, `forensics.md`, `language.md` and `multimedia.md` give
-  CyberChef's display name, leaving the reader to infer `--colour-pattern-1`
-  from an example. Roughly 276 of 1,082 option rows are affected, plus a few
-  stragglers in `arithmetic-logic.md` and `encryption-encoding.md`. Convert
-  them to the flag, which is the majority convention and the useful one; a
-  derived name is not always guessable from the label, so check each against
-  `cchef <op> --help` rather than deriving it by hand. Worth doing in the same
-  pass as the two items below, since it touches the same pages.
-- [ ] **Convert `docs/` to US English**, except where it quotes an operation,
-  flag or option value whose original spelling is UK English (`Split Colour
-  Channels` stays as CyberChef named it). Not a blind find-and-replace: the
-  examples embed verified command output and functional option values that must
-  keep their exact spellings.
-- [ ] **Cross-reference the classic tools.** Many operations do the same job as
-  a well-known CLI tool: the Base64/Base32 codecs (`base64`/`base32`), hex and
-  hexdump (`xxd`, `od`), the hash subcommands (`md5sum`/`sha256sum`, `openssl
-  dgst`), Strings (`strings`), the compression codecs (`gzip`, `bzip2`, `zip`),
-  text-encoding conversion (`iconv`), UUID generation (`uuidgen`), jq/JPath
-  (`jq`), Diff (`diff`). Each such page should say it is an alternative to that
-  tool, link to it, and note where cchef's behavior differs because parity is
-  with CyberChef.
+- [x] **Name the actual flag in every options table.** Every option-table
+  first column now holds the real flag (`` `--salt-type` ``), converted against
+  `cchef <op> --help` and checked by a test-style sweep that every listed flag
+  exists on its subcommand. The one exception is Comment, whose single argument
+  has no named flag (it is the bare `--`), so its row stays descriptive.
+- [x] **Convert `docs/` to US English**, except where it quotes an operation,
+  flag or option value whose original spelling is UK English. Names like `Split
+  Colour Channels`, the `--colour` flags, and option values such as
+  `Greyscale` keep their CyberChef spelling; code blocks, link targets, and the
+  "British and American spellings" section of `docs/README.md` were left
+  untouched. The prose stems converted are colour, behaviour, -ise/-isation,
+  metre/centre/litre, grey, analyse, artefact and co-ordinate.
+- [x] **Cross-reference the classic tools.** Eighteen operations that mirror a
+  well-known CLI tool now carry an "Alternative to" note linking the tool and
+  stating where cchef differs: the Base64/Base32 codecs, To Hex / To Hexdump
+  (`xxd`, `od`, `hexdump`), Encode text (`iconv`), Gzip/Gunzip, Bzip2, Zip/Unzip,
+  Strings, JPath and Jq, Diff, Generate UUID, MD5 and SHA2.
 - [ ] **Clean up process talk in comments and docs.** Provenance claims
   ("faithful", "byte-for-byte"), descriptions of upstream's behavior, and
   development narrative belong nowhere; state what the code does and the
-  constraints a reader needs. Hold new code to the tighter standard so
-  the debt stops growing.
+  constraints a reader needs. Hold new code to the tighter standard so the debt
+  stops growing.
+
+  - [x] **`docs/` done.** "faithful", "byte-for-byte", "from-scratch port",
+    "reimplements X over Y" and "verified against the oracle" are gone from the
+    documentation; what a behavior needs (interop guarantees like "`bzip2 -d`
+    can read it", divergence caveats like chroma-vs-highlight.js, and the
+    pixel-parity/JPEG-approximation rules) is kept, stated as behavior rather
+    than history. One judgment call left inside docs: the terse
+    algorithm-identification tags ("Ported from Jimp's `blur`") on the
+    multimedia operations were kept, since they name the specific algorithm (box
+    blur vs. Gaussian, `contain` vs. `cover`) rather than narrating provenance.
+  - [ ] **Code comments not started.** The same cleanup is owed to Go source
+    comments across `ops/` and `internal/` — a source-tree sweep that pairs
+    with the "hold new code to the tighter standard" habit.
 
 ### 4. Release
 

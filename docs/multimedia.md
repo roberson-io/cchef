@@ -24,12 +24,11 @@ cchef blur-image --in-file photo.png --amount 8 --preview
 cchef render-image --in-file photo.png --data-uri
 ```
 
-The image-transform operations (Blur, Crop, Resize, colour adjustments, …) decode
+The image-transform operations (Blur, Crop, Resize, color adjustments, …) decode
 the image, apply the pixel operation, and re-encode to the source format (GIF is
-re-encoded as PNG, as CyberChef does). CyberChef performs these over the Jimp
-library; cchef reproduces Jimp's pixel maths exactly, so for lossless formats
-(PNG/BMP/TIFF) the pixels are **identical** to CyberChef — only the encoded bytes
-differ. Two caveats: **JPEG** output is re-encoded lossily and is therefore an
+re-encoded as PNG, as CyberChef does). The operations follow the Jimp library
+CyberChef uses, so for lossless formats (PNG/BMP/TIFF) the pixels are
+**identical** to CyberChef — only the encoded bytes differ. Two caveats: **JPEG** output is re-encoded lossily and is therefore an
 approximation, and **Rotate** by angles that are not a multiple of 90° is
 approximate (CyberChef upscales first; cchef matches the output dimensions but not
 every pixel). Read raw bytes with `--in-file` and save with `-o`.
@@ -40,13 +39,12 @@ rather than to `-o` or stdout.
 
 The four **chart** operations (Heatmap, Hex Density, Scatter, Series) take
 delimited numeric text and emit **SVG** on stdout — save it with `-o chart.svg`
-and open it in any browser or image viewer. CyberChef draws these with d3 into a
-fake DOM; cchef reproduces d3's scales, ticks, colour ramps and hexagonal binning
-directly, so the geometry is identical. Two deliberate differences make the
+and open it in any browser or image viewer. The charts use d3's scales, ticks,
+color ramps and hexagonal binning, so the geometry matches CyberChef's. Two deliberate differences make the
 output valid, safe standalone SVG: the clip path is spelled `clipPath` (the
 element nodom emits, `clippath`, is not an SVG element, so the clip is silently
 ignored by real renderers), and D3's internal `__data__` bindings — which carry
-unescaped input into attributes — are never serialised. Upstream applies that
+unescaped input into attributes — are never serialized. Upstream applies that
 same fix, but only to Series chart.
 
 > **Trailing newlines.** As in CyberChef, every record must have exactly the
@@ -93,9 +91,8 @@ same fix, but only to Series chart.
 | Split Colour Channels | `split-colour-channels` | [Channel (digital image)](https://wikipedia.org/wiki/Channel_(digital_image)) |
 
 The resize/crop/contain/cover operations share a **resizing algorithm** option —
-`Nearest Neighbour`, `Bilinear` (default), `Bicubic`, `Hermite` or `Bezier` — all
-ported byte-for-byte from Jimp, so their pixels are identical to CyberChef for
-lossless output.
+`Nearest Neighbour`, `Bilinear` (default), `Bicubic`, `Hermite` or `Bezier` —
+matching Jimp's strategies, so lossless output is pixel-identical to CyberChef.
 
 ## Add Text To Image
 
@@ -105,14 +102,14 @@ Jimp's glyph blitting, so the result is pixel-identical for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Text | string | `""` | The text to draw. `\n` starts a new line. |
-| Horizontal align | option | `None` | `None` uses X position; otherwise `Left`, `Center` or `Right`. |
-| Vertical align | option | `None` | `None` uses Y position; otherwise `Top`, `Middle` or `Bottom`. |
-| X position | number | `0` | Left edge, when Horizontal align is `None`. |
-| Y position | number | `0` | Top edge, when Vertical align is `None`. |
-| Size | number | `32` | Point size, minimum 8. The 72px glyphs are bicubically scaled to it. |
-| Font face | option | `Roboto` | `Roboto`, `Roboto Black`, `Roboto Mono` or `Roboto Slab`. |
-| Red / Green / Blue / Alpha | number | `255` | Text colour, each 0–255. |
+| `--text` | string | `""` | The text to draw. `\n` starts a new line. |
+| `--horizontal-align` | option | `None` | `None` uses X position; otherwise `Left`, `Center` or `Right`. |
+| `--vertical-align` | option | `None` | `None` uses Y position; otherwise `Top`, `Middle` or `Bottom`. |
+| `--x-position` | number | `0` | Left edge, when Horizontal align is `None`. |
+| `--y-position` | number | `0` | Top edge, when Vertical align is `None`. |
+| `--size` | number | `32` | Point size, minimum 8. The 72px glyphs are bicubically scaled to it. |
+| `--font-face` | option | `Roboto` | `Roboto`, `Roboto Black`, `Roboto Mono` or `Roboto Slab`. |
+| `--red` / `--green` / `--blue` / `--alpha` | number | `255` | Text color, each 0–255. |
 
 Only the four Roboto faces are available, as in CyberChef — there is no option to
 supply your own font. Characters outside the atlas are drawn as `?`, and
@@ -121,9 +118,9 @@ whitespace the atlas has no glyph for is skipped.
 The text is laid out into its own bitmap before being scaled and composited, and
 CyberChef sizes that bitmap with Jimp's `measureTextHeight`. That call reserves
 one line per space-separated word plus one more, so text with several words gets
-a taller transparent block beneath it than the single drawn line needs. This is
-faithful to CyberChef: it only matters if you align vertically, where the extra
-height shifts `Middle` and `Bottom` upwards.
+a taller transparent block beneath it than the single drawn line needs. It only
+matters if you align vertically, where the extra height shifts `Middle` and
+`Bottom` upwards.
 
 ### Simple example
 
@@ -133,7 +130,7 @@ cchef add-text-to-image --in-file photo.png --text "Hello" -o titled.png
 
 ### Complex example
 
-Centre 40pt red Roboto Slab across the middle of the image:
+Center 40pt red Roboto Slab across the middle of the image:
 
 ```bash
 cchef add-text-to-image --in-file photo.png \
@@ -149,8 +146,8 @@ Pixel-identical to CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Amount | number | `5` | Blur radius. For `Fast`, an integer 1–256. |
-| Type | option | `Fast` | `Fast` (box blur) or `Gaussian` (slower, smoother). |
+| `--amount` | number | `5` | Blur radius. For `Fast`, an integer 1–256. |
+| `--type` | option | `Fast` | `Fast` (box blur) or `Gaussian` (slower, smoother). |
 
 ### Simple example
 
@@ -165,12 +162,12 @@ ratio, letterboxing the remaining space. Ported from Jimp's `contain`.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Width | number | `100` | Target box width in pixels. |
-| Height | number | `100` | Target box height in pixels. |
-| Horizontal align | option | `Center` | `Left`, `Center` or `Right`. |
-| Vertical align | option | `Middle` | `Top`, `Middle` or `Bottom`. |
-| Resizing algorithm | option | `Bilinear` | See the note above. |
-| Opaque background | boolean | true | Composite the result over opaque black instead of transparency. |
+| `--width` | number | `100` | Target box width in pixels. |
+| `--height` | number | `100` | Target box height in pixels. |
+| `--horizontal-align` | option | `Center` | `Left`, `Center` or `Right`. |
+| `--vertical-align` | option | `Middle` | `Top`, `Middle` or `Bottom`. |
+| `--resizing-algorithm` | option | `Bilinear` | See the note above. |
+| `--opaque-background` | boolean | true | Composite the result over opaque black instead of transparency. |
 
 ### Simple example
 
@@ -184,10 +181,10 @@ Decodes an image and re-encodes it as JPEG, PNG, BMP or TIFF.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Output Format | option | `JPEG` | `JPEG`, `PNG`, `BMP` or `TIFF`. |
-| JPEG Quality | number | `80` | 1–100. Only used for JPEG output. |
-| PNG Filter Type | option | `Auto` | Accepted for compatibility; see the note below. |
-| PNG Deflate Level | number | `9` | 0–9. Only affects PNG compression, never the pixels. |
+| `--output-format` | option | `JPEG` | `JPEG`, `PNG`, `BMP` or `TIFF`. |
+| `--jpeg-quality` | number | `80` | 1–100. Only used for JPEG output. |
+| `--png-filter-type` | option | `Auto` | Accepted for compatibility; see the note below. |
+| `--png-deflate-level` | number | `9` | 0–9. Only affects PNG compression, never the pixels. |
 
 For the lossless targets (PNG, BMP, TIFF) the decoded pixels are identical to
 CyberChef; only the encoded bytes differ, since Go and Jimp use different
@@ -222,11 +219,11 @@ ratio, cropping the overflow. Ported from Jimp's `cover`.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Width | number | `100` | Target box width in pixels. |
-| Height | number | `100` | Target box height in pixels. |
-| Horizontal align | option | `Center` | `Left`, `Center` or `Right`. |
-| Vertical align | option | `Middle` | `Top`, `Middle` or `Bottom`. |
-| Resizing algorithm | option | `Bilinear` | See the note above. |
+| `--width` | number | `100` | Target box width in pixels. |
+| `--height` | number | `100` | Target box height in pixels. |
+| `--horizontal-align` | option | `Center` | `Left`, `Center` or `Right`. |
+| `--vertical-align` | option | `Middle` | `Top`, `Middle` or `Bottom`. |
+| `--resizing-algorithm` | option | `Bilinear` | See the note above. |
 
 ### Simple example
 
@@ -242,15 +239,15 @@ Ported from Jimp's `crop`/`autocrop`. An out-of-bounds region is rejected with
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| X Position | number | `0` | Left edge of the crop region. |
-| Y Position | number | `0` | Top edge of the crop region. |
-| Width | number | `10` | Region width. |
-| Height | number | `10` | Region height. |
-| Autocrop | boolean | false | Ignore the region above and trim a uniform border matching the top-left pixel. |
-| Autocrop tolerance (%) | number | `0.02` | Colour-difference tolerance for the border. |
-| Only autocrop frames | boolean | true | Only crop when all four sides have a border. |
-| Symmetric autocrop | boolean | false | Crop the same amount from opposite sides. |
-| Autocrop keep border (px) | number | `0` | Leave this many border pixels in place. |
+| `--x-position` | number | `0` | Left edge of the crop region. |
+| `--y-position` | number | `0` | Top edge of the crop region. |
+| `--width` | number | `10` | Region width. |
+| `--height` | number | `10` | Region height. |
+| `--autocrop` | boolean | false | Ignore the region above and trim a uniform border matching the top-left pixel. |
+| `--autocrop-tolerance` | number | `0.02` | Color-difference tolerance for the border. |
+| `--only-autocrop-frames` | boolean | true | Only crop when all four sides have a border. |
+| `--symmetric-autocrop` | boolean | false | Crop the same amount from opposite sides. |
+| `--autocrop-keep-border-px` | number | `0` | Leave this many border pixels in place. |
 
 ### Simple example
 
@@ -280,10 +277,9 @@ cchef dither-image --in-file photo.png -o dithered.png
 ## Extract EXIF
 
 Extracts EXIF metadata from an image (JPEG/TIFF). EXIF records information about
-the image and the device that produced it. This is a from-scratch port of the
-npm `exif-parser` library that CyberChef uses, reproducing its tag names, value
-formatting (rationals as decimals, EXIF dates as UNIX timestamps) and GPS
-coordinate conversion. The output lists a tag count followed by one `name: value`
+the image and the device that produced it. Tag names, value formatting (rationals
+as decimals, EXIF dates as UNIX timestamps) and GPS coordinate conversion follow
+the npm `exif-parser` library CyberChef uses. The output lists a tag count followed by one `name: value`
 per line. Malformed input yields `Could not extract EXIF data from image: …`.
 
 Takes no options. The input is raw bytes, so use the global `--in-file` flag or a
@@ -318,7 +314,7 @@ CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Axis | option | `Horizontal` | `Horizontal` mirrors left–right; `Vertical` mirrors top–bottom. |
+| `--axis` | option | `Horizontal` | `Horizontal` mirrors left–right; `Vertical` mirrors top–bottom. |
 
 ### Simple example
 
@@ -333,9 +329,9 @@ eyeballing the structure of an unknown binary. Pixel-identical to CyberChef.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Mode | option | `Greyscale` | Bytes consumed per pixel: `Greyscale` 1, `RG` 2, `RGB` 3, `RGBA` 4, `Bits` ⅛. |
-| Pixel Scale Factor | number | `8` | 1–64. Each source pixel becomes an N×N block (nearest-neighbour). |
-| Pixels per row | number | `64` | 1–2048. Image width, before scaling. |
+| `--mode` | option | `Greyscale` | Bytes consumed per pixel: `Greyscale` 1, `RG` 2, `RGB` 3, `RGBA` 4, `Bits` ⅛. |
+| `--pixel-scale-factor` | number | `8` | 1–64. Each source pixel becomes an N×N block (nearest-neighbour). |
+| `--pixels-per-row` | number | `64` | 1–2048. Image width, before scaling. |
 
 In `Bits` mode each input byte becomes eight black-or-white pixels, most
 significant bit first, with a set bit rendered black. Every other mode reads its
@@ -370,18 +366,18 @@ in it. Input is one `x y` record per line; output is SVG.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
-| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
-| Number of vertical bins | number | `25` | Rows in the grid. Must be above 0. |
-| Number of horizontal bins | number | `25` | Columns in the grid. Must be above 0. |
-| Use column headers as labels | boolean | true | Take the axis labels from the first record. |
-| X label | string | `""` | Used when headers are not taken as labels. |
-| Y label | string | `""` | Used when headers are not taken as labels. |
-| Draw bin edges | boolean | false | Outline each cell. |
-| Min colour value | string | `white` | Colour for an empty cell. Any CSS colour. |
-| Max colour value | string | `black` | Colour for the fullest cell. Any CSS colour. |
+| `--record-delimiter` | option | `Line feed` | `Line feed` or `CRLF`. |
+| `--field-delimiter` | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| `--number-of-vertical-bins` | number | `25` | Rows in the grid. Must be above 0. |
+| `--number-of-horizontal-bins` | number | `25` | Columns in the grid. Must be above 0. |
+| `--use-column-headers-as-labels` | boolean | true | Take the axis labels from the first record. |
+| `--x-label` | string | `""` | Used when headers are not taken as labels. |
+| `--y-label` | string | `""` | Used when headers are not taken as labels. |
+| `--draw-bin-edges` | boolean | false | Outline each cell. |
+| `--min-colour-value` | string | `white` | Color for an empty cell. Any CSS color. |
+| `--max-colour-value` | string | `black` | Color for the fullest cell. Any CSS color. |
 
-Cells are shaded by blending the two colours through CIELAB, as CyberChef does.
+Cells are shaded by blending the two colors through CIELAB, as CyberChef does.
 The data must vary in both axes: a column of identical x or y values is rejected,
 since there would be nothing to spread across the bins.
 
@@ -411,17 +407,17 @@ scatter plot that stays readable when points overlap. Output is SVG.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
-| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
-| Pack radius | number | `25` | Hexagon size used for grouping the points. |
-| Draw radius | number | `15` | Hexagon size actually drawn, so cells can be spaced apart. |
-| Use column headers as labels | boolean | true | Take the axis labels from the first record. |
-| X label | string | `""` | Used when headers are not taken as labels. |
-| Y label | string | `""` | Used when headers are not taken as labels. |
-| Draw hexagon edges | boolean | false | Outline each hexagon. |
-| Min colour value | string | `white` | Colour for the emptiest hexagon. Any CSS colour. |
-| Max colour value | string | `black` | Colour for the fullest hexagon. Any CSS colour. |
-| Draw empty hexagons within data boundaries | boolean | false | Also draw cells holding no points. |
+| `--record-delimiter` | option | `Line feed` | `Line feed` or `CRLF`. |
+| `--field-delimiter` | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| `--pack-radius` | number | `25` | Hexagon size used for grouping the points. |
+| `--draw-radius` | number | `15` | Hexagon size actually drawn, so cells can be spaced apart. |
+| `--use-column-headers-as-labels` | boolean | true | Take the axis labels from the first record. |
+| `--x-label` | string | `""` | Used when headers are not taken as labels. |
+| `--y-label` | string | `""` | Used when headers are not taken as labels. |
+| `--draw-hexagon-edges` | boolean | false | Outline each hexagon. |
+| `--min-colour-value` | string | `white` | Color for the emptiest hexagon. Any CSS color. |
+| `--max-colour-value` | string | `black` | Color for the fullest hexagon. Any CSS color. |
+| `--draw-empty-hexagons` | boolean | false | Also draw cells holding no points. |
 
 ### Simple example
 
@@ -448,8 +444,8 @@ Adjusts image brightness and/or contrast. Ported from Jimp's
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Brightness | number | `0` | −100 to 100. 0 leaves brightness unchanged. |
-| Contrast | number | `0` | −100 to 100. 0 leaves contrast unchanged. |
+| `--brightness` | number | `0` | −100 to 100. 0 leaves brightness unchanged. |
+| `--contrast` | number | `0` | −100 to 100. 0 leaves contrast unchanged. |
 
 ### Simple example
 
@@ -459,12 +455,12 @@ cchef image-brightness-contrast --in-file photo.png --brightness 20 --contrast 1
 
 ## Image Filter
 
-Applies a greyscale or sepia filter to an image (Jimp's `greyscale`/`sepia`).
+Applies a grayscale or sepia filter to an image (Jimp's `greyscale`/`sepia`).
 Pixel-identical to CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Filter type | option | `Greyscale` | `Greyscale` (Rec. 709 luminance) or `Sepia`. |
+| `--filter-type` | option | `Greyscale` | `Greyscale` (Rec. 709 luminance) or `Sepia`. |
 
 ### Simple example
 
@@ -480,9 +476,9 @@ CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Hue | number | `0` | −360 to 360 degrees to rotate the hue. |
-| Saturation | number | `0` | −100 to 100. |
-| Lightness | number | `0` | −100 to 100. |
+| `--hue` | number | `0` | −360 to 360 degrees to rotate the hue. |
+| `--saturation` | number | `0` | −100 to 100. |
+| `--lightness` | number | `0` | −100 to 100. |
 
 ### Simple example
 
@@ -497,7 +493,7 @@ CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Opacity (%) | number | `100` | 0–100; the alpha of each pixel is scaled by this fraction. |
+| `--opacity` | number | `100` | 0–100; the alpha of each pixel is scaled by this fraction. |
 
 ### Simple example
 
@@ -507,7 +503,7 @@ cchef image-opacity --in-file photo.png --opacity 50 -o faded.png
 
 ## Invert Image
 
-Inverts the colours of an image (each RGB channel becomes 255−value; alpha is
+Inverts the colors of an image (each RGB channel becomes 255−value; alpha is
 unchanged). Pixel-identical to CyberChef for lossless formats.
 
 Takes no options.
@@ -520,7 +516,7 @@ cchef invert-image --in-file photo.png -o inverted.png
 
 ## Normalise Image
 
-Stretches each colour channel to the full 0–255 range (auto-levels). Ported from
+Stretches each color channel to the full 0–255 range (auto-levels). Ported from
 Jimp's `normalize`. Pixel-identical to CyberChef for lossless formats. Takes no
 options.
 
@@ -536,8 +532,8 @@ Reads text out of an image.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Show confidence | boolean | true | Prefix the text with the mean word confidence. |
-| OCR Engine Mode | option | `LSTM only` | `Tesseract only`, `LSTM only` or `Tesseract/LSTM Combined`. |
+| `--show-confidence` | boolean | true | Prefix the text with the mean word confidence. |
+| `--ocr-engine-mode` | option | `LSTM only` | `Tesseract only`, `LSTM only` or `Tesseract/LSTM Combined`. |
 
 > **Requires `tesseract`.** This is the one operation cchef does not perform
 > itself. CyberChef runs Tesseract compiled to WebAssembly in the browser; the
@@ -548,9 +544,9 @@ Reads text out of an image.
 > `apt install tesseract-ocr` (Debian/Ubuntu); without it the operation fails
 > with a message saying so. Everything else in cchef works regardless.
 
-Because it is the same engine and the same `eng` language data, the recognised
+Because it is the same engine and the same `eng` language data, the recognized
 text matches CyberChef's. The confidence figure is the mean confidence of the
-recognised words.
+recognized words.
 
 `Tesseract only` and `Tesseract/LSTM Combined` need the legacy engine, which
 Tesseract 5 no longer ships in its default `eng.traineddata` — those modes fail
@@ -595,7 +591,7 @@ rejected.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Input format | option | `Raw` | How to read the input: `Raw`, `Base64` or `Hex`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw`, `Base64` or `Hex`. |
 
 ### Simple example
 
@@ -622,8 +618,7 @@ data:audio/x-wav;base64,UklGRgAAAABXQVZF
 ## Remove EXIF
 
 Removes the EXIF metadata segment from a JPEG image, returning the stripped
-bytes. Ported byte-for-byte from CyberChef's vendored piexifjs routine: it splits
-the JPEG into segments and drops the APP1 `Exif` segment. If the image has no
+bytes. It splits the JPEG into segments and drops the APP1 `Exif` segment. If the image has no
 EXIF data it is returned unchanged; non-JPEG input is rejected with
 `Could not remove EXIF data from image: Given data is not jpeg.`
 
@@ -652,7 +647,7 @@ passed through unchanged. A non-image input is rejected with
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Input format | option | `Raw` | How to read the input: `Raw`, `Base64` or `Hex`. |
+| `--input-format` | option | `Raw` | How to read the input: `Raw`, `Base64` or `Hex`. |
 
 Use the global `--preview` flag to see the image inline, or `--data-uri` for a
 `data:` URI.
@@ -688,7 +683,7 @@ validated bytes are passed through. Input that is not a PDF is rejected with
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Input format | option | `Base64` | How to read the input: `Base64` or `Raw`. |
+| `--input-format` | option | `Base64` | How to read the input: `Base64` or `Raw`. |
 
 ### Simple example
 
@@ -720,11 +715,11 @@ five resampling algorithms.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Width | number | `100` | Target width (pixels, or percent when Unit type is Percent). |
-| Height | number | `100` | Target height. |
-| Unit type | option | `Pixels` | `Pixels` or `Percent` (of the source size). |
-| Maintain aspect ratio | boolean | false | Scale to fit within Width×Height without distortion. |
-| Resizing algorithm | option | `Bilinear` | See the note under the operation table. |
+| `--width` | number | `100` | Target width (pixels, or percent when Unit type is Percent). |
+| `--height` | number | `100` | Target height. |
+| `--unit-type` | option | `Pixels` | `Pixels` or `Percent` (of the source size). |
+| `--maintain-aspect-ratio` | boolean | false | Scale to fit within Width×Height without distortion. |
+| `--resizing-algorithm` | option | `Bilinear` | See the note under the operation table. |
 
 ### Simple example
 
@@ -749,7 +744,7 @@ formula but the interior pixels differ.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Rotation amount (degrees) | number | `90` | Positive or negative. Multiples of 90 relocate pixels exactly and resize the canvas; other angles expand the canvas and fill the corners with transparency. |
+| `--rotation-amount-degrees` | number | `90` | Positive or negative. Multiples of 90 relocate pixels exactly and resize the canvas; other angles expand the canvas and fill the corners with transparency. |
 
 ### Simple example
 
@@ -764,14 +759,14 @@ line; output is SVG.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
-| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
-| Use column headers as labels | boolean | true | Take the axis labels from the first record. |
-| X label | string | `""` | Used when headers are not taken as labels. |
-| Y label | string | `""` | Used when headers are not taken as labels. |
-| Colour | string | `black` | Point colour. Any CSS colour. |
-| Point radius | number | `10` | Radius of each point. |
-| Use colour from third column | boolean | false | Read each point's colour from a third field. |
+| `--record-delimiter` | option | `Line feed` | `Line feed` or `CRLF`. |
+| `--field-delimiter` | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| `--use-column-headers-as-labels` | boolean | true | Take the axis labels from the first record. |
+| `--x-label` | string | `""` | Used when headers are not taken as labels. |
+| `--y-label` | string | `""` | Used when headers are not taken as labels. |
+| `--colour` | string | `black` | Point color. Any CSS color. |
+| `--point-radius` | number | `10` | Radius of each point. |
+| `--use-colour-from-third-column` | boolean | false | Read each point's color from a third field. |
 
 The axes extend a tenth of the data's span past it at each end, so points are
 never drawn on the axis lines.
@@ -784,7 +779,7 @@ printf '100 100\n200 200\n300 300' | cchef scatter-chart --point-radius 5 -o sca
 
 ### Complex example
 
-Colour each point from a third column:
+Color each point from a third column:
 
 ```bash
 printf '1,2,red\n3,4,blue\n5,9,green' |
@@ -800,11 +795,11 @@ Draws one line graph per named series over a shared x axis. Input is one
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Record delimiter | option | `Line feed` | `Line feed` or `CRLF`. |
-| Field delimiter | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
-| X label | string | `""` | Label under the x axis. |
-| Point radius | number | `1` | Radius of the pip drawn at each value. |
-| Series colours | string | `mediumseagreen, dodgerblue, tomato` | Comma-separated CSS colours, cycled across the series. |
+| `--record-delimiter` | option | `Line feed` | `Line feed` or `CRLF`. |
+| `--field-delimiter` | option | `Space` | `Space`, `Comma`, `Semi-colon`, `Colon` or `Tab`. |
+| `--x-label` | string | `""` | Label under the x axis. |
+| `--point-radius` | number | `1` | Radius of the pip drawn at each value. |
+| `--series-colours` | string | `mediumseagreen, dodgerblue, tomato` | Comma-separated CSS colors, cycled across the series. |
 
 Series and x values keep the order they first appear in, and each series gets its
 own y axis scaled to its own range. A series with no value at some x simply skips
@@ -818,7 +813,7 @@ printf 'a 1 10\na 2 20\nb 1 5\nb 2 25' | cchef series-chart -o series.svg
 
 ### Complex example
 
-Comma-separated input with a labelled axis and custom colours:
+Comma-separated input with a labelled axis and custom colors:
 
 ```bash
 printf %s "$(cat metrics.csv)" |
@@ -836,9 +831,9 @@ CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Radius | number | `2` | Gaussian blur radius used to build the mask. |
-| Amount | number | `1` | Strength the mask is added back with. |
-| Threshold | number | `10` | 0–100; only sharpen where the luminance difference is at least this percent. |
+| `--radius` | number | `2` | Gaussian blur radius used to build the mask. |
+| `--amount` | number | `1` | Strength the mask is added back with. |
+| `--threshold` | number | `10` | 0–100; only sharpen where the luminance difference is at least this percent. |
 
 ### Simple example
 

@@ -119,9 +119,8 @@ Reference: [Argon2](https://wikipedia.org/wiki/Argon2)
 Derives a hash from the input password with the Argon2 password-hashing function
 (the Password Hashing Competition winner). All three variants are supported, and
 the result can be emitted as a PHC-encoded hash, hex, or raw bytes. Argon2i and
-Argon2id are computed with Go's `x/crypto/argon2`; Argon2d uses a from-scratch
-implementation (`x/crypto` does not provide it). Verified against argon2-cffi —
-the reference phc-winner-argon2 library CyberChef's argon2-browser is built from.
+All three follow the reference phc-winner-argon2 parameters (PHC's `argon2` C
+reference).
 
 **Options**
 
@@ -190,7 +189,7 @@ Match: password
 Reference: [Ascon](https://wikipedia.org/wiki/Ascon_(cipher))
 
 Ascon-Hash256 produces a fixed 256-bit (32-byte) hash, part of the Ascon
-lightweight-cryptography family standardised in NIST SP 800-232 (selected in
+lightweight-cryptography family standardized in NIST SP 800-232 (selected in
 2023). It is designed for constrained devices such as IoT sensors. Output is
 hex. Takes no options.
 
@@ -276,9 +275,7 @@ Output:
 Reference: [BLAKE2s](https://wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2)
 
 Computes the BLAKE2s hash (the 8- to 32-bit-optimised BLAKE2 flavour) at a chosen
-digest size, with an optional key. A from-scratch port (Go's `x/crypto/blake2s`
-only offers the 256-bit and keyed-128-bit variants, not the 160-bit or unkeyed
-128-bit digests this operation needs). Output can be hex, Base64 or raw bytes.
+digest size, with an optional key. Output can be hex, Base64 or raw bytes.
 
 **Options**
 
@@ -304,10 +301,9 @@ Output:
 
 Reference: [BLAKE3](https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE3)
 
-Computes the BLAKE3 hash at a chosen output length, with an optional key. A
-from-scratch port of the BLAKE3 spec (it is not in Go's `x/crypto`). BLAKE3 is an
-extendable-output function, so any length up to 65535 bytes can be requested.
-Output is hex.
+Computes the BLAKE3 hash at a chosen output length, with an optional key. BLAKE3
+is an extendable-output function, so any length up to 65535 bytes can be
+requested. Output is hex.
 
 **Options**
 
@@ -450,9 +446,9 @@ Reference: [CRC](https://wikipedia.org/wiki/Cyclic_redundancy_check)
 
 Computes a Cyclic Redundancy Check over the raw input bytes. Around 170 named CRC
 variants (widths 3–82 bits) are built in, or a fully custom width / polynomial /
-initialisation / reflection / xor configuration can be given. A faithful port of
-CyberChef's operation (the Rocksoft parameterised model), byte-for-byte identical
-to upstream. Output is the checksum as hex, padded to the variant's width.
+initialization / reflection / xor configuration can be given, following the
+Rocksoft parameterised model. Output is the checksum as hex, padded to the
+variant's width.
 
 **Options**
 
@@ -513,9 +509,9 @@ Output:
 Reference: [Context Triggered Piecewise Hashing](https://forensics.wiki/context_triggered_piecewise_hashing/)
 
 Computes a Context Triggered Piecewise Hash (a "fuzzy hash") that can match
-inputs sharing homologous byte sequences. This is a faithful port of the
-non-standard `ctph.js` package CyberChef uses, so output matches CyberChef (and
-differs from standard tools). Takes no options.
+inputs sharing homologous byte sequences. The output follows CyberChef's
+non-standard `ctph.js` format and differs from standard fuzzy-hash tools. Takes
+no options.
 
 **Simple example**
 
@@ -791,7 +787,7 @@ Output:
 ## Keccak
 
 Computes the **legacy** Keccak digest at the selected size. Keccak predates and
-differs from the standardised SHA-3 (FIPS 202) — they use different padding, so
+differs from the standardized SHA-3 (FIPS 202) — they use different padding, so
 the digests differ. Keccak-256 is the hash used by Ethereum (e.g.
 `keccak256("")` = `c5d2460186f7233c…`).
 
@@ -911,14 +907,15 @@ Output:
 65a8e27d8879283831b664bd8b7f0ad4
 ```
 
+> **Alternative to** [`md5sum`](https://man7.org/linux/man-pages/man1/md5sum.1.html) and [`openssl dgst -md5`](https://docs.openssl.org/master/man1/openssl-dgst/). Those print a filename column; cchef writes the bare digest.
+
 ## MD6
 
 Reference: [MD6](https://wikipedia.org/wiki/MD6)
 
 The MD6 (Message-Digest 6) hash function, using a Merkle-tree structure that
-allows parallel hashing of long inputs. A from-scratch port of the `node-md6`
-package CyberChef uses (MD6 is not in Go's `x/crypto`). Output is hex, at a
-configurable digest size.
+allows parallel hashing of long inputs. Output is hex, at a configurable digest
+size.
 
 **Options**
 
@@ -960,8 +957,7 @@ Reference: [MurmurHash](https://wikipedia.org/wiki/MurmurHash)
 
 Computes the 32-bit MurmurHash v3 (x86_32 variant) of the input, a fast
 non-cryptographic hash. The result is a 32-bit integer, optionally converted to a
-signed value. A faithful port of CyberChef's operation (each character contributes
-its low byte).
+signed value. Each character contributes its low byte.
 
 **Options**
 
@@ -1150,6 +1146,8 @@ algorithm at their standard round counts, kept as separate subcommands because
 they are what you usually want; `sha2` is the way to reach the `512/224` and
 `512/256` sizes and to vary the round count.
 
+> **Alternative to** [`sha256sum`](https://man7.org/linux/man-pages/man1/sha256sum.1.html) and the other `shaNsum` tools, or [`openssl dgst`](https://docs.openssl.org/master/man1/openssl-dgst/). cchef writes the bare digest, no filename column.
+
 **Options**
 
 | Flag | Type | Default | Description |
@@ -1270,10 +1268,9 @@ cchef sha256 --in-file ./document.pdf
 Reference: [SM3](https://wikipedia.org/wiki/SM3_(hash_function))
 
 The SM3 cryptographic hash (Chinese National Standard GM/T 0004), a 256-bit hash
-used in the SM2/SM9 signature schemes. A from-scratch port of the crypto-api
-implementation CyberChef wraps, so — like upstream — the output length and round
-count are configurable. Note this follows crypto-api's behaviour for non-default
-values: `Length` truncates the digest to `floor(Length / 32)` 32-bit words (a
+used in the SM2/SM9 signature schemes. The output length and round count are
+configurable, following crypto-api's behavior for non-default values: `Length`
+truncates the digest to `floor(Length / 32)` 32-bit words (a
 value below 32 yields the full digest), and `Rounds` above 64 reads past the
 internal message schedule, collapsing the state toward the initial value.
 
@@ -1313,9 +1310,8 @@ Output:
 Reference: [SSDEEP](https://forensics.wiki/ssdeep)
 
 Computes an SSDEEP fuzzy hash — the same idea as CTPH but a different output
-format. A faithful port of the non-standard `ssdeep.js` package CyberChef uses,
-so output matches CyberChef (and differs from the standard ssdeep tool). Takes no
-options.
+format. The output follows CyberChef's non-standard `ssdeep.js` format and differs
+from the standard ssdeep tool. Takes no options.
 
 **Simple example**
 

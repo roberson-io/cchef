@@ -29,8 +29,7 @@ category, where their detailed description, options and examples live:
 ## Detect File Type
 
 Guesses the MIME type and extension of the input by matching its leading bytes
-against a table of known **magic-byte signatures**. This is a from-scratch port
-of CyberChef's operation and its `FileSignatures` table, covering 141 file types
+against a table of known **magic-byte signatures**, covering 141 file types
 across seven categories (Images, Video, Audio, Documents, Applications, Archives,
 Miscellaneous). Every matching type is reported; if nothing matches, an
 "Unknown file type" message is returned.
@@ -41,13 +40,13 @@ preceding decode step such as `from-hex`.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Images | boolean | true | Include image signatures in the search. |
-| Video | boolean | true | Include video signatures. |
-| Audio | boolean | true | Include audio signatures. |
-| Documents | boolean | true | Include document signatures. |
-| Applications | boolean | true | Include application/executable signatures. |
-| Archives | boolean | true | Include archive/compression signatures. |
-| Miscellaneous | boolean | true | Include miscellaneous signatures. |
+| `--images` | boolean | true | Include image signatures in the search. |
+| `--video` | boolean | true | Include video signatures. |
+| `--audio` | boolean | true | Include audio signatures. |
+| `--documents` | boolean | true | Include document signatures. |
+| `--applications` | boolean | true | Include application/executable signatures. |
+| `--archives` | boolean | true | Include archive/compression signatures. |
+| `--miscellaneous` | boolean | true | Include miscellaneous signatures. |
 
 Each category flag can be disabled (e.g. `--images=false`) to narrow the search.
 
@@ -68,7 +67,7 @@ MIME type:   image/png
 ### Complex example
 
 Disabling a category removes its signatures from the search, so a PNG is no
-longer recognised once images are excluded:
+longer recognized once images are excluded:
 
 ```bash
 cchef from-hex -i "89504e470d0a1a0a" | cchef detect-file-type --images=false
@@ -219,19 +218,19 @@ Symbol Name:                  test
 Extracts the
 [least significant bit](https://wikipedia.org/wiki/Bit_numbering#Least_significant_bit_in_digital_steganography)
 data from each pixel of an image — a common way of hiding data in
-Steganography. Up to four colour patterns choose which channels are read from
+Steganography. Up to four color patterns choose which channels are read from
 each pixel (in the order given, duplicates allowed); the chosen bit of each is
 collected pixel by pixel and the bit stream packed into bytes, eight to a byte,
 first bit most significant.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Colour Pattern #1 | option | `R` | One of `R`, `G`, `B`, `A`. |
-| Colour Pattern #2 | option | (empty) | Optional second channel. |
-| Colour Pattern #3 | option | (empty) | Optional third channel. |
-| Colour Pattern #4 | option | (empty) | Optional fourth channel. |
-| Pixel Order | option | `Row` | `Row` scans left-to-right, top-to-bottom; `Column` top-to-bottom, left-to-right. |
-| Bit | number | 0 | Which bit to read, 0 (least significant) to 7. |
+| `--colour-pattern-1` | option | `R` | One of `R`, `G`, `B`, `A`. |
+| `--colour-pattern-2` | option | (empty) | Optional second channel. |
+| `--colour-pattern-3` | option | (empty) | Optional third channel. |
+| `--colour-pattern-4` | option | (empty) | Optional fourth channel. |
+| `--pixel-order` | option | `Row` | `Row` scans left-to-right, top-to-bottom; `Column` top-to-bottom, left-to-right. |
+| `--bit` | number | 0 | Which bit to read, 0 (least significant) to 7. |
 
 One departure from CyberChef, fixing a fault in its version (also logged
 upstream): its `Column` order miscomputes each sample's position, reading
@@ -276,8 +275,8 @@ Steganography to hide text or data.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Delimiter | editable option | `,` | Any string; placed between values verbatim. |
-| Include Alpha | boolean | true | Include each pixel's alpha value. |
+| `--delimiter` | editable option | `,` | Any string; placed between values verbatim. |
+| `--include-alpha` | boolean | true | Include each pixel's alpha value. |
 
 ### Simple example
 
@@ -309,18 +308,18 @@ Output:
 
 ## Randomize Colour Palette
 
-Gives every distinct colour in an image a new one derived from a seed — each
+Gives every distinct color in an image a new one derived from a seed — each
 pixel becomes the first three bytes of `MD5(seed + "R.G.B")`, fully opaque —
-so shapes drawn in nearly identical colours become plainly visible, a
+so shapes drawn in nearly identical colors become plainly visible, a
 technique sometimes used to reveal hidden
-[indexed-colour](https://wikipedia.org/wiki/Indexed_color) Steganography.
-The same source colour always maps to the same new colour, so the image's
+[indexed-color](https://wikipedia.org/wiki/Indexed_color) Steganography.
+The same source color always maps to the same new color, so the image's
 structure is kept while its palette is shuffled. Pixel-identical to CyberChef
 for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Seed | string | (empty) | The palette follows the seed; empty draws a random one. |
+| `--seed` | string | (empty) | The palette follows the seed; empty draws a random one. |
 
 ### Simple example
 
@@ -334,19 +333,19 @@ Scans the data for potential embedded files by looking for
 [magic bytes](https://wikipedia.org/wiki/List_of_file_signatures) at **every**
 offset, not just the start — the same signature table
 [Detect File Type](#detect-file-type) matches against, and the same scan
-[Extract Files](extractors.md#extract-files) carves from. As CyberChef's own
-description warns, the operation is prone to false positives: any sufficiently
-long input will contain some magic bytes by coincidence.
+[Extract Files](extractors.md#extract-files) carves from. The operation is prone
+to false positives: any sufficiently long input will contain some magic bytes by
+coincidence.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Images | boolean | true | Include image signatures in the scan. |
-| Video | boolean | true | Include video signatures. |
-| Audio | boolean | true | Include audio signatures. |
-| Documents | boolean | true | Include document signatures. |
-| Applications | boolean | true | Include application/executable signatures. |
-| Archives | boolean | true | Include archive/compression signatures. |
-| Miscellaneous | boolean | **false** | Off by default: these signatures (text byte order marks and the like) match far too easily. |
+| `--images` | boolean | true | Include image signatures in the scan. |
+| `--video` | boolean | true | Include video signatures. |
+| `--audio` | boolean | true | Include audio signatures. |
+| `--documents` | boolean | true | Include document signatures. |
+| `--applications` | boolean | true | Include application/executable signatures. |
+| `--archives` | boolean | true | Include archive/compression signatures. |
+| `--miscellaneous` | boolean | **false** | Off by default: these signatures (text byte order marks and the like) match far too easily. |
 
 ### Simple example
 
@@ -398,8 +397,8 @@ Steganography. Pixel-identical to CyberChef for lossless formats.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Colour | option | `Red` | One of `Red`, `Green`, `Blue`, `Alpha`. |
-| Bit | number | 0 | Which bit to show, 0 (least significant) to 7. |
+| `--colour` | option | `Red` | One of `Red`, `Green`, `Blue`, `Alpha`. |
+| `--bit` | number | 0 | Which bit to show, 0 (least significant) to 7. |
 
 ### Simple example
 
@@ -416,17 +415,17 @@ combination of them counts.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Rules | string | (empty) | The rules themselves. |
-| Show strings | boolean | `false` | Print the bytes each match found. |
-| Show string lengths | boolean | `false` | Print how long each match was. |
-| Show metadata | boolean | `false` | Print each rule's `meta` section. |
-| Show counts | boolean | `true` | Print how many times a rule's strings were found. |
-| Show rule warnings | boolean | `true` | Print warnings about rules that will scan slowly. |
-| Show console module messages | boolean | `true` | Print what the `console` module was asked to say. |
+| `--rules` | string | (empty) | The rules themselves. |
+| `--show-strings` | boolean | `false` | Print the bytes each match found. |
+| `--show-string-lengths` | boolean | `false` | Print how long each match was. |
+| `--show-metadata` | boolean | `false` | Print each rule's `meta` section. |
+| `--show-counts` | boolean | `true` | Print how many times a rule's strings were found. |
+| `--show-rule-warnings` | boolean | `true` | Print warnings about rules that will scan slowly. |
+| `--show-console-module-messages` | boolean | `true` | Print what the `console` module was asked to say. |
 
-The engine is written from scratch in Go — there is no usable pure-Go YARA
-library, and the alternatives all need a C or Rust library linked in, which
-would cost the single self-contained binary.
+The engine is a Go implementation of YARA rather than a binding to libyara, so
+behavior can differ from a native YARA at the edges; what is and is not covered is
+spelled out below.
 
 **What it covers.** All three kinds of string (plain text, hex patterns with
 wildcards, jumps and alternatives, and regular expressions) with the `nocase`,

@@ -372,9 +372,8 @@ Decodes bytes from the chosen [character encoding](https://wikipedia.org/wiki/Ch
 into text. Input is raw bytes, so pipe binary in via `from-hex` or `--in-file`.
 Also listed under [Language](language.md).
 
-> **Charset coverage:** cchef reimplements CyberChef's `codepage` (cptable)
-> library, so all **152** charsets are supported and byte-exact with CyberChef —
-> UTF-8/16/32, UTF-7, US-ASCII, the ISO-8859, Windows-125x, KOI8, OEM/DOS,
+> **Charset coverage:** All **152** charsets are supported — UTF-8/16/32, UTF-7,
+> US-ASCII, the ISO-8859, Windows-125x, KOI8, OEM/DOS,
 > EBCDIC, Mac and ISCII pages, Shift-JIS, EUC, GBK, Big5, Johab, GB18030 and the
 > Taiwan legacy DBCS sets. `decode-text --help` lists them. The five ISO-2022
 > charsets are unsupported by cptable itself and error, exactly as upstream does.
@@ -406,6 +405,8 @@ emitting raw bytes; pipe through `to-hex` to view them. Characters not
 representable in the target charset become a `0x00` byte (matching CyberChef).
 Also listed under [Language](language.md); see Decode text for the charset
 coverage note.
+
+> **Alternative to** [`iconv`](https://man7.org/linux/man-pages/man1/iconv.1.html) for changing character encodings. The available encodings are CyberChef's set, named as CyberChef names them.
 
 **Options**
 
@@ -619,6 +620,8 @@ Hello, World!
 ## From Base64
 
 Decodes data from an ASCII Base64 string back into its raw form.
+
+> **Alternative to** [`base64 -d`](https://man7.org/linux/man-pages/man1/base64.1.html). cchef's `--remove-non-alphabet` (on by default) tolerates whitespace and stray characters that `base64 -d` rejects.
 
 **Options**
 
@@ -1019,7 +1022,7 @@ Hello, World!
 
 Converts [HTML character entities](https://wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references)
 back into raw characters. Named entities (`&amp;`), decimal entities (`&#233;`),
-and hexadecimal entities (`&#xe9;`) are all decoded; unrecognised entities are
+and hexadecimal entities (`&#xe9;`) are all decoded; unrecognized entities are
 left untouched.
 
 **Options**
@@ -1041,7 +1044,7 @@ Output:
 ## From MessagePack
 
 Converts [MessagePack](https://wikipedia.org/wiki/MessagePack) encoded data to
-JSON. MessagePack is a compact binary serialisation format for the same data
+JSON. MessagePack is a compact binary serialization format for the same data
 model as JSON. Byte strings render as Node Buffer objects (`{"type": "Buffer",
 "data": [...]}`), map keys are coerced to strings, timestamp extensions become
 ISO date strings, and integers beyond JavaScript's safe range (2⁵³) lose
@@ -1357,7 +1360,7 @@ Output:
 
 ## Normalise Unicode
 
-Transforms text to one of the four Unicode [Normalisation
+Transforms text to one of the four Unicode [Normalization
 Forms](https://wikipedia.org/wiki/Unicode_equivalence#Normal_forms). Canonical
 forms (NFC/NFD) preserve the visible text; compatibility forms (NFKC/NFKD)
 additionally fold ligatures, Roman numerals, fractions and similar into their
@@ -1400,7 +1403,7 @@ III
 Parses arbitrary [ASN.1](https://wikipedia.org/wiki/Abstract_Syntax_Notation_One)
 data — supplied as a hex string — and prints the decoded BER/DER structure as an
 indented tree. Use [To Hex](#to-hex) first if your data is binary. Whitespace in
-the input is ignored and hex is case-insensitive. Recognised object identifiers
+the input is ignored and hex is case-insensitive. Recognized object identifiers
 are shown by name (e.g. `sha256`, `commonName`) alongside their dotted form;
 unknown OIDs show the dotted form only. Long primitive values are abbreviated in
 the middle, with the truncation length configurable.
@@ -1450,9 +1453,9 @@ SEQUENCE
       [2] a.com
 ```
 
-**Fidelity note:** cchef reimplements CyberChef's ASN.1 dumper (a wrapper around
-the `jsrsasign` library) in Go, matching its output byte-for-byte, including its
-quirks — e.g. `ENUMERATED` values are rendered with a base-10 read of the hex
+**Fidelity note:** The dump follows CyberChef's `jsrsasign`-based output,
+including its quirks — e.g. `ENUMERATED` values are rendered with a base-10 read
+of the hex
 value, and invalid UTF-8 in a string type prints as `null`. One deliberate
 divergence: where `jsrsasign` throws a JavaScript error on a `BMPString` shorter
 than a single UTF-16 code unit, cchef decodes the complete code units it has.
@@ -1586,7 +1589,7 @@ Output:
 
 ## Rison Encode
 
-Serialises JSON into [Rison](https://github.com/Nanonid/rison). Object keys are
+Serializes JSON into [Rison](https://github.com/Nanonid/rison). Object keys are
 sorted, matching the reference implementation.
 
 **Options**
@@ -1622,8 +1625,8 @@ Output:
 (q:'a+b,c')
 ```
 
-**Fidelity note:** cchef reimplements the `rison` npm library CyberChef wraps,
-matching its output byte-for-byte — including its quirks, such as encoding
+**Fidelity note:** The output follows the `rison` library's behavior — including
+its quirks, such as encoding
 object keys in sorted order and replacing only the first occurrence of each
 escaped sequence in `Encode URI`. Object keys are sorted by UTF-8 byte order,
 which matches the reference implementation's UTF-16 sort for all but astral-plane
@@ -1814,6 +1817,8 @@ Output:
 Base32 encodes arbitrary byte data using a restricted symbol set (usually `A-Z`
 and `2-7`).
 
+> **Alternative to** [`base32`](https://man7.org/linux/man-pages/man1/base32.1.html), with the same one-line, configurable-alphabet differences as [To Base64](#to-base64).
+
 **Options**
 
 | Flag | Type | Default | Description |
@@ -1915,6 +1920,8 @@ Output:
 ## To Base64
 
 Encodes raw data into an ASCII Base64 string.
+
+> **Alternative to** [`base64`](https://man7.org/linux/man-pages/man1/base64.1.html). `base64` wraps output at 76 columns by default; cchef emits one unbroken line, and the alphabet is configurable to match variants `base64` cannot produce.
 
 **Options**
 
@@ -2248,6 +2255,8 @@ Output:
 
 Converts the input to hexadecimal bytes separated by the chosen delimiter.
 
+> **Alternative to** [`xxd`](https://linux.die.net/man/1/xxd) and [`od`](https://man7.org/linux/man-pages/man1/od.1.html) for a flat hex dump. For the classic address/hex/ASCII columns use [To Hexdump](#to-hexdump); the delimiter here is a CyberChef option, not `xxd`'s fixed layout.
+
 **Options**
 
 | Flag | Type | Default | Description |
@@ -2360,6 +2369,8 @@ Output:
 Creates a hexdump of the input: an offset column, the hexadecimal value of each
 byte, and an ASCII preview alongside (non-printable bytes shown as `.`).
 
+> **Alternative to** [`xxd`](https://linux.die.net/man/1/xxd), [`hexdump -C`](https://man7.org/linux/man-pages/man1/hexdump.1.html) and [`od`](https://man7.org/linux/man-pages/man1/od.1.html). The layout matches CyberChef's, not any one of those tools exactly.
+
 **Options**
 
 | Flag | Type | Default | Description |
@@ -2436,7 +2447,7 @@ Output:
 ## To MessagePack
 
 Converts JSON to a [MessagePack](https://wikipedia.org/wiki/MessagePack) encoded
-byte buffer. MessagePack is a compact binary serialisation format for the same
+byte buffer. MessagePack is a compact binary serialization format for the same
 data model as JSON. Non-integer numbers are always encoded as 64-bit floats, and
 object keys are emitted in JavaScript enumeration order (integer-index keys
 first in ascending order, then the remaining keys in insertion order), matching

@@ -28,7 +28,7 @@ digit carries no case to restore.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Direction | option | `To Leet Speak` | Or `From Leet Speak`. |
+| `--direction` | option | `To Leet Speak` | Or `From Leet Speak`. |
 
 ### Simple example
 
@@ -109,8 +109,8 @@ carries its formatting anywhere Unicode is rendered.
 
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
-| Underline | boolean | false | Add a combining low line to each character. |
-| Strikethrough | boolean | false | Add a combining long stroke to each character. |
+| `--underline` | boolean | false | Add a combining low line to each character. |
+| `--strikethrough` | boolean | false | Add a combining long stroke to each character. |
 
 One departure from CyberChef, fixing a fault in its version (also logged
 upstream): it inserts the combining characters after every *byte*, splitting
