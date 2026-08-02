@@ -129,6 +129,9 @@ homebrew_casks:
       bash: completions/cchef.bash
       zsh: completions/_cchef
       fish: completions/cchef.fish
+    # Only push the cask when a tap token is present, so the first release can
+    # ship archives/packages/signatures without the tap being set up yet.
+    skip_upload: '{{ if index .Env "HOMEBREW_TAP_GITHUB_TOKEN" }}false{{ else }}true{{ end }}'
     # A downloaded binary is quarantined on macOS; clear the attribute on
     # install so it runs without a Gatekeeper prompt.
     hooks:
