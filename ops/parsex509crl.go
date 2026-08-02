@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -414,7 +415,7 @@ func formatCRLEntryExtensions(h string, seqIdx int) (string, error) {
 		value := asn1GetV(h, kids[len(kids)-1])
 		switch oid {
 		case "2.5.29.21": // cRLReason
-			code, _ := jsParseInt(asn1GetV(value, 0), 16)
+			code, _ := jsnum.ParseInt(asn1GetV(value, 0), 16)
 			msg, ok := crlReasonNames[code]
 			if !ok {
 				msg = fmt.Sprintf("invalid reason code: %d", code)

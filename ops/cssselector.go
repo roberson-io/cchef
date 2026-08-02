@@ -8,6 +8,7 @@ import (
 	"github.com/antchfx/xpath"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/xmldom"
 )
 
 func init() {
@@ -60,22 +61,22 @@ func (CSSSelector) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if query == "" || input == "" {
 		return core.NewDish([]byte{}, core.TypeString), nil
 	}
-	nodes, err := selectNodes(parseXML(input), query)
+	nodes, err := selectNodes(xmldom.Parse(input), query)
 	if err != nil {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError prefix
 		return nil, errors.New("Invalid CSS Selector. Details:\n" + err.Error())
 	}
 	parts := make([]string, len(nodes))
 	for i, n := range nodes {
-		parts[i] = xmlSerialize(n)
+		parts[i] = xmldom.Serialize(n)
 	}
 	return core.NewDish([]byte(strings.Join(parts, delim)), core.TypeString), nil
 }
 
 // selectNodes compiles the CSS selector to XPath and returns the matching
 // element nodes in document order.
-func selectNodes(doc *xmlNode, selector string) ([]*xmlNode, error) {
-	xp, err := cssToXPath(selector)
+func selectNodes(doc *xmldom.Node, selector string) ([]*xmldom.Node, error) {
+	xp, err := xmldom.CSSToXPath(selector)
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +84,11 @@ func selectNodes(doc *xmlNode, selector string) ([]*xmlNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	var nodes []*xmlNode
-	iter := expr.Select(newXMLNav(doc, false))
+	var nodes []*xmldom.Node
+	iter := expr.Select(xmldom.NewNav(doc, false))
 	for iter.MoveNext() {
-		if nav, ok := iter.Current().(*xmlNav); ok {
-			nodes = append(nodes, nav.cur)
+		if nav, ok := iter.Current().(*xmldom.Nav); ok {
+			nodes = append(nodes, nav.Cur)
 		}
 	}
 	return docOrder(doc, nodes), nil
@@ -96,13 +97,13 @@ func selectNodes(doc *xmlNode, selector string) ([]*xmlNode, error) {
 // docOrder deduplicates nodes and returns them in document (pre-order) order,
 // matching nwmatcher's result ordering (a union XPath such as "a | b" yields
 // per-operand order, which nwmatcher does not).
-func docOrder(doc *xmlNode, nodes []*xmlNode) []*xmlNode {
+func docOrder(doc *xmldom.Node, nodes []*xmldom.Node) []*xmldom.Node {
 	if len(nodes) < 2 {
 		return nodes
 	}
-	index := buildDocIndex(doc)
-	seen := map[*xmlNode]bool{}
-	out := make([]*xmlNode, 0, len(nodes))
+	index := xmldom.DocIndex(doc)
+	seen := map[*xmldom.Node]bool{}
+	out := make([]*xmldom.Node, 0, len(nodes))
 	for _, n := range nodes {
 		if !seen[n] {
 			seen[n] = true
@@ -111,20 +112,4 @@ func docOrder(doc *xmlNode, nodes []*xmlNode) []*xmlNode {
 	}
 	sort.Slice(out, func(a, b int) bool { return index[out[a]] < index[out[b]] })
 	return out
-}
-
-// buildDocIndex assigns each node a pre-order document position.
-func buildDocIndex(doc *xmlNode) map[*xmlNode]int {
-	index := map[*xmlNode]int{}
-	i := 0
-	var walk func(n *xmlNode)
-	walk = func(n *xmlNode) {
-		index[n] = i
-		i++
-		for _, c := range n.children {
-			walk(c)
-		}
-	}
-	walk(doc)
-	return index
 }

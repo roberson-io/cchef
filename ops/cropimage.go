@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -50,13 +51,13 @@ func (CropImage) Args() []core.ArgDef {
 
 // Run crops the image.
 func (CropImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	out, err := imageTransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
+	out, err := jimp.TransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
 		var cropped *image.NRGBA
 		var cErr error
 		if args[4].(bool) {
 			cropped, cErr = jimpAutocrop(img, args[5].(float64)/100, args[6].(bool), args[7].(bool), args[8].(float64))
 		} else {
-			cropped, cErr = jimpCropExact(img, round(args[0].(float64)), round(args[1].(float64)), round(args[2].(float64)), round(args[3].(float64)))
+			cropped, cErr = jimp.CropExact(img, round(args[0].(float64)), round(args[1].(float64)), round(args[2].(float64)), round(args[3].(float64)))
 		}
 		if cErr != nil {
 			//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
@@ -163,7 +164,7 @@ func jimpAutocrop(img *image.NRGBA, tolerance float64, cropOnlyFrames, cropSymme
 		doCrop = ec != 0 || nc != 0 || wc != 0 || sc != 0
 	}
 	if doCrop {
-		return jimpCropExact(img, round(wc), round(nc), round(remainingW), round(remainingH))
+		return jimp.CropExact(img, round(wc), round(nc), round(remainingW), round(remainingH))
 	}
 	return img, nil
 }

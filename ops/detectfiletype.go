@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filesig"
 )
 
 func init() {
@@ -48,18 +49,18 @@ func (DetectFileType) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 	}
 
-	types := detectFileType(in.Bytes(), categories)
+	types := filesig.Detect(in.Bytes(), categories)
 	if len(types) == 0 {
 		return core.NewDish([]byte("Unknown file type. Have you tried checking the entropy of this data to determine whether it might be encrypted or compressed?"), core.TypeString), nil
 	}
 
 	results := make([]string, len(types))
 	for i, t := range types {
-		out := "File type:   " + t.name + "\n" +
-			"Extension:   " + t.extension + "\n" +
-			"MIME type:   " + t.mime + "\n"
-		if t.description != "" {
-			out += "Description: " + t.description + "\n"
+		out := "File type:   " + t.Name + "\n" +
+			"Extension:   " + t.Extension + "\n" +
+			"MIME type:   " + t.MIME + "\n"
+		if t.Description != "" {
+			out += "Description: " + t.Description + "\n"
 		}
 		results[i] = out
 	}

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -54,7 +55,7 @@ func (ProtobufDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 
 	if strings.TrimSpace(schema) == "" {
-		out, err := jsonNoEscape(rawForOutput)
+		out, err := jsonval.MarshalNoEscape(rawForOutput)
 		if err != nil {
 			return nil, err
 		}

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -56,7 +57,7 @@ func (RegularExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	userRegex := args[1].(string)
 	input := in.String()
 	if userRegex == "" || userRegex == "^" || userRegex == "$" {
-		return core.NewDish([]byte(escapeHTML(input)), core.TypeString), nil
+		return core.NewDish([]byte(opsutil.EscapeHTML(input)), core.TypeString), nil
 	}
 
 	flags := ""
@@ -82,11 +83,11 @@ func (RegularExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var out string
 	switch args[8].(string) {
 	case "List matches":
-		out = escapeHTML(regexList(input, re, displayTotal, true, false))
+		out = opsutil.EscapeHTML(regexList(input, re, displayTotal, true, false))
 	case "List capture groups":
-		out = escapeHTML(regexList(input, re, displayTotal, false, true))
+		out = opsutil.EscapeHTML(regexList(input, re, displayTotal, false, true))
 	case "List matches with capture groups":
-		out = escapeHTML(regexList(input, re, displayTotal, true, true))
+		out = opsutil.EscapeHTML(regexList(input, re, displayTotal, true, true))
 	default: // Highlight matches
 		out = regexHighlight(input, re, displayTotal)
 	}
@@ -137,18 +138,18 @@ func regexHighlight(input string, re *regexp.Regexp, displayTotal bool) string {
 				if m[2*i] >= 0 {
 					g = input[m[2*i]:m[2*i+1]]
 				}
-				fmt.Fprintf(&title, "\t%d: %s\n", i, escapeHTML(g))
+				fmt.Fprintf(&title, "\t%d: %s\n", i, opsutil.EscapeHTML(g))
 			}
 		}
 		hl = 3 - hl // toggle 1/2
-		spans = append(spans, fmt.Sprintf("<span class='hl%d' title='%s'>%s</span>", hl, title.String(), escapeHTML(match)))
+		spans = append(spans, fmt.Sprintf("<span class='hl%d' title='%s'>%s</span>", hl, title.String(), opsutil.EscapeHTML(match)))
 		fmt.Fprintf(&sb, "[cc_capture_group_%d]", total)
 		total++
 		last = m[1]
 	}
 	sb.WriteString(input[last:])
 
-	out := escapeHTML(sb.String())
+	out := opsutil.EscapeHTML(sb.String())
 	out = reCapturePlaceholder.ReplaceAllStringFunc(out, func(ph string) string {
 		idx := reCapturePlaceholder.FindStringSubmatch(ph)
 		i, _ := strconv.Atoi(idx[1])

@@ -4,8 +4,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-
-	"github.com/roberson-io/cchef/core"
 )
 
 // CyberChef's Magic fixtures assert against the HTML table it renders in a
@@ -232,28 +230,14 @@ func TestMagicOutputCheckRejects(t *testing.T) {
 	}
 }
 
-// TestMagicEncodingGuessesNeedsAnOptionList covers the brute-force encodings
-// stopping cleanly when the operation it relies on does not offer a list of
-// encodings to work through.
-func TestMagicEncodingGuessesNeedsAnOptionList(t *testing.T) {
-	reg := core.NewRegistry()
-	reg.Register(oddEncodeText{})
-	run := &magicRun{registry: reg}
-	if got := run.encodingGuesses([]byte("hello")); got != nil {
-		t.Errorf("got %d guesses where there is no list of encodings", len(got))
+// TestMagicEscape checks the report's rendering of characters that would
+// otherwise break a line.
+func TestMagicEscape(t *testing.T) {
+	got := magicEscape("a\nb\tc\rd\x00e\x7ff")
+	if want := `a\nb\tc\rd\x00e\x7ff`; got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+	if got := magicEscape("plain é"); got != "plain é" {
+		t.Errorf("ordinary text was changed: %q", got)
 	}
 }
-
-// oddEncodeText stands in for an Encode text whose first argument is not a list
-// of encodings.
-type oddEncodeText struct{}
-
-func (oddEncodeText) Meta() core.OpMeta {
-	return core.OpMeta{Name: "Encode text", InputType: core.TypeString, OutputType: core.TypeString}
-}
-
-func (oddEncodeText) Args() []core.ArgDef {
-	return []core.ArgDef{{Name: "Encoding", Type: core.ArgString, Value: "not a list"}}
-}
-
-func (oddEncodeText) Run(in *core.Dish, args []any) (*core.Dish, error) { return in, nil }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/roberson-io/cchef/internal/bytestream"
 )
 
 // greaseCipherSuites are the GREASE values (RFC 8701) excluded from JA3/JA3S
@@ -32,10 +34,10 @@ func fingerprintBytes(s, format string) []byte {
 
 // parseJA3Segment reads size-byte integers from the stream and joins the
 // non-GREASE values with "-". Ported from JA3Fingerprint.mjs.
-func parseJA3Segment(s *byteStream, size int) string {
+func parseJA3Segment(s *bytestream.Stream, size int) string {
 	var segment []string
-	for s.hasMore() {
-		el := s.readInt(size)
+	for s.HasMore() {
+		el := s.ReadInt(size)
 		if !greaseCipherSuites[el] {
 			segment = append(segment, strconv.Itoa(el))
 		}

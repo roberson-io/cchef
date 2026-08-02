@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -80,10 +81,10 @@ func asn1OidIntToHex(f string) (string, error) {
 		return "", errors.New("malformed oid string: " + f)
 	}
 	b := strings.Split(f, ".")
-	a0, ok0 := jsParseInt(b[0], 10)
+	a0, ok0 := jsnum.ParseInt(b[0], 10)
 	a1, ok1 := 0, false
 	if len(b) > 1 {
-		a1, ok1 = jsParseInt(b[1], 10)
+		a1, ok1 = jsnum.ParseInt(b[1], 10)
 	}
 	// j = parseInt(b[0])*40 + parseInt(b[1]); a missing/empty arc makes j NaN,
 	// whose toString(16) is the literal "NaN" (the local pad only touches

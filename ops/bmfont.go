@@ -10,6 +10,8 @@ import (
 	"io/fs"
 	"strings"
 	"sync"
+
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 // BMFont (AngelCode bitmap font) parsing and text rendering, ported from Jimp's
@@ -116,7 +118,7 @@ func bmFontPageLoader(fsys fs.FS) func(string) (*image.NRGBA, error) {
 		if err != nil {
 			return nil, err
 		}
-		return toNRGBA(img), nil
+		return jimp.ToNRGBA(img), nil
 	}
 }
 
@@ -253,7 +255,7 @@ func bmPrintLine(img *image.NRGBA, f *bmFont, x, y int, line string, defaultWidt
 			glyph, key = f.Chars['?'], '?'
 		}
 		if glyph.Width > 0 && glyph.Height > 0 && glyph.PageNumber < len(f.Pages) {
-			jimpBlitRect(img, f.Pages[glyph.PageNumber], x+glyph.XOffset, y+glyph.YOffset,
+			jimp.BlitRect(img, f.Pages[glyph.PageNumber], x+glyph.XOffset, y+glyph.YOffset,
 				glyph.X, glyph.Y, glyph.Width, glyph.Height)
 		}
 		advance := glyph.XAdvance

@@ -6,6 +6,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -82,19 +83,19 @@ func b64OffsetSection(offsetStr string, n int, alphabet string, showVariable boo
 	if n > 0 {
 		// The leading n+1 chars encode the prepended zero byte(s): the first n are
 		// padding-derived (red), the next one is variable (green).
-		leading = "<span class='hl3'>" + escapeHTML(s[:n]) + "</span>" +
-			"<span class='hl5'>" + escapeHTML(s[n:n+1]) + "</span>"
+		leading = "<span class='hl3'>" + opsutil.EscapeHTML(s[:n]) + "</span>" +
+			"<span class='hl5'>" + opsutil.EscapeHTML(s[n:n+1]) + "</span>"
 		s = s[n+1:]
 		prefixA = strings.Repeat("A", n+1)
 	}
 
 	decodeTip := func(static string, dropEnd int) string {
 		b, _ := fromBase64(prefixA+static, alphabet, true, false)
-		return escapeHTML(sliceUTF16(byteArrayToUtf8(b), n, dropEnd))
+		return opsutil.EscapeHTML(sliceUTF16(byteArrayToUtf8(b), n, dropEnd))
 	}
 	tooltip := func(tip, static string) string {
 		return "<span data-toggle='tooltip' data-placement='top' title='" + tip + "'>" +
-			escapeHTML(static) + "</span>"
+			opsutil.EscapeHTML(static) + "</span>"
 	}
 
 	var static, body string
@@ -102,8 +103,8 @@ func b64OffsetSection(offsetStr string, n int, alphabet string, showVariable boo
 	case 2: // two padding chars: 1 variable char then "=="
 		static = s[:len(s)-3]
 		body = tooltip(decodeTip(static, 2), static) +
-			"<span class='hl5'>" + escapeHTML(s[len(s)-3:len(s)-2]) + "</span>" +
-			"<span class='hl3'>" + escapeHTML(s[len(s)-2:]) + "</span>"
+			"<span class='hl5'>" + opsutil.EscapeHTML(s[len(s)-3:len(s)-2]) + "</span>" +
+			"<span class='hl3'>" + opsutil.EscapeHTML(s[len(s)-2:]) + "</span>"
 	case 3: // one padding char: 1 variable char then "="
 		static = s[:len(s)-2]
 		dropEnd := 1
@@ -111,15 +112,15 @@ func b64OffsetSection(offsetStr string, n int, alphabet string, showVariable boo
 			dropEnd = 2 // reproduces CyberChef's offset-2 slice quirk
 		}
 		body = tooltip(decodeTip(static, dropEnd), static) +
-			"<span class='hl5'>" + escapeHTML(s[len(s)-2:len(s)-1]) + "</span>" +
-			"<span class='hl3'>" + escapeHTML(s[len(s)-1:]) + "</span>"
+			"<span class='hl5'>" + opsutil.EscapeHTML(s[len(s)-2:len(s)-1]) + "</span>" +
+			"<span class='hl3'>" + opsutil.EscapeHTML(s[len(s)-1:]) + "</span>"
 	default: // no padding: the whole section is static
 		static = s
 		body = tooltip(decodeTip(static, 0), static)
 	}
 
 	if !showVariable {
-		return escapeHTML(static)
+		return opsutil.EscapeHTML(static)
 	}
 	return leading + body
 }

@@ -14,6 +14,7 @@ import (
 	"golang.org/x/arch/arm64/arm64asm"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -117,7 +118,7 @@ func armDecodeHex(input string) ([]byte, error) {
 	}, input)
 
 	for i := range len(cleaned) {
-		if !isHexDigit(cleaned[i]) {
+		if !jsnum.IsHexDigit(cleaned[i]) {
 			return nil, errARMBadHex
 		}
 	}
@@ -649,7 +650,7 @@ func armParseImmediate(s string) (int64, int, bool) {
 		base = 16
 		i += 2
 		start = i
-		for i < len(s) && isHexDigit(s[i]) {
+		for i < len(s) && jsnum.IsHexDigit(s[i]) {
 			i++
 		}
 	} else {

@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -189,7 +190,7 @@ func bcryptGetRounds(hash string) string {
 	if len(parts) > 2 {
 		field = parts[2]
 	}
-	if n, ok := jsParseInt(field, 10); ok {
+	if n, ok := jsnum.ParseInt(field, 10); ok {
 		return strconv.Itoa(n)
 	}
 	return "NaN"

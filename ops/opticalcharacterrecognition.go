@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filesig"
 )
 
 func init() {
@@ -73,7 +74,7 @@ func (OpticalCharacterRecognition) Run(in *core.Dish, args []any) (*core.Dish, e
 	showConfidence := args[0].(bool)
 	oem := slices.Index(ocrEngineModes, args[1].(string))
 
-	if isImage(in.Bytes()) == "" {
+	if filesig.IsImage(in.Bytes()) == "" {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return nil, errors.New("Unsupported file type (supported: jpg,png,pbm,bmp) or no file provided")
 	}

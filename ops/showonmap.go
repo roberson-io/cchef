@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/geocoord"
 )
 
 func init() {
@@ -37,7 +38,7 @@ func (ShowOnMap) Meta() core.OpMeta {
 func (ShowOnMap) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Zoom Level", Type: core.ArgNumber, Integer: true, Value: 13},
-		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, coordFormats...)},
+		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, geocoord.Formats...)},
 		{Name: "Input Delimiter", Type: core.ArgOption, Value: []string{
 			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon",
 		}},
@@ -50,7 +51,7 @@ func (ShowOnMap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if reMapBlank.ReplaceAllString(input, "") == "" {
 		return core.NewDish([]byte(input), core.TypeString), nil
 	}
-	latLong, err := convertCoordinates(input, args[1].(string), args[2].(string), "Decimal Degrees", "Comma", "None", 5)
+	latLong, err := geocoord.Convert(input, args[1].(string), args[2].(string), "Decimal Degrees", "Comma", "None", 5)
 	if err != nil {
 		return nil, err
 	}

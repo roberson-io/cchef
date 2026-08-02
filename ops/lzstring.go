@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // LZString compression, the form Pieroxy's lz-string library writes.
@@ -294,7 +295,7 @@ func (LZStringDecompress) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
-	return core.NewDish(textAsBytes(lzsUnitsToString(units)), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(lzsUnitsToString(units)), core.TypeString), nil
 }
 
 // lzsReadInput turns the characters a format writes back into packed values.

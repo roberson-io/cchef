@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -116,11 +117,11 @@ func (Colossus) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	c := newColossusComputer(input, args)
 	printout, counters, runcount := c.run()
 
-	out := newOMap()
-	out.set("printout", printout)
-	out.set("counters", counters[:])
-	out.set("runcount", runcount)
-	b, err := marshalOMap(out)
+	out := jsonval.NewOMap()
+	out.Set("printout", printout)
+	out.Set("counters", counters[:])
+	out.Set("runcount", runcount)
+	b, err := jsonval.MarshalOMap(out)
 	if err != nil {
 		return nil, err
 	}

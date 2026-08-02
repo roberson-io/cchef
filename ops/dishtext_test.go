@@ -52,30 +52,6 @@ func TestOperationsReadTextLikeCyberChef(t *testing.T) {
 	}
 }
 
-// TestTextAsBytes pins the inverse of dishText: characters that all fit in a
-// byte are written one byte each, and anything wider makes the whole string
-// UTF-8. This is what decides whether charcode 255 comes out as the byte 0xFF
-// or as its two-byte UTF-8 form.
-func TestTextAsBytes(t *testing.T) {
-	for _, tc := range []struct {
-		in   string
-		want []byte
-	}{
-		{"hello", []byte("hello")},
-		{"ÿ", []byte{0xff}},
-		{"ÿþ", []byte{0xff, 0xfe}},
-		{"HÿI", []byte{'H', 0xff, 'I'}},
-		{"€", []byte("€")}, // wider than a byte, so the whole string is UTF-8
-		{"aÿ€", []byte("aÿ€")},
-		{"", nil},
-	} {
-		got := textAsBytes(tc.in)
-		if string(got) != string(tc.want) {
-			t.Errorf("textAsBytes(%q) = % x, want % x", tc.in, got, tc.want)
-		}
-	}
-}
-
 // TestFromCharcodeEmitsBytes covers charcodes above 127: each is one byte, as
 // CyberChef writes them, not its UTF-8 encoding.
 func TestFromCharcodeEmitsBytes(t *testing.T) {

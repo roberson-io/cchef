@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/bytestream"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // TestParseTLSRecordFixtures transcribes a feature-diverse subset of CyberChef's
@@ -152,19 +154,19 @@ func TestParseTLSRecordFixtures(t *testing.T) {
 // TestTLSHandshakeHelperTruncation directly exercises the sub-parsers' short-input
 // guards; these fire on truncated records but are simplest to drive in isolation.
 func TestTLSHandshakeHelperTruncation(t *testing.T) {
-	rec := newOMap()
-	if got := tlsParseHandshake(newByteStream(nil), rec); got != rec {
+	rec := jsonval.NewOMap()
+	if got := tlsParseHandshake(bytestream.New(nil), rec); got != rec {
 		t.Fatal("tlsParseHandshake(empty) should return the record unchanged")
 	}
-	if got := tlsReadExtension(newByteStream([]byte{0x00, 0x00})); got != nil {
+	if got := tlsReadExtension(bytestream.New([]byte{0x00, 0x00})); got != nil {
 		t.Fatalf("tlsReadExtension(short) = %v, want nil", got)
 	}
-	ticket := tlsParseNewSessionTicket(newByteStream([]byte{0x00}))
-	if ticket.vals["ticketLifetimeHint"] != "" {
-		t.Fatalf("ticketLifetimeHint = %v, want empty for a truncated ticket", ticket.vals["ticketLifetimeHint"])
+	ticket := tlsParseNewSessionTicket(bytestream.New([]byte{0x00}))
+	if ticket.Value("ticketLifetimeHint") != "" {
+		t.Fatalf("ticketLifetimeHint = %v, want empty for a truncated ticket", ticket.Value("ticketLifetimeHint"))
 	}
 	// A certificate list length needs 3 bytes; a shorter stream is handled without panic.
-	_ = tlsParseCertificate(newByteStream([]byte{0x00}))
+	_ = tlsParseCertificate(bytestream.New([]byte{0x00}))
 }
 
 // TestTLSServerHelloSessionID covers the Server Hello session-ID branch (fixtures
@@ -177,8 +179,8 @@ func TestTLSServerHelloSessionID(t *testing.T) {
 	data = append(data, 0x13, 0x01)          // cipher suite
 	data = append(data, 0x00)                // compression method
 	data = append(data, 0x00, 0x00)          // extensions length 0
-	o := tlsParseServerHello(newByteStream(data))
-	if o.vals["sessionID"] == nil {
-		t.Fatalf("expected sessionID to be set; keys=%v", o.keys)
+	o := tlsParseServerHello(bytestream.New(data))
+	if o.Value("sessionID") == nil {
+		t.Fatalf("expected sessionID to be set; keys=%v", o.Keys())
 	}
 }

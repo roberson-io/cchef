@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -30,7 +31,7 @@ func (InvertImage) Args() []core.ArgDef { return nil }
 
 // Run inverts the image colours.
 func (InvertImage) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	out, err := imageTransform(in.Bytes(), "Invalid input file format.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid input file format.", func(img *image.NRGBA) *image.NRGBA {
 		jimpInvert(img)
 		return img
 	})

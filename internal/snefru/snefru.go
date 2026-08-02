@@ -7,6 +7,7 @@ package snefru
 
 import (
 	"encoding/binary"
+	"fmt"
 	"hash"
 	"math/bits"
 )
@@ -91,10 +92,22 @@ type snefru struct {
 // New returns a Snefru hash at CyberChef's default size and pass count.
 func New() hash.Hash { return NewWithParams(128, snefruDefaultRounds) }
 
-// NewWithParams builds Snefru with a given output length in bits (a multiple
-// of 32) and round count. The block size shrinks as the output grows
-// (blockBytes = (16-words)*4), matching crypto-api.
+// snefruMaxLengthBits is the widest possible output: the state is 16 words and
+// the block is what remains of it, so at 512 bits no block would be left and
+// nothing could ever be absorbed.
+const snefruMaxLengthBits = 480
+
+// NewWithParams builds Snefru with a given output length in bits and round
+// count. A length that is not a multiple of 32 is floored to one, as
+// crypto-api computes the word count with `length / 32 | 0`. The block size
+// shrinks as the output grows (blockBytes = (16-words)*4), so a length outside
+// [32, snefruMaxLengthBits] leaves no output or no block; that is a caller bug
+// and panics.
 func NewWithParams(lengthBits, rounds int) hash.Hash {
+	if lengthBits < 32 || lengthBits > snefruMaxLengthBits {
+		panic(fmt.Sprintf("snefru: output length %d bits is outside [32, %d]",
+			lengthBits, snefruMaxLengthBits))
+	}
 	words := lengthBits / 32
 	blockBytes := (16 - words) * 4
 	return &snefru{

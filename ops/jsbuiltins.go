@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf16"
+
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // Shims for the JavaScript built-ins operations lean on where Go's own answer
@@ -72,7 +74,7 @@ func jsChr(code float64) string {
 // byte order mark, which Go does not count as space, and leaves a zero width
 // space, which is not space to either of them.
 func jsTrimSpace(s string) string {
-	return strings.TrimFunc(s, mimeIsJSSpace)
+	return strings.TrimFunc(s, jsnum.IsSpace)
 }
 
 // jsEncodeURIComponent percent-encodes every byte except the unreserved set and

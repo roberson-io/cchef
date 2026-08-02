@@ -8,6 +8,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/htmlent"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 //go:generate go run ../../tools/htmlentgen/gen.go
@@ -152,5 +153,5 @@ func (FromHTMLEntity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		last = loc[1]
 	}
 	sb.WriteString(input[last:])
-	return core.NewDish(textAsBytes(sb.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil
 }

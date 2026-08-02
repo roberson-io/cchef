@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -198,45 +199,6 @@ func jsSliceFrom(s string, start int) string {
 		return ""
 	}
 	return s[start:]
-}
-
-// jsParseHex is parseInt(s, 16): it reads the leading hex digits and yields NaN
-// when there are none. A 0x prefix is allowed and skipped, as it is for that
-// radix.
-func jsParseHex(s string) float64 {
-	s = strings.TrimLeft(s, " \t\n\r\v\f")
-	neg := false
-	if strings.HasPrefix(s, "-") || strings.HasPrefix(s, "+") {
-		neg = s[0] == '-'
-		s = s[1:]
-	}
-	if len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') {
-		s = s[2:]
-	}
-	end := 0
-	for end < len(s) && isHexDigit(s[end]) {
-		end++
-	}
-	if end == 0 {
-		return math.NaN()
-	}
-	v, err := strconv.ParseUint(s[:end], 16, 64)
-	if err != nil {
-		// Longer than 64 bits; accumulate in float64 the way JavaScript does.
-		var f float64
-		for i := range end {
-			d, _ := strconv.ParseUint(string(s[i]), 16, 8)
-			f = f*16 + float64(d)
-		}
-		if neg {
-			return -f
-		}
-		return f
-	}
-	if neg {
-		return -float64(v)
-	}
-	return float64(v)
 }
 
 // x86UndefinedValue is how JavaScript spells undefined once it has been
@@ -617,7 +579,7 @@ func (d *x86Decoder) loadBinCode(hexStr string) bool {
 
 	length := len(hexStr)
 	for i := 0; i < length; i += 8 {
-		int32v := jsParseHex(jsSlice(hexStr, i, i+8))
+		int32v := jsnum.ParseHex(jsSlice(hexStr, i, i+8))
 		if math.IsNaN(int32v) {
 			return false
 		}
@@ -646,19 +608,19 @@ func (d *x86Decoder) loadBinCode(hexStr string) bool {
 // hexadecimal, and a short offset keeps only its last four digits.
 func (d *x86Decoder) setBasePosition(address string) {
 	if seg, off, ok := strings.Cut(address, ":"); ok {
-		d.codeSeg = jsParseHex(jsSliceFrom(seg, len(seg)-4))
+		d.codeSeg = jsnum.ParseHex(jsSliceFrom(seg, len(seg)-4))
 		address = off
 	}
 
 	length := len(address)
 	if length >= 9 && d.bitMode == x86Mode64 {
-		d.pos64 = jsParseHex(jsSliceNeg(address, length-16, length-8))
+		d.pos64 = jsnum.ParseHex(jsSliceNeg(address, length-16, length-8))
 	}
 	segmented := jsAnd(jsBool(d.bitMode == x86Mode32), jsBool(d.codeSeg >= 36)) != 0
 	if length >= 5 && d.bitMode >= x86Mode32 && !segmented {
-		d.pos32 = jsParseHex(jsSliceFrom(address, length-8))
+		d.pos32 = jsnum.ParseHex(jsSliceFrom(address, length-8))
 	} else if length >= 1 {
-		d.pos32 = jsOr(jsAnd(d.pos32, 0xFFFF0000), jsParseHex(jsSliceFrom(address, length-4)))
+		d.pos32 = jsOr(jsAnd(d.pos32, 0xFFFF0000), jsnum.ParseHex(jsSliceFrom(address, length-4)))
 	}
 
 	if d.pos32 < 0 {
@@ -697,19 +659,19 @@ func (d *x86Decoder) gotoPosition(address string) bool {
 	locPos32, locPos64, locCodeSeg := d.pos32, d.pos64, d.codeSeg
 
 	if seg, off, ok := strings.Cut(address, ":"); ok {
-		locCodeSeg = jsParseHex(jsSliceFrom(seg, len(seg)-4))
+		locCodeSeg = jsnum.ParseHex(jsSliceFrom(seg, len(seg)-4))
 		address = off
 	}
 
 	length := len(address)
 	if length >= 9 && d.bitMode == x86Mode64 {
-		locPos64 = jsParseHex(jsSliceNeg(address, length-16, length-8))
+		locPos64 = jsnum.ParseHex(jsSliceNeg(address, length-16, length-8))
 	}
 	segmented := jsAnd(jsBool(d.bitMode == x86Mode32), jsBool(d.codeSeg >= 36)) != 0
 	if length >= 5 && jsAnd(jsBool(d.bitMode >= x86Mode32), jsBool(!segmented)) != 0 {
-		locPos32 = jsParseHex(jsSliceFrom(address, length-8))
+		locPos32 = jsnum.ParseHex(jsSliceFrom(address, length-8))
 	} else if length >= 1 {
-		locPos32 = locPos32 - locPos32 + jsParseHex(jsSliceFrom(address, length-4))
+		locPos32 = locPos32 - locPos32 + jsnum.ParseHex(jsSliceFrom(address, length-4))
 	}
 
 	dif32, dif64 := d.pos32-locPos32, d.pos64-locPos64
@@ -979,7 +941,7 @@ func (d *x86Decoder) decodeImmediate(typ int, bySize bool, sizeSetting float64) 
 	if extend != s {
 		width := int(math.Pow(2, extend) * 2)
 		spd := "00"
-		if jsShr(jsAnd(jsParseHex(jsSlice(imm, 0, 1)), 8), 3) != 0 {
+		if jsShr(jsAnd(jsnum.ParseHex(jsSlice(imm, 0, 1)), 8), 3) != 0 {
 			spd = "FF"
 		}
 		for len(imm) < width {
@@ -1833,7 +1795,7 @@ func (d *x86Decoder) decodeOperandString() {
 	opNum := 0
 
 	for i := 0; i < len(d.insOperands); i += 4 {
-		operandValue := jsParseHex(jsSlice(d.insOperands, i, i+4))
+		operandValue := jsnum.ParseHex(jsSlice(d.insOperands, i, i+4))
 		code := jsShr(jsAnd(operandValue, 0xFE00), 9)
 		bySize := jsShr(jsAnd(operandValue, 0x0100), 8) != 0
 		setting := jsAnd(operandValue, 0x00FF)
@@ -2018,7 +1980,7 @@ func (d *x86Decoder) decodeVectorOperands(out *x86OperandList, immUsed bool) {
 // belong to the destination operand.
 func (d *x86Decoder) applyDestinationMask(out *x86OperandList) {
 	if d.maskRegister != 0 {
-		out.appendTo(0, "{K"+jsNum(d.maskRegister)+"}")
+		out.appendTo(0, "{K"+jsnum.Format(d.maskRegister)+"}")
 	}
 	if d.extension == 2 && d.hintZeroMerg != 0 {
 		out.appendTo(0, "{Z}")

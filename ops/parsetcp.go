@@ -1,10 +1,13 @@
 package ops
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/bytestream"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -25,16 +28,16 @@ func bytesToLargeNumber(bs []byte) string { return new(big.Int).SetBytes(bs).Str
 
 func windowScaleParser(data []byte) any {
 	if len(data) != 1 {
-		return fmt.Sprintf("Error: Window Scale should be one byte long (received 0x%s)", toHexFast(data))
+		return fmt.Sprintf("Error: Window Scale should be one byte long (received 0x%s)", hex.EncodeToString(data))
 	}
-	return newOMap().set("Shift count", int(data[0])).set("Multiplier", 1<<data[0])
+	return jsonval.NewOMap().Set("Shift count", int(data[0])).Set("Multiplier", 1<<data[0])
 }
 
 func tcpTimestampParser(data []byte) any {
 	if len(data) != 8 {
-		return fmt.Sprintf("Error: Timestamp field should be 8 bytes long (received 0x%s)", toHexFast(data))
+		return fmt.Sprintf("Error: Timestamp field should be 8 bytes long (received 0x%s)", hex.EncodeToString(data))
 	}
-	return newOMap().set("Current Timestamp", bytesToLargeNumber(data[0:4])).set("Echo Reply", bytesToLargeNumber(data[4:8]))
+	return jsonval.NewOMap().Set("Current Timestamp", bytesToLargeNumber(data[0:4])).Set("Echo Reply", bytesToLargeNumber(data[4:8]))
 }
 
 func tcpAlternateChecksumParser(data []byte) any {
@@ -42,7 +45,7 @@ func tcpAlternateChecksumParser(data []byte) any {
 		0: "TCP Checksum", 1: "8-bit Fletchers's algorithm",
 		2: "16-bit Fletchers's algorithm", 3: "Redundant Checksum Avoidance",
 	}[data[0]]
-	return fmt.Sprintf("%s (0x%s)", lookup, toHexFast(data))
+	return fmt.Sprintf("%s (0x%s)", lookup, hex.EncodeToString(data))
 }
 
 // tcpOptionKindLookup mirrors CyberChef's TCP_OPTION_KIND_LOOKUP (IANA registry).
@@ -109,48 +112,48 @@ func (ParseTCP) Args() []core.ArgDef {
 
 // Run parses the segment. Ported from CyberChef ParseTCP.mjs.
 func (ParseTCP) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	s := newByteStream(parseNetInput(in.String(), args[0].(string)))
-	if s.length() < 20 {
+	s := bytestream.New(parseNetInput(in.String(), args[0].(string)))
+	if s.Length() < 20 {
 		return nil, fmt.Errorf("need at least 20 bytes for a TCP header")
 	}
 
-	tcp := newOMap()
-	tcp.set("Source port", s.readInt(2))
-	tcp.set("Destination port", s.readInt(2))
-	tcp.set("Sequence number", bytesToLargeNumber(s.getBytes(4)))
-	tcp.set("Acknowledgement number", s.readInt(4))
-	dataOffset := s.readBits(4)
-	tcp.set("Data offset", dataOffset)
+	tcp := jsonval.NewOMap()
+	tcp.Set("Source port", s.ReadInt(2))
+	tcp.Set("Destination port", s.ReadInt(2))
+	tcp.Set("Sequence number", bytesToLargeNumber(s.GetBytes(4)))
+	tcp.Set("Acknowledgement number", s.ReadInt(4))
+	dataOffset := s.ReadBits(4)
+	tcp.Set("Data offset", dataOffset)
 
-	flags := newOMap()
-	flags.set("Reserved", fmt.Sprintf("%03b", s.readBits(3)))
+	flags := jsonval.NewOMap()
+	flags.Set("Reserved", fmt.Sprintf("%03b", s.ReadBits(3)))
 	for _, name := range []string{"NS", "CWR", "ECE", "URG", "ACK", "PSH", "RST", "SYN", "FIN"} {
-		flags.set(name, s.readBits(1))
+		flags.Set(name, s.ReadBits(1))
 	}
-	tcp.set("Flags", flags)
+	tcp.Set("Flags", flags)
 
-	windowSize := s.readInt(2)
-	tcp.set("Window size", windowSize)
-	tcp.set("Checksum", "0x"+toHexFast(s.getBytes(2)))
-	tcp.set("Urgent pointer", "0x"+toHexFast(s.getBytes(2)))
+	windowSize := s.ReadInt(2)
+	tcp.Set("Window size", windowSize)
+	tcp.Set("Checksum", "0x"+hex.EncodeToString(s.GetBytes(2)))
+	tcp.Set("Urgent pointer", "0x"+hex.EncodeToString(s.GetBytes(2)))
 
 	windowScaleShift := 0
 	if dataOffset > 5 {
-		var options *omap
+		var options *jsonval.OMap
 		options, windowScaleShift = parseTCPOptions(s, dataOffset)
-		tcp.set("Options", options)
+		tcp.Set("Options", options)
 	}
 
-	if s.hasMore() {
-		tcp.set("Data", "0x"+toHexFast(s.getBytes(-1)))
+	if s.HasMore() {
+		tcp.Set("Data", "0x"+hex.EncodeToString(s.GetBytes(-1)))
 	}
 
 	// Improve display values (updates in place, preserving key order).
-	tcp.set("Data offset", fmt.Sprintf("%d (%d bytes)", dataOffset, dataOffset*4))
+	tcp.Set("Data offset", fmt.Sprintf("%d (%d bytes)", dataOffset, dataOffset*4))
 	scaled := new(big.Int).Lsh(big.NewInt(int64(windowSize)), uint(windowScaleShift))
-	tcp.set("Window size", fmt.Sprintf("%d (Scaled: %s)", windowSize, scaled.String()))
+	tcp.Set("Window size", fmt.Sprintf("%d (Scaled: %s)", windowSize, scaled.String()))
 
-	out, err := marshalOMap(tcp)
+	out, err := jsonval.MarshalOMap(tcp)
 	if err != nil {
 		return nil, err
 	}
@@ -160,25 +163,25 @@ func (ParseTCP) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // parseTCPOptions parses the TCP options that follow the fixed 20-byte header
 // (present when dataOffset > 5), returning the options map and any window-scale
 // shift count found in a Window Scale (kind 3) option.
-func parseTCPOptions(s *byteStream, dataOffset int) (*omap, int) {
+func parseTCPOptions(s *bytestream.Stream, dataOffset int) (*jsonval.OMap, int) {
 	windowScaleShift := 0
 	remaining := dataOffset*4 - 20
-	options := newOMap()
+	options := jsonval.NewOMap()
 	for remaining > 0 {
-		kind := s.readInt(1)
-		option := newOMap()
-		option.set("Kind", kind)
+		kind := s.ReadInt(1)
+		option := jsonval.NewOMap()
+		option.Set("Kind", kind)
 		opt, ok := tcpOptionKindLookup[kind]
 		if !ok {
 			opt = tcpOpt{name: "Reserved", length: true}
 		}
 		optLength := 0
 		if opt.length {
-			optLength = s.readInt(1)
-			option.set("Length", optLength)
+			optLength = s.ReadInt(1)
+			option.Set("Length", optLength)
 			if optLength > 2 {
 				value := parseTCPOptionValue(s, opt, optLength)
-				option.set("Value", value)
+				option.Set("Value", value)
 				if kind == 3 {
 					if sc, ok := tcpWindowScale(value); ok {
 						windowScaleShift = sc
@@ -186,7 +189,7 @@ func parseTCPOptions(s *byteStream, dataOffset int) (*omap, int) {
 				}
 			}
 		}
-		options.set(opt.name, option)
+		options.Set(opt.name, option)
 		length := 1
 		if optLength != 0 {
 			length = optLength
@@ -199,22 +202,22 @@ func parseTCPOptions(s *byteStream, dataOffset int) (*omap, int) {
 // parseTCPOptionValue reads a single option's value (optLength-2 payload bytes):
 // a custom parser if the option defines one, a short integer for values that fit
 // in <= 4 bytes, otherwise a hex dump.
-func parseTCPOptionValue(s *byteStream, opt tcpOpt, optLength int) any {
+func parseTCPOptionValue(s *bytestream.Stream, opt tcpOpt, optLength int) any {
 	switch {
 	case opt.parser != nil:
-		return opt.parser(s.getBytes(optLength - 2))
+		return opt.parser(s.GetBytes(optLength - 2))
 	case optLength <= 6:
-		return s.readInt(optLength - 2)
+		return s.ReadInt(optLength - 2)
 	default:
-		return "0x" + toHexFast(s.getBytes(optLength-2))
+		return "0x" + hex.EncodeToString(s.GetBytes(optLength-2))
 	}
 }
 
 // tcpWindowScale extracts the "Shift count" from a parsed Window Scale option
 // value (a *omap), reporting whether one was present.
 func tcpWindowScale(value any) (int, bool) {
-	if om, ok := value.(*omap); ok {
-		if sc, ok := om.vals["Shift count"].(int); ok {
+	if om, ok := value.(*jsonval.OMap); ok {
+		if sc, ok := om.Value("Shift count").(int); ok {
 			return sc, true
 		}
 	}

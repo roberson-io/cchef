@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/geocoord"
 )
 
 // These tests exercise each Run's own handling of an out-of-range option value.
@@ -59,7 +60,7 @@ func TestChangeIPFormatRunUnknownFormatsError(t *testing.T) {
 // convertCoordinates rejects an unknown input format (the helper's switch
 // default, unreachable via the op because Auto resolves to a known format).
 func TestConvertCoordinatesUnknownFormatErrors(t *testing.T) {
-	if _, err := convertCoordinates("51,0", "BogusFormat", "Comma", "Decimal Degrees", "Comma", "None", 3); err == nil {
+	if _, err := geocoord.Convert("51,0", "BogusFormat", "Comma", "Decimal Degrees", "Comma", "None", 3); err == nil {
 		t.Fatal("expected error for unknown input format")
 	}
 }

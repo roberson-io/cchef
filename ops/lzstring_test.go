@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // lzsGolden is one case from testdata/lzstring.jsonl: an input, and what
@@ -141,7 +142,7 @@ func TestLZStringDecompressGoldens(t *testing.T) {
 				// CyberChef writes a string of characters that all fit in a
 				// byte as one byte each, so the expectation is converted the
 				// same way before comparing.
-				if want := string(textAsBytes(string(unhex(t, g.InputHex)))); out != want {
+				if want := string(opsutil.TextAsBytes(string(unhex(t, g.InputHex)))); out != want {
 					t.Errorf("got %q, want %q", out, want)
 				}
 			})
@@ -169,7 +170,7 @@ func TestLZStringRoundTrips(t *testing.T) {
 				}
 				// Text whose characters all fit in a byte comes back one byte
 				// each, as CyberChef writes it, so that is what to compare to.
-				want := string(textAsBytes(in))
+				want := string(opsutil.TextAsBytes(in))
 				if back != want {
 					t.Errorf("round trip changed the text (%d bytes in, %d out)",
 						len(want), len(back))
@@ -208,7 +209,7 @@ func TestLZStringDefaultKeepsLoneSurrogates(t *testing.T) {
 			if err != nil {
 				t.Fatalf("LZString Decompress: %v", err)
 			}
-			if want := string(textAsBytes(in)); back != want {
+			if want := string(opsutil.TextAsBytes(in)); back != want {
 				t.Errorf("round trip changed the text")
 			}
 		})

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -40,5 +41,5 @@ func (ChiSquare) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 			total += difference * difference / expected
 		}
 	}
-	return core.NewDish([]byte(jsNumberString(total)), core.TypeNumber), nil
+	return core.NewDish([]byte(jsnum.String(total)), core.TypeNumber), nil
 }

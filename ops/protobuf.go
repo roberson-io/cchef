@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"maps"
 	"strconv"
+
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // protobufParser performs a schema-less decode of protobuf wire data, mirroring
@@ -26,8 +28,8 @@ func newProtobufParser(data []byte) *protobufParser {
 }
 
 // parse reads all fields into an ordered map keyed by field number.
-func (p *protobufParser) parse() (*omap, error) {
-	obj := newOMap()
+func (p *protobufParser) parse() (*jsonval.OMap, error) {
+	obj := jsonval.NewOMap()
 	for p.offset < len(p.data) {
 		key, value, err := p.parseField()
 		if err != nil {
@@ -42,16 +44,16 @@ func (p *protobufParser) parse() (*omap, error) {
 }
 
 // addField inserts value under key, collecting repeats into an array.
-func (p *protobufParser) addField(obj *omap, key string, value any) {
-	if existing, ok := obj.vals[key]; ok {
+func (p *protobufParser) addField(obj *jsonval.OMap, key string, value any) {
+	if existing, ok := obj.Get(key); ok {
 		if arr, isArr := existing.([]any); isArr {
-			obj.vals[key] = append(arr, value)
+			obj.Set(key, append(arr, value))
 		} else {
-			obj.vals[key] = []any{existing, value}
+			obj.Set(key, []any{existing, value})
 		}
 		return
 	}
-	obj.set(key, value)
+	obj.Set(key, value)
 }
 
 func (p *protobufParser) parseField() (string, any, error) {
@@ -211,10 +213,10 @@ func protobufTypeInfo(wireType int) string {
 
 // showRawTypes rewrites raw-decode field-number keys to include the wire type,
 // recursing into submessages. Ported from Protobuf.showRawTypes.
-func showRawTypes(raw *omap, fieldTypes map[string]any) *omap {
-	out := newOMap()
-	for _, fieldNum := range raw.keys {
-		value := raw.vals[fieldNum]
+func showRawTypes(raw *jsonval.OMap, fieldTypes map[string]any) *jsonval.OMap {
+	out := jsonval.NewOMap()
+	for _, fieldNum := range raw.Keys() {
+		value := raw.Value(fieldNum)
 		ft := fieldTypes[fieldNum]
 		var outType int
 		var outValue any
@@ -225,14 +227,14 @@ func showRawTypes(raw *omap, fieldTypes map[string]any) *omap {
 			case []any:
 				instances := make([]any, 0, len(v))
 				for _, inst := range v {
-					if sub, ok := inst.(*omap); ok {
+					if sub, ok := inst.(*jsonval.OMap); ok {
 						instances = append(instances, showRawTypes(sub, subTypes))
 					} else {
 						instances = append(instances, inst)
 					}
 				}
 				outValue = instances
-			case *omap:
+			case *jsonval.OMap:
 				outValue = showRawTypes(v, subTypes)
 			default:
 				outValue = value
@@ -243,7 +245,7 @@ func showRawTypes(raw *omap, fieldTypes map[string]any) *omap {
 			}
 			outValue = value
 		}
-		out.set(fmt.Sprintf("field #%s: %s", fieldNum, protobufTypeInfo(outType)), outValue)
+		out.Set(fmt.Sprintf("field #%s: %s", fieldNum, protobufTypeInfo(outType)), outValue)
 	}
 	return out
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -307,10 +308,10 @@ func describeKeyUsage(inner string) []string {
 	var out []string
 	value := asn1GetV(inner, 0) // BIT STRING value: unused-bits octet + bits
 	if len(value) >= 2 {
-		unused, _ := jsParseInt(jsSubstr(value, 0, 2), 16)
+		unused, _ := jsnum.ParseInt(jsSubstr(value, 0, 2), 16)
 		var bits strings.Builder
 		for i := 2; i < len(value); i += 2 {
-			b, _ := jsParseInt(jsSubstr(value, i, 2), 16)
+			b, _ := jsnum.ParseInt(jsSubstr(value, i, 2), 16)
 			bits.WriteString(byteToBin(b))
 		}
 		bs := bits.String()
@@ -409,7 +410,7 @@ func ensureHexPositive(h string) string {
 		return "0" + h
 	}
 	if len(h) >= 2 {
-		if b, _ := jsParseInt(jsSubstr(h, 0, 2), 16); b&128 != 0 {
+		if b, _ := jsnum.ParseInt(jsSubstr(h, 0, 2), 16); b&128 != 0 {
 			return "00" + h
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -46,7 +47,7 @@ func (SharpenImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	radius := args[0].(float64)
 	amount := args[1].(float64)
 	threshold := args[2].(float64)
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		return jimpSharpen(img, radius, amount, threshold)
 	})
 	if err != nil {
@@ -57,11 +58,11 @@ func (SharpenImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 // jimpSharpen applies the unsharp mask in place and returns img.
 func jimpSharpen(img *image.NRGBA, radius, amount, threshold float64) *image.NRGBA {
-	blur := cloneNRGBA(img)
+	blur := jimp.Clone(img)
 	jimpGaussian(blur, radius)
 
 	// mask = max(0, original - blur) per RGB channel.
-	mask := cloneNRGBA(img)
+	mask := jimp.Clone(img)
 	mp, bp := mask.Pix, blur.Pix
 	for i := 0; i < len(mp); i += 4 {
 		for c := range 3 {

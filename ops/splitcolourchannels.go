@@ -7,6 +7,7 @@ import (
 	"image/png"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -40,7 +41,7 @@ var channelNames = [3]string{"red.png", "green.png", "blue.png"}
 
 // Run splits the image into one file per colour channel.
 func (SplitColourChannels) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	src, _, err := decodeImageNRGBA(in.Bytes(), "Invalid file type.")
+	src, _, err := jimp.Decode(in.Bytes(), "Invalid file type.")
 	if err != nil {
 		return nil, err
 	}

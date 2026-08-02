@@ -10,6 +10,7 @@ import (
 	"golang.org/x/image/tiff"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -64,7 +65,7 @@ func (ConvertImageFormat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 // convertImage decodes data and re-encodes it in the named format.
 func convertImage(data []byte, format string, quality, deflate int) ([]byte, error) {
-	img, _, err := decodeImageNRGBA(data, "Invalid file format.")
+	img, _, err := jimp.Decode(data, "Invalid file format.")
 	if err != nil {
 		return nil, err
 	}

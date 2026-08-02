@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -60,7 +61,7 @@ func (ParseASN1HexString) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // stripWhitespace removes all Unicode whitespace (JS \s) from s.
 func stripWhitespace(s string) string {
 	return strings.Map(func(r rune) rune {
-		if mimeIsJSSpace(r) {
+		if jsnum.IsSpace(r) {
 			return -1
 		}
 		return r
@@ -79,7 +80,7 @@ func asn1GetLblen(s string, a int) int {
 	if jsSubstr(s, a+2, 1) != "8" {
 		return 1
 	}
-	b, ok := jsParseInt(jsSubstr(s, a+3, 1), 10)
+	b, ok := jsnum.ParseInt(jsSubstr(s, a+3, 1), 10)
 	if !ok {
 		return -2
 	}
@@ -184,14 +185,14 @@ func asn1IsASN1HEX(e string) bool {
 // asn1OidHexToInt converts an OID's value hex to dotted-decimal notation.
 func asn1OidHexToInt(a string) string {
 	var j string
-	if k, ok := jsParseInt(jsSubstr(a, 0, 2), 16); ok {
+	if k, ok := jsnum.ParseInt(jsSubstr(a, 0, 2), 16); ok {
 		j = strconv.Itoa(k/40) + "." + strconv.Itoa(k%40)
 	} else {
 		j = "NaN.NaN"
 	}
 	e := ""
 	for f := 2; f < len(a); f += 2 {
-		g, _ := jsParseInt(jsSubstr(a, f, 2), 16)
+		g, _ := jsnum.ParseInt(jsSubstr(a, f, 2), 16)
 		h := byteToBin(g)  // 8-bit binary, zero-padded
 		e += h[1:8]        // drop the continuation bit, keep 7 value bits
 		if h[0:1] == "0" { // final byte of this arc
@@ -258,51 +259,6 @@ func jsSubstrFrom(s string, start int) string {
 	return s[start:]
 }
 
-// jsParseInt mimics JS parseInt(s, base) for base 10/16: skips leading
-// whitespace and an optional sign, then consumes valid leading digits. ok is
-// false when no digits are consumed (JS returns NaN).
-func jsParseInt(s string, base int) (int, bool) {
-	i := 0
-	for i < len(s) && mimeIsJSSpace(rune(s[i])) {
-		i++
-	}
-	neg := false
-	if i < len(s) && (s[i] == '+' || s[i] == '-') {
-		neg = s[i] == '-'
-		i++
-	}
-	start := i
-	val := 0
-	for i < len(s) {
-		d := digitVal(s[i])
-		if d < 0 || d >= base {
-			break
-		}
-		val = val*base + d
-		i++
-	}
-	if i == start {
-		return 0, false
-	}
-	if neg {
-		val = -val
-	}
-	return val, true
-}
-
-// digitVal returns the value of an ASCII hex digit, or -1 if not one.
-func digitVal(c byte) int {
-	switch {
-	case c >= '0' && c <= '9':
-		return int(c - '0')
-	case c >= 'a' && c <= 'f':
-		return int(c-'a') + 10
-	case c >= 'A' && c <= 'F':
-		return int(c-'A') + 10
-	}
-	return -1
-}
-
 // byteToBin returns the 8-bit, zero-padded binary string of a byte value.
 func byteToBin(v int) string {
 	s := strconv.FormatInt(int64(v&0xff), 2)
@@ -318,7 +274,7 @@ func isHexString(s string) bool {
 		return false
 	}
 	for i := 0; i < len(s); i++ {
-		if v := digitVal(s[i]); v < 0 {
+		if !jsnum.IsHexDigit(s[i]) {
 			return false
 		}
 	}
@@ -360,8 +316,8 @@ func hextoutf8(h string) string {
 func ucs2hextoutf8(h string) string {
 	var sb strings.Builder
 	for i := 0; i+4 <= len(h); i += 4 {
-		hi, _ := jsParseInt(h[i:i+2], 16)
-		lo, _ := jsParseInt(h[i+2:i+4], 16)
+		hi, _ := jsnum.ParseInt(h[i:i+2], 16)
+		lo, _ := jsnum.ParseInt(h[i+2:i+4], 16)
 		// #nosec G115 -- hi and lo are single bytes, so the value is a 16-bit BMP code point
 		sb.WriteRune(rune(hi<<8 | lo))
 	}
@@ -477,7 +433,7 @@ func asn1DumpPrimitive(e string, ommitLongOctet, l int, indent, extName, z strin
 		}
 		return indent + "ObjectIdentifier (" + a + ")\n", true, nil
 	case "0a":
-		n, ok := jsParseInt(asn1GetV(e, l), 10)
+		n, ok := jsnum.ParseInt(asn1GetV(e, l), 10)
 		if !ok {
 			return indent + "ENUMERATED NaN\n", true, nil
 		}
@@ -524,7 +480,7 @@ func asn1DumpChildren(e string, ommitLongOctet int, indices []int, indent, heade
 // class, high bit set) as a constructed "[n]" group or a primitive "[n] value",
 // falling back to UNKNOWN for anything else.
 func asn1DumpContextTag(e string, ommitLongOctet, l int, indent, extName, z string) (string, error) {
-	zi, ok := jsParseInt(z, 16)
+	zi, ok := jsnum.ParseInt(z, 16)
 	if ok && zi&128 != 0 {
 		n := zi & 31
 		if zi&32 != 0 { // constructed

@@ -7,6 +7,7 @@ import (
 	"github.com/dlclark/regexp2"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // rakeDefaultStopWords is the list CyberChef ships, taken from the NLTK package.
@@ -188,7 +189,7 @@ func rakeRender(scored []rakeScoredPhrase) string {
 	lines := make([]string, 0, len(scored)+1)
 	lines = append(lines, "Scores: , Keywords: ")
 	for _, s := range scored {
-		lines = append(lines, jsNum(s.score)+", "+s.phrase)
+		lines = append(lines, jsnum.Format(s.score)+", "+s.phrase)
 	}
 	return strings.Join(lines, "\n")
 }

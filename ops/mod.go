@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -40,7 +41,7 @@ func (MOD) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// The argument arrives as a number, and bignumber.js builds from a number
 	// through its printed form, so the same route is taken here rather than
 	// converting the binary value directly.
-	modulus, ok := parseBigNum(jsNum(args[0].(float64)))
+	modulus, ok := parseBigNum(jsnum.Format(args[0].(float64)))
 	if !ok || modulus.isZero() {
 		return nil, errors.New("Modulus cannot be zero") //nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 	}

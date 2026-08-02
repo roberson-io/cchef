@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filecarve"
+	"github.com/roberson-io/cchef/internal/filesig"
 )
 
 // extractFilesMinSize is the size below which a carved file is taken to be a
@@ -39,12 +41,12 @@ func (ExtractFiles) Meta() core.OpMeta {
 func carvableExtensions() []string {
 	var out []string
 	seen := map[string]bool{}
-	for _, cat := range fileSignatures {
-		for _, ft := range cat.types {
-			if ft.carver == "" {
+	for _, cat := range filesig.Signatures {
+		for _, ft := range cat.Types {
+			if ft.Carver == "" {
 				continue
 			}
-			ext := strings.ToUpper(ft.extension)
+			ext := strings.ToUpper(ft.Extension)
 			if !seen[ext] {
 				seen[ext] = true
 				out = append(out, ext)
@@ -57,14 +59,14 @@ func carvableExtensions() []string {
 // Args returns the argument definitions: one switch per signature category,
 // then whether to keep quiet about carves that fail and the size floor.
 func (ExtractFiles) Args() []core.ArgDef {
-	args := make([]core.ArgDef, 0, len(fileSignatures)+2)
-	for _, cat := range fileSignatures {
+	args := make([]core.ArgDef, 0, len(filesig.Signatures)+2)
+	for _, cat := range filesig.Signatures {
 		args = append(args, core.ArgDef{
-			Name: cat.name,
+			Name: cat.Name,
 			Type: core.ArgBoolean,
 			// The catch-all category is off by default: its signatures are
 			// short and match often by chance.
-			Value: cat.name != "Miscellaneous",
+			Value: cat.Name != "Miscellaneous",
 		})
 	}
 	return append(args,
@@ -79,8 +81,8 @@ func (ExtractFiles) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var files []core.NamedFile
 	var failures []string
-	for _, found := range scanForFileTypes(in.Bytes(), categories) {
-		file, err := extractFile(in.Bytes(), found.details, found.offset)
+	for _, found := range filesig.Scan(in.Bytes(), categories) {
+		file, err := filecarve.ExtractFile(in.Bytes(), found.Details, found.Offset)
 		if err != nil {
 			if note := extractFilesNote(err, found); note != "" && !ignoreFailures {
 				failures = append(failures, note)
@@ -103,16 +105,16 @@ func (ExtractFiles) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // to keep quiet about carves that fail, and the smallest file worth keeping.
 func extractFilesSettings(args []any) (categories []string, ignoreFailures bool, minSize int) {
 	categories = []string{}
-	for i, cat := range fileSignatures {
+	for i, cat := range filesig.Signatures {
 		if i < len(args) {
 			if on, _ := args[i].(bool); on {
-				categories = append(categories, cat.name)
+				categories = append(categories, cat.Name)
 			}
 		}
 	}
-	if len(args) >= len(fileSignatures)+2 {
-		ignoreFailures, _ = args[len(fileSignatures)].(bool)
-		size, _ := args[len(fileSignatures)+1].(float64)
+	if len(args) >= len(filesig.Signatures)+2 {
+		ignoreFailures, _ = args[len(filesig.Signatures)].(bool)
+		size, _ := args[len(filesig.Signatures)+1].(float64)
 		minSize = int(size)
 	}
 	return categories, ignoreFailures, minSize
@@ -122,12 +124,12 @@ func extractFilesSettings(args []any) (categories []string, ignoreFailures bool,
 // when there is nothing worth saying. A type that simply has no algorithm is not
 // a failure — most of the signature table is in that position — so only a carve
 // that was attempted and went wrong is reported.
-func extractFilesNote(err error, found foundFile) string {
+func extractFilesNote(err error, found filesig.Match) string {
 	if strings.HasPrefix(err.Error(), "No extraction algorithm available") {
 		return ""
 	}
 	return fmt.Sprintf("Error while attempting to extract %s at offset %d:\n%s",
-		found.details.name, found.offset, err.Error())
+		found.Details.Name, found.Offset, err.Error())
 }
 
 func init() { core.Register(ExtractFiles{}) }

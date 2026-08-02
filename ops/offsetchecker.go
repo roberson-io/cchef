@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -63,7 +64,7 @@ func (OffsetChecker) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for i, o := range outputs {
 		parts2[i] = o.String()
 	}
-	return core.NewDish([]byte(strings.Join(parts2, escapeHTML(sampleDelim))), core.TypeString), nil
+	return core.NewDish([]byte(strings.Join(parts2, opsutil.EscapeHTML(sampleDelim))), core.TypeString), nil
 }
 
 // offsetAllMatch reports whether every other sample has s0's character chr at
@@ -93,7 +94,7 @@ func writeOffsetSample(out *strings.Builder, samples [][]rune, s0 []rune, s, i, 
 		}
 		return inMatch
 	}
-	cur := escapeHTML(string(smp[i]))
+	cur := opsutil.EscapeHTML(string(smp[i]))
 	switch {
 	case match && !inMatch:
 		out.WriteString("<span class='hl5'>" + cur)
@@ -129,5 +130,5 @@ func writeOffsetTail(out *strings.Builder, smp []rune, i int, inMatch bool) {
 	if inMatch {
 		out.WriteString("</span>")
 	}
-	out.WriteString(escapeHTML(string(smp[i+1:])))
+	out.WriteString(opsutil.EscapeHTML(string(smp[i+1:])))
 }

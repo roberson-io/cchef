@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filesig"
 )
 
 func init() {
@@ -51,12 +52,12 @@ func (ScanForEmbeddedFiles) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 	}
 
-	found := scanForFileTypes(in.Bytes(), categories)
+	found := filesig.Scan(in.Bytes(), categories)
 	for _, f := range found {
 		fmt.Fprintf(&out, "\nOffset %d (0x%02x):\n  File type:   %s\n  Extension:   %s\n  MIME type:   %s\n",
-			f.offset, f.offset, f.details.name, f.details.extension, f.details.mime)
-		if f.details.description != "" {
-			fmt.Fprintf(&out, "  Description: %s\n", f.details.description)
+			f.Offset, f.Offset, f.Details.Name, f.Details.Extension, f.Details.MIME)
+		if f.Details.Description != "" {
+			fmt.Fprintf(&out, "  Description: %s\n", f.Details.Description)
 		}
 	}
 	if len(found) == 0 {

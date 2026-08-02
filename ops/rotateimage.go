@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -39,7 +40,7 @@ func (RotateImage) Args() []core.ArgDef {
 // Run rotates the image.
 func (RotateImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	deg := args[0].(float64)
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		return jimpRotate(img, deg)
 	})
 	if err != nil {

@@ -101,35 +101,77 @@ only the ordering *within* a stage reflects a real dependency.
   Verified the way a caller would, from a separate module: baking a recipe by
   name, calling `ops.ToBase64{}` directly, and registering a caller's own
   operation and using it by name in a recipe.
-- [ ] **Split `ops`.** It is one flat package of ~782 files / 165k LOC
-  implementing the 505 operations. Nothing is broken; the concern is
-  navigability and build granularity. Re-measure before acting — these figures
-  drift. What the measurements showed:
+- [ ] **Split `ops`.** In progress. `ops` is one flat package implementing the
+  505 operations; the concern is navigability and build granularity, not
+  correctness. Measured with a `go/types`-based tool rather than by grepping —
+  a lexical pass counts local variables and builtins as declarations and
+  wildly overstates the coupling.
 
-  - The operation files are healthy: ~315 declare a `Meta()`, most registering
-    one operation. One operation per file mirrors CyberChef and keeps the test
-    loop tight — **keep it**.
-  - ~99 files register nothing. These are the engines and static data — the
-    JavaScript parser, the entity and codepage tables, the XML DOM, protobuf,
-    d3, the disassemblers, the Bletchley machines — interleaved alphabetically
-    with forty-line operations.
-  - Coupling is low, but a few shared helpers (`convertToByteArray`, `charRep`,
-    `parseEscapedChars`, `imageTransform`) hold the reference graph together.
-    Extracting them breaks it into many small components.
+  What the real graph shows, at 418 non-test files: **254 are referenced by
+  nothing else**, 102 by one or two, and only **24 by six or more**. That last
+  group is the shared surface and the only part that constrains anything.
 
-  Three problems worth fixing: one compilation unit and one test binary, so a
-  one-line edit recompiles everything and every unexported helper is visible to
-  every file; category is a side table (`opCategories` hand-maintains 505
-  entries) rather than structure; and engines carry the same visual weight as
-  operations in a directory listing.
+  **Stage 1, engines out of the operations directory — done.** Twenty-two
+  packages under `internal/`, taking `ops` from 418 files / 108k non-test LOC
+  to 364 / 80k:
 
-  Staged approach: extract the shared helpers into `opsutil` and the
-  standalone engines into their own packages (worthwhile on its own), then split
-  the remainder one package per category, then generate the category table from
-  the result. Do it when nothing else is in flight — it is large mechanical
-  churn. It is also the moment to audit file-splitting consistency: reciprocal
-  operations normally share one file per algorithm, so any operation spread
-  across several files should be re-justified or merged.
+  `jsonval`, `jsparse` (4,977 lines), `jsbeautify`, `htmlent` (3,500),
+  `codepage`, `amfcodec`, `snefru`, `deflateraw`, `lodashcase`, `filesig`,
+  `jimp`, `xmldom`, `bytestream`, `filecarve`, `qr`, `geocoord`, `opsutil`,
+  `exif`, `charts`, `magic`, `audio`, plus the pre-existing `jsnum`,
+  `termimage` and `yara`. This mirrors CyberChef's own layout: `ops/` is its
+  flat `operations/` directory, `internal/` its `lib/`.
+
+  Rules learned the hard way. Tests that exercise an engine's internals move
+  with the engine, and several test files held both those and the operation's
+  own tests, so they had to be split rather than moved. A generated file
+  carries its generator: `tools/htmlentgen` emitted the old package name and
+  path and would have silently undone the move on its next run. Testdata
+  belongs with whichever package defines what a valid sample is — the carve
+  samples moved with the carvers. And an engine test should not depend on the
+  operation catalog: the magic engine's tests register a one-operation stub
+  registry instead of `core.Default`.
+
+  The misfilings the split exposed were fixed rather than worked around: the
+  JS `parseInt`/`parseFloat`/`parseHex`/`Math.round`/whitespace helpers,
+  scattered across five operation files, are consolidated in `jsnum`; the
+  insertion-ordered JSON map lived in `parsenet.go` and is now `jsonval.OMap`;
+  `Utils.escapeHtml` lived in `totable.go` and is now `opsutil.EscapeHTML`.
+  Four aliases with nothing behind them were deleted outright (`equalBytes`,
+  `jsNum`, `toHexFast`, and ops' `jsnum.go` shim).
+
+  Two real defects surfaced while writing the engines' missing direct tests,
+  both fixed and oracle-verified: `snefru.NewWithParams` looped forever at 512
+  bits (the block width reaches zero; it now floors odd lengths as crypto-api
+  does and refuses impossible ones), and `jsnum.ParseInt` skipped leading
+  whitespace byte-by-byte, so a multi-byte space like NBSP was never skipped
+  even though JS `parseInt` accepts it.
+
+  **Stage 2, one package per category, is dropped.** The operations directory
+  stays flat, which is what CyberChef itself does: `src/core/operations/` holds
+  503 files with no subdirectories, and an operation's constructor never names a
+  category. Category lives only in `config/Categories.json`, as metadata
+  attached from outside. Shared engines sit in a sibling `src/core/lib/` of 74
+  modules — so stage 1 converges on that structure and a category split would
+  move away from it.
+
+  The one axis CyberChef splits code on is `module`, and it does not apply
+  here: the 25 modules exist for lazy loading in a browser, and the generated
+  `OpModules.mjs` is headed "Imports all modules for builds which do not load
+  modules separately". A single static binary is that build, permanently.
+
+  The 23 operations belonging to more than one category (Bcrypt is Encryption
+  *and* Hashing) are the symptom rather than the obstacle: upstream can say so
+  because a category is a list in a JSON file, and a directory cannot say it at
+  all. `opCategories` in `cmd/` stays as the metadata table it is, enforced
+  against the registry by test.
+
+  Still open from the original note: audit file-splitting consistency, since
+  reciprocal operations normally share one file per algorithm, so anything
+  spread across several files should be re-justified or merged. The stage 1
+  extractions turned up related misfilings worth catching in the same pass —
+  `jsNumberString` living in `exif.go`, ordered-JSON-map helpers in
+  `parsenet.go` — where a file's name has stopped describing what is in it.
 
 ### 4. Documentation
 

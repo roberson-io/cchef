@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/bytestream"
 )
 
 func init() {
@@ -42,35 +43,35 @@ func (HASSHClientFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error)
 	outputFormat := args[1].(string)
 
 	data := fingerprintBytes(in.String(), inputFormat)
-	s := newByteStream(data)
+	s := bytestream.New(data)
 
-	length := s.readInt(4)
-	if s.length() != length+4 {
+	length := s.ReadInt(4)
+	if s.Length() != length+4 {
 		return nil, fingerprintError("incorrect packet length")
 	}
-	paddingLength := s.readInt(1)
-	if s.readInt(1) != 20 {
+	paddingLength := s.ReadInt(1)
+	if s.ReadInt(1) != 20 {
 		return nil, fingerprintError("not a Key Exchange Init")
 	}
-	s.moveForwardsBy(16) // cookie
+	s.MoveForwardsBy(16) // cookie
 
-	kexAlgos := s.readString(s.readInt(4))
-	s.moveForwardsBy(s.readInt(4)) // server host key algos
+	kexAlgos := s.ReadString(s.ReadInt(4))
+	s.MoveForwardsBy(s.ReadInt(4)) // server host key algos
 
-	encAlgosC2S := s.readString(s.readInt(4))
-	s.moveForwardsBy(s.readInt(4)) // enc algos S2C
+	encAlgosC2S := s.ReadString(s.ReadInt(4))
+	s.MoveForwardsBy(s.ReadInt(4)) // enc algos S2C
 
-	macAlgosC2S := s.readString(s.readInt(4))
-	s.moveForwardsBy(s.readInt(4)) // mac algos S2C
+	macAlgosC2S := s.ReadString(s.ReadInt(4))
+	s.MoveForwardsBy(s.ReadInt(4)) // mac algos S2C
 
-	compAlgosC2S := s.readString(s.readInt(4))
-	s.moveForwardsBy(s.readInt(4)) // comp algos S2C
+	compAlgosC2S := s.ReadString(s.ReadInt(4))
+	s.MoveForwardsBy(s.ReadInt(4)) // comp algos S2C
 
-	s.moveForwardsBy(s.readInt(4)) // langs C2S
-	s.moveForwardsBy(s.readInt(4)) // langs S2C
-	s.moveForwardsBy(1)            // first_kex_packet_follows
-	s.moveForwardsBy(4)            // reserved
-	s.moveForwardsBy(paddingLength)
+	s.MoveForwardsBy(s.ReadInt(4)) // langs C2S
+	s.MoveForwardsBy(s.ReadInt(4)) // langs S2C
+	s.MoveForwardsBy(1)            // first_kex_packet_follows
+	s.MoveForwardsBy(4)            // reserved
+	s.MoveForwardsBy(paddingLength)
 
 	hasshStr := strings.Join([]string{kexAlgos, encAlgosC2S, macAlgosC2S, compAlgosC2S}, ";")
 	hasshHash := fmt.Sprintf("%x", md5.Sum([]byte(hasshStr))) // #nosec G401 -- MD5/SHA1 is an intentional CyberChef operation, not a security control

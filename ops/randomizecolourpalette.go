@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -46,7 +47,7 @@ func (RandomizeColourPalette) Run(in *core.Dish, args []any) (*core.Dish, error)
 		// one: the decimal digits of a random fraction.
 		seed = strconv.FormatFloat(rand.Float64(), 'f', -1, 64)[2:] // #nosec G404 -- a random palette seed, not a secret
 	}
-	out, err := imageTransform(in.Bytes(), "Please enter a valid image file.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Please enter a valid image file.", func(img *image.NRGBA) *image.NRGBA {
 		randomizePalette(img, seed)
 		return img
 	})

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -130,5 +131,5 @@ func (FromCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		sb.WriteRune(rune(v))
 	}
-	return core.NewDish(textAsBytes(sb.String()), core.TypeByteArray), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeByteArray), nil
 }

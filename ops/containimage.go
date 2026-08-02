@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -45,19 +46,19 @@ func (ContainImage) Args() []core.ArgDef {
 func (ContainImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	w := round(args[0].(float64))
 	h := round(args[1].(float64))
-	alignH := hAlignIndex[args[2].(string)]
-	alignV := vAlignIndex[args[3].(string)]
-	mode := resizeStrategyNames[args[4].(string)]
+	alignH := jimp.HAlignIndex[args[2].(string)]
+	alignV := jimp.VAlignIndex[args[3].(string)]
+	mode := jimp.StrategyNames[args[4].(string)]
 	opaqueBg := args[5].(bool)
 
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
-		contained := jimpContain(img, w, h, alignH, alignV, mode)
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+		contained := jimp.Contain(img, w, h, alignH, alignV, mode)
 		if opaqueBg {
 			bg := image.NewNRGBA(image.Rect(0, 0, w, h))
 			for i := 3; i < len(bg.Pix); i += 4 {
 				bg.Pix[i] = 255 // opaque black
 			}
-			jimpBlit(bg, contained, 0, 0)
+			jimp.Blit(bg, contained, 0, 0)
 			return bg
 		}
 		return contained

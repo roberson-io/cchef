@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -56,7 +57,7 @@ func (IndexOfCoincidence) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 
 	result := float64(coincidence) / (density * (density - 1))
 	return core.NewDish([]byte(
-		"Index of Coincidence: "+jsNumberString(result)+
-			"\nNormalized: "+jsNumberString(result*float64(len(iocAlphabet))),
+		"Index of Coincidence: "+jsnum.String(result)+
+			"\nNormalized: "+jsnum.String(result*float64(len(iocAlphabet))),
 	), core.TypeString), nil
 }

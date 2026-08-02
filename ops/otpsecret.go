@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // The machinery the two one-time password operations share, ported from
@@ -65,7 +67,7 @@ func otpReadSecret(in []byte) ([]byte, error) {
 	// Case is levelled and spacing dropped before the secret is read, since
 	// issuers write secrets in groups for legibility.
 	upper := strings.Map(func(r rune) rune {
-		if mimeIsJSSpace(r) {
+		if jsnum.IsSpace(r) {
 			return -1
 		}
 		return r
@@ -164,7 +166,7 @@ func otpURI(kind, label string, secret []byte, digits int, field string, value f
 		"?secret=" + e(otpBase32(secret)) +
 		"&algorithm=SHA1" +
 		"&digits=" + e(strconv.Itoa(digits)) +
-		"&" + field + "=" + e(jsNum(value))
+		"&" + field + "=" + e(jsnum.Format(value))
 }
 
 // otpOutput is what both operations report: the URI to set the account up with,

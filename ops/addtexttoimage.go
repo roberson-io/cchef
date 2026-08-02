@@ -4,6 +4,8 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -71,7 +73,7 @@ func (AddTextToImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		face: args[6].(string),
 		r:    args[7].(float64), g: args[8].(float64), b: args[9].(float64), a: args[10].(float64),
 	}
-	out, err := imageTransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
+	out, err := jimp.TransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
 		return drawTextOnImage(img, p)
 	})
 	if err != nil {
@@ -99,11 +101,11 @@ func drawTextOnImage(img *image.NRGBA, p addTextParams) (*image.NRGBA, error) {
 		if p.size > 1 {
 			mode = "bicubicInterpolation"
 		}
-		textImage = jimpScale(textImage, p.size/72, mode)
+		textImage = jimp.Scale(textImage, p.size/72, mode)
 	}
 
 	x, y := alignTextPosition(img, textImage, p)
-	jimpBlit(img, textImage, x, y)
+	jimp.Blit(img, textImage, x, y)
 	return img, nil
 }
 
@@ -129,7 +131,7 @@ func alignTextPosition(img, textImage *image.NRGBA, p addTextParams) (int, int) 
 	case "Bottom":
 		y = float64(img.Rect.Dy() - textImage.Rect.Dy())
 	}
-	return jsRound(x), jsRound(y)
+	return jsnum.Round(x), jsnum.Round(y)
 }
 
 // recolourBMFont returns a copy of font with its atlas pages tinted, applying

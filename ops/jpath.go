@@ -11,6 +11,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/jsonval"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -392,7 +393,7 @@ func (p *jpParser) parseBracket() (jpSeg, error) {
 		return parseFilterSeg(inner)
 	case strings.HasPrefix(inner, "("):
 		return parseScriptSeg(inner)
-	case len(splitTopLevel(inner, ':')) > 1:
+	case len(opsutil.SplitTopLevel(inner, ':')) > 1:
 		return parseSliceSeg(inner)
 	default:
 		return parseUnionSeg(inner)
@@ -423,7 +424,7 @@ func parseScriptSeg(inner string) (jpSeg, error) {
 }
 
 func parseSliceSeg(inner string) (jpSeg, error) {
-	parts := splitTopLevel(inner, ':')
+	parts := opsutil.SplitTopLevel(inner, ':')
 	sl := jpSlice{step: 1}
 	set := func(s string) (int, bool, error) {
 		s = strings.TrimSpace(s)
@@ -451,7 +452,7 @@ func parseSliceSeg(inner string) (jpSeg, error) {
 }
 
 func parseUnionSeg(inner string) (jpSeg, error) {
-	members := splitTopLevel(inner, ',')
+	members := opsutil.SplitTopLevel(inner, ',')
 	var indices []int
 	var names []string
 	for _, m := range members {

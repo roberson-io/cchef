@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/exif"
 )
 
 func init() {
@@ -34,19 +35,19 @@ func (ExtractEXIF) Args() []core.ArgDef { return nil }
 
 // Run extracts and formats the EXIF tags.
 func (ExtractEXIF) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	store, err := parseEXIF(in.Bytes())
+	store, err := exif.Parse(in.Bytes())
 	if err != nil {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return nil, errors.New("Could not extract EXIF data from image: Error: " + err.Error())
 	}
 
-	n := len(store.order)
+	n := len(store.Order)
 	result := "Found " + strconv.Itoa(n) + " tags.\n"
 	if n > 0 {
 		lines := make([]string, n)
-		for i, name := range store.order {
-			v, _ := store.get(name)
-			lines[i] = name + ": " + exifValueString(v)
+		for i, name := range store.Order {
+			v, _ := store.Get(name)
+			lines[i] = name + ": " + exif.ValueString(v)
 		}
 		result += "\n" + strings.Join(lines, "\n")
 	}

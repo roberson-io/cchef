@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/geocoord"
 )
 
 func init() {
@@ -32,11 +33,11 @@ func (ConvertCoordinateFormat) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ConvertCoordinateFormat) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, coordFormats...)},
+		{Name: "Input Format", Type: core.ArgOption, Value: append([]string{"Auto"}, geocoord.Formats...)},
 		{Name: "Input Delimiter", Type: core.ArgOption, Value: []string{
 			"Auto", "Direction Preceding", "Direction Following", "\\n", "Comma", "Semi-colon", "Colon",
 		}},
-		{Name: "Output Format", Type: core.ArgOption, Value: coordFormats},
+		{Name: "Output Format", Type: core.ArgOption, Value: geocoord.Formats},
 		{Name: "Output Delimiter", Type: core.ArgOption, Value: []string{
 			"Space", "\\n", "Comma", "Semi-colon", "Colon",
 		}},
@@ -51,7 +52,7 @@ func (ConvertCoordinateFormat) Run(in *core.Dish, args []any) (*core.Dish, error
 	if reCoordBlank.ReplaceAllString(input, "") == "" {
 		return core.NewDish([]byte(input), core.TypeString), nil
 	}
-	out, err := convertCoordinates(input,
+	out, err := geocoord.Convert(input,
 		args[0].(string), args[1].(string), args[2].(string), args[3].(string),
 		args[4].(string), int(args[5].(float64)))
 	if err != nil {

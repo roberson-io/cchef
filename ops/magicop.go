@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/magic"
 )
 
 //go:generate go run ../../tools/magicgen/gen.go
@@ -18,76 +18,6 @@ func init() {
 
 // magicGuess is one brute-forced reading of the data, with the operation that
 // would produce it.
-type magicGuess struct {
-	data []byte
-	step core.RecipeOp
-}
-
-// bruteForce tries simple reversible manglings of the data — every single-byte
-// exclusive-or, every bit rotation, and every character encoding — so that data
-// hidden under one of them can still be recognised. Only the first hundred
-// bytes are tried, as upstream does, since that is enough to recognise a shape
-// and trying everything over a large input is slow.
-func (m *magicRun) bruteForce(data []byte) []magicGuess {
-	sample := data
-	if len(sample) > magicBruteForceLen {
-		sample = sample[:magicBruteForceLen]
-	}
-
-	guesses := make([]magicGuess, 0, 262)
-	for key := 1; key < 256; key++ {
-		out := make([]byte, len(sample))
-		for i, b := range sample {
-			out[i] = b ^ byte(key)
-		}
-		guesses = append(guesses, magicGuess{
-			data: out,
-			step: core.RecipeOp{Op: "XOR", Args: []any{
-				core.ToggleString{Value: strconv.FormatInt(int64(key), 16), Option: "Hex"},
-				"Standard", false,
-			}},
-		})
-	}
-
-	for by := 1; by < 8; by++ {
-		out := make([]byte, len(sample))
-		for i, b := range sample {
-			out[i] = b>>by | b<<(8-by)
-		}
-		guesses = append(guesses, magicGuess{
-			data: out,
-			step: core.RecipeOp{Op: "Rotate right", Args: []any{float64(by), false}},
-		})
-	}
-
-	return append(guesses, m.encodingGuesses(sample)...)
-}
-
-// encodingGuesses reads the sample through every character encoding, keeping
-// the ones that actually change it.
-func (m *magicRun) encodingGuesses(sample []byte) []magicGuess {
-	op, ok := m.registry.Get("Encode text")
-	if !ok {
-		return nil
-	}
-	encodings, ok := op.Args()[0].Value.([]string)
-	if !ok {
-		return nil
-	}
-
-	var guesses []magicGuess
-	for _, name := range []string{"Encode text", "Decode text"} {
-		for _, encoding := range encodings {
-			step := core.RecipeOp{Op: name, Args: []any{encoding}}
-			out := m.runRecipe(core.Recipe{step}, sample)
-			if len(out) == 0 || slices.Equal(out, sample) {
-				continue
-			}
-			guesses = append(guesses, magicGuess{data: out, step: step})
-		}
-	}
-	return guesses
-}
 
 // Magic detects what data might be and suggests recipes to make sense of it.
 // Ported from CyberChef Magic.mjs and lib/Magic.mjs.
@@ -123,10 +53,10 @@ const magicNothingFound = "Nothing of interest could be detected about the input
 // Run analyses the input and reports the recipes worth trying.
 func (Magic) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	depth := int(args[0].(float64))
-	run := &magicRun{
-		extensive: args[2].(bool),
-		intensive: args[1].(bool),
-		registry:  core.Default,
+	run := &magic.Runner{
+		Extensive: args[2].(bool),
+		Intensive: args[1].(bool),
+		Registry:  core.Default,
 	}
 
 	if crib := args[3].(string); crib != "" {
@@ -134,11 +64,11 @@ func (Magic) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		if err != nil {
 			return nil, err
 		}
-		run.crib = re
+		run.Crib = re
 	}
 
-	options := run.speculate(in.Bytes(), depth, nil, false)
-	if run.crib != nil {
+	options := run.Speculate(in.Bytes(), depth, nil, false)
+	if run.Crib != nil {
 		kept := options[:0]
 		for _, o := range options {
 			if o.MatchesCrib {
@@ -155,7 +85,7 @@ func (Magic) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // clickable recipe links in the browser; here each candidate is a block headed
 // by the recipe in the form `cchef bake` accepts, so a promising one can be run
 // by copying it.
-func magicReport(options []magicOption) string {
+func magicReport(options []magic.Option) string {
 	if len(options) == 0 {
 		return magicNothingFound
 	}
@@ -182,20 +112,20 @@ func magicReport(options []magicOption) string {
 
 // magicProperties is what the report says about one candidate, in the order
 // CyberChef's table shows it.
-func magicProperties(o magicOption) []string {
+func magicProperties(o magic.Option) []string {
 	var lines []string
 
 	if o.LangScores[0].Probability > 0 {
 		var likely []string
 		for _, l := range o.LangScores {
 			if l.Probability > 0 {
-				likely = append(likely, magicLanguageName(l.Lang))
+				likely = append(likely, magic.LanguageName(l.Lang))
 			}
 		}
 		lines = append(lines, "Possible languages: "+strings.Join(likely, ", "))
 	}
 	if o.FileType != nil {
-		lines = append(lines, fmt.Sprintf("File type: %s (%s)", o.FileType.mime, o.FileType.extension))
+		lines = append(lines, fmt.Sprintf("File type: %s (%s)", o.FileType.MIME, o.FileType.Extension))
 	}
 	if len(o.MatchingOps) > 0 {
 		var names []string

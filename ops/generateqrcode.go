@@ -11,6 +11,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/deflateraw"
+	"github.com/roberson-io/cchef/internal/qr"
 )
 
 func init() {
@@ -66,7 +67,7 @@ func (GenerateQRCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// The level is named by its initial, so "Quartile" selects Q.
 	level := strings.ToUpper(correction[:1])
 
-	matrix, err := qrMatrixFor(in.Bytes(), level)
+	matrix, err := qr.MatrixFor(in.Bytes(), level)
 	if err != nil {
 		return nil, fmt.Errorf("error generating QR code: %w", err)
 	}

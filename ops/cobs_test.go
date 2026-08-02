@@ -222,3 +222,12 @@ func TestFromCOBSHandlesTruncatedGroups(t *testing.T) {
 		})
 	}
 }
+
+// allByteValues is every byte value exactly once.
+func allByteValues() []byte {
+	b := make([]byte, 256)
+	for i := range b {
+		b[i] = byte(i)
+	}
+	return b
+}

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 // qrDecodeCase is one of CyberChef's own decode fixtures: an image, the text it
@@ -179,7 +180,7 @@ func TestParseQRCodeCorrectsDamage(t *testing.T) {
 // qrDamage paints blocks of modules over the middle of a code, leaving its
 // finder patterns and the quiet zone alone.
 func qrDamage(png []byte, blocks int) ([]byte, error) {
-	img, _, err := decodeImageNRGBA(png, "Invalid file type.")
+	img, _, err := jimp.Decode(png, "Invalid file type.")
 	if err != nil {
 		return nil, err
 	}

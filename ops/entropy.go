@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -55,7 +56,7 @@ func (Entropy) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		// CyberChef draws a scale bar beside the figure, which needs a browser:
 		// the canvas is sized from the page and drawn by a script.
 		return core.NewDish(
-			[]byte("Shannon entropy: "+jsNumberString(shannonEntropy(data))),
+			[]byte("Shannon entropy: "+jsnum.String(shannonEntropy(data))),
 			core.TypeString,
 		), nil
 	case entropyBarHistogramView:

@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -44,12 +45,12 @@ func (CoverImage) Args() []core.ArgDef {
 func (CoverImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	w := round(args[0].(float64))
 	h := round(args[1].(float64))
-	alignH := hAlignIndex[args[2].(string)]
-	alignV := vAlignIndex[args[3].(string)]
-	mode := resizeStrategyNames[args[4].(string)]
+	alignH := jimp.HAlignIndex[args[2].(string)]
+	alignV := jimp.VAlignIndex[args[3].(string)]
+	mode := jimp.StrategyNames[args[4].(string)]
 
-	out, err := imageTransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
-		return jimpCover(img, w, h, alignH, alignV, mode)
+	out, err := jimp.TransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
+		return jimp.Cover(img, w, h, alignH, alignV, mode)
 	})
 	if err != nil {
 		return nil, err

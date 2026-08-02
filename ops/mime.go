@@ -8,6 +8,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/codepage"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -299,21 +300,11 @@ func mimeSliceFrom(r []rune, start int) []rune {
 // -1 if there is none.
 func runeSearchNonWS(r []rune) int {
 	for i, c := range r {
-		if !mimeIsJSSpace(c) {
+		if !jsnum.IsSpace(c) {
 			return i
 		}
 	}
 	return -1
-}
-
-// mimeIsJSSpace reports whether c is matched by JavaScript's \s class.
-func mimeIsJSSpace(c rune) bool {
-	switch c {
-	case 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20,
-		0x00A0, 0x1680, 0x2028, 0x2029, 0x202F, 0x205F, 0x3000, 0xFEFF:
-		return true
-	}
-	return c >= 0x2000 && c <= 0x200A
 }
 
 // hexByte parses two hex-digit runes into a byte, reporting whether both were

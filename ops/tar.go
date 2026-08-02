@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filecarve"
 )
 
 // Tar packs one file into an archive, and Untar reads an archive back.
@@ -89,9 +90,9 @@ func tarPack(data []byte, name string, modTime int64) ([]byte, error) {
 	}
 	// The data occupies whole blocks, however little of the last one it fills.
 	padded := tarWholeBlocks(len(data))
-	tail := padded - len(data) + tarEndBlocks*tarBlockSize
+	tail := padded - len(data) + tarEndBlocks*filecarve.TarBlockSize
 
-	out := make([]byte, 0, tarBlockSize+padded+tarEndBlocks*tarBlockSize)
+	out := make([]byte, 0, filecarve.TarBlockSize+padded+tarEndBlocks*filecarve.TarBlockSize)
 	out = append(out, header...)
 	out = append(out, data...)
 	return append(out, make([]byte, tail)...), nil
@@ -99,7 +100,7 @@ func tarPack(data []byte, name string, modTime int64) ([]byte, error) {
 
 // tarWholeBlocks rounds a length up to the blocks it takes.
 func tarWholeBlocks(n int) int {
-	return (n + tarBlockSize - 1) / tarBlockSize * tarBlockSize
+	return (n + filecarve.TarBlockSize - 1) / filecarve.TarBlockSize * filecarve.TarBlockSize
 }
 
 // tarHeader builds the 512-byte header that opens a file's blocks.
@@ -108,22 +109,22 @@ func tarHeader(name string, size int, modTime int64) ([]byte, error) {
 		return nil, fmt.Errorf("the filename takes %d bytes, more than the %d a tar header keeps for it",
 			len(name), tarNameWidth)
 	}
-	if !tarFits(int64(size), tarSizeWidth) {
+	if !tarFits(int64(size), filecarve.TarSizeWidth) {
 		return nil, fmt.Errorf("the input is %d bytes, more than a tar header can record", size)
 	}
-	if !tarFits(modTime, tarSizeWidth) {
+	if !tarFits(modTime, filecarve.TarSizeWidth) {
 		return nil, errors.New("the time of writing does not fit a tar header")
 	}
 
-	h := make([]byte, tarBlockSize)
+	h := make([]byte, filecarve.TarBlockSize)
 	copy(h, name)
 	copy(h[tarModeOffset:], tarFileMode)
 	copy(h[tarUIDOffset:], tarOwner)
 	copy(h[tarGIDOffset:], tarOwner)
-	copy(h[tarSizeOffset:], tarOctalField(int64(size), tarSizeWidth))
-	copy(h[tarMTimeOffset:], tarOctalField(modTime, tarSizeWidth))
+	copy(h[filecarve.TarSizeOffset:], tarOctalField(int64(size), filecarve.TarSizeWidth))
+	copy(h[tarMTimeOffset:], tarOctalField(modTime, filecarve.TarSizeWidth))
 	h[tarTypeOffset] = tarRegularFile
-	copy(h[tarMagicOffset:], tarUSTAR)
+	copy(h[filecarve.TarMagicOffset:], tarUSTAR)
 
 	// A reader works the checksum out over the whole header with this field
 	// held as spaces, so it is filled with spaces before the sum is taken. What

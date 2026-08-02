@@ -1,9 +1,12 @@
 package ops
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/bytestream"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 func init() {
@@ -42,22 +45,22 @@ func (ParseUDP) Args() []core.ArgDef {
 
 // Run parses the datagram. Ported from CyberChef ParseUDP.mjs.
 func (ParseUDP) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	s := newByteStream(parseNetInput(in.String(), args[0].(string)))
-	if s.length() < 8 {
+	s := bytestream.New(parseNetInput(in.String(), args[0].(string)))
+	if s.Length() < 8 {
 		return nil, fmt.Errorf("need 8 bytes for a UDP header")
 	}
 
-	udp := newOMap()
-	udp.set("Source port", s.readInt(2))
-	udp.set("Destination port", s.readInt(2))
-	length := s.readInt(2)
-	udp.set("Length", length)
-	udp.set("Checksum", "0x"+toHexFast(s.getBytes(2)))
-	if s.hasMore() {
-		udp.set("Data", "0x"+toHexFast(s.getBytes(length-8)))
+	udp := jsonval.NewOMap()
+	udp.Set("Source port", s.ReadInt(2))
+	udp.Set("Destination port", s.ReadInt(2))
+	length := s.ReadInt(2)
+	udp.Set("Length", length)
+	udp.Set("Checksum", "0x"+hex.EncodeToString(s.GetBytes(2)))
+	if s.HasMore() {
+		udp.Set("Data", "0x"+hex.EncodeToString(s.GetBytes(length-8)))
 	}
 
-	out, err := marshalOMap(udp)
+	out, err := jsonval.MarshalOMap(udp)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -40,7 +41,7 @@ func (ImageBrightnessContrast) Args() []core.ArgDef {
 func (ImageBrightnessContrast) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	brightness := args[0].(float64)
 	contrast := args[1].(float64)
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		if brightness != 0 {
 			jimpBrightness(img, brightness/100)
 		}

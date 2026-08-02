@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // ParseTLV converts a Type-Length-Value encoded string into JSON.
@@ -67,7 +68,7 @@ func (ParseTLV) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	// tlvEntry holds only ints, nil, and slices thereof, so marshalling cannot
 	// fail; the error is provably nil.
-	out, _ := jsonNoEscape(data)
+	out, _ := jsonval.MarshalNoEscape(data)
 	return core.NewDish(out, core.TypeJSON), nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -46,7 +47,7 @@ func (ImageHueSaturationLightness) Run(in *core.Dish, args []any) (*core.Dish, e
 	hue := args[0].(float64)
 	saturation := args[1].(float64)
 	lightness := args[2].(float64)
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		if hue != 0 {
 			hslAdjust(img, "spin", hue)
 		}

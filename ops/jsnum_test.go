@@ -3,6 +3,8 @@ package ops
 import (
 	"math"
 	"testing"
+
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // Non-finite values render with JavaScript's names.
@@ -15,8 +17,8 @@ func TestJSNumNonFinite(t *testing.T) {
 		{math.Inf(1), "Infinity"},
 		{math.Inf(-1), "-Infinity"},
 	} {
-		if got := jsNum(tc.in); got != tc.want {
-			t.Errorf("jsNum(%v) = %q, want %q", tc.in, got, tc.want)
+		if got := jsnum.Format(tc.in); got != tc.want {
+			t.Errorf("jsnum.Format(%v) = %q, want %q", tc.in, got, tc.want)
 		}
 	}
 }

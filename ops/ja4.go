@@ -2,9 +2,12 @@ package ops
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/roberson-io/cchef/internal/bytestream"
 )
 
 // ja4Ext is one parsed TLS extension: its type number, the raw type bytes, and
@@ -27,49 +30,49 @@ type ja4Hello struct {
 // parseJA4Hello parses a single TLS handshake record (Client or Server Hello),
 // mirroring lib/TLS.mjs's parseTLSRecord/parseHandshake framing.
 func parseJA4Hello(data []byte) (*ja4Hello, error) {
-	s := newByteStream(data)
-	if s.readInt(1) != 0x16 {
+	s := bytestream.New(data)
+	if s.ReadInt(1) != 0x16 {
 		return nil, fingerprintError("not handshake data")
 	}
-	s.moveForwardsBy(2) // record version
-	recLen := s.readInt(2)
-	if s.length() != recLen+5 {
+	s.MoveForwardsBy(2) // record version
+	recLen := s.ReadInt(2)
+	if s.Length() != recLen+5 {
 		return nil, fingerprintError("incorrect handshake length")
 	}
-	hs := newByteStream(s.getBytes(recLen))
+	hs := bytestream.New(s.GetBytes(recLen))
 
 	h := &ja4Hello{}
-	h.handshakeType = hs.readInt(1)
-	hsLen := hs.readInt(3)
-	if hs.length() != hsLen+4 {
+	h.handshakeType = hs.ReadInt(1)
+	hsLen := hs.ReadInt(3)
+	if hs.Length() != hsLen+4 {
 		return nil, fingerprintError("not enough data in handshake message")
 	}
-	h.helloVersion = hs.readInt(2)
-	hs.moveForwardsBy(32)            // random
-	hs.moveForwardsBy(hs.readInt(1)) // session ID
+	h.helloVersion = hs.ReadInt(2)
+	hs.MoveForwardsBy(32)            // random
+	hs.MoveForwardsBy(hs.ReadInt(1)) // session ID
 
 	switch h.handshakeType {
 	case 0x01: // Client Hello
-		cs := newByteStream(hs.getBytes(hs.readInt(2)))
-		for cs.hasMore() {
-			h.cipherData = append(h.cipherData, cs.getBytes(2))
+		cs := bytestream.New(hs.GetBytes(hs.ReadInt(2)))
+		for cs.HasMore() {
+			h.cipherData = append(h.cipherData, cs.GetBytes(2))
 		}
-		hs.moveForwardsBy(hs.readInt(1)) // compression methods
+		hs.MoveForwardsBy(hs.ReadInt(1)) // compression methods
 	case 0x02: // Server Hello
-		h.cipherSuite = hs.getBytes(2)
-		hs.moveForwardsBy(1) // compression method
+		h.cipherSuite = hs.GetBytes(2)
+		hs.MoveForwardsBy(1) // compression method
 	default:
 		return nil, fingerprintError("not a known handshake message")
 	}
 
-	es := newByteStream(hs.getBytes(hs.readInt(2)))
-	for es.hasMore() {
-		typeData := es.getBytes(2)
+	es := bytestream.New(hs.GetBytes(hs.ReadInt(2)))
+	for es.HasMore() {
+		typeData := es.GetBytes(2)
 		if len(typeData) < 2 {
 			break
 		}
 		typ := int(typeData[0])<<8 | int(typeData[1])
-		val := es.getBytes(es.readInt(2))
+		val := es.GetBytes(es.ReadInt(2))
 		h.extensions = append(h.extensions, ja4Ext{typ: typ, typeData: typeData, value: val})
 	}
 	return h, nil
@@ -118,15 +121,15 @@ func alpnFingerprint(raw []byte) string {
 // parseHighestSupportedVersion reads the supported_versions extension value and
 // returns the highest non-GREASE version (or the single value in a Server Hello).
 func parseHighestSupportedVersion(b []byte) int {
-	s := newByteStream(b)
-	if s.length() == 2 {
-		return s.readInt(2)
+	s := bytestream.New(b)
+	if s.Length() == 2 {
+		return s.ReadInt(2)
 	}
-	i := s.readInt(1)
+	i := s.ReadInt(1)
 	highest := 0
-	for s.hasMore() && i > 0 {
+	for s.HasMore() && i > 0 {
 		i--
-		v := s.readInt(2)
+		v := s.ReadInt(2)
 		if greaseCipherSuites[v] {
 			continue
 		}
@@ -139,15 +142,15 @@ func parseHighestSupportedVersion(b []byte) int {
 
 // parseFirstALPNValue returns the first ALPN protocol value as raw bytes.
 func parseFirstALPNValue(b []byte) []byte {
-	s := newByteStream(b)
-	if s.readInt(2) < 2 {
+	s := bytestream.New(b)
+	if s.ReadInt(2) < 2 {
 		return nil
 	}
-	strLen := s.readInt(1)
+	strLen := s.ReadInt(1)
 	if strLen < 1 {
 		return nil
 	}
-	return s.getBytes(strLen)
+	return s.GetBytes(strLen)
 }
 
 func sha256Trunc12(s string) string {
@@ -224,7 +227,7 @@ func ja4Ciphers(h *ja4Hello) (cipherLen, sortedRaw, origRaw string) {
 	for _, cd := range h.cipherData {
 		v := int(cd[0])<<8 | int(cd[1])
 		if !greaseCipherSuites[v] {
-			origCiphers = append(origCiphers, toHexFast(cd))
+			origCiphers = append(origCiphers, hex.EncodeToString(cd))
 		}
 	}
 	cipherLen = pad2Count(len(origCiphers))
@@ -242,7 +245,7 @@ func ja4Extensions(h *ja4Hello) (extLen, sortedRaw, origRaw string) {
 	extCount := 0
 	for _, ext := range h.extensions {
 		if !greaseCipherSuites[ext.typ] {
-			origExts = append(origExts, toHexFast(ext.typeData))
+			origExts = append(origExts, hex.EncodeToString(ext.typeData))
 			extCount++
 		}
 		if ext.typ == 0x000d { // signature_algorithms
@@ -252,7 +255,7 @@ func ja4Extensions(h *ja4Hello) (extLen, sortedRaw, origRaw string) {
 			} else {
 				sa = nil
 			}
-			signatureAlgorithms = commaEvery4(toHexFast(sa))
+			signatureAlgorithms = commaEvery4(hex.EncodeToString(sa))
 		}
 	}
 	extLen = pad2Count(extCount)
@@ -293,10 +296,10 @@ func toJA4S(data []byte) (map[string]string, error) {
 
 	var extList []string
 	for _, ext := range h.extensions {
-		extList = append(extList, toHexFast(ext.typeData))
+		extList = append(extList, hex.EncodeToString(ext.typeData))
 	}
 	extRaw := strings.Join(extList, ",")
-	cipher := toHexFast(h.cipherSuite)
+	cipher := hex.EncodeToString(h.cipherSuite)
 	prefix := "t" + ver + pad2Count(len(h.extensions)) + alpn
 	return map[string]string{
 		"JA4S":   prefix + "_" + cipher + "_" + sha256Trunc12(extRaw),

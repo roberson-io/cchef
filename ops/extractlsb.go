@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -48,7 +49,7 @@ func (ExtractLSB) Args() []core.ArgDef {
 
 // Run extracts the chosen bits.
 func (ExtractLSB) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	img, _, err := decodeImageNRGBA(in.Bytes(), "Please enter a valid image file.")
+	img, _, err := jimp.Decode(in.Bytes(), "Please enter a valid image file.")
 	if err != nil {
 		return nil, err
 	}

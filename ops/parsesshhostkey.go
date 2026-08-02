@@ -2,6 +2,7 @@ package ops
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strings"
@@ -61,7 +62,7 @@ func sshParseKey(key []byte) []string {
 			break
 		}
 		end := min(4+decodedLength, len(key))
-		fields = append(fields, toHexFast(key[4:end]))
+		fields = append(fields, hex.EncodeToString(key[4:end]))
 		key = key[end:]
 	}
 	return fields

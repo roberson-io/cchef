@@ -8,6 +8,7 @@ import (
 	"github.com/antchfx/xpath"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/xmldom"
 )
 
 func init() {
@@ -57,8 +58,8 @@ func (XPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if err != nil {
 		return nil, xpathError(err.Error())
 	}
-	doc := parseXML(in.String())
-	result := expr.Evaluate(newXMLNav(doc, true))
+	doc := xmldom.Parse(in.String())
+	result := expr.Evaluate(xmldom.NewNav(doc, true))
 	iter, ok := result.(*xpath.NodeIterator)
 	if !ok {
 		return nil, xpathError("Cannot convert " + xpathResultType(result) + " to nodeset")
@@ -66,8 +67,8 @@ func (XPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var snaps []navSnap
 	for iter.MoveNext() {
-		if nav, ok := iter.Current().(*xmlNav); ok {
-			snaps = append(snaps, navSnap{nav.cur, nav.attr})
+		if nav, ok := iter.Current().(*xmldom.Nav); ok {
+			snaps = append(snaps, navSnap{nav.Cur, nav.AttrIndex})
 		}
 	}
 	snaps = orderNavSnaps(doc, snaps)
@@ -81,7 +82,7 @@ func (XPathExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 // navSnap captures a result node position: an element/text/comment/cdata node, or
 // (when attr >= 0) a specific attribute of that node.
 type navSnap struct {
-	node *xmlNode
+	node *xmldom.Node
 	attr int
 }
 
@@ -89,20 +90,20 @@ type navSnap struct {
 // as ` name="value"` (with the leading space), matching xmldom.
 func (s navSnap) serialize() string {
 	if s.attr != -1 {
-		a := s.node.attrs[s.attr]
-		return " " + a.name + `="` + escapeAttr(a.value) + `"`
+		a := s.node.Attrs[s.attr]
+		return " " + a.Name + `="` + xmldom.EscapeAttr(a.Value) + `"`
 	}
-	return xmlSerialize(s.node)
+	return xmldom.Serialize(s.node)
 }
 
 // orderNavSnaps deduplicates snapshots and returns them in document order (the
 // npm `xpath` library yields node-sets in document order; antchfx concatenates
 // union operands). Attributes sort after their owning element by attribute index.
-func orderNavSnaps(doc *xmlNode, snaps []navSnap) []navSnap {
+func orderNavSnaps(doc *xmldom.Node, snaps []navSnap) []navSnap {
 	if len(snaps) < 2 {
 		return snaps
 	}
-	index := buildDocIndex(doc)
+	index := xmldom.DocIndex(doc)
 	seen := map[navSnap]bool{}
 	out := make([]navSnap, 0, len(snaps))
 	for _, s := range snaps {

@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -46,18 +47,18 @@ func (ResizeImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	height := args[1].(float64)
 	percent := args[2].(string) == "Percent"
 	aspect := args[3].(bool)
-	mode := resizeStrategyNames[args[4].(string)]
+	mode := jimp.StrategyNames[args[4].(string)]
 
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		w, h := width, height
 		if percent {
 			w = float64(img.Rect.Dx()) * (width / 100)
 			h = float64(img.Rect.Dy()) * (height / 100)
 		}
 		if aspect {
-			return jimpScaleToFit(img, w, h, mode)
+			return jimp.ScaleToFit(img, w, h, mode)
 		}
-		return jimpResize(img, w, h, mode)
+		return jimp.Resize(img, w, h, mode)
 	})
 	if err != nil {
 		return nil, err

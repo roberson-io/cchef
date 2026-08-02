@@ -7,6 +7,8 @@ import (
 	"image/jpeg"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
+	"github.com/roberson-io/cchef/internal/qr"
 )
 
 func init() {
@@ -45,7 +47,7 @@ const qrReadJPEGQuality = 100
 func (ParseQRCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	normalise := args[0].(bool)
 
-	img, _, err := decodeImageNRGBA(in.Bytes(), "Invalid file type.")
+	img, _, err := jimp.Decode(in.Bytes(), "Invalid file type.")
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +69,7 @@ func (ParseQRCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// pixels a lossy round trip leaves behind.
 	flattened := qrFlattenThroughJPEG(img)
 
-	text, ok := qrRead(flattened.Pix, flattened.Bounds().Dx(), flattened.Bounds().Dy())
+	text, ok := qr.Read(flattened.Pix, flattened.Bounds().Dx(), flattened.Bounds().Dy())
 	if !ok {
 		return nil, errors.New("could not read a QR code from the image")
 	}
@@ -81,5 +83,5 @@ func qrFlattenThroughJPEG(img *image.NRGBA) *image.NRGBA {
 	var buf bytes.Buffer
 	_ = jpeg.Encode(&buf, img, &jpeg.Options{Quality: qrReadJPEGQuality})
 	decoded, _ := jpeg.Decode(&buf)
-	return toNRGBA(decoded)
+	return jimp.ToNRGBA(decoded)
 }

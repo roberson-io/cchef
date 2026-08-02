@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -44,7 +45,7 @@ func (ViewBitPlane) Args() []core.ArgDef {
 func (ViewBitPlane) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	channel := slices.Index(viewBitPlaneColours, args[0].(string))
 	bit := int(args[1].(float64))
-	out, err := imageTransformE(in.Bytes(), "Please enter a valid image file.", func(img *image.NRGBA) (*image.NRGBA, error) {
+	out, err := jimp.TransformE(in.Bytes(), "Please enter a valid image file.", func(img *image.NRGBA) (*image.NRGBA, error) {
 		if bit < 0 || bit > 7 {
 			return nil, errors.New("Error: Bit argument must be between 0 and 7") //nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		}

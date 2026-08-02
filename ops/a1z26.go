@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -98,7 +99,7 @@ func (A1Z26CipherDecode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		// The value uses parseInt(b, 10); a token with no leading digits is NaN,
 		// and chr(NaN + 96) yields a NUL byte.
-		v, ok := jsParseInt(b, 10)
+		v, ok := jsnum.ParseInt(b, 10)
 		if !ok {
 			latin1 = append(latin1, 0)
 			continue

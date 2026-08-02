@@ -5,6 +5,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -40,7 +41,7 @@ func (BlurImage) Args() []core.ArgDef {
 func (BlurImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	amount := args[0].(float64)
 	gaussian := args[1].(string) == "Gaussian"
-	out, err := imageTransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
+	out, err := jimp.TransformE(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) (*image.NRGBA, error) {
 		if gaussian {
 			jimpGaussian(img, amount)
 			return img, nil

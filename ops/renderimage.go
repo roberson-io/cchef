@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filesig"
 )
 
 func init() {
@@ -46,7 +47,7 @@ func (RenderImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	data := decodeImageInput(in, inputFormat)
 
-	if isImage(data) == "" {
+	if filesig.IsImage(data) == "" {
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return nil, errors.New("Invalid file type")
 	}

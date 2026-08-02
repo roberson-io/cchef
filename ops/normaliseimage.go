@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -30,7 +31,7 @@ func (NormaliseImage) Args() []core.ArgDef { return nil }
 
 // Run normalises the image.
 func (NormaliseImage) Run(in *core.Dish, _ []any) (*core.Dish, error) {
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		jimpNormalize(img)
 		return img
 	})

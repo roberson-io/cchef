@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/bytestream"
 )
 
 func init() {
@@ -42,38 +43,38 @@ func (JA3SFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	outputFormat := args[1].(string)
 
 	data := fingerprintBytes(in.String(), inputFormat)
-	s := newByteStream(data)
+	s := bytestream.New(data)
 
-	if s.readInt(1) != 0x16 {
+	if s.ReadInt(1) != 0x16 {
 		return nil, fingerprintError("not handshake data")
 	}
-	s.moveForwardsBy(2)
-	length := s.readInt(2)
-	if s.length() != length+5 {
+	s.MoveForwardsBy(2)
+	length := s.ReadInt(2)
+	if s.Length() != length+5 {
 		return nil, fingerprintError("incorrect handshake length")
 	}
-	if s.readInt(1) != 2 {
+	if s.ReadInt(1) != 2 {
 		return nil, fingerprintError("not a Server Hello")
 	}
-	handshakeLength := s.readInt(3)
-	if s.length() != handshakeLength+9 {
+	handshakeLength := s.ReadInt(3)
+	if s.Length() != handshakeLength+9 {
 		return nil, fingerprintError("not enough data in Server Hello")
 	}
-	helloVersion := s.readInt(2)
-	s.moveForwardsBy(32)
-	sessionIDLength := s.readInt(1)
-	s.moveForwardsBy(sessionIDLength)
+	helloVersion := s.ReadInt(2)
+	s.MoveForwardsBy(32)
+	sessionIDLength := s.ReadInt(1)
+	s.MoveForwardsBy(sessionIDLength)
 
-	cipherSuite := s.readInt(2)
-	s.moveForwardsBy(1) // compression method
+	cipherSuite := s.ReadInt(2)
+	s.MoveForwardsBy(1) // compression method
 
-	extensionsLength := s.readInt(2)
-	es := newByteStream(s.getBytes(extensionsLength))
+	extensionsLength := s.ReadInt(2)
+	es := bytestream.New(s.GetBytes(extensionsLength))
 	var exts []string
-	for es.hasMore() {
-		typ := es.readInt(2)
-		extLength := es.readInt(2)
-		es.moveForwardsBy(extLength)
+	for es.HasMore() {
+		typ := es.ReadInt(2)
+		extLength := es.ReadInt(2)
+		es.MoveForwardsBy(extLength)
 		exts = append(exts, strconv.Itoa(typ))
 	}
 

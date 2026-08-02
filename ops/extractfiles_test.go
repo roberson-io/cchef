@@ -7,13 +7,15 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filecarve"
+	"github.com/roberson-io/cchef/internal/filesig"
 )
 
 // extractFilesArgs returns the operation's arguments with every category asked
 // for, failed extractions ignored, and no size floor.
 func extractFilesArgs(minSize float64) []any {
-	args := make([]any, 0, len(fileSignatures)+2)
-	for range fileSignatures {
+	args := make([]any, 0, len(filesig.Signatures)+2)
+	for range filesig.Signatures {
 		args = append(args, true)
 	}
 	return append(args, true, minSize)
@@ -109,9 +111,9 @@ func TestExtractFilesCategories(t *testing.T) {
 	buf, _ := carveBlob(t, "sample.png", "sample.gz")
 
 	// Every category off but Images.
-	args := make([]any, 0, len(fileSignatures)+2)
-	for _, cat := range fileSignatures {
-		args = append(args, cat.name == "Images")
+	args := make([]any, 0, len(filesig.Signatures)+2)
+	for _, cat := range filesig.Signatures {
+		args = append(args, cat.Name == "Images")
 	}
 	args = append(args, true, 1.0)
 
@@ -186,17 +188,17 @@ func TestExtractFilesArgsMatchCategories(t *testing.T) {
 		t.Fatal("Extract Files is not registered")
 	}
 	args := op.Args()
-	if len(args) != len(fileSignatures)+2 {
-		t.Fatalf("%d arguments for %d categories", len(args), len(fileSignatures))
+	if len(args) != len(filesig.Signatures)+2 {
+		t.Fatalf("%d arguments for %d categories", len(args), len(filesig.Signatures))
 	}
-	for i, cat := range fileSignatures {
-		if args[i].Name != cat.name {
-			t.Errorf("argument %d is %q, want %q", i, args[i].Name, cat.name)
+	for i, cat := range filesig.Signatures {
+		if args[i].Name != cat.Name {
+			t.Errorf("argument %d is %q, want %q", i, args[i].Name, cat.Name)
 		}
 		// Every category is searched by default except the catch-all one.
-		want := cat.name != "Miscellaneous"
+		want := cat.Name != "Miscellaneous"
 		if args[i].Value != want {
-			t.Errorf("%s defaults to %v, want %v", cat.name, args[i].Value, want)
+			t.Errorf("%s defaults to %v, want %v", cat.Name, args[i].Value, want)
 		}
 	}
 }
@@ -242,10 +244,10 @@ func TestExtractFilesAdvertisedFormats(t *testing.T) {
 	// Every one of them must actually be carvable.
 	for _, ext := range got {
 		found := false
-		for _, cat := range fileSignatures {
-			for _, ft := range cat.types {
-				if strings.EqualFold(ft.extension, ext) && ft.carver != "" {
-					if _, ok := carvers[ft.carver]; ok {
+		for _, cat := range filesig.Signatures {
+			for _, ft := range cat.Types {
+				if strings.EqualFold(ft.Extension, ext) && ft.Carver != "" {
+					if filecarve.CanCarve(ft.Carver) {
 						found = true
 					}
 				}

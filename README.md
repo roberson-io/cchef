@@ -6,7 +6,7 @@
 
 **CyberChef on the command line.** `cchef` is a Go port of the data-transformation
 engine of [CyberChef](https://gchq.github.io/CyberChef/) — the "Cyber Swiss Army
-Knife" built for the terminal. The "Swiss Army Knife" analogy is apt. This tool is useful for lower stakes use cases but is not recommended for production or critical infrastructure purposes.
+Knife" built for the terminal. This tool is not recommended for production or critical infrastructure use cases.
 
 Every operation is a subcommand that reads input
 and writes output, so operations chain together through Unix pipes or as a single
@@ -199,37 +199,6 @@ to refresh it:
 - [`tools/magicgen`](tools/magicgen/) — the Magic operation's detection checks
   and language byte-frequency profiles.
 - [`tools/cpgen`](tools/cpgen/) — code page tables for the text encodings.
-
-### Dependencies
-
-`cchef` leans on the standard library, with a small set of direct dependencies:
-
-| Dependency | Used for |
-| --- | --- |
-| [`spf13/cobra`](https://github.com/spf13/cobra) | The CLI framework |
-| [`dlclark/regexp2`](https://github.com/dlclark/regexp2) | Backtracking regular expressions where RE2 cannot express a CyberChef pattern |
-| [`golang.org/x/crypto`](https://pkg.go.dev/golang.org/x/crypto) | Legacy-Keccak, bcrypt, scrypt, Argon2 and other hashers |
-| [`golang.org/x/text`](https://pkg.go.dev/golang.org/x/text) | Unicode normalization |
-| [`golang.org/x/image`](https://pkg.go.dev/golang.org/x/image) | BMP, TIFF and WEBP decoding for the image operations |
-| [`golang.org/x/arch`](https://pkg.go.dev/golang.org/x/arch) | ARM and ARM64 disassembly |
-| [`ProtonMail/go-crypto`](https://github.com/ProtonMail/go-crypto) | OpenPGP, interoperable with CyberChef's kbpgp |
-| [`golang-jwt/jwt`](https://github.com/golang-jwt/jwt) | JWT sign, verify and decode |
-| [`alecthomas/chroma`](https://github.com/alecthomas/chroma) | Syntax highlighting |
-| [`evanw/esbuild`](https://github.com/evanw/esbuild) | JavaScript parsing, beautifying and minifying |
-| [`yuin/goldmark`](https://github.com/yuin/goldmark) | Markdown rendering |
-| [`itchyny/gojq`](https://github.com/itchyny/gojq) | The jq operation |
-| [`recolabs/gnata`](https://github.com/RecoLabs/gnata) | The Jsonata Query operation |
-| [`antchfx/xpath`](https://github.com/antchfx/xpath) | XPath expressions |
-| [`go.yaml.in/yaml`](https://github.com/yaml/go-yaml) | YAML conversion |
-| [`google.golang.org/protobuf`](https://pkg.go.dev/google.golang.org/protobuf), [`bufbuild/protocompile`](https://github.com/bufbuild/protocompile) | Protobuf decoding |
-| [`ulikunitz/xz`](https://github.com/ulikunitz/xz) | The LZMA codec |
-| [`klaus-tockloth/coco`](https://github.com/klaus-tockloth/coco) | Coordinate formats and conversion |
-
-Ciphers, hashes, compression formats and file parsers are written from scratch
-rather than pulled in, so the binary stays self-contained and the behavior stays
-identical to CyberChef's. [PLAN.md](PLAN.md) records the rationale for each
-dependency, including what it drags in transitively, and which ones are candidates
-for replacement.
 
 ## Contributing
 

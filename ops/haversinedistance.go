@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // haversinePositions is the shape the input must take: four numbers separated
@@ -66,7 +67,7 @@ func (HaversineDistance) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	lng2, _ := strconv.ParseFloat(found[haversineLng2], 64)
 
 	metres := haversineMetres(lat1, lng1, lat2, lng2)
-	return core.NewDish([]byte(jsNum(metres)), core.TypeNumber), nil
+	return core.NewDish([]byte(jsnum.Format(metres)), core.TypeNumber), nil
 }
 
 // haversineMetres is the haversine formula: the square of half the chord

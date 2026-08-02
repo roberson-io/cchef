@@ -3,6 +3,9 @@ package ops
 import (
 	"math"
 	"strconv"
+
+	"github.com/roberson-io/cchef/internal/charts"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 // The charts CyberChef's Entropy operation draws, built with the same scales,
@@ -30,62 +33,62 @@ const (
 )
 
 // entropyChartRoot starts a chart, sized to fit whatever it is drawn into.
-func entropyChartRoot(viewBox int) *svgEl {
-	return newSVGEl("svg").
-		attr("width", "100%").
-		attr("height", "100%").
-		attr("viewBox", "0 0 "+strconv.Itoa(viewBox)+" "+strconv.Itoa(viewBox)).
-		attr("xmlns", svgNamespace)
+func entropyChartRoot(viewBox int) *charts.SVGEl {
+	return charts.NewSVGEl("svg").
+		Attr("width", "100%").
+		Attr("height", "100%").
+		Attr("viewBox", "0 0 "+strconv.Itoa(viewBox)+" "+strconv.Itoa(viewBox)).
+		Attr("xmlns", charts.SVGNamespace)
 }
 
 // entropyPlotScales are the scales a chart maps its values through.
-func entropyPlotScales(yDomain [2]float64, xDomain [2]float64, xLeft float64) (yScale, xScale linearScale) {
-	yScale = scaleLinear(yDomain, [2]float64{
+func entropyPlotScales(yDomain [2]float64, xDomain [2]float64, xLeft float64) (yScale, xScale charts.LinearScale) {
+	yScale = charts.ScaleLinear(yDomain, [2]float64{
 		entropyChartSide - entropyMarginBottom, entropyMarginTop,
 	})
-	xScale = scaleLinear(xDomain, [2]float64{xLeft, entropyChartSide - entropyMarginRight})
+	xScale = charts.ScaleLinear(xDomain, [2]float64{xLeft, entropyChartSide - entropyMarginRight})
 	return yScale, xScale
 }
 
 // entropyAxes draws the two axes, their labels and the chart's title.
-func entropyAxes(svg *svgEl, xScale, yScale linearScale, title, xTitle, yTitle string) {
-	renderAxis(
-		svg.append("g").attr("transform", "translate(0, "+
+func entropyAxes(svg *charts.SVGEl, xScale, yScale charts.LinearScale, title, xTitle, yTitle string) {
+	charts.RenderAxis(
+		svg.Append("g").Attr("transform", "translate(0, "+
 			strconv.Itoa(entropyChartSide-entropyMarginBottom)+")"),
-		linearAxis(xScale, axisBottom, entropyTickSizeOuter, entropyTickCount),
+		linearAxis(xScale, charts.AxisBottom, entropyTickSizeOuter, entropyTickCount),
 	)
-	renderAxis(
-		svg.append("g").attr("transform", "translate("+strconv.Itoa(entropyMarginLeft)+",0)"),
-		linearAxis(yScale, axisLeft, entropyTickSizeOuter, entropyTickCount),
+	charts.RenderAxis(
+		svg.Append("g").Attr("transform", "translate("+strconv.Itoa(entropyMarginLeft)+",0)"),
+		linearAxis(yScale, charts.AxisLeft, entropyTickSizeOuter, entropyTickCount),
 	)
 
-	svg.append("text").
-		style("text-anchor", "middle").
-		attr("transform", "rotate(-90)").
-		attr("y", strconv.Itoa(-entropyMarginLeft)).
-		attr("x", strconv.Itoa(-entropyChartSide/2)).
-		attr("dy", "1em").
-		text(yTitle)
+	svg.Append("text").
+		Style("text-anchor", "middle").
+		Attr("transform", "rotate(-90)").
+		Attr("y", strconv.Itoa(-entropyMarginLeft)).
+		Attr("x", strconv.Itoa(-entropyChartSide/2)).
+		Attr("dy", "1em").
+		Text(yTitle)
 
-	svg.append("text").
-		style("text-anchor", "middle").
-		attr("transform", "translate("+strconv.Itoa(entropyChartSide/2)+", "+
+	svg.Append("text").
+		Style("text-anchor", "middle").
+		Attr("transform", "translate("+strconv.Itoa(entropyChartSide/2)+", "+
 			strconv.Itoa(entropyChartSide-entropyMarginBottom+40)+")").
-		text(xTitle)
+		Text(xTitle)
 
-	svg.append("text").
-		style("text-anchor", "middle").
-		attr("transform", "translate("+strconv.Itoa(entropyChartSide/2)+", "+
+	svg.Append("text").
+		Style("text-anchor", "middle").
+		Attr("transform", "translate("+strconv.Itoa(entropyChartSide/2)+", "+
 			strconv.Itoa(entropyMarginTop-10)+")").
-		text(title)
+		Text(title)
 }
 
 // entropyCurvePoints maps values onto the plot, ready for the line to be drawn
 // through them.
-func entropyCurvePoints(values []float64, xScale, yScale linearScale) []d3Point {
-	points := make([]d3Point, len(values))
+func entropyCurvePoints(values []float64, xScale, yScale charts.LinearScale) []charts.Point {
+	points := make([]charts.Point, len(values))
 	for i, v := range values {
-		points[i] = d3Point{x: xScale.scale(float64(i)), y: yScale.scale(v)}
+		points[i] = charts.Point{X: xScale.Scale(float64(i)), Y: yScale.Scale(v)}
 	}
 	return points
 }
@@ -101,19 +104,19 @@ func entropyBarHistogram(freq []float64) string {
 	)
 
 	svg := entropyChartRoot(entropyChartSide)
-	base := yScale.scale(lowest)
+	base := yScale.Scale(lowest)
 	for value, share := range freq {
-		top := yScale.scale(share)
-		svg.append("rect").
-			attr("x", jsNumberString(xScale.scale(float64(value))+entropyBinWidth)).
-			attr("y", jsNumberString(top)).
-			attr("width", strconv.Itoa(entropyBinWidth)).
-			attr("height", jsNumberString(base-top)).
-			attr("fill", "blue")
+		top := yScale.Scale(share)
+		svg.Append("rect").
+			Attr("x", jsnum.String(xScale.Scale(float64(value))+entropyBinWidth)).
+			Attr("y", jsnum.String(top)).
+			Attr("width", strconv.Itoa(entropyBinWidth)).
+			Attr("height", jsnum.String(base-top)).
+			Attr("fill", "blue")
 	}
 
 	entropyAxes(svg, xScale, yScale, "", "Byte", "Byte Frequency")
-	return svg.render()
+	return svg.Render()
 }
 
 // entropyLineHistogram draws the same shares as a curve rather than bars.
@@ -125,13 +128,13 @@ func entropyLineHistogram(freq []float64) string {
 	)
 
 	svg := entropyChartRoot(entropyChartSide)
-	svg.append("path").
-		attr("fill", "none").
-		attr("stroke", "steelblue").
-		attr("d", d3LineMonotoneX(entropyCurvePoints(freq, xScale, yScale)))
+	svg.Append("path").
+		Attr("fill", "none").
+		Attr("stroke", "steelblue").
+		Attr("d", charts.LineMonotoneX(entropyCurvePoints(freq, xScale, yScale)))
 
 	entropyAxes(svg, xScale, yScale, "", "Byte", "Byte Frequency")
-	return svg.render()
+	return svg.Render()
 }
 
 // entropyScanningCurve draws the entropy of each block of the input in turn, so
@@ -147,32 +150,32 @@ func entropyScanningCurve(blocks []float64) string {
 	if len(blocks) > 0 {
 		// The line is drawn first and coloured afterwards, which is the order
 		// its attributes come out in.
-		svg.append("path").
-			attr("d", d3LineMonotoneX(entropyCurvePoints(blocks, xScale, yScale))).
-			attr("fill", "none").
-			attr("stroke", "steelblue")
+		svg.Append("path").
+			Attr("d", charts.LineMonotoneX(entropyCurvePoints(blocks, xScale, yScale))).
+			Attr("fill", "none").
+			Attr("stroke", "steelblue")
 	}
 
 	entropyAxes(svg, xScale, yScale, "Scanning Entropy", "Block", "Entropy")
-	return svg.render()
+	return svg.Render()
 }
 
 // entropyImage lays the blocks out in rows, each shaded from black at the
 // lowest entropy to white at the highest.
 func entropyImage(blocks []float64) string {
-	shade := interpolateRGB("#000000", "#FFFFFF")
-	scale := scaleLinear([2]float64{0, entropyMax(blocks)}, [2]float64{0, 1})
+	shade := charts.InterpolateRGB("#000000", "#FFFFFF")
+	scale := charts.ScaleLinear([2]float64{0, entropyMax(blocks)}, [2]float64{0, 1})
 
 	svg := entropyChartRoot(entropyImageSide)
 	for i, block := range blocks {
-		svg.append("rect").
-			style("fill", shade(scale.scale(block))).
-			attr("x", strconv.Itoa(i%entropyImageSide*entropyCellSize)).
-			attr("y", strconv.Itoa(i/entropyImageSide*entropyCellSize)).
-			attr("width", strconv.Itoa(entropyCellSize)).
-			attr("height", strconv.Itoa(entropyCellSize))
+		svg.Append("rect").
+			Style("fill", shade(scale.Scale(block))).
+			Attr("x", strconv.Itoa(i%entropyImageSide*entropyCellSize)).
+			Attr("y", strconv.Itoa(i/entropyImageSide*entropyCellSize)).
+			Attr("width", strconv.Itoa(entropyCellSize)).
+			Attr("height", strconv.Itoa(entropyCellSize))
 	}
-	return svg.render()
+	return svg.Render()
 }
 
 // entropyMax is the largest of the values, which is nothing at all where there

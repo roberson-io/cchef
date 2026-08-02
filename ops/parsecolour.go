@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -87,10 +88,10 @@ func (ParseColourCode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	kStr := strconv.FormatFloat(k, 'f', 2, 64)
 
 	hex := "#" + fmt.Sprintf("%02x", int(math.Round(r))) + fmt.Sprintf("%02x", int(math.Round(g))) + fmt.Sprintf("%02x", int(math.Round(b)))
-	rgb := fmt.Sprintf("rgb(%s, %s, %s)", jsNum(r), jsNum(g), jsNum(b))
-	rgba := fmt.Sprintf("rgba(%s, %s, %s, %s)", jsNum(r), jsNum(g), jsNum(b), jsNum(a))
+	rgb := fmt.Sprintf("rgb(%s, %s, %s)", jsnum.Format(r), jsnum.Format(g), jsnum.Format(b))
+	rgba := fmt.Sprintf("rgba(%s, %s, %s, %s)", jsnum.Format(r), jsnum.Format(g), jsnum.Format(b), jsnum.Format(a))
 	hsl := fmt.Sprintf("hsl(%d, %d%%, %d%%)", h, s, l)
-	hsla := fmt.Sprintf("hsla(%d, %d%%, %d%%, %s)", h, s, l, jsNum(a))
+	hsla := fmt.Sprintf("hsla(%d, %d%%, %d%%, %s)", h, s, l, jsnum.Format(a))
 	cmyk := fmt.Sprintf("cmyk(%s, %s, %s, %s)", c, mC, y, kStr)
 
 	out := fmt.Sprintf(`<div id="colorpicker" style="white-space: normal;"></div>

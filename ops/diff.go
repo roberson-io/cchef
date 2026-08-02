@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -201,13 +203,13 @@ func diffTokenizeSentences(s string) []string {
 			out = append(out, string(r[start:]))
 			break
 		}
-		if !diffEndsSentence(r[i]) || !mimeIsJSSpace(r[i+1]) {
+		if !diffEndsSentence(r[i]) || !jsnum.IsSpace(r[i+1]) {
 			continue
 		}
 		out = append(out, string(r[start:i+1]))
 		i++
 		start = i
-		for i+1 < len(r) && mimeIsJSSpace(r[i+1]) {
+		for i+1 < len(r) && jsnum.IsSpace(r[i+1]) {
 			i++
 		}
 		out = append(out, string(r[start:i+1]))
@@ -248,17 +250,17 @@ func diffJoinWords(tokens []string) string {
 
 // diffHasSpace reports whether s contains any whitespace at all.
 func diffHasSpace(s string) bool {
-	return strings.ContainsFunc(s, mimeIsJSSpace)
+	return strings.ContainsFunc(s, jsnum.IsSpace)
 }
 
 // diffLeadingWS returns the run of whitespace s starts with.
 func diffLeadingWS(s string) string {
-	return s[:len(s)-len(strings.TrimLeftFunc(s, mimeIsJSSpace))]
+	return s[:len(s)-len(strings.TrimLeftFunc(s, jsnum.IsSpace))]
 }
 
 // diffTrailingWS returns the run of whitespace s ends with.
 func diffTrailingWS(s string) string {
-	return s[len(strings.TrimRightFunc(s, mimeIsJSSpace)):]
+	return s[len(strings.TrimRightFunc(s, jsnum.IsSpace)):]
 }
 
 // diffLongestCommonPrefix returns the longest run of code points a and b both
@@ -596,14 +598,14 @@ func diffRender(changes []diffChange, showAdded, showRemoved, showSubtraction bo
 		switch {
 		case c.Added:
 			if showAdded {
-				b.WriteString("<ins>" + escapeHTML(c.Text) + "</ins>")
+				b.WriteString("<ins>" + opsutil.EscapeHTML(c.Text) + "</ins>")
 			}
 		case c.Removed:
 			if showRemoved {
-				b.WriteString("<del>" + escapeHTML(c.Text) + "</del>")
+				b.WriteString("<del>" + opsutil.EscapeHTML(c.Text) + "</del>")
 			}
 		case !showSubtraction:
-			b.WriteString(escapeHTML(c.Text))
+			b.WriteString(opsutil.EscapeHTML(c.Text))
 		}
 	}
 	return b.String()

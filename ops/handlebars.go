@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/roberson-io/cchef/internal/jsnum"
 	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
@@ -173,7 +174,7 @@ func hbFormat(v any, escape bool) string {
 	case bool:
 		s = strconv.FormatBool(value)
 	case float64:
-		s = jsNum(value)
+		s = jsnum.Format(value)
 	case []any:
 		parts := make([]string, len(value))
 		for i, item := range value {

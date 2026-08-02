@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -37,7 +38,7 @@ func (ImageOpacity) Args() []core.ArgDef {
 // Run adjusts the image opacity.
 func (ImageOpacity) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	f := args[0].(float64) / 100
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		jimpOpacity(img, f)
 		return img
 	})

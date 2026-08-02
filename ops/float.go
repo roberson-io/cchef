@@ -4,11 +4,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -128,7 +128,7 @@ func (FromFloat) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	floats := strings.Split(s, delim)
 	out := make([]byte, len(floats)*byteSize)
 	for i, tok := range floats {
-		f := jsParseFloat(tok)
+		f := jsnum.ParseFloat(tok)
 		buf := out[i*byteSize : i*byteSize+byteSize]
 		if byteSize == 4 {
 			order.PutUint32(buf, float32ToIEEEBits(f))
@@ -200,19 +200,6 @@ func floatToJS(f float64) string {
 
 // floatToken matches the numeric prefix that JavaScript's parseFloat would
 // consume (it stops at the first character that cannot extend the number).
-var floatToken = regexp.MustCompile(`^[+-]?(Infinity|\d+\.?\d*([eE][+-]?\d+)?|\.\d+([eE][+-]?\d+)?)`)
-
-// jsParseFloat mirrors JavaScript's parseFloat: skip leading whitespace, then
-// parse the longest valid numeric prefix, yielding NaN when none is present.
-func jsParseFloat(s string) float64 {
-	s = strings.TrimLeft(s, " \t\n\r\f\v")
-	m := floatToken.FindString(s)
-	if m == "" {
-		return math.NaN()
-	}
-	f, _ := strconv.ParseFloat(m, 64)
-	return f
-}
 
 // float32ToIEEEBits and float64ToIEEEBits encode a value like the `ieee754` npm
 // package CyberChef wraps. That library writes a quiet NaN as an all-ones

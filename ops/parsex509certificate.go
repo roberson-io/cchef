@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -370,10 +371,10 @@ func keyUsageIdentifiers(value string) []string {
 	if len(v) < 2 {
 		return out
 	}
-	unused, _ := jsParseInt(jsSubstr(v, 0, 2), 16)
+	unused, _ := jsnum.ParseInt(jsSubstr(v, 0, 2), 16)
 	var bits strings.Builder
 	for i := 2; i < len(v); i += 2 {
-		b, _ := jsParseInt(jsSubstr(v, i, 2), 16)
+		b, _ := jsnum.ParseInt(jsSubstr(v, i, 2), 16)
 		bits.WriteString(byteToBin(b))
 	}
 	bs := bits.String()

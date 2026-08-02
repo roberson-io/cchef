@@ -1,11 +1,13 @@
 package ops
 
 import (
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -66,15 +68,15 @@ func hexToBase64(hexStr string) string {
 	var sb strings.Builder
 	i := 0
 	for ; i+3 <= len(hexStr); i += 3 {
-		e := int(jsToInt32(jsParseHex(hexStr[i : i+3])))
+		e := int(jsToInt32(jsnum.ParseHex(hexStr[i : i+3])))
 		sb.WriteString(base64CharAt(e >> 6))
 		sb.WriteString(base64CharAt(e & 0x3f))
 	}
 	switch len(hexStr) - i {
 	case 1:
-		sb.WriteString(base64CharAt(int(jsToInt32(jsParseHex(hexStr[i:]))) << 2))
+		sb.WriteString(base64CharAt(int(jsToInt32(jsnum.ParseHex(hexStr[i:]))) << 2))
 	case 2:
-		e := int(jsToInt32(jsParseHex(hexStr[i:])))
+		e := int(jsToInt32(jsnum.ParseHex(hexStr[i:])))
 		sb.WriteString(base64CharAt(e >> 2))
 		sb.WriteString(base64CharAt((e & 3) << 4))
 	}
@@ -141,7 +143,7 @@ func (PEMToHex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		// fromBase64 only errors on an invalid alphabet or in strict mode; the
 		// alphabet is a fixed valid constant and strict is off, so it cannot fail.
 		bytes, _ := fromBase64(input[start:start+rel], "A-Za-z0-9+/=", true, false)
-		blocks = append(blocks, toHexFast(bytes))
+		blocks = append(blocks, hex.EncodeToString(bytes))
 	}
 	return core.NewDish([]byte(strings.Join(blocks, "\n")), core.TypeString), nil
 }

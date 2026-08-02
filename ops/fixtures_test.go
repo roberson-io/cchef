@@ -1,11 +1,44 @@
 package ops
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
 )
+
+// mustHex decodes a hex literal for tests that need exact bytes, which is most
+// of the binary-format ones.
+func mustHex(t *testing.T, s string) []byte {
+	t.Helper()
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		t.Fatalf("bad hex %q: %v", s, err)
+	}
+	return b
+}
+
+// carvePrefix and carveSuffix pad a sample so a carver has to find where the
+// file starts and where it ends rather than reading a whole buffer.
+var (
+	carvePrefix = append(bytes.Repeat([]byte{0x00}, 7), []byte("PREFIX--")...)
+	carveSuffix = append([]byte("--SUFFIX"), bytes.Repeat([]byte{0xee}, 9)...)
+)
+
+// readCarveSample reads one of the sample files the carving tests are built on.
+// They live with the carvers, which is what defines what a valid sample is.
+func readCarveSample(t *testing.T, name string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join("..", "internal", "filecarve", "testdata", "carve", name))
+	if err != nil {
+		t.Fatalf("reading the sample: %v", err)
+	}
+	return data
+}
 
 // derTLV builds a DER TLV (tag + length + value) from a tag byte and value, both
 // hex, using short-form or long-form length encoding as needed.

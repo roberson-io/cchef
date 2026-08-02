@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -234,7 +235,7 @@ func sqlScanNumber(s string, i int) int {
 	}
 	if strings.HasPrefix(strings.ToLower(s[j:]), "0x") {
 		j += 2
-		for j < n && isHexDigit(s[j]) {
+		for j < n && jsnum.IsHexDigit(s[j]) {
 			j++
 		}
 		return j
@@ -270,10 +271,6 @@ func sqlScanOperator(s string, i int) int {
 		}
 	}
 	return i + 1
-}
-
-func isHexDigit(c byte) bool {
-	return c >= '0' && c <= '9' || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
 
 // ===== keyword categories (MySQL, layout-relevant only; keywordCase is preserve) =====

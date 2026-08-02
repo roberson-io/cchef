@@ -604,37 +604,6 @@ func TestDisassembleX86Corpus(t *testing.T) {
 // The JavaScript shims the engine relies on have defensive branches the decoder
 // itself rarely reaches, so they are exercised directly.
 func TestX86JSShims(t *testing.T) {
-	t.Run("jsParseHex", func(t *testing.T) {
-		for _, c := range []struct {
-			in   string
-			want float64
-		}{
-			{"ff", 255},
-			{"  1a", 26},
-			{"-10", -16},
-			{"+10", 16},
-			{"12zz", 18}, // stops at the first non-hex digit
-			{"", math.NaN()},
-			{"zz", math.NaN()},
-			{"-", math.NaN()},
-			{strings.Repeat("f", 20), 1.2089258196146292e+24}, // wider than 64 bits
-		} {
-			got := jsParseHex(c.in)
-			if math.IsNaN(c.want) {
-				if !math.IsNaN(got) {
-					t.Errorf("jsParseHex(%q) = %v, want NaN", c.in, got)
-				}
-				continue
-			}
-			if got != c.want {
-				t.Errorf("jsParseHex(%q) = %v, want %v", c.in, got, c.want)
-			}
-		}
-		if got := jsParseHex("-" + strings.Repeat("f", 20)); got >= 0 {
-			t.Errorf("jsParseHex of a wide negative = %v, want a negative value", got)
-		}
-	})
-
 	t.Run("jsHex16", func(t *testing.T) {
 		for _, c := range []struct {
 			in   float64

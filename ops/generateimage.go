@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -79,7 +80,7 @@ func (GenerateImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	}
 
 	if scale != 1 {
-		img = jimpScaleToFit(img, float64(width*scale), float64(height*scale), "nearestNeighbor")
+		img = jimp.ScaleToFit(img, float64(width*scale), float64(height*scale), "nearestNeighbor")
 	}
 
 	var buf bytes.Buffer

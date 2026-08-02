@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -35,7 +36,7 @@ func (ImageFilter) Args() []core.ArgDef {
 // Run applies the selected filter.
 func (ImageFilter) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	greyscale := args[0].(string) == "Greyscale"
-	out, err := imageTransform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid file type.", func(img *image.NRGBA) *image.NRGBA {
 		if greyscale {
 			jimpGreyscale(img)
 		} else {

@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -75,12 +76,12 @@ func (FuzzyMatch) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for _, m := range matches {
 		for i, r := range calcMatchRanges(m.idxs) {
 			start, length := r[0], r[1]
-			b.WriteString(escapeHTML(string(input[pos:start])))
+			b.WriteString(opsutil.EscapeHTML(string(input[pos:start])))
 			if i == 0 {
 				b.WriteString(`<span class="` + hlClass + `">`)
 			}
 			pos = start + length
-			b.WriteString("<b>" + escapeHTML(string(input[start:pos])) + "</b>")
+			b.WriteString("<b>" + opsutil.EscapeHTML(string(input[start:pos])) + "</b>")
 		}
 		b.WriteString("</span>")
 		if hlClass == "hl1" {
@@ -89,7 +90,7 @@ func (FuzzyMatch) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			hlClass = "hl1"
 		}
 	}
-	b.WriteString(escapeHTML(string(input[pos:])))
+	b.WriteString(opsutil.EscapeHTML(string(input[pos:])))
 	return core.NewDish([]byte(b.String()), core.TypeString), nil
 }
 

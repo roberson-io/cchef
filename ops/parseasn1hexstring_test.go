@@ -202,20 +202,6 @@ func TestParseASN1HexStringHelpers(t *testing.T) {
 	if got := jsSubstrFrom("abc", 10); got != "" {
 		t.Errorf("jsSubstrFrom start past end: %q", got)
 	}
-	// jsParseInt: leading whitespace, sign, upper-case hex, and no-digit (NaN).
-	if v, ok := jsParseInt("  -1f", 16); !ok || v != -31 {
-		t.Errorf("jsParseInt signed hex: %d %v", v, ok)
-	}
-	if v, ok := jsParseInt("FF", 16); !ok || v != 255 {
-		t.Errorf("jsParseInt upper-case hex: %d %v", v, ok)
-	}
-	if _, ok := jsParseInt("xyz", 16); ok {
-		t.Error("jsParseInt no digits should be NaN")
-	}
-	// digitVal: upper-case and invalid.
-	if digitVal('A') != 10 || digitVal('z') != -1 {
-		t.Error("digitVal upper/invalid")
-	}
 	// isHexString: valid, odd length, non-hex.
 	if !isHexString("00ab") || isHexString("abc") || isHexString("zz") {
 		t.Error("isHexString")

@@ -3,6 +3,8 @@ package ops
 import (
 	"image"
 	"math"
+
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 // Blur kernels ported byte-for-byte from @jimp/plugin-blur (the Superfast Blur
@@ -96,7 +98,7 @@ func jimpBlurFast(img *image.NRGBA, r int) {
 // Jimp's `limit255((sum * mul) >>> shg)` (an unsigned 32-bit shift).
 func blurSample(sum, mul int64, shg uint) byte {
 	// #nosec G115 -- ToUint32 of the product then a 0-255 limit; both intentional
-	return byte(limit255(int(uint32(sum*mul) >> shg)))
+	return byte(jimp.Limit255(int(uint32(sum*mul) >> shg)))
 }
 
 // posOrZero returns v if positive, else 0 (Jimp's `p > 0 ? p : 0`).

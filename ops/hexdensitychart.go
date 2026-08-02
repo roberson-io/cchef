@@ -2,6 +2,8 @@ package ops
 
 import (
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/charts"
+	"github.com/roberson-io/cchef/internal/jsnum"
 )
 
 func init() {
@@ -26,16 +28,16 @@ func (HexDensityChart) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (HexDensityChart) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Record delimiter", Type: core.ArgOption, Value: recordDelimiterOptions},
-		{Name: "Field delimiter", Type: core.ArgOption, Value: fieldDelimiterOptions},
+		{Name: "Record delimiter", Type: core.ArgOption, Value: charts.RecordDelimiterOptions},
+		{Name: "Field delimiter", Type: core.ArgOption, Value: charts.FieldDelimiterOptions},
 		{Name: "Pack radius", Type: core.ArgNumber, Value: float64(25)},
 		{Name: "Draw radius", Type: core.ArgNumber, Value: float64(15)},
 		{Name: "Use column headers as labels", Type: core.ArgBoolean, Value: true},
 		{Name: "X label", Type: core.ArgString, Value: ""},
 		{Name: "Y label", Type: core.ArgString, Value: ""},
 		{Name: "Draw hexagon edges", Type: core.ArgBoolean, Value: false},
-		{Name: "Min colour value", Type: core.ArgString, Value: colourMin},
-		{Name: "Max colour value", Type: core.ArgString, Value: colourMax},
+		{Name: "Min colour value", Type: core.ArgString, Value: charts.ColourMin},
+		{Name: "Max colour value", Type: core.ArgString, Value: charts.ColourMax},
 		{Name: "Draw empty hexagons within data boundaries", Flag: "draw-empty-hexagons", Type: core.ArgBoolean, Value: false},
 	}
 }
@@ -51,7 +53,7 @@ func (HexDensityChart) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	minColour, maxColour := args[8].(string), args[9].(string)
 	drawEmpty := args[10].(bool)
 
-	headings, values, err := getScatterValues(in.String(), recordDelimiter, fieldDelimiter, headingsIncluded)
+	headings, values, err := charts.GetScatterValues(in.String(), recordDelimiter, fieldDelimiter, headingsIncluded)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +66,7 @@ func (HexDensityChart) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		xLabel: xLabel, yLabel: yLabel, drawEdges: drawEdges,
 		minColour: minColour, maxColour: maxColour, drawEmpty: drawEmpty,
 	})
-	return core.NewDish([]byte(svg.render()), core.TypeString), nil
+	return core.NewDish([]byte(svg.Render()), core.TypeString), nil
 }
 
 // hexDensityOptions are the presentation choices for the hex density chart.
@@ -77,115 +79,115 @@ type hexDensityOptions struct {
 }
 
 // hexDensitySVG builds the chart.
-func hexDensitySVG(values []scatterPoint, opt hexDensityOptions) *svgEl {
+func hexDensitySVG(values []charts.ScatterPoint, opt hexDensityOptions) *charts.SVGEl {
 	width := chartDimension - scatterMargin.left - scatterMargin.right
 	height := chartDimension - scatterMargin.top - scatterMargin.bottom
 
-	layout := newHexbin(opt.packRadius)
-	bins := layout.bin(values)
+	layout := charts.NewHexbin(opt.packRadius)
+	bins := layout.Bin(values)
 
 	maxCount := 0
 	centresX := make([]float64, len(bins))
 	centresY := make([]float64, len(bins))
 	for i, bin := range bins {
-		maxCount = max(maxCount, len(bin.points))
-		centresX[i], centresY[i] = bin.x, bin.y
+		maxCount = max(maxCount, len(bin.Points))
+		centresX[i], centresY[i] = bin.X, bin.Y
 	}
 
 	// The axes are widened past the hexagon centres so whole hexagons fit.
-	xExtent := chartExtent(centresX)
-	yExtent := chartExtent(centresY)
+	xExtent := charts.Extent(centresX)
+	yExtent := charts.Extent(centresY)
 	xExtent[0] -= 2 * opt.packRadius
 	xExtent[1] += 3 * opt.packRadius
 	yExtent[0] -= 2 * opt.packRadius
 	yExtent[1] += 2 * opt.packRadius
 
-	xScale := scaleLinear(xExtent, [2]float64{0, width})
-	yScale := scaleLinear(yExtent, [2]float64{height, 0})
+	xScale := charts.ScaleLinear(xExtent, [2]float64{0, width})
+	yScale := charts.ScaleLinear(yExtent, [2]float64{height, 0})
 	colour := sequentialColour(opt.minColour, opt.maxColour, float64(maxCount))
-	hexagon := layout.hexagonPath(opt.drawRadius)
+	hexagon := layout.HexagonPath(opt.drawRadius)
 
 	stroke, strokeWidth := "none", "none"
 	if opt.drawEdges {
 		stroke, strokeWidth = "black", "0.5"
 	}
 
-	svg := newSVGEl("svg").
-		attr("width", "100%").
-		attr("height", "100%").
-		attr("viewBox", "0 0 "+jsNum(chartDimension)+" "+jsNum(chartDimension)).
-		attr("xmlns", svgNamespace)
+	svg := charts.NewSVGEl("svg").
+		Attr("width", "100%").
+		Attr("height", "100%").
+		Attr("viewBox", "0 0 "+jsnum.Format(chartDimension)+" "+jsnum.Format(chartDimension)).
+		Attr("xmlns", charts.SVGNamespace)
 
-	marginedSpace := svg.append("g").attr("transform",
-		"translate("+jsNum(scatterMargin.left)+","+jsNum(scatterMargin.top)+")")
-	marginedSpace.append("clipPath").attr("id", "clip").
-		append("rect").attr("width", jsNum(width)).attr("height", jsNum(height))
+	marginedSpace := svg.Append("g").Attr("transform",
+		"translate("+jsnum.Format(scatterMargin.left)+","+jsnum.Format(scatterMargin.top)+")")
+	marginedSpace.Append("clipPath").Attr("id", "clip").
+		Append("rect").Attr("width", jsnum.Format(width)).Attr("height", jsnum.Format(height))
 
 	if opt.drawEmpty {
-		empties := marginedSpace.append("g").class("empty-hexagon")
+		empties := marginedSpace.Append("g").Class("empty-hexagon")
 		for _, centre := range emptyHexagons(centresX, centresY, opt.packRadius) {
-			path := empties.append("path").
-				attr("d", "M"+jsNum(xScale.scale(centre.x))+","+jsNum(yScale.scale(centre.y))+" "+hexagon).
-				attr("fill", colour(0)).
-				attr("stroke", stroke).
-				attr("stroke-width", strokeWidth)
-			path.append("title").text("Count: 0\nPercentage: 0.00%\nCenter: " +
-				formatFixed2(centre.x) + ", " + formatFixed2(centre.y) + "\n")
+			path := empties.Append("path").
+				Attr("d", "M"+jsnum.Format(xScale.Scale(centre.x))+","+jsnum.Format(yScale.Scale(centre.y))+" "+hexagon).
+				Attr("fill", colour(0)).
+				Attr("stroke", stroke).
+				Attr("stroke-width", strokeWidth)
+			path.Append("title").Text("Count: 0\nPercentage: 0.00%\nCenter: " +
+				charts.FormatFixed2(centre.x) + ", " + charts.FormatFixed2(centre.y) + "\n")
 		}
 	}
 
-	hexagons := marginedSpace.append("g").class("hexagon").attr("clip-path", "url(#clip)")
+	hexagons := marginedSpace.Append("g").Class("hexagon").Attr("clip-path", "url(#clip)")
 	for _, bin := range bins {
-		path := hexagons.append("path").
-			attr("d", "M"+jsNum(xScale.scale(bin.x))+","+jsNum(yScale.scale(bin.y))+" "+hexagon).
-			attr("fill", colour(float64(len(bin.points)))).
-			attr("stroke", stroke).
-			attr("stroke-width", strokeWidth)
-		path.append("title").text(hexBinTooltip(bin, len(values)))
+		path := hexagons.Append("path").
+			Attr("d", "M"+jsnum.Format(xScale.Scale(bin.X))+","+jsnum.Format(yScale.Scale(bin.Y))+" "+hexagon).
+			Attr("fill", colour(float64(len(bin.Points)))).
+			Attr("stroke", stroke).
+			Attr("stroke-width", strokeWidth)
+		path.Append("title").Text(hexBinTooltip(bin, len(values)))
 	}
 
-	yAxisGroup := marginedSpace.append("g").class("axis axis--y")
-	renderAxis(yAxisGroup, linearAxis(yScale, axisLeft, -width, defaultTickCount))
+	yAxisGroup := marginedSpace.Append("g").Class("axis axis--y")
+	charts.RenderAxis(yAxisGroup, linearAxis(yScale, charts.AxisLeft, -width, defaultTickCount))
 
-	svg.append("text").
-		attr("transform", "rotate(-90)").
-		attr("y", jsNum(-scatterMargin.left)).
-		attr("x", jsNum(-(height/2))).
-		attr("dy", "1em").
-		style("text-anchor", "middle").
-		text(opt.yLabel)
+	svg.Append("text").
+		Attr("transform", "rotate(-90)").
+		Attr("y", jsnum.Format(-scatterMargin.left)).
+		Attr("x", jsnum.Format(-(height/2))).
+		Attr("dy", "1em").
+		Style("text-anchor", "middle").
+		Text(opt.yLabel)
 
-	xAxisGroup := marginedSpace.append("g").class("axis axis--x").
-		attr("transform", "translate(0,"+jsNum(height)+")")
-	renderAxis(xAxisGroup, linearAxis(xScale, axisBottom, -height, defaultTickCount))
+	xAxisGroup := marginedSpace.Append("g").Class("axis axis--x").
+		Attr("transform", "translate(0,"+jsnum.Format(height)+")")
+	charts.RenderAxis(xAxisGroup, linearAxis(xScale, charts.AxisBottom, -height, defaultTickCount))
 
-	svg.append("text").
-		attr("x", jsNum(width/2)).
-		attr("y", jsNum(chartDimension)).
-		style("text-anchor", "middle").
-		text(opt.xLabel)
+	svg.Append("text").
+		Attr("x", jsnum.Format(width/2)).
+		Attr("y", jsnum.Format(chartDimension)).
+		Style("text-anchor", "middle").
+		Text(opt.xLabel)
 
 	return svg
 }
 
 // hexBinTooltip is the hover text for one hexagon: its count and the bounds of
 // the points it holds.
-func hexBinTooltip(bin hexBin, total int) string {
-	xs := make([]float64, len(bin.points))
-	ys := make([]float64, len(bin.points))
-	for i, p := range bin.points {
-		xs[i], ys[i] = p.x, p.y
+func hexBinTooltip(bin charts.HexBin, total int) string {
+	xs := make([]float64, len(bin.Points))
+	ys := make([]float64, len(bin.Points))
+	for i, p := range bin.Points {
+		xs[i], ys[i] = p.X, p.Y
 	}
-	xBounds, yBounds := chartExtent(xs), chartExtent(ys)
-	percentage := 100.0 * float64(len(bin.points)) / float64(total)
+	xBounds, yBounds := charts.Extent(xs), charts.Extent(ys)
+	percentage := 100.0 * float64(len(bin.Points)) / float64(total)
 
-	return "Count: " + jsNum(float64(len(bin.points))) + "\n" +
-		"Percentage: " + formatFixed2(percentage) + "%\n" +
-		"Center: " + formatFixed2(bin.x) + ", " + formatFixed2(bin.y) + "\n" +
-		"Min X: " + formatFixed2(xBounds[0]) + "\n" +
-		"Max X: " + formatFixed2(xBounds[1]) + "\n" +
-		"Min Y: " + formatFixed2(yBounds[0]) + "\n" +
-		"Max Y: " + formatFixed2(yBounds[1]) + "\n"
+	return "Count: " + jsnum.Format(float64(len(bin.Points))) + "\n" +
+		"Percentage: " + charts.FormatFixed2(percentage) + "%\n" +
+		"Center: " + charts.FormatFixed2(bin.X) + ", " + charts.FormatFixed2(bin.Y) + "\n" +
+		"Min X: " + charts.FormatFixed2(xBounds[0]) + "\n" +
+		"Max X: " + charts.FormatFixed2(xBounds[1]) + "\n" +
+		"Min Y: " + charts.FormatFixed2(yBounds[0]) + "\n" +
+		"Max Y: " + charts.FormatFixed2(yBounds[1]) + "\n"
 }
 
 // hexCentre is the middle of a hexagon with no points in it.
@@ -202,7 +204,7 @@ const (
 // emptyHexagons tiles the area the data spans with hexagon centres, so cells
 // holding no points can still be outlined.
 func emptyHexagons(centresX, centresY []float64, radius float64) []hexCentre {
-	xBounds, yBounds := chartExtent(centresX), chartExtent(centresY)
+	xBounds, yBounds := charts.Extent(centresX), charts.Extent(centresY)
 	centreToEdge := hexHalfAngleCos * radius
 	edgeLength := hexHalfAngleSin * radius
 

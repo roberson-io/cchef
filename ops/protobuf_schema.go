@@ -11,6 +11,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // protobufCompileSchema compiles .proto text and returns the first top-level
@@ -38,14 +40,14 @@ func protobufCompileSchema(schema string) (protoreflect.MessageDescriptor, error
 // protobufSchemaDecode decodes protobuf data against a .proto schema, mirroring
 // protobufjs toObject conventions (bytes as strings, longs as numbers, enums as
 // names, defaults included). Ported from lib/Protobuf.mjs mergeDecodes.
-func protobufSchemaDecode(data []byte, raw *omap, schema string, showUnknown, showTypes bool) ([]byte, error) {
+func protobufSchemaDecode(data []byte, raw *jsonval.OMap, schema string, showUnknown, showTypes bool) ([]byte, error) {
 	md, err := protobufCompileSchema(schema)
 	if err != nil {
 		return nil, err
 	}
 	if md == nil {
 		// Valid schema with no message defined: fall back to the raw decode.
-		return jsonNoEscape(raw)
+		return jsonval.MarshalNoEscape(raw)
 	}
 	msg := dynamicpb.NewMessage(md)
 	if err := proto.Unmarshal(data, msg); err != nil {
@@ -54,17 +56,17 @@ func protobufSchemaDecode(data []byte, raw *omap, schema string, showUnknown, sh
 	decoded := protobufMessageToObject(msg, showTypes)
 
 	if !showUnknown {
-		return jsonNoEscape(decoded)
+		return jsonval.MarshalNoEscape(decoded)
 	}
-	out := newOMap()
-	out.set(string(md.Name()), decoded)
-	out.set("Unknown Fields", protobufCompareFields(raw, md))
-	return jsonNoEscape(out)
+	out := jsonval.NewOMap()
+	out.Set(string(md.Name()), decoded)
+	out.Set("Unknown Fields", protobufCompareFields(raw, md))
+	return jsonval.MarshalNoEscape(out)
 }
 
 // protobufMessageToObject converts a decoded message to an ordered map, listing
 // repeated/map fields first then singular fields (protobufjs toObject order).
-func protobufMessageToObject(msg protoreflect.Message, showTypes bool) *omap {
+func protobufMessageToObject(msg protoreflect.Message, showTypes bool) *jsonval.OMap {
 	fields := msg.Descriptor().Fields()
 	var listFields, singularFields []protoreflect.FieldDescriptor
 	for i := 0; i < fields.Len(); i++ {
@@ -76,13 +78,13 @@ func protobufMessageToObject(msg protoreflect.Message, showTypes bool) *omap {
 		}
 	}
 
-	out := newOMap()
+	out := jsonval.NewOMap()
 	for _, fd := range append(listFields, singularFields...) {
 		name := string(fd.Name())
 		if showTypes {
 			name = fmt.Sprintf("%s (%s)", name, protobufFieldTypeName(fd))
 		}
-		out.set(name, protobufFieldValue(msg, fd, showTypes))
+		out.Set(name, protobufFieldValue(msg, fd, showTypes))
 	}
 	return out
 }
@@ -99,9 +101,9 @@ func protobufFieldValue(msg protoreflect.Message, fd protoreflect.FieldDescripto
 		return arr
 	case fd.IsMap():
 		m := msg.Get(fd).Map()
-		obj := newOMap()
+		obj := jsonval.NewOMap()
 		m.Range(func(k protoreflect.MapKey, v protoreflect.Value) bool {
-			obj.set(k.Value().String(), protobufScalar(fd.MapValue(), v, showTypes))
+			obj.Set(k.Value().String(), protobufScalar(fd.MapValue(), v, showTypes))
 			return true
 		})
 		return obj
@@ -163,7 +165,7 @@ func protobufExtractFieldID(key string) (int, bool) {
 // protobufCompareFields returns the raw-decode fields not represented in the
 // schema, plus annotations for repeated/submessage mismatches. Ported from
 // Protobuf.compareFields.
-func protobufCompareFields(raw *omap, md protoreflect.MessageDescriptor) *omap {
+func protobufCompareFields(raw *jsonval.OMap, md protoreflect.MessageDescriptor) *jsonval.OMap {
 	schemaByID := map[int]protoreflect.FieldDescriptor{}
 	fields := md.Fields()
 	for i := 0; i < fields.Len(); i++ {
@@ -171,35 +173,35 @@ func protobufCompareFields(raw *omap, md protoreflect.MessageDescriptor) *omap {
 		schemaByID[int(fd.Number())] = fd
 	}
 
-	out := newOMap()
-	for _, key := range raw.keys {
-		value := raw.vals[key]
+	out := jsonval.NewOMap()
+	for _, key := range raw.Keys() {
+		value := raw.Value(key)
 		id, ok := protobufExtractFieldID(key)
 		fd, known := schemaByID[id]
 		if !ok || !known {
-			out.set(key, value)
+			out.Set(key, value)
 			continue
 		}
 
 		arr, isArr := value.([]any)
 		if isArr && !fd.IsList() {
-			out.set(fmt.Sprintf("(%s) %s is a repeated field", md.Name(), fd.Name()), value)
+			out.Set(fmt.Sprintf("(%s) %s is a repeated field", md.Name(), fd.Name()), value)
 		}
 		if fd.Kind() == protoreflect.MessageKind || fd.Kind() == protoreflect.GroupKind {
-			sub := newOMap()
+			sub := jsonval.NewOMap()
 			if isArr {
 				for _, inst := range arr {
-					if instOmap, ok := inst.(*omap); ok {
-						for _, k := range instOmap.keys {
-							sub.set(k, instOmap.vals[k])
+					if instOmap, ok := inst.(*jsonval.OMap); ok {
+						for _, k := range instOmap.Keys() {
+							sub.Set(k, instOmap.Value(k))
 						}
 					}
 				}
-			} else if v, ok := value.(*omap); ok {
+			} else if v, ok := value.(*jsonval.OMap); ok {
 				sub = v
 			}
-			if subCompared := protobufCompareFields(sub, fd.Message()); len(subCompared.keys) != 0 {
-				out.set(fmt.Sprintf("%s (%s) has missing fields", fd.Name(), fd.Message().Name()), subCompared)
+			if subCompared := protobufCompareFields(sub, fd.Message()); len(subCompared.Keys()) != 0 {
+				out.Set(fmt.Sprintf("%s (%s) has missing fields", fd.Name(), fd.Message().Name()), subCompared)
 			}
 		}
 	}

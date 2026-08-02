@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/filecarve"
 )
 
 // tarGolden is one case from testdata/tar.jsonl: a filename, the data packed
@@ -136,7 +137,7 @@ func TestTarGoldens(t *testing.T) {
 // the archive ending mid-block. Go's own tar reader refuses such an archive.
 func TestTarPadsToWholeBlocks(t *testing.T) {
 	for _, g := range readJSONL[tarGolden](t, "testdata/tar.jsonl") {
-		if g.CyberChefLen%tarBlockSize == 0 {
+		if g.CyberChefLen%filecarve.TarBlockSize == 0 {
 			continue
 		}
 		t.Run(g.Name, func(t *testing.T) {
@@ -144,7 +145,7 @@ func TestTarPadsToWholeBlocks(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Tar: %v", err)
 			}
-			if len(out)%tarBlockSize != 0 {
+			if len(out)%filecarve.TarBlockSize != 0 {
 				t.Errorf("archive is %d bytes, which is not whole blocks", len(out))
 			}
 			if _, err := tar.NewReader(strings.NewReader(out)).Next(); err != nil {
@@ -162,7 +163,7 @@ func TestTarChecksumIsCorrect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Tar: %v", err)
 	}
-	header := []byte(out[:tarBlockSize])
+	header := []byte(out[:filecarve.TarBlockSize])
 
 	want := 0
 	for i, b := range header {
@@ -332,7 +333,7 @@ func TestTarHeaderFieldBounds(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tarHeader: %v", err)
 	}
-	size := strings.TrimRight(string(header[tarSizeOffset:tarSizeOffset+tarSizeWidth+1]), "\x00")
+	size := strings.TrimRight(string(header[filecarve.TarSizeOffset:filecarve.TarSizeOffset+filecarve.TarSizeWidth+1]), "\x00")
 	if size != "40000000000" {
 		t.Errorf("size field is %q, want %q", size, "40000000000")
 	}
@@ -351,7 +352,7 @@ func TestUntarRejectsATruncatedFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Tar: %v", err)
 	}
-	if _, err := runFileListOp(t, "Untar", archive[:tarBlockSize+8]); err == nil {
+	if _, err := runFileListOp(t, "Untar", archive[:filecarve.TarBlockSize+8]); err == nil {
 		t.Fatal("read an archive that stops partway through its file")
 	}
 }

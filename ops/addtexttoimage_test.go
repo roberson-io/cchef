@@ -75,16 +75,3 @@ func TestDrawTextOnImageUnknownFace(t *testing.T) {
 		t.Error("expected an error for an unknown font face")
 	}
 }
-
-// jsRound must round a negative half towards positive infinity, as JavaScript
-// does; Go's math.Round would give -1 here.
-func TestJSRound(t *testing.T) {
-	for _, tc := range []struct {
-		in   float64
-		want int
-	}{{-0.5, 0}, {-1.5, -1}, {0.5, 1}, {1.4, 1}, {2.5, 3}} {
-		if got := jsRound(tc.in); got != tc.want {
-			t.Errorf("jsRound(%v) = %d, want %d", tc.in, got, tc.want)
-		}
-	}
-}

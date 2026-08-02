@@ -8,6 +8,7 @@ import (
 	"github.com/recolabs/gnata"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // JsonataQuery reshapes a JSON document with a JSONata expression.
@@ -53,7 +54,7 @@ func (JsonataQuery) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if result == nil {
 		result = ""
 	}
-	encoded, err := jsonNoEscape(result)
+	encoded, err := jsonval.MarshalNoEscape(result)
 	if err != nil {
 		return nil, err
 	}

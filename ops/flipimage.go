@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jimp"
 )
 
 func init() {
@@ -35,7 +36,7 @@ func (FlipImage) Args() []core.ArgDef {
 // Run flips the image.
 func (FlipImage) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	axis := args[0].(string)
-	out, err := imageTransform(in.Bytes(), "Invalid input file type.", func(img *image.NRGBA) *image.NRGBA {
+	out, err := jimp.Transform(in.Bytes(), "Invalid input file type.", func(img *image.NRGBA) *image.NRGBA {
 		return jimpFlip(img, axis == "Horizontal", axis == "Vertical")
 	})
 	if err != nil {

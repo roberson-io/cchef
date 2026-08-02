@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/jsonval"
 )
 
 // The layout of an ID3 tag, in bytes.
@@ -58,19 +59,19 @@ func (ExtractID3) Run(in *core.Dish, _ []any) (*core.Dish, error) {
 	}
 
 	major := int(data[3])
-	out := newOMap().
-		set("Type", "ID3").
-		set("Version", fmt.Sprintf("%d.%d", major, data[4])).
-		set("Flags", strconv.Itoa(int(data[5]))).
-		set("Size", strconv.Itoa(id3SyncSafe(data[6:id3HeaderWidth])))
+	out := jsonval.NewOMap().
+		Set("Type", "ID3").
+		Set("Version", fmt.Sprintf("%d.%d", major, data[4])).
+		Set("Flags", strconv.Itoa(int(data[5]))).
+		Set("Size", strconv.Itoa(id3SyncSafe(data[6:id3HeaderWidth])))
 
 	tags, err := id3ReadFrames(data, major)
 	if err != nil {
 		return nil, err
 	}
-	out.set("Tags", tags)
+	out.Set("Tags", tags)
 
-	encoded, err := marshalOMap(out)
+	encoded, err := jsonval.MarshalOMap(out)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +102,8 @@ func id3Plain(b []byte) int {
 
 // id3ReadFrames walks the frames of the tag, which run from the end of the
 // header to the length the header gives.
-func id3ReadFrames(data []byte, major int) (*omap, error) {
-	tags := newOMap()
+func id3ReadFrames(data []byte, major int) (*jsonval.OMap, error) {
+	tags := jsonval.NewOMap()
 	tagSize := id3SyncSafe(data[6:id3HeaderWidth])
 
 	idWidth, headerWidth := id3IDWidth, id3FrameHeader
@@ -129,10 +130,10 @@ func id3ReadFrames(data []byte, major int) (*omap, error) {
 
 		size := id3FrameSize(data[pos+idWidth:pos+headerWidth], major, idWidth)
 		body := pos + headerWidth
-		tags.set(id, newOMap().
-			set("Size", strconv.Itoa(size)).
-			set("Description", description).
-			set("Data", id3FrameData(data, body, size)))
+		tags.Set(id, jsonval.NewOMap().
+			Set("Size", strconv.Itoa(size)).
+			Set("Description", description).
+			Set("Data", id3FrameData(data, body, size)))
 
 		pos = body + size
 	}

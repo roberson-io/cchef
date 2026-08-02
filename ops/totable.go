@@ -5,25 +5,12 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
 	core.Register(ToTable{})
 }
-
-// htmlEscapes is CyberChef's Utils.escapeHtml replacement map.
-var htmlEscaper = strings.NewReplacer(
-	"&", "&amp;",
-	"<", "&lt;",
-	">", "&gt;",
-	`"`, "&quot;",
-	"'", "&#x27;",
-	"`", "&#x60;",
-	"\x00", "",
-)
-
-// escapeHTML escapes HTML-significant characters (Utils.escapeHtml).
-func escapeHTML(s string) string { return htmlEscaper.Replace(s) }
 
 // parseCSV parses delimited data into rows of cells, honouring quoted fields.
 // Ported from CyberChef Utils.parseCSV.
@@ -131,7 +118,7 @@ func (ToTable) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	header := args[2].(bool)
 	format := args[3].(string)
 
-	data := parseCSV(escapeHTML(in.String()), cellDelims, rowDelims)
+	data := parseCSV(opsutil.EscapeHTML(in.String()), cellDelims, rowDelims)
 	if len(data) == 0 {
 		return core.NewDish(nil, core.TypeString), nil
 	}
