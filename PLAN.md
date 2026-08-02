@@ -75,127 +75,7 @@ only the ordering *within* a stage reflects a real dependency.
   deliberately. They validate the algorithm, not the option plumbing, so the
   oracle checks stay.
 
-### 3. Structure
-
-- [x] **cchef is importable as a library.** `core` and `ops` moved out of
-  `internal/`, so a Go program can bake a recipe without shelling out. The
-  README documents it and carries a [pkg.go.dev](https://pkg.go.dev) badge;
-  both packages have doc comments written for a caller rather than a
-  maintainer.
-
-  The reasoning this item used to carry was wrong on a point that decided it.
-  It proposed exporting `core` while keeping the operations internal, "plus a
-  blank import that pulls in the operations" — which cannot work, because
-  nothing outside the module may import `internal/...`. That combination gives
-  a caller the engine with no operations registered at all, so it was never the
-  smaller option it looked like.
-
-  Moving the whole of `ops` turned out to cost almost nothing in public
-  surface: the package has **no** top-level exported functions and **no**
-  exported types that are not operations, so what became public is 495
-  operation types with their `Meta`/`Args`/`Run`, and nothing incidental. The
-  87 other exported methods hang off unexported types and stay unreachable.
-  `jsnum`, `yara` and `termimage` stay internal — `ops` and `core` use them but
-  never name them in a signature.
-
-  Verified the way a caller would, from a separate module: baking a recipe by
-  name, calling `ops.ToBase64{}` directly, and registering a caller's own
-  operation and using it by name in a recipe.
-- [x] **Split `ops`.** Done. `ops` is one flat package implementing the
-  505 operations; the concern is navigability and build granularity, not
-  correctness. Measured with a `go/types`-based tool rather than by grepping —
-  a lexical pass counts local variables and builtins as declarations and
-  wildly overstates the coupling.
-
-  What the real graph shows, at 418 non-test files: **254 are referenced by
-  nothing else**, 102 by one or two, and only **24 by six or more**. That last
-  group is the shared surface and the only part that constrains anything.
-
-  **Stage 1, engines out of the operations directory — done.** Twenty-two
-  packages under `internal/`, taking `ops` from 418 files / 108k non-test LOC
-  to 364 / 80k:
-
-  `jsonval`, `jsparse` (4,977 lines), `jsbeautify`, `htmlent` (3,500),
-  `codepage`, `amfcodec`, `snefru`, `deflateraw`, `lodashcase`, `filesig`,
-  `jimp`, `xmldom`, `bytestream`, `filecarve`, `qr`, `geocoord`, `opsutil`,
-  `exif`, `charts`, `magic`, `audio`, plus the pre-existing `jsnum`,
-  `termimage` and `yara`. This mirrors CyberChef's own layout: `ops/` is its
-  flat `operations/` directory, `internal/` its `lib/`.
-
-  Rules learned the hard way. Tests that exercise an engine's internals move
-  with the engine, and several test files held both those and the operation's
-  own tests, so they had to be split rather than moved. A generated file
-  carries its generator: `tools/htmlentgen` emitted the old package name and
-  path and would have silently undone the move on its next run. Testdata
-  belongs with whichever package defines what a valid sample is — the carve
-  samples moved with the carvers. And an engine test should not depend on the
-  operation catalog: the magic engine's tests register a one-operation stub
-  registry instead of `core.Default`.
-
-  The misfilings the split exposed were fixed rather than worked around: the
-  JS `parseInt`/`parseFloat`/`parseHex`/`Math.round`/whitespace helpers,
-  scattered across five operation files, are consolidated in `jsnum`; the
-  insertion-ordered JSON map lived in `parsenet.go` and is now `jsonval.OMap`;
-  `Utils.escapeHtml` lived in `totable.go` and is now `opsutil.EscapeHTML`.
-  Four aliases with nothing behind them were deleted outright (`equalBytes`,
-  `jsNum`, `toHexFast`, and ops' `jsnum.go` shim).
-
-  Two real defects surfaced while writing the engines' missing direct tests,
-  both fixed and oracle-verified: `snefru.NewWithParams` looped forever at 512
-  bits (the block width reaches zero; it now floors odd lengths as crypto-api
-  does and refuses impossible ones), and `jsnum.ParseInt` skipped leading
-  whitespace byte-by-byte, so a multi-byte space like NBSP was never skipped
-  even though JS `parseInt` accepts it.
-
-  **Stage 2, one package per category, is dropped.** The operations directory
-  stays flat, which is what CyberChef itself does: `src/core/operations/` holds
-  503 files with no subdirectories, and an operation's constructor never names a
-  category. Category lives only in `config/Categories.json`, as metadata
-  attached from outside. Shared engines sit in a sibling `src/core/lib/` of 74
-  modules — so stage 1 converges on that structure and a category split would
-  move away from it.
-
-  The one axis CyberChef splits code on is `module`, and it does not apply
-  here: the 25 modules exist for lazy loading in a browser, and the generated
-  `OpModules.mjs` is headed "Imports all modules for builds which do not load
-  modules separately". A single static binary is that build, permanently.
-
-  The 23 operations belonging to more than one category (Bcrypt is Encryption
-  *and* Hashing) are the symptom rather than the obstacle: upstream can say so
-  because a category is a list in a JSON file, and a directory cannot say it at
-  all. `opCategories` in `cmd/` stays as the metadata table it is, enforced
-  against the registry by test.
-
-  **The file-splitting audit is done**, closing the section. Every file whose
-  name no longer described what others took from it was fixed: three more
-  single-op engines moved out (`handlebars` — three files serving the Template
-  operation; `protobuf` — the wire parser and schema compiler behind the two
-  Protobuf operations; the Jimp blur kernels and tables joined `jimp`), the
-  generic escape/alphabet/Latin1 helpers joined `opsutil`, the JS
-  `substr`/`slice`/number-conversion mirrors joined `jsbuiltins.go`, the hex
-  spellings joined `hex.go`, and the toggleString key decoder got its own
-  `keyformat.go`. Three outright duplicates were deleted (`escapeHTMLChars`,
-  `byteArrayToUtf8`, and the near-duplicate direct tests they carried), and
-  `unixperms_branches_test.go` was folded into `unixperms_test.go` with the
-  shared `runOp` scaffolding moved to `fixtures_test.go`. `ops` ends at 358
-  non-test files / 78k lines, with 26 packages under `internal/`.
-
-  One near-duplicate was deliberately kept: `leadingInt` looks like
-  `jsnum.ParseInt(s, 10)` but rejects values that do not fit an int, which the
-  decimal-key path relies on. The oracle shows the underlying behaviour
-  diverges from CyberChef either way: a decimal XOR key of 300 errors upstream
-  ("Data is not a valid byteArray") because CyberChef validates the *output*
-  byte array, while cchef clamps the key to a byte up front. Aligning that
-  means reworking how the bitwise operations carry out-of-range values, so it
-  is noted here rather than half-fixed in a refactor.
-
-  The multi-file shapes that remain are each justified by what they hold: data
-  companions to one operation (`convert_data.go`, `parseasn1hexstring_oids.go`,
-  `useragent_rules.go`, `datetime_formatexamples.go`), `//go:embed` assets that
-  must sit beside their embedding file (`x86tables/`, `bmfonts/`), and the
-  `utils_*.go` groups, which are Utils-category operations, not helper files.
-
-### 4. Documentation
+### 3. Documentation
 
 - [ ] **Name the actual flag in every options table.** Pages disagree on what
   the first column holds: `date-time.md` and eight others give the flag
@@ -227,7 +107,7 @@ only the ordering *within* a stage reflects a real dependency.
   constraints a reader needs. Hold new code to the tighter standard so
   the debt stops growing.
 
-### 5. Release
+### 4. Release
 
 - [ ] **GoReleaser.** A no-cgo static binary is its ideal case: macOS, Linux and
   Windows on amd64/arm64 from one config, with archives, checksums, a Homebrew
