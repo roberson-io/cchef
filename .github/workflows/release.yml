@@ -24,11 +24,10 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install signing and SBOM tools
+      - name: Install cosign (release signing)
         uses: sigstore/cosign-installer@v3
-      - uses: anchore/sbom-action/download-syft@v0
-      - name: Install cyclonedx-gomod
-        run: go install github.com/cyclonedx/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
+      - name: Install cyclonedx-gomod (SBOM generator)
+        run: go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
