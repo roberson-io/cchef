@@ -5,6 +5,9 @@ up a development environment, the standards changes are held to, and how to
 submit them. For the project's constraints, verification workflow and deliberate
 differences from CyberChef, see [AGENTS.md](AGENTS.md).
 
+By participating, you agree to abide by the
+[Code of Conduct](.github/CODE_OF_CONDUCT.md).
+
 ## Ground rules
 
 Two constraints shape everything else:

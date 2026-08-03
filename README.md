@@ -125,8 +125,7 @@ cchef to-base64 --in-dir ./messages
 cchef to-base64 --in-dir ./messages --out-dir ./out --recursive
 ```
 
-Output is byte-exact when piped or redirected (so chaining is lossless); a
-trailing newline is added only when writing to a terminal. Operations accept
+A trailing newline is added only when writing to a terminal. Operations accept
 `--in-file -` / `--output -` to force stdin/stdout in a pipeline.
 
 Point an operation (or `bake`) at a directory with `--in-dir` to run it once per

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/roberson-io/cchef/security/advisories/new
+    about: Report a security issue privately — please do not open a public issue.
+  - name: Documentation
+    url: https://github.com/roberson-io/cchef/tree/main/docs
+    about: Per-operation options, examples and reference links.

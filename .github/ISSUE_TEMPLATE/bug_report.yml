@@ -1,0 +1,86 @@
+name: Bug report
+description: cchef produced the wrong output, crashed, or diverged from CyberChef.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. cchef's behavior is defined by CyberChef's, so a
+        divergence between the two is the clearest possible report — please
+        include the CyberChef recipe or URL that shows the expected result.
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact `cchef` command you ran.
+      placeholder: cchef to-base64 -i "hello"
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Input
+      description: The input data, or how to reproduce it. For binary input, hex is ideal.
+    validations:
+      required: true
+  - type: textarea
+    id: got
+    attributes:
+      label: What happened
+      description: The output you got, or the error message.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: The output you expected instead.
+    validations:
+      required: true
+  - type: input
+    id: cyberchef
+    attributes:
+      label: CyberChef reference
+      description: >-
+        If the expectation comes from CyberChef, a recipe or a
+        gchq.github.io/CyberChef share URL demonstrating it. Leave blank if not
+        applicable.
+      placeholder: https://gchq.github.io/CyberChef/#recipe=To_Base64()&input=aGVsbG8
+  - type: input
+    id: version
+    attributes:
+      label: cchef version
+      description: Output of `cchef --version`.
+      placeholder: cchef version 1.0.0 (operations aligned with CyberChef 11.3.0)
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install cchef?
+      options:
+        - Homebrew
+        - deb package
+        - rpm package
+        - Prebuilt binary from a release
+        - go install
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and architecture
+      placeholder: macOS 15 arm64 / Ubuntu 24.04 amd64 / Windows 11
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I am on the latest release, or have noted the version above.
+          required: true
+        - label: I searched existing issues for a duplicate.
+          required: true

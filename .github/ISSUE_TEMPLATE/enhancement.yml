@@ -1,0 +1,48 @@
+name: Enhancement or new operation
+description: Request a CLI improvement, or an operation CyberChef has that cchef is missing.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every current CyberChef operation is already ported, so a "new operation"
+        request usually means CyberChef added one upstream. For behavior that
+        diverges from CyberChef, please open a bug report instead.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of enhancement?
+      options:
+        - A new operation CyberChef has that cchef lacks
+        - A CLI or usability improvement
+        - Documentation
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What should cchef do, and why is it useful?
+    validations:
+      required: true
+  - type: input
+    id: cyberchef-op
+    attributes:
+      label: CyberChef operation (if applicable)
+      description: >-
+        For a missing operation, its exact CyberChef name and — if you know it —
+        the CyberChef version that introduced it.
+      placeholder: "To Base45 (CyberChef v9.x)"
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: A concrete before/after, command, or recipe showing the desired behavior.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for a duplicate.
+          required: true
