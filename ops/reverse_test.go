@@ -25,5 +25,16 @@ func TestReverseOp(t *testing.T) {
 			"Reverse Character UTF-8", "abé", "éba",
 			core.Recipe{{Op: "Reverse", Args: []any{"Character"}}},
 		},
+		// By Character must not destroy bytes that are not valid UTF-8: CyberChef
+		// keeps them (as Latin-1 code points) rather than replacing with U+FFFD.
+		// Bytes f0 aa bb reverse to code points bb aa f0, re-encoded as UTF-8.
+		{
+			"Reverse Character preserves non-UTF-8 bytes", "f0aabb", "c2bbc2aac3b0",
+			core.Recipe{
+				{Op: "From Hex", Args: []any{"Auto"}},
+				{Op: "Reverse", Args: []any{"Character"}},
+				{Op: "To Hex", Args: []any{"None"}},
+			},
+		},
 	})
 }

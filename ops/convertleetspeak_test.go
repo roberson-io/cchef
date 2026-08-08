@@ -44,7 +44,7 @@ func TestConvertLeetSpeakEdges(t *testing.T) {
 		{"plain word from leet", "good", "From Leet Speak", "good"},
 		{"punctuation to leet", "a-e_i.o s,t", "To Leet Speak", "4-3_1.0 5,7"},
 		{"punctuation from leet", "4-3_1.0 5,7", "From Leet Speak", "a-e_i.o s,t"},
-		{"accents untouched", "café", "To Leet Speak", "c4fé"},
+		{"accents untouched", "café", "To Leet Speak", "c4f\xe9"},
 		{"empty", "", "To Leet Speak", ""},
 	}
 	for _, c := range cases {

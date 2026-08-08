@@ -50,7 +50,7 @@ func (EscapeUnicodeCharacters) Run(in *core.Dish, args []any) (*core.Dish, error
 	upperHex := args[3].(bool)
 
 	var sb strings.Builder
-	for _, u := range utf16.Encode([]rune(in.String())) {
+	for _, u := range utf16.Encode([]rune(dishText(in))) {
 		if !encodeAll && u >= 0x20 && u <= 0x7e {
 			sb.WriteRune(rune(u))
 			continue

@@ -44,7 +44,7 @@ func TestEscapeString(t *testing.T) {
 		},
 
 		{
-			"minimal escapes tab/quote but not non-ASCII", "a\tb'c\né", "a\\tb\\'c\\né",
+			"minimal escapes tab/quote but not non-ASCII", "a\tb'c\né", "a\\tb\\'c\\n\xe9",
 			core.Recipe{{Op: "Escape string", Args: []any{"Minimal", "Single", false, true, false}}},
 		},
 

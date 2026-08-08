@@ -18,10 +18,7 @@ import (
 // With --in-dir it fans the recipe out over the files in a directory (one run
 // per file); otherwise it runs once over the single resolved input.
 func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error {
-	fileList, err := recipeFileListOutput(recipe)
-	if err != nil {
-		return err
-	}
+	fileList := recipeFileListOutput(recipe)
 	// Resolved up front so an unusable --color value is reported before the
 	// recipe runs, whatever the recipe is.
 	color, err := wantANSI(cmd)
@@ -60,35 +57,21 @@ func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error
 // recipeFileListOutput reports whether the recipe's last enabled step produces a
 // file list, which needs --out-dir rather than a single output stream. Knowing
 // this before running lets the flag combination be rejected up front. A file
-// list anywhere earlier is an error: it holds several files and so cannot feed
-// the following step.
-func recipeFileListOutput(recipe core.Recipe) (bool, error) {
+// list produced by an earlier step is not terminal: it feeds the following step
+// as its files' contents concatenated (see Dish.Get).
+func recipeFileListOutput(recipe core.Recipe) bool {
 	var last bool
-	for i, step := range recipe {
+	for _, step := range recipe {
 		if step.Disabled {
 			continue
 		}
 		op, ok := core.Default.Get(step.Op)
 		if !ok {
-			return false, nil // reported by the recipe run itself
+			return false // reported by the recipe run itself
 		}
-		emits := op.Meta().OutputType == core.TypeFileList
-		if emits && hasEnabledStepAfter(recipe, i) {
-			return false, fmt.Errorf("%s produces several files and so cannot be chained; it must be the last step", step.Op)
-		}
-		last = emits
+		last = op.Meta().OutputType == core.TypeFileList
 	}
-	return last, nil
-}
-
-// hasEnabledStepAfter reports whether any step after i is enabled.
-func hasEnabledStepAfter(recipe core.Recipe, i int) bool {
-	for _, step := range recipe[i+1:] {
-		if !step.Disabled {
-			return true
-		}
-	}
-	return false
+	return last
 }
 
 // writeFileList writes each named file into dir, creating it if needed.

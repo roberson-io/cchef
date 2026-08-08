@@ -203,16 +203,26 @@ func TestExtractFilesArgsMatchCategories(t *testing.T) {
 	}
 }
 
-// TestExtractFilesCannotBeChained covers the output being a list of files, which
-// no following operation can read.
-func TestExtractFilesCannotBeChained(t *testing.T) {
+// TestExtractFilesChainsAsConcatenation covers a list-of-files output feeding a
+// following operation as its files' contents concatenated.
+func TestExtractFilesChainsAsConcatenation(t *testing.T) {
 	buf, _ := carveBlob(t, "sample.png")
 	files := runExtractFiles(t, buf, extractFilesArgs(1))
 	if len(files) == 0 {
 		t.Fatal("nothing was extracted")
 	}
-	if _, err := core.NewFileListDish(files).Get(core.TypeString); err == nil {
-		t.Error("a file list was converted to a string")
+	// Chained into a following operation, the extracted files feed on as their
+	// contents concatenated in order.
+	got, err := core.NewFileListDish(files).Get(core.TypeByteArray)
+	if err != nil {
+		t.Fatalf("Get(ByteArray): %v", err)
+	}
+	var want []byte
+	for _, f := range files {
+		want = append(want, f.Data...)
+	}
+	if !bytes.Equal(got.([]byte), want) {
+		t.Errorf("concatenation mismatch: got %d bytes, want %d", len(got.([]byte)), len(want))
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
+	"github.com/roberson-io/cchef/internal/uregex"
 )
 
 func init() {
@@ -25,8 +26,8 @@ func (RegularExpression) Meta() core.OpMeta {
 	return core.OpMeta{
 		Name:   "Regular expression",
 		Module: "Default",
-		Description: "Define your own regular expression (using Go's RE2 syntax) to search the input with, optionally highlighting or listing the matches. " +
-			"Note: RE2 does not support lookaround or backreferences, so some XRegExp-only patterns will not compile.",
+		Description: "Define your own regular expression to search the input with, optionally highlighting or listing the matches. " +
+			"Patterns run on Go's RE2 engine; those using lookahead, lookbehind or backreferences fall back to a JavaScript-compatible engine.",
 		InfoURL:    "https://wikipedia.org/wiki/Regular_expression",
 		InputType:  core.TypeString,
 		OutputType: core.TypeString,
@@ -74,7 +75,7 @@ func (RegularExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if flags != "" {
 		pattern = "(?" + flags + ")" + pattern
 	}
-	re, err := regexp.Compile(pattern)
+	re, err := uregex.Compile(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("invalid regex: %w", err)
 	}
@@ -95,10 +96,10 @@ func (RegularExpression) Run(in *core.Dish, args []any) (*core.Dish, error) {
 }
 
 // regexList lists matches and/or capture groups.
-func regexList(input string, re *regexp.Regexp, displayTotal, matches, captureGroups bool) string {
+func regexList(input string, re uregex.Regexp, displayTotal, matches, captureGroups bool) string {
 	var b strings.Builder
 	total := 0
-	for _, m := range re.FindAllStringSubmatch(input, -1) {
+	for _, m := range re.FindAllStringSubmatch(input) {
 		total++
 		if matches {
 			b.WriteString(m[0] + "\n")
@@ -120,12 +121,12 @@ func regexList(input string, re *regexp.Regexp, displayTotal, matches, captureGr
 }
 
 // regexHighlight wraps matches in <span> tags.
-func regexHighlight(input string, re *regexp.Regexp, displayTotal bool) string {
+func regexHighlight(input string, re uregex.Regexp, displayTotal bool) string {
 	var spans []string
 	hl, total := 1, 0
 	var sb strings.Builder
 	last := 0
-	for _, m := range re.FindAllStringSubmatchIndex(input, -1) {
+	for _, m := range re.FindAllStringSubmatchIndex(input) {
 		sb.WriteString(input[last:m[0]])
 		match := input[m[0]:m[1]]
 		var title strings.Builder

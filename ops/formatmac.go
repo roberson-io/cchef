@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -64,7 +65,7 @@ func (FormatMACAddresses) Args() []core.ArgDef {
 
 // Run reformats the addresses.
 func (FormatMACAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	input := in.String()
+	input := dishText(in)
 	if input == "" {
 		return core.NewDish([]byte(""), core.TypeString), nil
 	}
@@ -108,5 +109,5 @@ func (FormatMACAddresses) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		outputList = append(outputList, "") // empty line to delimit groups
 	}
-	return core.NewDish([]byte(strings.Join(outputList, "\n")), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(strings.Join(outputList, "\n")), core.TypeString), nil
 }

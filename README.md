@@ -6,7 +6,7 @@
 
 **CyberChef on the command line.** `cchef` is a Go port of the data-transformation
 engine of [CyberChef](https://gchq.github.io/CyberChef/) — the "Cyber Swiss Army
-Knife" built for the terminal. This tool is not recommended for production or critical infrastructure use cases.
+Knife" built for the terminal.
 
 Every operation is a subcommand that reads input
 and writes output, so operations chain together through Unix pipes or as a single

@@ -8,15 +8,19 @@ import (
 
 func TestSplitOp(t *testing.T) {
 	runCases(t, []opCase{
-		// Delimiters are literal (matching CyberChef): the join "\n" is the
-		// two characters backslash-n, not a newline.
+		// Delimiter escape sequences are decoded (matching CyberChef's
+		// editableOption ingredient handling): the join "\n" is a newline.
 		{
-			"Split comma, literal join", "a,b,c", `a\nb\nc`,
+			"Split comma, join newline", "a,b,c", "a\nb\nc",
 			core.Recipe{{Op: "Split", Args: []any{",", `\n`}}},
 		},
 		{
 			"Split space to comma", "a b c", "a,b,c",
 			core.Recipe{{Op: "Split", Args: []any{" ", ","}}},
+		},
+		{
+			"Split on escaped tab delimiter", "a\tb\tc", "a,b,c",
+			core.Recipe{{Op: "Split", Args: []any{`\t`, ","}}},
 		},
 	})
 }

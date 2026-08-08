@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -55,7 +56,7 @@ func (EscapeSmartCharacters) Run(in *core.Dish, args []any) (*core.Dish, error) 
 			}
 		}
 	}
-	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil
 }
 
 // smartCharMap maps typographic Unicode characters to their ASCII equivalents.

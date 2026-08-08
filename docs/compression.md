@@ -691,7 +691,9 @@ cchef tar -i "hello world" --filename greeting.txt | cchef gzip -o hello.tar.gz
 Unpacks a [tar](https://wikipedia.org/wiki/Tar_(computing)) archive into the
 files it holds. It takes no options.
 
-Because it produces several files, it needs `--out-dir` to write them:
+When it is the last step of a recipe it produces several files, so it needs
+`--out-dir` to write them; chained into a following operation, each file's
+contents feed on concatenated in order:
 
 ```bash
 cchef untar --in-file archive.tar --out-dir ./unpacked
@@ -728,8 +730,10 @@ cchef gunzip --in-file archive.tar.gz | cchef untar --out-dir ./unpacked
 ## Unzip
 
 Unpacks the files from a [ZIP](https://wikipedia.org/wiki/Zip_(file_format))
-archive. Because it produces several files rather than one stream, it needs
-`--out-dir` to say where they should go.
+archive. As the last step of a recipe it produces several files rather than one
+stream, so it needs `--out-dir` to say where they should go; chained into a
+following operation (e.g. `Unzip | Extract URLs`), the unpacked files' contents
+feed on concatenated in order.
 
 > **Alternative to** [`unzip`](https://linux.die.net/man/1/unzip).
 

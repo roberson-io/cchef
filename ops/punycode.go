@@ -71,9 +71,9 @@ func (ToPunycode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var out string
 	var err error
 	if args[0].(bool) {
-		out, err = punyToASCII(in.String())
+		out, err = punyToASCII(dishText(in))
 	} else {
-		out, err = punyEncode(in.String())
+		out, err = punyEncode(dishText(in))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("to Punycode: %w", err)

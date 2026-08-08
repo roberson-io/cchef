@@ -35,8 +35,9 @@ func TestSubstitute(t *testing.T) {
 		// Escape notation in the key, and an escaped hyphen (a literal '-').
 		{"escaped newline key", "a\nb", "XYb", subRecipe(`a\n`, "XY", false)},
 		{"escaped hyphen", "a-c", "XYZ", subRecipe(`a\-c`, "XYZ", false)},
-		// Unicode passthrough for unmapped code points.
-		{"unicode passthrough", "café", "café", subRecipe("A", "B", false)},
+		// Unmapped code points pass through; a code point within a byte is written
+		// as that single Latin-1 byte (é -> 0xe9), matching CyberChef.
+		{"unicode passthrough", "café", "caf\xe9", subRecipe("A", "B", false)},
 
 		// Ignore case: input case is preserved in the output.
 		{"ignore case default", "hello", "ebiil", subRecipe(subDefPlain, subDefCipher, true)},

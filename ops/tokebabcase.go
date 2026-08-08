@@ -3,6 +3,7 @@ package ops
 import (
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/lodashcase"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -35,10 +36,10 @@ func (ToKebabCase) Args() []core.ArgDef {
 // identifier-like tokens are transformed.
 func (ToKebabCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	smart := args[0].(bool)
-	input := in.String()
+	input := dishText(in)
 	out := lodashcase.KebabCase(input)
 	if smart {
 		out = lodashcase.ReplaceVariableNames(input, lodashcase.KebabCase)
 	}
-	return core.NewDish([]byte(out), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(out), core.TypeString), nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
@@ -122,14 +123,71 @@ func (FromCharcode) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	var sb strings.Builder
 	for _, b := range bites {
-		if b == "" {
-			continue
+		// CyberChef parses each token with JavaScript's parseInt and passes the
+		// result to Utils.chr; a token with no valid digit yields NaN, and
+		// chr(NaN) is a NUL byte, so an empty or non-numeric token is not
+		// skipped or an error but a 0x00.
+		v, _ := jsParseInt(b, base)
+		r := rune(utf8.RuneError)
+		if v >= 0 && v <= utf8.MaxRune {
+			r = rune(v) // #nosec G115 -- bounded to [0, MaxRune], narrowed like CyberChef Utils.chr
 		}
-		v, err := strconv.ParseInt(b, base, 32)
-		if err != nil {
-			return nil, fmt.Errorf("invalid charcode %q: %w", b, err)
-		}
-		sb.WriteRune(rune(v))
+		sb.WriteRune(r)
 	}
 	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeByteArray), nil
+}
+
+// jsParseInt mimics JavaScript's parseInt(s, base): it skips leading ASCII
+// whitespace and an optional sign, reads the leading run of digits valid for the
+// base, and ignores any trailing characters. ok is false when there is no valid
+// digit — JavaScript's NaN — for which callers substitute 0.
+func jsParseInt(s string, base int) (v int64, ok bool) {
+	i, n := 0, len(s)
+	for i < n && isJSSpace(s[i]) {
+		i++
+	}
+	neg := false
+	if i < n && (s[i] == '+' || s[i] == '-') {
+		neg = s[i] == '-'
+		i++
+	}
+	start := i
+	for i < n {
+		d := digitValue(s[i])
+		if d < 0 || d >= base {
+			break
+		}
+		v = v*int64(base) + int64(d)
+		i++
+	}
+	if i == start {
+		return 0, false
+	}
+	if neg {
+		v = -v
+	}
+	return v, true
+}
+
+// digitValue returns the value of an ASCII digit in base up to 36, or -1.
+func digitValue(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'a' && c <= 'z':
+		return int(c-'a') + 10
+	case c >= 'A' && c <= 'Z':
+		return int(c-'A') + 10
+	}
+	return -1
+}
+
+// isJSSpace reports whether c is one of the ASCII whitespace bytes JavaScript's
+// parseInt trims from the start of its argument.
+func isJSSpace(c byte) bool {
+	switch c {
+	case ' ', '\t', '\n', '\r', '\f', '\v':
+		return true
+	}
+	return false
 }

@@ -17,6 +17,12 @@ func TestFilter(t *testing.T) {
 			"Filter invert", "apple\nbanana\ncherry", "cherry",
 			core.Recipe{{Op: "Filter", Args: []any{"Line feed", "a", true}}},
 		},
+		// A lookahead pattern — which RE2 cannot compile — runs via the
+		// JavaScript-compatible fallback; only lines with a value before " OK" stay.
+		{
+			"Filter lookahead", "1 OK\n2 BAD\n3 OK", "1 OK\n3 OK",
+			core.Recipe{{Op: "Filter", Args: []any{"Line feed", `\d+(?= OK)`, false}}},
+		},
 	})
 }
 

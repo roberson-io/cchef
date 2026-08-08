@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // brailleASCII and brailleDot6 are CyberChef's BRAILLE_LOOKUP tables
@@ -48,7 +49,7 @@ func (ToBraille) Args() []core.ArgDef { return nil }
 // Run converts text to braille.
 func (ToBraille) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
-	for _, r := range string(in.Bytes()) {
+	for _, r := range dishText(in) {
 		// brailleASCII is pure ASCII, so the byte index equals the position
 		// into the dot6 table. Characters not in the table are passed through.
 		if idx := strings.Index(brailleASCII, strings.ToUpper(string(r))); idx >= 0 {
@@ -57,7 +58,7 @@ func (ToBraille) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			sb.WriteRune(r)
 		}
 	}
-	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil
 }
 
 // FromBraille converts six-dot braille symbols to text.
@@ -81,14 +82,14 @@ func (FromBraille) Args() []core.ArgDef { return nil }
 // Run converts braille to text.
 func (FromBraille) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
-	for _, r := range string(in.Bytes()) {
+	for _, r := range dishText(in) {
 		if idx, ok := brailleFromDot6[r]; ok {
 			sb.WriteByte(brailleASCII[idx])
 		} else {
 			sb.WriteRune(r)
 		}
 	}
-	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil
 }
 
 func init() {

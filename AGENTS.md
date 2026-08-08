@@ -117,6 +117,17 @@ new deliberate difference lands.
 - **Errors are errors.** CyberChef catches an `OperationError` and renders its
   message as the recipe's output; cchef returns it, so a shell sees a non-zero
   exit and the message on stderr.
+- **Non-numeric input to a numeric operation is an error, not `NaN`.**
+  CyberChef's `To Base`, `From Base`, `Multiply`, `Sum`, `Divide` and their
+  kin convert through a `BigNumber`; a non-numeric or empty value becomes a
+  `BigNumber` NaN whose `.toString()` is the literal string `"NaN"`, so these
+  operations emit `NaN` instead of failing (the `if (!input) throw` guard never
+  fires, because a `BigNumber` object is truthy). cchef rejects a value that is
+  not a number, on the same "errors are errors" principle, rather than emitting a
+  `NaN` that silently poisons the rest of a recipe. A community recipe that
+  deliberately relies on the `NaN` string — the base-45 decoder pipes columns
+  through `To Base` and scrubs the resulting `NaN`s with a later `Find / Replace`
+  — therefore does not run here.
 - **No browser, so no HTML previews.** The byte-emitting operations (Render
   Image, Play Media, Render PDF) validate their input and pass the bytes
   through. Presentation is an IO-layer concern rather than an operation
@@ -125,8 +136,12 @@ new deliberate difference lands.
   `--data-uri` writes a `data:<mime>;base64,…` URI. On the same principle,
   Syntax highlighter's hljs-class HTML is rendered as ANSI color when the
   output is going to a terminal, under `--ansi`. Report-style operations
-  (Magic, YARA Rules, ELF Info) print text instead of a table, and the
-  `List<File>` ones write into `--out-dir`.
+  (Magic, YARA Rules, ELF Info) print text instead of a table. A `List<File>`
+  operation (Unzip, Untar, Extract Files, Split Colour Channels, Zip) writes into
+  `--out-dir` when it is the recipe's last step; chained into a following
+  operation it is not terminal — its files' contents feed on concatenated in
+  order, matching CyberChef's `List<File>`→`ArrayBuffer`, so `Unzip | Extract
+  URLs` works.
 - **Imaging reproduces Jimp's pixel maths** on an `image.NRGBA`. Lossless
   formats are pixel-identical; JPEG output is a lossy re-encode, and Rotate by
   non-multiples of 90° matches dimensions rather than every pixel. Text
@@ -143,9 +158,17 @@ new deliberate difference lands.
 - **PGP** runs on `ProtonMail/go-crypto` rather than reproducing kbpgp's exact
   output. Armor headers and generated-key subkey structure differ;
   interoperability is complete in both directions and is what the tests pin.
-- **User-supplied regular expressions are Go's RE2.** Lookahead and
-  backreferences are unavailable; `regexp2` is reserved for internal patterns
-  that need them.
+- **User-supplied regular expressions run on RE2, falling back to a
+  JavaScript-compatible engine.** A user pattern is compiled with Go's RE2 first
+  — linear-time and safe — and only when RE2 rejects it (lookahead, lookbehind,
+  backreferences, or JavaScript `(?<name>)` group syntax) is it retried under
+  `regexp2` in ECMAScript mode (`internal/uregex`). The six operations that take
+  a user regex share this path: Regular expression, Find / Replace, Subsection,
+  Register, Filter and Conditional Jump. The fallback backtracks, so it is
+  bounded by a match timeout, and a pattern that exceeds it is treated as no
+  match. Two edge differences remain on the fallback path: `\b` is Unicode-aware
+  (JavaScript's is ASCII), and a named group is referenced in a replacement as
+  `${name}` (Go and .NET syntax) rather than JavaScript's `$<name>`.
 - **An Avro `long` is read as a 64-bit integer.** Avro defines `long` as
   signed 64-bit; avsc decodes it through a float64, so CyberChef refuses a
   magnitude above 9007199254740990 and silently returns the wrong sign below

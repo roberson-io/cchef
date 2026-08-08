@@ -37,7 +37,7 @@ func (CitrixCTX1Encode) Args() []core.ArgDef { return nil }
 // is UTF-16LE encoded, each byte is folded into a running XOR chain against
 // 0xa5, and the two nibbles of each result byte are emitted as 'A'..'P'.
 func (CitrixCTX1Encode) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	utf16pass, err := codepage.Encode(citrixCTX1CP, in.String())
+	utf16pass, err := codepage.Encode(citrixCTX1CP, dishText(in))
 	if err != nil {
 		return nil, err
 	}

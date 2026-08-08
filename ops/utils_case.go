@@ -42,7 +42,7 @@ const maxCasingLength = 20
 
 // Run produces all casings.
 func (GetAllCasings) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	lower := []rune(strings.ToLower(in.String()))
+	lower := []rune(strings.ToLower(dishText(in)))
 	n := len(lower)
 	if n == 0 {
 		return core.NewDish(nil, core.TypeString), nil
@@ -63,7 +63,7 @@ func (GetAllCasings) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		lines = append(lines, string(temp))
 	}
-	return core.NewDish([]byte(strings.Join(lines, "\n")), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(strings.Join(lines, "\n")), core.TypeString), nil
 }
 
 // UnescapeString converts backslash escape sequences into their raw characters.
@@ -156,7 +156,7 @@ func (ToCaseInsensitiveRegex) Args() []core.ArgDef { return nil }
 // Run rewrites the regex.
 func (ToCaseInsensitiveRegex) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	// Wrap each standalone letter as [lL], simulating the upstream pre-process.
-	r := []rune(in.String())
+	r := []rune(dishText(in))
 	var sb strings.Builder
 	for i, c := range r {
 		isLetter := (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
@@ -173,7 +173,7 @@ func (ToCaseInsensitiveRegex) Run(in *core.Dish, args []any) (*core.Dish, error)
 	for _, cr := range ciRanges {
 		out = cr.re.ReplaceAllStringFunc(out, cr.fn)
 	}
-	return core.NewDish([]byte(out), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(out), core.TypeString), nil
 }
 
 // reFromCI matches a two-letter character class like [tT].

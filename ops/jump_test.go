@@ -51,6 +51,16 @@ func TestConditionalJumpFixtures(t *testing.T) {
 				{Op: "To Base32", Args: []any{"A-Z2-7="}},
 			},
 		},
+		// A lookbehind condition — which RE2 cannot compile — runs via the
+		// JavaScript-compatible fallback: it matches, so the jump skips To Base64.
+		{
+			"Conditional Jump: lookbehind matches and jumps", "key=secret", "key=secret",
+			core.Recipe{
+				{Op: "Conditional Jump", Args: []any{`(?<=key=)\w+`, false, "done", 10.0}},
+				{Op: "To Base64", Args: []any{"A-Za-z0-9+/="}},
+				{Op: "Label", Args: []any{"done"}},
+			},
+		},
 		// A backwards jump: MD2 runs on the second pass, and the data no longer
 		// matches, so the loop ends.
 		{

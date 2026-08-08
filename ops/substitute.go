@@ -82,5 +82,5 @@ func (Substitute) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for _, r := range dishText(in) {
 		out.WriteString(substituteChar(string(r), dict, ignoreCase))
 	}
-	return core.NewDish([]byte(out.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(out.String()), core.TypeString), nil
 }

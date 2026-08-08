@@ -165,14 +165,31 @@ func TestDishFileList(t *testing.T) {
 	}
 }
 
-// A file list cannot be fed to an operation expecting bytes: rather than
-// silently yielding empty input, the conversion fails.
-func TestDishFileListNotConvertible(t *testing.T) {
-	d := NewFileListDish([]NamedFile{{Name: "red.png", Data: []byte("R")}})
-	for _, typ := range []DishType{TypeString, TypeByteArray, TypeArrayBuffer, TypeNumber} {
-		if _, err := d.Get(typ); err == nil {
-			t.Errorf("Get(%q) succeeded, want an error", typ)
-		}
+// A file list feeds a following operation as the concatenation of its files'
+// contents, so an op after Unzip (or any List<File> producer) runs over every
+// file's bytes joined in order — matching CyberChef's List<File>→ArrayBuffer.
+func TestDishFileListConcatenates(t *testing.T) {
+	d := NewFileListDish([]NamedFile{
+		{Name: "a.txt", Data: []byte("hello ")},
+		{Name: "b.txt", Data: []byte("world")},
+	})
+	if got, err := d.Get(TypeString); err != nil || got.(string) != "hello world" {
+		t.Errorf("Get(String) = %v, %v; want \"hello world\"", got, err)
+	}
+	if got, err := d.Get(TypeByteArray); err != nil || !bytes.Equal(got.([]byte), []byte("hello world")) {
+		t.Errorf("Get(ByteArray) = %v, %v; want hello world", got, err)
+	}
+	if got, err := d.Get(TypeArrayBuffer); err != nil || !bytes.Equal(got.([]byte), []byte("hello world")) {
+		t.Errorf("Get(ArrayBuffer) = %v, %v", got, err)
+	}
+	// Getting the list back is unchanged.
+	if got, err := d.Get(TypeFileList); err != nil || len(got.([]NamedFile)) != 2 {
+		t.Errorf("Get(FileList) = %v, %v", got, err)
+	}
+	// A concatenation that parses as a number converts, too.
+	n := NewFileListDish([]NamedFile{{Name: "x", Data: []byte("4")}, {Name: "y", Data: []byte("2")}})
+	if got, err := n.Get(TypeNumber); err != nil || got.(float64) != 42 {
+		t.Errorf("Get(Number) = %v, %v; want 42", got, err)
 	}
 }
 

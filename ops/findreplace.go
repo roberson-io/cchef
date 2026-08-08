@@ -7,6 +7,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
+	"github.com/roberson-io/cchef/internal/uregex"
 )
 
 func init() {
@@ -42,7 +43,9 @@ func (FindReplace) Args() []core.ArgDef {
 // Run performs the replacement.
 func (FindReplace) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	find := args[0].(core.ToggleString)
-	replace := args[1].(string)
+	// The replacement is a binaryString argument in CyberChef, so escape
+	// sequences (\n, \t, \xNN, ...) are decoded before use.
+	replace := opsutil.ParseEscapedChars(args[1].(string))
 	global := args[2].(bool)
 
 	// Build the Go inline flags.
@@ -70,7 +73,7 @@ func (FindReplace) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		pattern = "(?" + flags + ")" + pattern
 	}
 
-	re, err := regexp.Compile(pattern)
+	re, err := uregex.Compile(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("invalid regex: %w", err)
 	}
@@ -78,21 +81,9 @@ func (FindReplace) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	input := in.String()
 	var out string
 	if global {
-		out = re.ReplaceAllString(input, replace)
+		out = re.ReplaceAll(input, replace)
 	} else {
-		out = replaceFirst(re, input, replace)
+		out = re.ReplaceFirst(input, replace)
 	}
 	return core.NewDish([]byte(out), core.TypeString), nil
-}
-
-// replaceFirst replaces only the first match of re in input, expanding $-refs.
-func replaceFirst(re *regexp.Regexp, input, replace string) string {
-	m := re.FindStringSubmatchIndex(input)
-	if m == nil {
-		return input
-	}
-	out := []byte(input[:m[0]])
-	out = re.ExpandString(out, replace, input, m)
-	out = append(out, input[m[1]:]...)
-	return string(out)
 }

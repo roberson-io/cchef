@@ -84,6 +84,25 @@ func TestSubsectionCaptureGroup(t *testing.T) {
 	}
 }
 
+// TestSubsectionLookaround checks that a pattern using lookahead — which RE2
+// cannot compile — runs via the JavaScript-compatible fallback. Only the digits
+// immediately before "px" are worked on. Verified against the CyberChef engine.
+func TestSubsectionLookaround(t *testing.T) {
+	recipe := core.Recipe{
+		{Op: "Subsection", Args: []any{`\d+(?=px)`, true, true, false}},
+		{Op: "Find / Replace", Args: []any{
+			core.ToggleString{Value: `\d`, Option: "Regex"}, "#", true, false, true, false,
+		}},
+	}
+	out, err := recipe.Execute(core.NewDish([]byte("10px 20em 30px"), core.TypeString))
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if out.String() != "##px 20em ##px" {
+		t.Errorf("got %q, want %q", out.String(), "##px 20em ##px")
+	}
+}
+
 // TestSubsectionGlobalFlag checks that with global matching off only the first
 // section is worked on.
 func TestSubsectionGlobalFlag(t *testing.T) {

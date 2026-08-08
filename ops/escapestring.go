@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -54,7 +55,7 @@ func (EscapeString) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	es6 := args[3].(bool)
 	upper := args[4].(bool)
 
-	runes := []rune(in.String())
+	runes := []rune(dishText(in))
 	var sb strings.Builder
 	for i, r := range runes {
 		sb.WriteString(escapeRune(r, i, runes, level, q, jsonCompat, es6, upper))
@@ -66,7 +67,7 @@ func (EscapeString) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	if jsonCompat {
 		out = string(q) + out + string(q)
 	}
-	return core.NewDish([]byte(out), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(out), core.TypeString), nil
 }
 
 // escapeRune returns the escaped representation of a single rune.

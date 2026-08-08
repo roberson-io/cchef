@@ -69,19 +69,30 @@ func (d *Dish) String() string { return string(d.data) }
 // byteArray and ArrayBuffer are byte-backed and convert trivially; number is
 // parsed from the ASCII representation.
 func (d *Dish) Get(typ DishType) (any, error) {
-	if d.typ == TypeFileList || typ == TypeFileList {
-		if d.typ == TypeFileList && typ == TypeFileList {
+	if typ == TypeFileList {
+		if d.typ == TypeFileList {
 			return d.files, nil
 		}
-		return nil, fmt.Errorf("cannot convert between %q and %q: a file list holds several files and cannot be chained", d.typ, typ)
+		return nil, fmt.Errorf("cannot convert %q to a file list", d.typ)
+	}
+	// A file list feeds a following operation as its files' contents concatenated
+	// in order (CyberChef's List<File>→ArrayBuffer), so an op after Unzip runs
+	// over every extracted file's bytes.
+	data := d.data
+	if d.typ == TypeFileList {
+		var buf []byte
+		for _, f := range d.files {
+			buf = append(buf, f.Data...)
+		}
+		data = buf
 	}
 	switch typ {
 	case TypeString, TypeJSON, TypeBigNumber:
-		return string(d.data), nil
+		return string(data), nil
 	case TypeByteArray, TypeArrayBuffer:
-		return d.data, nil
+		return data, nil
 	case TypeNumber:
-		n, err := strconv.ParseFloat(string(d.data), 64)
+		n, err := strconv.ParseFloat(string(data), 64)
 		if err != nil {
 			return nil, fmt.Errorf("cannot interpret dish as number: %w", err)
 		}

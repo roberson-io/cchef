@@ -117,7 +117,7 @@ const maxWrapWidth = 65536
 // rune chunking rather than a regexp, since Go's regexp caps repeat counts at
 // 1000 (below the 65536 max width) and would otherwise panic.
 func (Wrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	input := in.String()
+	input := dishText(in)
 	if input == "" {
 		return core.NewDish(nil, core.TypeString), nil
 	}
@@ -131,7 +131,7 @@ func (Wrap) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			pieces = append(pieces, string(runes[i:min(i+w, len(runes))]))
 		}
 	}
-	return core.NewDish([]byte(strings.Join(pieces, "\n")), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(strings.Join(pieces, "\n")), core.TypeString), nil
 }
 
 // isLineTerminator reports whether r is one of the characters JavaScript's "."

@@ -61,6 +61,26 @@ func TestFindReplace(t *testing.T) {
 			"Extended octal escape", "aAb", "a_b",
 			core.Recipe{{Op: "Find / Replace", Args: []any{ext(`\101`), "_", true, false, true, false}}},
 		},
+		// The replacement decodes escape sequences (\n -> newline), matching
+		// CyberChef's binaryString handling of the Replace field.
+		{
+			"Replacement decodes newline", "aXb", "a\nb",
+			core.Recipe{{Op: "Find / Replace", Args: []any{regex("X"), `\n`, true, false, true, false}}},
+		},
+		{
+			"Replacement escape coexists with group ref", "John Smith", "Smith\tJohn",
+			core.Recipe{{Op: "Find / Replace", Args: []any{regex(`(\w+) (\w+)`), `$2\t$1`, true, false, true, false}}},
+		},
+		// A lookahead pattern — which RE2 cannot compile — runs via the
+		// JavaScript-compatible fallback, group references included.
+		{
+			"Lookahead find with group ref", "alice@x bob@y", "<alice>@x <bob>@y",
+			core.Recipe{{Op: "Find / Replace", Args: []any{regex(`(\w+)(?=@)`), "<$1>", true, false, true, false}}},
+		},
+		{
+			"Lookbehind find, first match only", "$10 and $20", "$N and $20",
+			core.Recipe{{Op: "Find / Replace", Args: []any{regex(`(?<=\$)\d+`), "N", false, false, true, false}}},
+		},
 	})
 }
 

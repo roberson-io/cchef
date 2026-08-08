@@ -1,9 +1,8 @@
 package ops
 
 import (
-	"regexp"
-
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/uregex"
 )
 
 func init() {
@@ -55,13 +54,13 @@ func (Subsection) RunFlow(state *core.FlowState) error {
 	if !caseSensitive {
 		pattern = "(?i)" + pattern
 	}
-	re, err := regexp.Compile(pattern)
+	re, err := uregex.Compile(pattern)
 	if err != nil {
 		return err
 	}
 
 	sub := forkSubRecipe(state)
-	found := re.FindAllStringSubmatchIndex(input, -1)
+	found := re.FindAllStringSubmatchIndex(input)
 	if !global && len(found) > 1 {
 		found = found[:1]
 	}

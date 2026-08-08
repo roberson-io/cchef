@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -41,7 +42,7 @@ func (SwapCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			sb.WriteRune(unicode.ToUpper(r))
 		}
 	}
-	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil
 }
 
 // RemoveWhitespace removes selected whitespace (and optionally full stops).
@@ -143,7 +144,9 @@ func (PadLines) Args() []core.ArgDef {
 func (PadLines) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	position := args[0].(string)
 	n := int(args[1].(float64))
-	chr := args[2].(string)
+	// Character is a binaryShortString argument in CyberChef, so escape
+	// sequences (\t, \n, \xNN, ...) are decoded before padding.
+	chr := opsutil.ParseEscapedChars(args[2].(string))
 	pad := padString(chr, n)
 
 	lines := strings.Split(in.String(), "\n")

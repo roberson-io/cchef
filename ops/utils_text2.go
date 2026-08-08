@@ -29,14 +29,14 @@ func (Split) Meta() core.OpMeta {
 	return core.OpMeta{
 		Name:        "Split",
 		Module:      "Default",
-		Description: "Splits the input on the given delimiter and rejoins the parts with another. Delimiters are used literally (matching CyberChef).",
+		Description: "Splits the input on the given delimiter and rejoins the parts with another. Escape sequences (\\n, \\t, \\xNN, ...) in either delimiter are decoded, matching CyberChef.",
 		InputType:   core.TypeString,
 		OutputType:  core.TypeString,
 	}
 }
 
-// Args returns the argument definitions. The default join delimiter is the
-// literal two-character "\\n", matching CyberChef's "Line feed" preset.
+// Args returns the argument definitions. The default join delimiter is written
+// "\n" and decodes to a newline, matching CyberChef's "Line feed" preset.
 func (Split) Args() []core.ArgDef {
 	return []core.ArgDef{
 		{Name: "Split delimiter", Type: core.ArgEditableOption, Value: ","},
@@ -44,10 +44,13 @@ func (Split) Args() []core.ArgDef {
 	}
 }
 
-// Run splits then joins, using the delimiters literally.
+// Run splits then joins. Both delimiters are editableOption arguments in
+// CyberChef, so their escape sequences are decoded before use.
 func (Split) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	parts := strings.Split(in.String(), args[0].(string))
-	return core.NewDish([]byte(strings.Join(parts, args[1].(string))), core.TypeString), nil
+	splitDelim := opsutil.ParseEscapedChars(args[0].(string))
+	joinDelim := opsutil.ParseEscapedChars(args[1].(string))
+	parts := strings.Split(in.String(), splitDelim)
+	return core.NewDish([]byte(strings.Join(parts, joinDelim)), core.TypeString), nil
 }
 
 // CountOccurrences counts how many times a search term appears.
@@ -184,7 +187,7 @@ func (AlternatingCaps) Args() []core.ArgDef { return nil }
 func (AlternatingCaps) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
 	previousCaps := true
-	for _, r := range in.String() {
+	for _, r := range dishText(in) {
 		switch {
 		case !unicode.IsLetter(r):
 			sb.WriteRune(r)
@@ -196,7 +199,7 @@ func (AlternatingCaps) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			previousCaps = true
 		}
 	}
-	return core.NewDish([]byte(sb.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil
 }
 
 // reANSI matches ANSI/VT100 escape sequences.
@@ -249,11 +252,11 @@ func (ExpandAlphabetRange) Args() []core.ArgDef {
 // Run expands the range.
 func (ExpandAlphabetRange) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := opsutil.ParseEscapedChars(args[0].(string))
-	expanded := opsutil.ExpandAlphRange(in.String())
+	expanded := opsutil.ExpandAlphRange(dishText(in))
 	// Join the expanded characters with the delimiter.
 	chars := make([]string, 0, utf8.RuneCountInString(expanded))
 	for _, r := range expanded {
 		chars = append(chars, string(r))
 	}
-	return core.NewDish([]byte(strings.Join(chars, delim)), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(strings.Join(chars, delim)), core.TypeString), nil
 }

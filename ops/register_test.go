@@ -52,6 +52,26 @@ func TestRegisterSubstitutesIntoLaterSteps(t *testing.T) {
 	}
 }
 
+// TestRegisterLookbehind checks that an extractor using lookbehind — which RE2
+// cannot compile — runs via the JavaScript-compatible fallback and fills the
+// register from the capture group. Verified against the CyberChef engine.
+func TestRegisterLookbehind(t *testing.T) {
+	recipe := core.Recipe{
+		{Op: "Register", Args: []any{`(?<=key=)(\w+)`, false, false, false}},
+		{Op: "Find / Replace", Args: []any{
+			core.ToggleString{Value: "rest", Option: "Regex"},
+			"[$R0]", true, false, true, false,
+		}},
+	}
+	out, err := recipe.Execute(core.NewDish([]byte("key=SECRET rest"), core.TypeString))
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if out.String() != "key=SECRET [SECRET]" {
+		t.Errorf("got %q, want %q", out.String(), "key=SECRET [SECRET]")
+	}
+}
+
 // TestRegisterSeveralGroups checks that each capture group gets its own number.
 func TestRegisterSeveralGroups(t *testing.T) {
 	recipe := core.Recipe{

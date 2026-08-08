@@ -1,6 +1,10 @@
 package ops
 
-import "github.com/roberson-io/cchef/core"
+import (
+	"unicode/utf8"
+
+	"github.com/roberson-io/cchef/core"
+)
 
 func init() {
 	core.Register(Reverse{})
@@ -34,7 +38,7 @@ func (Reverse) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "Line":
 		return core.NewDish(reverseLines(data), core.TypeByteArray), nil
 	case "Character":
-		r := []rune(string(data))
+		r := bytesToRunesLatin1(data)
 		for i, j := 0, len(r)-1; i < j; i, j = i+1, j-1 {
 			r[i], r[j] = r[j], r[i]
 		}
@@ -46,6 +50,24 @@ func (Reverse) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		}
 		return core.NewDish(out, core.TypeByteArray), nil
 	}
+}
+
+// bytesToRunesLatin1 decodes bytes to runes the way CyberChef's byteArrayToUtf8
+// does: a valid UTF-8 sequence becomes its rune, and any byte that is not part
+// of one is kept as its Latin-1 code point rather than being replaced with the
+// U+FFFD replacement character. This makes reversal of non-UTF-8 (e.g. binary)
+// input lossless.
+func bytesToRunesLatin1(data []byte) []rune {
+	runes := make([]rune, 0, len(data))
+	for i := 0; i < len(data); {
+		r, size := utf8.DecodeRune(data[i:])
+		if r == utf8.RuneError && size == 1 {
+			r = rune(data[i]) // invalid byte -> its Latin-1 code point
+		}
+		runes = append(runes, r)
+		i += size
+	}
+	return runes
 }
 
 // reverseLines reverses the order of LF-separated lines, preserving the

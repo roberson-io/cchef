@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -76,5 +77,5 @@ func (ConvertLeetSpeak) Run(in *core.Dish, args []any) (*core.Dish, error) {
 			return r
 		}
 	}
-	return core.NewDish([]byte(strings.Map(mapping, in.String())), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(strings.Map(mapping, dishText(in))), core.TypeString), nil
 }

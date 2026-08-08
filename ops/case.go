@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -49,7 +50,7 @@ func (ToUpperCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var re *regexp.Regexp
 	switch scope {
 	case "All":
-		return core.NewDish([]byte(strings.ToUpper(s)), core.TypeString), nil
+		return core.NewDish(opsutil.TextAsBytes(strings.ToUpper(s)), core.TypeString), nil
 	case "Word":
 		re = reWord
 	case "Sentence":
@@ -57,11 +58,11 @@ func (ToUpperCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "Paragraph":
 		re = reParagraph
 	default:
-		return core.NewDish([]byte(s), core.TypeString), nil
+		return core.NewDish(opsutil.TextAsBytes(s), core.TypeString), nil
 	}
 
 	out := re.ReplaceAllStringFunc(s, strings.ToUpper)
-	return core.NewDish([]byte(out), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(out), core.TypeString), nil
 }
 
 // ToLowerCase converts every character in the input to lower case.
@@ -83,5 +84,5 @@ func (ToLowerCase) Args() []core.ArgDef { return nil }
 
 // Run lower-cases the input.
 func (ToLowerCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	return core.NewDish([]byte(strings.ToLower(dishText(in))), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(strings.ToLower(dishText(in))), core.TypeString), nil
 }

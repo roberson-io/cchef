@@ -6,6 +6,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -35,12 +36,12 @@ func (RemoveDiacritics) Args() []core.ArgDef { return nil }
 // accent is part of the letter itself rather than a combining mark (ø, đ, ß)
 // has nothing to strip and survives.
 func (RemoveDiacritics) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	decomposed := norm.NFD.String(in.String())
+	decomposed := norm.NFD.String(dishText(in))
 	stripped := strings.Map(func(r rune) rune {
 		if r >= 0x0300 && r <= 0x036F {
 			return -1
 		}
 		return r
 	}, decomposed)
-	return core.NewDish([]byte(stripped), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(stripped), core.TypeString), nil
 }

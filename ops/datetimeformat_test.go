@@ -34,6 +34,74 @@ func TestTranslateDateTimeFormatFixtures(t *testing.T) {
 				"Automatic", "", "UTC", "dddd Do MMMM YYYY HH:mm:ss Z z", "UTC",
 			}}},
 		},
+		// UNIX timestamp input (moment's "X" = seconds, "x" = milliseconds).
+		{
+			"Translate DateTime Format: UNIX seconds", "1220275486",
+			"2008-09-01 13:24:46 UTC",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp (seconds)", "X", "UTC", "YYYY-MM-DD HH:mm:ss z", "UTC",
+			}}},
+		},
+		{
+			"Translate DateTime Format: UNIX milliseconds", "1220275486000",
+			"2008-09-01 13:24:46 UTC",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp offset (milliseconds)", "x", "UTC", "YYYY-MM-DD HH:mm:ss z", "UTC",
+			}}},
+		},
+		{
+			// A non-numeric UNIX timestamp is not a valid time.
+			"Translate DateTime Format: invalid UNIX", "not-a-number",
+			"Invalid format.",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp (seconds)", "X", "UTC", "YYYY-MM-DD HH:mm:ss z", "UTC",
+			}}},
+		},
+		{
+			// Fractional UNIX seconds: moment reads up to three fractional digits
+			// as milliseconds via new Date(parseFloat*1000). Working in
+			// nanoseconds (f*1e9) loses a millisecond to float error (.122).
+			"Translate DateTime Format: UNIX fractional seconds", "1609459200.123",
+			"2021-01-01T00:00:00.123",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp (seconds)", "X", "UTC", "YYYY-MM-DDTHH:mm:ss.SSS", "UTC",
+			}}},
+		},
+		{
+			// moment's "X" token greedily consumes the whole "\d+(\.\d{1,3})?"
+			// timestamp, so the trailing ".SSS" in the format matches nothing and
+			// "X.SSS" behaves as "X" (the Squid proxy log timestamp format).
+			"Translate DateTime Format: X.SSS format", "1609459200.123",
+			"2021-01-01T00:00:00.123",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp (seconds)", "X.SSS", "UTC", "YYYY-MM-DDTHH:mm:ss.SSS", "UTC",
+			}}},
+		},
+		{
+			// A negative fractional timestamp is a date before the epoch.
+			"Translate DateTime Format: negative fractional UNIX", "-1000.5",
+			"1969-12-31T23:43:19.500",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp (seconds)", "X", "UTC", "YYYY-MM-DDTHH:mm:ss.SSS", "UTC",
+			}}},
+		},
+		{
+			// moment's matchTimestamp caps the fraction at three digits, so a
+			// fourth digit is not read as sub-millisecond precision.
+			"Translate DateTime Format: UNIX fraction capped at ms", "1609459200.1239",
+			"2021-01-01T00:00:00.123",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp (seconds)", "X", "UTC", "YYYY-MM-DDTHH:mm:ss.SSS", "UTC",
+			}}},
+		},
+		{
+			// A non-numeric millisecond timestamp is invalid.
+			"Translate DateTime Format: invalid UNIX millis", "not-a-number",
+			"Invalid format.",
+			core.Recipe{{Op: "Translate DateTime Format", Args: []any{
+				"UNIX timestamp offset (milliseconds)", "x", "UTC", "YYYY-MM-DD HH:mm:ss z", "UTC",
+			}}},
+		},
 		// Timezone conversion to a DST-free +09:00 zone (JST).
 		{
 			"Translate DateTime Format: to Tokyo", "01/07/2024 00:00:00",

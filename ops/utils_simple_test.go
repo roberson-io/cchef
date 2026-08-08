@@ -61,5 +61,10 @@ func TestPadLines(t *testing.T) {
 			"Pad lines zero length", "ab\ncd", "ab\ncd",
 			core.Recipe{{Op: "Pad lines", Args: []any{"Start", 0, "*"}}},
 		},
+		{
+			// The pad character decodes escape sequences (\t -> tab).
+			"Pad lines escaped tab", "x", "\t\t\tx",
+			core.Recipe{{Op: "Pad lines", Args: []any{"Start", 3, `\t`}}},
+		},
 	})
 }

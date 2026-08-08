@@ -1,9 +1,8 @@
 package ops
 
 import (
-	"regexp"
-
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/uregex"
 )
 
 func init() {
@@ -122,7 +121,7 @@ func (ConditionalJump) RunFlow(state *core.FlowState) error {
 		return nil
 	}
 
-	re, err := regexp.Compile(pattern)
+	re, err := uregex.Compile(pattern)
 	if err != nil {
 		return err
 	}

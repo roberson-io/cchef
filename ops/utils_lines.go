@@ -2,12 +2,12 @@ package ops
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/uregex"
 )
 
 // inputDelims are the delimiter options for line-oriented operations (CyberChef
@@ -54,7 +54,7 @@ func (Filter) Args() []core.ArgDef {
 // Run filters the sections.
 func (Filter) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	delim := charRep(args[0].(string))
-	re, err := regexp.Compile(args[1].(string))
+	re, err := uregex.Compile(args[1].(string))
 	if err != nil {
 		return nil, fmt.Errorf("invalid regex: %w", err)
 	}

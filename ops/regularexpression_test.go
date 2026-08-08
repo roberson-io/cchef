@@ -54,6 +54,29 @@ func TestRegularExpression(t *testing.T) {
 			"empty regex escapes input", "a<b", "a&lt;b",
 			core.Recipe{{Op: "Regular expression", Args: []any{"", "", true, true, false, false, false, false, "Highlight matches"}}},
 		},
+		// Patterns using features RE2 lacks fall back to the JavaScript-compatible
+		// engine. Outputs verified against the CyberChef engine.
+		{
+			"lookahead list matches", "foobar foobaz foobar", "foo\nfoo",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", "foo(?=bar)", false, true, false, false, false, false, "List matches"}}},
+		},
+		{
+			"lookbehind and lookahead with group", "a={1,2} b={3,-4}", "1,2\n  Group 1: 1,2\n3,-4\n  Group 1: 3,-4",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", `(?<=\{)([\-\d,]+)(?=\})`, false, true, false, false, false, false, "List matches with capture groups"}}},
+		},
+		{
+			"backreference", "aabbccdeef", "aa\nbb\ncc\nee",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", `(\w)\1`, false, true, false, false, false, false, "List matches"}}},
+		},
+		{
+			"javascript named group", "year 2020 and 1999", "2020\n1999",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", `(?<yr>\d{4})`, false, true, false, false, false, false, "List capture groups"}}},
+		},
+		{
+			// Highlight over the fallback engine exercises byte-offset translation.
+			"lookahead highlight", "foobar foobaz", "<span class='hl2' title='Offset: 0\n'>foo</span>bar foobaz",
+			core.Recipe{{Op: "Regular expression", Args: []any{"", "foo(?=bar)", false, true, false, false, false, false, "Highlight matches"}}},
+		},
 	})
 }
 

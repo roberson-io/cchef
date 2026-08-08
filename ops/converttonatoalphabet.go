@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/roberson-io/cchef/core"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 func init() {
@@ -53,5 +54,5 @@ func (ConvertToNATOAlphabet) Run(in *core.Dish, args []any) (*core.Dish, error) 
 			out.WriteRune(r)
 		}
 	}
-	return core.NewDish([]byte(out.String()), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(out.String()), core.TypeString), nil
 }

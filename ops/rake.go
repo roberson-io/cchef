@@ -8,6 +8,7 @@ import (
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/jsnum"
+	"github.com/roberson-io/cchef/internal/opsutil"
 )
 
 // rakeDefaultStopWords is the list CyberChef ships, taken from the NLTK package.
@@ -66,10 +67,10 @@ func (RAKE) Run(in *core.Dish, args []any) (*core.Dish, error) {
 
 	stop := rakeStopWords(stopList)
 	tokens, frequencies, phrases := rakeReadPhrases(
-		strings.TrimSpace(strings.ToLower(in.String())), wordDelim, sentenceDelim, stop)
+		strings.TrimSpace(strings.ToLower(dishText(in))), wordDelim, sentenceDelim, stop)
 
 	scored := rakeScorePhrases(tokens, frequencies, phrases)
-	return core.NewDish([]byte(rakeRender(scored)), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(rakeRender(scored)), core.TypeString), nil
 }
 
 // rakeStopWords reads the words that break a sentence into phrases. The empty

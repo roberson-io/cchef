@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -387,12 +388,53 @@ func momentToGoLayout(format string) string {
 // momentParse parses input per a moment format string in loc. An empty format
 // triggers moment's lenient auto-parsing. Returns false when the value is invalid.
 func momentParse(input, format string, loc *time.Location) (time.Time, bool) {
-	if strings.TrimSpace(format) == "" {
+	f := strings.TrimSpace(format)
+	switch {
+	case f == "":
 		return momentAutoParse(input, loc)
+	// moment's "X"/"x" are single-character tokens whose regex greedily consumes
+	// the leading timestamp, so any trailing format tokens (e.g. the ".SSS" of
+	// the Squid log format "X.SSS") match nothing and a format beginning with
+	// "X"/"x" behaves as the bare token.
+	case strings.HasPrefix(f, "X"): // UNIX timestamp in seconds
+		return unixParse(input, false)
+	case strings.HasPrefix(f, "x"): // UNIX timestamp in milliseconds
+		return unixParse(input, true)
 	}
-	t, err := time.ParseInLocation(momentToGoLayout(format), strings.TrimSpace(input), loc)
+	t, err := time.ParseInLocation(momentToGoLayout(f), strings.TrimSpace(input), loc)
 	if err != nil {
 		return time.Time{}, false
 	}
 	return t, true
+}
+
+// unixSecondsToken and unixMillisToken mirror moment's parse regexes: "X" reads
+// matchTimestamp (up to three fractional digits, i.e. milliseconds) and "x"
+// reads matchSigned (a signed integer).
+var (
+	unixSecondsToken = regexp.MustCompile(`^[+-]?\d+(\.\d{1,3})?`)
+	unixMillisToken  = regexp.MustCompile(`^[+-]?\d+`)
+)
+
+// unixParse reads a leading UNIX timestamp token. It reproduces moment exactly:
+// "X" is new Date(parseFloat(input)*1000) and "x" is new Date(toInt(input)), so
+// both resolve to whole milliseconds truncated toward zero the way ECMAScript's
+// TimeClip does. Working in milliseconds (not nanoseconds) is what keeps a
+// fractional value like "1609459200.123" from losing a millisecond to float error.
+func unixParse(input string, millis bool) (time.Time, bool) {
+	s := strings.TrimSpace(input)
+	if millis {
+		tok := unixMillisToken.FindString(s)
+		v, err := strconv.ParseInt(tok, 10, 64)
+		if err != nil {
+			return time.Time{}, false
+		}
+		return time.UnixMilli(v).UTC(), true
+	}
+	tok := unixSecondsToken.FindString(s)
+	f, err := strconv.ParseFloat(tok, 64)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return time.UnixMilli(int64(f * 1000)).UTC(), true
 }

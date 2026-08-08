@@ -377,12 +377,17 @@ func TestInDirOutDirFileList(t *testing.T) {
 	}
 }
 
-// A file list cannot feed a following operation; the recipe must say so.
-func TestFileListCannotChain(t *testing.T) {
-	_, err := execRootCapture(t, "bake", "-e", "Split_Colour_Channels()\nTo_Hex()", "--in-file",
-		"../ops/testdata/resize_input.png", "--out-dir", t.TempDir())
-	if err == nil || !strings.Contains(err.Error(), "cannot be chained") {
-		t.Fatalf("error = %v, want one about chaining", err)
+// A file-list-producing operation feeds the following step as its files'
+// contents concatenated, so Split Colour Channels can be chained into To Hex.
+func TestFileListChains(t *testing.T) {
+	out, err := execRootCapture(t, "bake", "-e", "Split_Colour_Channels()\nTo_Hex('None')", "--in-file",
+		"../ops/testdata/resize_input.png")
+	if err != nil {
+		t.Fatalf("chaining should now succeed: %v", err)
+	}
+	// The three channel PNGs concatenated and hex-encoded: three PNG signatures.
+	if n := strings.Count(out, "89504e470d0a1a0a"); n != 3 {
+		t.Fatalf("expected 3 concatenated PNG signatures in the hex, got %d\n%.80s", n, out)
 	}
 }
 
@@ -393,11 +398,7 @@ func TestRecipeFileListOutputSkipsDisabled(t *testing.T) {
 		{Op: "Split Colour Channels"},
 		{Op: "To Hex", Disabled: true},
 	}
-	fileList, err := recipeFileListOutput(recipe)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !fileList {
+	if !recipeFileListOutput(recipe) {
 		t.Error("expected a file-list recipe when the trailing step is disabled")
 	}
 }
