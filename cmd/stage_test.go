@@ -177,6 +177,14 @@ func TestStageFormat(t *testing.T) {
 	if got := formatStage(nil); !strings.Contains(got, "empty") {
 		t.Errorf("empty listing = %q", got)
 	}
+	// Every listing ends with a newline so the shell prompt starts on a fresh
+	// line (an unterminated line shows as a stray "%" under zsh).
+	if got := formatStage(nil); !strings.HasSuffix(got, "\n") {
+		t.Errorf("empty listing does not end with a newline: %q", got)
+	}
+	if got := formatStage(r); !strings.HasSuffix(got, "\n") {
+		t.Errorf("listing does not end with a newline: %q", got)
+	}
 }
 
 // TestBakeUsesStagedRecipe checks the payoff: with nothing given on the command

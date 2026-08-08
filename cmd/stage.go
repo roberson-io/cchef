@@ -189,7 +189,7 @@ func stageClear() error {
 // other commands take are the ones on screen.
 func formatStage(r core.Recipe) string {
 	if len(r) == 0 {
-		return "No recipe staged (empty). Add a step with `cchef recipe add <operation>`."
+		return "No recipe staged (empty). Add a step with `cchef recipe add <operation>`.\n"
 	}
 	var sb strings.Builder
 	for i, step := range r {
