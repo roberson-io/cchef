@@ -12,6 +12,14 @@ Every operation is a subcommand that reads input
 and writes output, so operations chain together through Unix pipes or as a single
 recipe, and any recipe can be turned into a shareable CyberChef URL.
 
+![Terminal recording: cchef encodes to Base64 and chains that into a hex dump,
+then writes a QR code for a URL to a PNG file and reads the URL back out of it;
+builds the same two-step recipe twice — once from bare subcommand names, once in
+CyberChef's own recipe syntax, for identical results — disables the second step
+and bakes it; turns a recipe into a CyberChef share link and reads one back
+again; and finishes with magic working out unaided that some opaque text is
+base64-wrapped gzip.](assets/demo.gif)
+
 ## Install
 
 **Homebrew** (macOS and Linux) — also installs the man page and completions:
