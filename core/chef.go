@@ -29,6 +29,21 @@ func marshalNoEscapeHTML(v any) (string, error) {
 	return strings.TrimRight(buf.String(), "\n"), nil
 }
 
+// MarshalRecipeJSON renders a recipe as CyberChef's indented JSON form. It is
+// the inverse of ParseRecipeConfig for a recipe written as a JSON array, and
+// carries no trailing newline. <, > and & are left as themselves, matching
+// JavaScript's JSON.stringify, so a saved recipe stays readable to edit.
+func MarshalRecipeJSON(r Recipe) (string, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(r); err != nil {
+		return "", err
+	}
+	return strings.TrimRight(buf.String(), "\n"), nil
+}
+
 // chefArgs renders a recipe step's arguments in Chef format: JSON values with
 // the enclosing [] removed and double-quoted strings rewritten as single-quoted.
 func chefArgs(args []any) (string, error) {
@@ -85,11 +100,18 @@ func ParseRecipeConfig(recipe string) (Recipe, error) {
 		if err := json.Unmarshal([]byte(recipe), &r); err != nil {
 			return nil, fmt.Errorf("parse JSON recipe: %w", err)
 		}
-		for i, step := range r {
+		for i := range r {
 			// A step has to name an operation. Without this the recipe would
 			// be accepted here and fail only when run, and it has no valid
-			// written form, so sharing it would silently change it.
-			if step.Op == "" {
+			// written form, so sharing it would silently change it. A name of
+			// nothing but whitespace is the same case: the Chef form writes it
+			// as an empty name.
+			//
+			// The name is trimmed for the same reason the Chef form trims it:
+			// no operation name carries surrounding whitespace, and leaving it
+			// would mean a recipe that changes when written out and read back.
+			r[i].Op = strings.TrimSpace(r[i].Op)
+			if r[i].Op == "" {
 				return nil, fmt.Errorf("step %d names no operation", i+1)
 			}
 		}
@@ -114,7 +136,14 @@ func ParseRecipeConfig(recipe string) (Recipe, error) {
 			return nil, fmt.Errorf("parse args for %q: %w", m[1], err)
 		}
 
-		step := RecipeOp{Op: strings.ReplaceAll(m[1], "_", " "), Args: parsed}
+		// The name is trimmed so a recipe written across indented lines names the
+		// operation it means. No operation name begins or ends with whitespace,
+		// and CyberChef keeps it only because its own recipes arrive on one line.
+		name := strings.TrimSpace(strings.ReplaceAll(m[1], "_", " "))
+		if name == "" {
+			return nil, fmt.Errorf("step %d names no operation", len(out)+1)
+		}
+		step := RecipeOp{Op: name, Args: parsed}
 		if strings.Contains(m[3], "disabled") {
 			step.Disabled = true
 		}

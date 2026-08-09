@@ -90,10 +90,12 @@ How to check work.
   through cchef and the oracle and compare byte for byte. Where cchef
   diverges deliberately, the sweep asserts the divergence precisely rather
   than skipping the case.
-- **Fuzzing.** `make fuzz` runs seven targets across `core`, `ops` and
-  `internal/yara`: the parsers that read data cchef did not write, plus
-  round-trip properties over the byte-level codecs. Failing inputs land in
-  `testdata/fuzz/` and become regression tests.
+- **Fuzzing.** `make fuzz` runs eight targets across `core`, `ops` and
+  `internal/yara`: the parsers that read data cchef did not write — a recipe, a
+  share URL — plus round-trip properties over the byte-level codecs. Failing
+  inputs land in `testdata/fuzz/` and become regression tests. The target fails
+  when a package has no fuzz targets, so a package that moves cannot leave the
+  gate silently passing.
 
 ## Deliberate differences from CyberChef
 

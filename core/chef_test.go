@@ -177,3 +177,166 @@ func TestParseRecipeConfigIsLinear(t *testing.T) {
 		}
 	}
 }
+
+// TestMarshalRecipeJSON covers the recipe -> JSON direction, which is the
+// inverse of ParseRecipeConfig for a recipe written as a JSON array.
+func TestMarshalRecipeJSON(t *testing.T) {
+	got, err := MarshalRecipeJSON(Recipe{{Op: "To Hex", Args: []any{"Space"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "[\n" +
+		"  {\n" +
+		"    \"op\": \"To Hex\",\n" +
+		"    \"args\": [\n" +
+		"      \"Space\"\n" +
+		"    ]\n" +
+		"  }\n" +
+		"]"
+	if got != want {
+		t.Errorf("MarshalRecipeJSON =\n%s\nwant\n%s", got, want)
+	}
+	if strings.HasSuffix(got, "\n") {
+		t.Error("MarshalRecipeJSON should not carry a trailing newline")
+	}
+}
+
+// TestMarshalRecipeJSONNoHTMLEscape checks that the JSON is written the way
+// JavaScript writes it. The stage file is meant to be edited by hand, so a
+// pattern holding <, > or & has to stay readable rather than becoming <.
+func TestMarshalRecipeJSONNoHTMLEscape(t *testing.T) {
+	got, err := MarshalRecipeJSON(Recipe{{Op: "Find / Replace", Args: []any{"<a & b>"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(got, "<a & b>") {
+		t.Errorf("MarshalRecipeJSON escaped HTML characters: %s", got)
+	}
+}
+
+// TestMarshalRecipeJSONRoundTrip checks the pair reproduces the recipe.
+func TestMarshalRecipeJSONRoundTrip(t *testing.T) {
+	r := Recipe{
+		{Op: "To Base64", Args: []any{"A-Za-z0-9+/="}},
+		{Op: "To Hex", Args: []any{"Colon"}, Disabled: true},
+		{Op: "ROT13", Breakpoint: true},
+	}
+	s, err := MarshalRecipeJSON(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back, err := ParseRecipeConfig(s)
+	if err != nil {
+		t.Fatalf("reparsing %s: %v", s, err)
+	}
+	if got, want := GeneratePrettyRecipe(back, false), GeneratePrettyRecipe(r, false); got != want {
+		t.Errorf("round trip = %q, want %q", got, want)
+	}
+}
+
+// TestMarshalRecipeJSONError covers a value JSON cannot represent. Recipe is
+// part of the public API, so a caller building one in Go can put anything in
+// Args; the error is reported rather than producing half a recipe.
+func TestMarshalRecipeJSONError(t *testing.T) {
+	r := Recipe{{Op: "To Hex", Args: []any{func() {}}}}
+	if _, err := MarshalRecipeJSON(r); err == nil {
+		t.Error("expected an unmarshalable argument to be refused")
+	}
+}
+
+// TestParseRecipeConfigIndented covers a Chef recipe written across several
+// lines with indentation, which is how a recipe file is readable. The operation
+// name must not carry the indentation into the registry lookup.
+//
+// CyberChef keeps the whitespace, so an indented recipe names an operation it
+// then cannot find. Its own recipes come from a single-line URL fragment where
+// this never arises; cchef reads recipe files, where it does.
+func TestParseRecipeConfigIndented(t *testing.T) {
+	for name, recipe := range map[string]string{
+		"indented lines":     "To_Hex()\n  ROT13()\n",
+		"tab indented":       "To_Hex()\n\tROT13()\n",
+		"spaces between ops": "To_Hex()  ROT13()",
+	} {
+		r, err := ParseRecipeConfig(recipe)
+		if err != nil {
+			t.Errorf("%s: %v", name, err)
+			continue
+		}
+		if len(r) != 2 {
+			t.Errorf("%s: got %d steps, want 2", name, len(r))
+			continue
+		}
+		if r[0].Op != "To Hex" || r[1].Op != "ROT13" {
+			t.Errorf("%s: ops = %q, %q; want To Hex, ROT13", name, r[0].Op, r[1].Op)
+		}
+	}
+}
+
+// TestParseRecipeConfigEmptyOpName checks that a Chef recipe with a step naming
+// no operation is refused, as the JSON form already is. Such a step has no
+// valid written form, so accepting it would mean sharing a recipe that silently
+// changes when it is written back out.
+func TestParseRecipeConfigEmptyOpName(t *testing.T) {
+	for _, recipe := range []string{"0() ()", "To_Hex()()", "()"} {
+		if _, err := ParseRecipeConfig(recipe); err == nil {
+			t.Errorf("ParseRecipeConfig(%q) should refuse a step naming no operation", recipe)
+		}
+	}
+}
+
+// TestParseRecipeConfigBlankOpName checks that a name made only of whitespace is
+// refused in the JSON form too. It names no operation, and its Chef form is an
+// empty name, so accepting it would mean a recipe that cannot be written back.
+func TestParseRecipeConfigBlankOpName(t *testing.T) {
+	for _, recipe := range []string{`[{"op":" "}]`, `[{"op":"\t"}]`, `[{"op":""}]`} {
+		if _, err := ParseRecipeConfig(recipe); err == nil {
+			t.Errorf("ParseRecipeConfig(%q) should refuse a blank operation name", recipe)
+		}
+	}
+}
+
+// TestParseRecipeConfigTrimsJSONOpName checks that the JSON form trims an
+// operation name the same way the Chef form does, so the two agree and a recipe
+// survives being written out and read back.
+func TestParseRecipeConfigTrimsJSONOpName(t *testing.T) {
+	r, err := ParseRecipeConfig(`[{"op":" To Hex ","args":["Space"]}]`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r[0].Op != "To Hex" {
+		t.Errorf("op = %q, want To Hex", r[0].Op)
+	}
+}
+
+// TestToggleStringKeyOrder pins the order a toggle string's fields are written
+// in. CyberChef writes {"option":...,"string":...}, and a recipe that has been
+// through a text form comes back as a map, which Go writes in that same
+// alphabetical order. Writing the struct any other way would make a generated
+// recipe or share URL differ from CyberChef's for no reason, and differ from
+// the same recipe after a round trip.
+func TestToggleStringKeyOrder(t *testing.T) {
+	r := Recipe{{Op: "XOR", Args: []any{ToggleString{Value: "ff", Option: "Hex"}}}}
+
+	chef := GeneratePrettyRecipe(r, false)
+	if want := `XOR({'option':'Hex','string':'ff'})`; chef != want {
+		t.Errorf("chef form = %q, want %q", chef, want)
+	}
+
+	js, err := MarshalRecipeJSON(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if optAt, strAt := strings.Index(js, `"option"`), strings.Index(js, `"string"`); optAt > strAt {
+		t.Errorf("JSON writes string before option:\n%s", js)
+	}
+
+	// The same recipe read back from its text form writes identically, so a
+	// round trip does not change the recipe's spelling.
+	back, err := ParseRecipeConfig(chef)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := GeneratePrettyRecipe(back, false); got != chef {
+		t.Errorf("round trip changed the spelling:\n %q\n %q", got, chef)
+	}
+}

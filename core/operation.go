@@ -30,9 +30,14 @@ const (
 
 // ToggleString is the value form of an ArgToggleString argument: a string plus
 // the selected mode (e.g. {Value:"ff", Option:"Hex"}).
+//
+// Option is declared first so the two fields are written in the order CyberChef
+// writes them, which is also the order they come back in once a recipe has been
+// through a text form and its toggle strings have become maps. A recipe
+// therefore reads the same however it was built.
 type ToggleString struct {
-	Value  string `json:"string"`
 	Option string `json:"option"`
+	Value  string `json:"string"`
 }
 
 // ArgDef describes a single operation argument.

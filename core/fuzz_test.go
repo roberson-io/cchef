@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -38,11 +39,15 @@ func FuzzParseRecipeConfig(f *testing.F) {
 			return
 		}
 		// The Chef format writes an operation name unquoted, so a name
-		// containing the format's own punctuation has no written form. No real
-		// operation is named that way, and both cchef and CyberChef reject such
-		// a name when the recipe runs, so those recipes are out of scope here.
-		for _, step := range r {
-			if strings.ContainsAny(step.Op, "()',/") {
+		// containing the format's own punctuation has no written form: "()',/"
+		// delimit an operation, "_" stands for a space, and a leading "[" is
+		// what marks a recipe as JSON. No real operation is named that way, and
+		// such a recipe is refused when it runs, so it is out of scope here.
+		for i, step := range r {
+			if strings.ContainsAny(step.Op, "()',/_") {
+				return
+			}
+			if i == 0 && strings.HasPrefix(step.Op, "[") {
 				return
 			}
 		}
@@ -113,6 +118,51 @@ func FuzzCoerceArg(f *testing.F) {
 			nil,
 		} {
 			_, _ = CoerceArg(def, v)
+		}
+	})
+}
+
+// FuzzParseURL runs the share-link reader, which is a parser reading data cchef
+// did not write. It must terminate and report an error rather than panic; when
+// it does read a link, rebuilding and re-reading has to agree with it.
+func FuzzParseURL(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		"#recipe=MD5()",
+		"#recipe=To_Hex('Space')&input=aGVsbG8",
+		"https://gchq.github.io/CyberChef/#recipe=ROT13()&input=aGk",
+		"recipe=" + EncodeURIFragment(`[{"op":"To Hex","args":["Space"]}]`),
+		"#recipe=%zz",
+		"#input=aGVsbG8",
+		"#recipe=MD5()&input=!!!!",
+		"#recipe=" + EncodeURIFragment("To_Hex('Space'/disabled)"),
+	} {
+		f.Add(seed)
+	}
+	f.Fuzz(func(t *testing.T, s string) {
+		r, in, err := ParseURL(s)
+		if err != nil {
+			return
+		}
+		// An operation name carrying the Chef format's own punctuation has no
+		// stable written form. See FuzzParseRecipeConfig for the reasoning.
+		for i, step := range r {
+			if strings.ContainsAny(step.Op, "()',/_") {
+				return
+			}
+			if i == 0 && strings.HasPrefix(step.Op, "[") {
+				return
+			}
+		}
+		again, in2, err := ParseURL(BuildURL(DefaultBaseURL, r, in))
+		if err != nil {
+			t.Fatalf("a link built from a parsed one did not parse: %v", err)
+		}
+		if got, want := GeneratePrettyRecipe(again, false), GeneratePrettyRecipe(r, false); got != want {
+			t.Fatalf("recipe changed on rebuild: %q vs %q", got, want)
+		}
+		if !bytes.Equal(in2, in) {
+			t.Fatalf("input changed on rebuild: %v vs %v", in2, in)
 		}
 	})
 }

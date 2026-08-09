@@ -120,8 +120,10 @@ test:
 
 ## fuzz: run every fuzz target for FUZZTIME each (default 30s)
 fuzz:
-	@for pkg in ./internal/core ./internal/ops ./internal/yara; do \
-	  for target in $$($(GO) test $$pkg -list 'Fuzz.*' | grep '^Fuzz'); do \
+	@for pkg in ./core ./ops ./internal/yara; do \
+	  targets=$$($(GO) test $$pkg -list 'Fuzz.*' | grep '^Fuzz') || exit 1; \
+	  if [ -z "$$targets" ]; then echo "no fuzz targets in $$pkg" >&2; exit 1; fi; \
+	  for target in $$targets; do \
 	    echo "==> $$pkg $$target"; \
 	    $(GO) test $$pkg -run "$$target" -fuzz "^$$target$$" -fuzztime $(FUZZTIME) || exit 1; \
 	  done; \
