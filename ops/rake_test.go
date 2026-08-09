@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"github.com/dlclark/regexp2"
+
 	"github.com/roberson-io/cchef/core"
 )
 
@@ -81,6 +83,52 @@ func TestRAKERejectsBadPatterns(t *testing.T) {
 		if _, err := runOp(t, "RAKE", "some text", args...); err == nil {
 			t.Errorf("args %v were accepted", args)
 		}
+	}
+}
+
+// TestRegexp2SplitNonASCII pins that splitting happens on byte offsets. regexp2
+// reports a match's position as a rune index, so slicing the original string
+// with it cuts multi-byte characters in half.
+func TestRegexp2SplitNonASCII(t *testing.T) {
+	re := regexp2.MustCompile(`\s+`, regexp2.None)
+	for _, tc := range []struct {
+		name string
+		in   string
+		want []string
+	}{
+		{"ascii", "alpha beta", []string{"alpha", "beta"}},
+		{"accented", "café x", []string{"café", "x"}},
+		{"leading multibyte", "über alles gut", []string{"über", "alles", "gut"}},
+		{"cjk", "日本語 テキスト", []string{"日本語", "テキスト"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := regexp2Split(re, tc.in)
+			if len(got) != len(tc.want) {
+				t.Fatalf("split %q into %q, want %q", tc.in, got, tc.want)
+			}
+			for i := range got {
+				if got[i] != tc.want[i] {
+					t.Errorf("piece %d = %q, want %q", i, got[i], tc.want[i])
+				}
+			}
+		})
+	}
+}
+
+// TestRAKENonASCIIKeywords covers rune-versus-byte offsets end to end: the
+// keywords come back whole rather than cut mid-character.
+//
+// The expectation is Latin-1 rather than UTF-8 because that is what CyberChef
+// produces: a String result is encoded one byte per character whenever every
+// character is below 0x100, so "é" (U+00E9) is written as the single byte 0xE9.
+func TestRAKENonASCIIKeywords(t *testing.T) {
+	out, err := runOp(t, "RAKE", "café serves crème brûlée daily")
+	if err != nil {
+		t.Fatalf("RAKE: %v", err)
+	}
+	const want = "Scores: , Keywords: \n25, caf\xe9 serves cr\xe8me br\xfbl\xe9e daily"
+	if out != want {
+		t.Errorf("RAKE = %q, want %q", out, want)
 	}
 }
 

@@ -196,19 +196,24 @@ func rakeRender(scored []rakeScoredPhrase) string {
 }
 
 // regexp2Split splits s on every match of re, keeping the pieces between them.
+//
+// A match's Index and Length count runes, not bytes, so they cannot index the
+// string directly: on any multi-byte character that would slice mid-character
+// and yield invalid UTF-8. Indexing the runes instead keeps the pieces whole.
 func regexp2Split(re *regexp2.Regexp, s string) []string {
+	runes := []rune(s)
 	var out []string
 	last := 0
 
 	match, err := re.FindStringMatch(s)
 	for err == nil && match != nil {
 		if match.Length > 0 {
-			out = append(out, s[last:match.Index])
+			out = append(out, string(runes[last:match.Index]))
 			last = match.Index + match.Length
 		}
 		match, err = re.FindNextMatch(match)
 	}
-	return append(out, s[last:])
+	return append(out, string(runes[last:]))
 }
 
 func init() { core.Register(RAKE{}) }
