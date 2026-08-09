@@ -93,21 +93,21 @@ An operation reads from a positional argument, `-i`, `--in-file`, or stdin —
 all three of these print `aGVsbG8=`:
 
 ```bash
-cchef to-base64 hello
+cchef to-base64 "hello"
 ```
 
 ```bash
-cchef to-base64 -i hello
+cchef to-base64 -i "hello"
 ```
 
 ```bash
-echo -n hello | cchef to-base64
+echo -n "hello" | cchef to-base64
 ```
 
 Chain operations with pipes (`61 47 56 73 62 47 38 3d`):
 
 ```bash
-echo -n hello | cchef to-base64 | cchef to-hex
+cchef to-base64 "hello" | cchef to-hex
 ```
 
 Hash something:
@@ -119,7 +119,7 @@ cchef sha256 -i 'Hello, World!'
 Run a whole recipe at once (JSON or compact "Chef" format):
 
 ```bash
-echo -n hello | cchef bake -e "To_Base64()To_Hex()"
+cchef bake -e "To_Base64()To_Hex()" "hello"
 ```
 
 Work out what unknown data is, and how to decode it:
@@ -131,7 +131,7 @@ cchef magic -i "41 42 43 44 45"
 Turn a recipe into a CyberChef share URL:
 
 ```bash
-cchef url -e "ROT13()" -i hello
+cchef url -e "ROT13()" -i "hello"
 ```
 
 Discover what's available — every operation grouped by category with a
@@ -140,7 +140,7 @@ one-line summary — and note that common operations have short aliases
 
 ```bash
 cchef list
-cchef b64e hello
+cchef b64e "hello"
 ```
 
 Process a whole directory of files (CyberChef's folder input):
@@ -215,7 +215,7 @@ staged recipe lives in `.cchef-recipe.json` in the working directory, and
 cchef recipe add "To_Base64()"
 cchef recipe add "To_Hex('Space')"
 cchef recipe show
-echo -n hello | cchef bake
+cchef bake "hello"
 ```
 
 `show` lists the staged steps numbered, each marked `[X]` when it runs or `[ ]`
