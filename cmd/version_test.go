@@ -8,8 +8,8 @@ import (
 
 func TestVersionFlag(t *testing.T) {
 	got := execRoot(t, "--version")
-	if !strings.Contains(got, version) {
-		t.Fatalf("--version output %q does not contain version %q", got, version)
+	if !strings.Contains(got, buildVersion) {
+		t.Fatalf("--version output %q does not contain version %q", got, buildVersion)
 	}
 }
 
@@ -41,5 +41,38 @@ func TestAlignedCyberChefQuotedConsistently(t *testing.T) {
 				t.Errorf("%s quotes CyberChef %s; cmd/version.go says %s", tc.file, m[1], alignedCyberChef)
 			}
 		}
+	}
+}
+
+// TestResolveVersion covers where the reported version comes from. A release
+// binary is stamped by the linker; a `go install` binary has no stamp but the
+// toolchain records the module version it was built from; a local build has
+// neither and says so.
+func TestResolveVersion(t *testing.T) {
+	for name, tc := range map[string]struct {
+		ldflag, module, want string
+	}{
+		"release stamp wins":     {"1.2.3", "v9.9.9", "1.2.3"},
+		"stamp without a module": {"1.2.3", "", "1.2.3"},
+		"module version":         {"", "v1.0.0", "1.0.0"},
+		"module pseudo-version":  {"", "v1.0.1-0.20260809100557-a68f68f08e55", "1.0.1-0.20260809100557-a68f68f08e55"},
+		"local build":            {"", "(devel)", devVersion},
+		"no information at all":  {"", "", devVersion},
+	} {
+		if got := resolveVersion(tc.ldflag, tc.module); got != tc.want {
+			t.Errorf("%s: resolveVersion(%q, %q) = %q, want %q", name, tc.ldflag, tc.module, got, tc.want)
+		}
+	}
+}
+
+// TestBuildVersionIsReported checks that whatever resolveVersion decided is what
+// --version actually prints, so the two cannot drift apart.
+func TestBuildVersionIsReported(t *testing.T) {
+	got := execRoot(t, "--version")
+	if !strings.Contains(got, buildVersion) {
+		t.Errorf("--version output %q does not contain %q", got, buildVersion)
+	}
+	if strings.Contains(got, "0.1.0-dev") {
+		t.Errorf("--version still reports the old placeholder: %q", got)
 	}
 }

@@ -10,8 +10,13 @@ recipe.
 
 ## Installing / building
 
+Homebrew, `.deb`/`.rpm`, a prebuilt archive, `go install`, or from source — see
+the [install guide](install.md), which also covers what each package installs
+where, shell completion per shell, uninstalling, and
+[verifying a release](install.md#verifying-a-release).
+
 ```bash
-make build      # produces ./dist/cchef
+make build      # from a checkout: produces ./dist/cchef
 ```
 
 ## How input and output work

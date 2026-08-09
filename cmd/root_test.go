@@ -16,7 +16,7 @@ func TestExecuteWrapper(t *testing.T) {
 	rootCmd.SetIn(strings.NewReader(""))
 	rootCmd.SetArgs([]string{"--version"})
 	Execute()
-	if !strings.Contains(buf.String(), version) {
-		t.Fatalf("Execute --version output %q missing version", buf.String())
+	if !strings.Contains(buf.String(), buildVersion) {
+		t.Fatalf("Execute --version output %q missing version %q", buf.String(), buildVersion)
 	}
 }

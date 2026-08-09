@@ -41,6 +41,9 @@ jobs:
           # A separate PAT is needed to push the Homebrew cask to the tap repo;
           # if it is not set, GoReleaser skips the tap and the rest still runs.
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          # The same again for the Scoop bucket, so a missing token skips only
+          # the manifest.
+          SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
 
       # SLSA build provenance for every published archive and package, verifiable
       # with `gh attestation verify`.

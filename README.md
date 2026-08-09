@@ -14,18 +14,48 @@ recipe, and any recipe can be turned into a shareable CyberChef URL.
 
 ## Install
 
-**Homebrew** (macOS and Linux):
+**Homebrew** (macOS and Linux) — also installs the man page and completions:
 
 ```bash
 brew install roberson-io/tap/cchef
 ```
 
-**deb / rpm, or a prebuilt binary:** download from the
-[latest release](https://github.com/roberson-io/cchef/releases/latest) — one
-static binary per platform, plus `.deb`/`.rpm` packages that also install the
-man page and shell completions.
+**Debian / Ubuntu** (`.deb`) and **Fedora / RHEL** (`.rpm`) — these fetch
+whatever the latest release is; use `linux_arm64` on 64-bit Arm:
 
-**With Go:**
+```bash
+curl -LO "$(curl -fsSL https://api.github.com/repos/roberson-io/cchef/releases/latest \
+  | grep -o 'https://[^"]*linux_amd64\.deb"' | tr -d '"')"
+sudo dpkg -i cchef_*_linux_amd64.deb
+```
+
+```bash
+curl -LO "$(curl -fsSL https://api.github.com/repos/roberson-io/cchef/releases/latest \
+  | grep -o 'https://[^"]*linux_amd64\.rpm"' | tr -d '"')"
+sudo rpm -i cchef_*_linux_amd64.rpm
+```
+
+**Windows** — with [Scoop](https://scoop.sh/):
+
+```powershell
+scoop bucket add roberson-io https://github.com/roberson-io/scoop-bucket
+scoop install cchef
+```
+
+…or from the zip, which also carries the man page, docs and PowerShell
+completions:
+
+```powershell
+$Url = (Invoke-RestMethod https://api.github.com/repos/roberson-io/cchef/releases/latest).assets |
+  Where-Object name -like '*windows_amd64.zip' |
+  Select-Object -ExpandProperty browser_download_url
+Invoke-WebRequest -Uri $Url -OutFile cchef.zip
+Expand-Archive cchef.zip -DestinationPath $env:LOCALAPPDATA\cchef
+```
+
+Then add `%LOCALAPPDATA%\cchef` to your `PATH`.
+
+**With Go** (Go 1.26+; installs no man page or completions):
 
 ```bash
 go install github.com/roberson-io/cchef@latest
@@ -37,36 +67,17 @@ go install github.com/roberson-io/cchef@latest
 make build      # produces ./dist/cchef
 ```
 
-Requires Go 1.26+ to build. The result is a single static binary with no cgo;
-the only optional runtime dependency is `tesseract`, for the Optical Character
-Recognition operation.
+The result is a single static binary with no cgo; the only optional runtime
+dependency is `tesseract`, for the Optical Character Recognition operation.
 
 Shell completion is built in — `cchef completion bash|zsh|fish|powershell`
-prints a script, and the Homebrew and deb/rpm packages install it
-automatically.
+prints a script. Homebrew and the deb/rpm packages install the bash, zsh and
+fish scripts for you; the PowerShell one ships in the Windows archive.
 
-### Verifying a release
-
-Release archives are checksummed, the checksums file is signed with
-[Sigstore cosign](https://www.sigstore.dev/) (keyless), and every artifact
-carries [SLSA build provenance](https://slsa.dev/). To verify a download:
-
-```bash
-# 1. Provenance — that the artifact was built by this repo's release workflow:
-gh attestation verify cchef_1.0.0_linux_amd64.tar.gz --repo roberson-io/cchef
-
-# 2. Checksum — that your download matches what was released:
-sha256sum -c checksums.txt --ignore-missing
-
-# 3. Signature — that the checksums file itself is authentic:
-cosign verify-blob checksums.txt \
-  --signature checksums.txt.sig \
-  --certificate checksums.txt.pem \
-  --certificate-identity-regexp '^https://github.com/roberson-io/cchef' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
-```
-
-A CycloneDX SBOM is published alongside each archive.
+> See **[docs/install.md](docs/install.md)** for per-platform detail, what each
+> package installs where, uninstalling, and
+> [verifying a release](docs/install.md#verifying-a-release) (checksums, cosign
+> signature, SLSA provenance and SBOMs).
 
 ## Quickstart
 

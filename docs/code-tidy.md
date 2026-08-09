@@ -800,7 +800,7 @@ own; a global `--color` would take that name away from them.
 ### Simple example
 
 ```bash
-cchef syntax-highlighter -i "let x = 42; // answer" --language javascript
+cchef syntax-highlighter -i "let x = 42; // answer" --language javascript --ansi never
 ```
 
 Output:
@@ -816,7 +816,7 @@ Highlighting Python — note the function name picks up `hljs-title`:
 
 ```bash
 cchef syntax-highlighter -i "def add(a, b):
-    return a + b" --language python
+    return a + b" --language python --ansi never
 ```
 
 Output:
@@ -826,26 +826,15 @@ Output:
     <span class="hljs-keyword">return</span> a + b
 ```
 
-Run at a terminal, the same command shows the highlighting in color rather than
-as HTML. Piping it into a pager needs `--ansi always`, since the output is no
-longer going to the terminal directly (the result is ANSI-colored text, so it is
-not reproduced here):
+Both examples pass `--ansi never` so that what they print is the HTML shown.
+Drop it and the same command run at a terminal shows those tokens in color
+instead, which is what you usually want when reading the result; keep it when
+you want the markup itself, to read directly or copy out. Piping into a pager
+needs `--ansi always`, since the output is then no longer going to the terminal
+(the result is ANSI-colored text, so it is not reproduced here):
 
 ```bash
 cchef syntax-highlighter -i "func add(a, b int) int { return a + b }" --language go --ansi always | less -R
-```
-
-Going the other way, `--ansi never` gives the HTML at a terminal too — useful
-when reading it directly or copying it out:
-
-```bash
-cchef syntax-highlighter -i "let x = 42;" --language javascript --ansi never
-```
-
-Output:
-
-```
-<span class="hljs-keyword">let</span> x = <span class="hljs-number">42</span>;
 ```
 
 ## To Camel case

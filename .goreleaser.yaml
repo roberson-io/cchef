@@ -15,6 +15,10 @@ before:
     - sh -c 'go run . completion bash > completions/cchef.bash'
     - sh -c 'go run . completion zsh > completions/_cchef'
     - sh -c 'go run . completion fish > completions/cchef.fish'
+    # PowerShell has no system-wide completion directory to install into, so it
+    # ships in the archives (where the Windows zip picks it up) rather than in
+    # the deb/rpm.
+    - sh -c 'go run . completion powershell > completions/cchef.ps1'
 
 builds:
   - id: cchef
@@ -109,8 +113,18 @@ nfpms:
         dst: /usr/share/doc/cchef/LICENSE
       - src: NOTICE
         dst: /usr/share/doc/cchef/NOTICE
-    recommends:
-      - tesseract-ocr
+    # Optical Character Recognition drives an installed tesseract. The package
+    # is named differently per distribution — tesseract-ocr on Debian and
+    # Ubuntu, tesseract on Fedora and RHEL — so naming one for both formats
+    # would recommend a package that does not exist on the other. It is a weak
+    # dependency, so the wrong name fails silently rather than loudly.
+    overrides:
+      deb:
+        recommends:
+          - tesseract-ocr
+      rpm:
+        recommends:
+          - tesseract
 
 homebrew_casks:
   - name: cchef
@@ -145,14 +159,33 @@ homebrew_casks:
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/cchef"]
           end
 
+scoops:
+  - name: cchef
+    ids: [cchef]
+    repository:
+      owner: roberson-io
+      name: scoop-bucket
+      # Cross-repo push needs a PAT, for the same reason the tap does; the
+      # Actions GITHUB_TOKEN cannot write to another repository. GoReleaser
+      # requires this to be exactly {{ .Env.VAR }}.
+      token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
+    homepage: https://github.com/roberson-io/cchef
+    description: CyberChef on the command line
+    license: Apache-2.0
+    # Only push the manifest when a bucket token is present, so a release can
+    # ship everything else without the bucket being set up yet.
+    skip_upload: '{{ if index .Env "SCOOP_BUCKET_GITHUB_TOKEN" }}false{{ else }}true{{ end }}'
+
 release:
   github:
     owner: roberson-io
     name: cchef
   draft: true
   footer: >-
-    **Verifying this release:** see the *Install from a release* section of the
-    [README](https://github.com/roberson-io/cchef#install).
+    **Installing and verifying this release:** see the
+    [install guide](https://github.com/roberson-io/cchef/blob/{{ .Tag }}/docs/install.md),
+    including
+    [Verifying a release](https://github.com/roberson-io/cchef/blob/{{ .Tag }}/docs/install.md#verifying-a-release).
 
 changelog:
   disable: true
