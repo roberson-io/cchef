@@ -33,7 +33,8 @@ func writeTree(t *testing.T, files map[string]string) string {
 func execRootCapture(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 	resetIOFlags()
-	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+	resetRecipeSourceFlags()
+	flagConvertTo = ""
 
 	var buf bytes.Buffer
 	rootCmd.SetOut(&buf)
@@ -211,7 +212,8 @@ func TestOutDirMkdirFails(t *testing.T) {
 // to drive the stdout write-error guards.
 func runDirWithWriter(dir string, w *failOnNth) error {
 	resetIOFlags()
-	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+	resetRecipeSourceFlags()
+	flagConvertTo = ""
 	rootCmd.SetOut(w)
 	rootCmd.SetErr(&bytes.Buffer{})
 	rootCmd.SetIn(strings.NewReader(""))

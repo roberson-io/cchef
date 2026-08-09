@@ -38,7 +38,7 @@ func addIOFlags(cmd *cobra.Command) {
 	f.BoolVar(&flagRecursive, "recursive", false, "with --in-dir, recurse into subdirectories")
 	f.BoolVar(&flagPreview, "preview", false, "display image output inline (iTerm2 or kitty terminals)")
 	f.BoolVar(&flagDataURI, "data-uri", false, "write output as a data: URI")
-	f.StringVar(&flagANSI, "ansi", ansiAuto, "render highlighted code as ANSI color for a terminal: auto, always or never")
+	addANSIFlag(cmd)
 }
 
 // resolveInput returns the input bytes, in priority order: --in-file, then
@@ -65,6 +65,21 @@ func resolveInput(cmd *cobra.Command, args []string) ([]byte, error) {
 	default:
 		return io.ReadAll(cmd.InOrStdin())
 	}
+}
+
+// inputNamed reports whether the command line named an input source. It does
+// not count stdin, which is always there whether or not anyone meant it.
+func inputNamed(cmd *cobra.Command, args []string) bool {
+	return flagInFile != "" || cmd.Flags().Changed("input") || len(args) > 0
+}
+
+// resolveInputOr returns the input, falling back to def when the command line
+// named none. A def of nil means the usual stdin handling applies.
+func resolveInputOr(cmd *cobra.Command, args []string, def []byte) ([]byte, error) {
+	if def != nil && !inputNamed(cmd, args) {
+		return def, nil
+	}
+	return resolveInput(cmd, args)
 }
 
 // inputIsInteractive reports whether reading r would wait on a person. The test

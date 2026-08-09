@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -11,6 +10,23 @@ import (
 )
 
 var flagConvertTo string
+
+// The formats a recipe is read and written in.
+const (
+	formatJSON = "json"
+	formatChef = "chef"
+)
+
+// formatRecipe renders a recipe in the named target format.
+func formatRecipe(r core.Recipe, format string) (string, error) {
+	switch format {
+	case formatChef:
+		return core.GeneratePrettyRecipe(r, false), nil
+	case formatJSON:
+		return core.MarshalRecipeJSON(r)
+	}
+	return "", fmt.Errorf("unknown target format %q (want %s or %s)", format, formatJSON, formatChef)
+}
 
 func init() {
 	recipeCmd := &cobra.Command{
@@ -31,8 +47,7 @@ func init() {
 			"  cchef recipe convert -r recipe.json --to chef",
 		RunE: runConvert,
 	}
-	convertCmd.Flags().StringVarP(&flagRecipeExpr, "expr", "e", "", "recipe as an inline JSON or Chef string")
-	convertCmd.Flags().StringVarP(&flagRecipeFile, "recipe", "r", "", "path to a recipe file (JSON or Chef)")
+	addRecipeSourceFlags(convertCmd)
 	convertCmd.Flags().StringVar(&flagConvertTo, "to", "", "target format: json or chef (default: the other format)")
 
 	recipeCmd.AddCommand(convertCmd)
@@ -41,33 +56,27 @@ func init() {
 }
 
 func runConvert(cmd *cobra.Command, _ []string) error {
-	recipe, raw, err := loadRecipeWithText()
+	src, err := loadRecipeSource(cmd)
 	if err != nil {
 		return err
 	}
+	recipe, raw := src.Recipe, src.Text
 
 	target := flagConvertTo
 	if target == "" {
 		// Default to the opposite of the detected input format.
 		trimmed := strings.TrimSpace(raw)
 		if trimmed != "" && trimmed[0] == '[' {
-			target = "chef"
+			target = formatChef
 		} else {
-			target = "json"
+			target = formatJSON
 		}
 	}
 
-	switch target {
-	case "chef":
-		_, err = fmt.Fprintln(cmd.OutOrStdout(), core.GeneratePrettyRecipe(recipe, false))
-	case "json":
-		b, mErr := json.MarshalIndent(recipe, "", "  ")
-		if mErr != nil {
-			return mErr
-		}
-		_, err = fmt.Fprintln(cmd.OutOrStdout(), string(b))
-	default:
-		return fmt.Errorf("unknown target format %q (want json or chef)", target)
+	out, err := formatRecipe(recipe, target)
+	if err != nil {
+		return err
 	}
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), out)
 	return err
 }

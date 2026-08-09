@@ -23,13 +23,15 @@ func init() {
 			if err != nil {
 				return err
 			}
-			recipe, err := loadRecipe()
+			src, err := loadRecipeSource(cmd)
 			if err != nil {
 				return err
 			}
-			var input []byte
-			// Input is optional for url: only read it if explicitly provided.
-			if flagInFile != "" || cmd.Flags().Changed("input") || len(posArgs) > 0 {
+			recipe := src.Recipe
+			// Input is optional for url: read it only when it was named, or take
+			// the one a share URL carried so re-pointing a link keeps it.
+			input := src.Input
+			if inputNamed(cmd, posArgs) {
 				input, err = resolveInput(cmd, posArgs)
 				if err != nil {
 					return err
@@ -39,8 +41,7 @@ func init() {
 			return err
 		},
 	}
-	urlCmd.Flags().StringVarP(&flagRecipeExpr, "expr", "e", "", "recipe as an inline JSON or Chef string")
-	urlCmd.Flags().StringVarP(&flagRecipeFile, "recipe", "r", "", "path to a recipe file (JSON or Chef)")
+	addRecipeSourceFlags(urlCmd)
 	addBaseURLFlag(urlCmd)
 	addIOFlags(urlCmd)
 	rootCmd.AddCommand(urlCmd)

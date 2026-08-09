@@ -75,7 +75,13 @@ all three of these print `aGVsbG8=`:
 
 ```bash
 cchef to-base64 hello
+```
+
+```bash
 cchef to-base64 -i hello
+```
+
+```bash
 echo -n hello | cchef to-base64
 ```
 
@@ -175,6 +181,13 @@ A recipe is an ordered list of operations, expressible in two formats (auto-dete
 Run one with `cchef bake -e <recipe>` / `-r <file>`, convert between formats with
 `cchef recipe convert`, or share it with `cchef url`.
 
+A CyberChef share link works in both directions — `cchef url` writes one, and
+`--from-url` reads the recipe (and any input) back out of one, offline:
+
+```bash
+cchef bake --from-url "https://gchq.github.io/CyberChef/#recipe=ROT13()&input=aGVsbG8"
+```
+
 A recipe can also be built up interactively, one operation at a time. The
 staged recipe lives in `.cchef-recipe.json` in the working directory, and
 `bake`, `url` and `recipe convert` all use it when given no recipe of their own:
@@ -186,8 +199,10 @@ cchef recipe show
 echo -n hello | cchef bake
 ```
 
-`show` lists the staged steps numbered; `rm`, `move` and `toggle` edit them by
-number, and `clear` discards the recipe. See
+`show` lists the staged steps numbered, each marked `[X]` when it runs or `[ ]`
+when it is disabled; `rm`, `move` and `toggle` edit them by number, and `clear`
+discards the recipe. `load` replaces the whole staged recipe with one from a
+file, string or share link, and `recipe convert` prints it back out. See
 [`cchef recipe add` and friends](docs/recipes-and-urls.md#cchef-recipe-add-and-friends--build-a-recipe-step-by-step).
 
 ## Use as a Go library

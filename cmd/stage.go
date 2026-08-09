@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -51,11 +50,11 @@ func loadStagedRecipe() (core.Recipe, error) {
 // saveStagedRecipe writes the staged recipe back, in JSON so that a
 // hand-editing user sees the arguments spelled out.
 func saveStagedRecipe(r core.Recipe) error {
-	b, err := json.MarshalIndent(r, "", "  ")
+	s, err := core.MarshalRecipeJSON(r)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(stagePath(), append(b, '\n'), 0o600)
+	return os.WriteFile(stagePath(), []byte(s+"\n"), 0o600)
 }
 
 // parseStageSpec turns what the user typed into recipe steps. A bare operation
@@ -76,6 +75,11 @@ func parseStageSpec(spec string) (core.Recipe, error) {
 	}
 	if len(r) == 0 {
 		return nil, fmt.Errorf("%q adds no operations", spec)
+	}
+	// A bare name is checked by the lookup above; an expression has to be
+	// checked too, or a step cchef cannot run is staged and fails only later.
+	if err := validateRecipeOps(r); err != nil {
+		return nil, err
 	}
 	return r, nil
 }
@@ -186,23 +190,35 @@ func stageClear() error {
 }
 
 // formatStage renders the staged recipe as a numbered list, so the indexes the
-// other commands take are the ones on screen.
-func formatStage(r core.Recipe) string {
+// other commands take are the ones on screen. Each step carries [X] or [ ] for
+// whether it runs, colored when color is set. The marker rather than color is
+// what carries the meaning, so the listing reads the same piped, under NO_COLOR,
+// and to anyone who cannot tell the two colors apart.
+func formatStage(r core.Recipe, color bool) string {
 	if len(r) == 0 {
 		return "No recipe staged (empty). Add a step with `cchef recipe add <operation>`.\n"
 	}
 	var sb strings.Builder
 	for i, step := range r {
-		fmt.Fprintf(&sb, "%d  %s", i, step.Op)
+		fmt.Fprintf(&sb, "%d  %s %s", i, stageMarker(step, color), step.Op)
 		if args := formatStageArgs(step.Args); args != "" {
 			fmt.Fprintf(&sb, " %s", args)
 		}
-		if step.Disabled {
-			sb.WriteString("   (disabled)")
+		if step.Breakpoint {
+			fmt.Fprintf(&sb, "   %s", ansiWrap(color, ansiYellow, "(breakpoint)"))
 		}
 		sb.WriteByte('\n')
 	}
 	return sb.String()
+}
+
+// stageMarker renders whether a step runs. A disabled step is skipped; a
+// breakpoint does not stop the step itself, so it stays marked as running.
+func stageMarker(step core.RecipeOp, color bool) string {
+	if step.Disabled {
+		return ansiWrap(color, ansiRed, "[ ]")
+	}
+	return ansiWrap(color, ansiGreen, "[X]")
 }
 
 // formatStageArgs renders a step's arguments compactly for the listing.
@@ -216,12 +232,37 @@ func formatStageArgs(args []any) string {
 		case string:
 			parts = append(parts, strconv.Quote(v))
 		case core.ToggleString:
-			parts = append(parts, fmt.Sprintf("%s:%s", v.Option, strconv.Quote(v.Value)))
+			parts = append(parts, toggleStringArg(v.Option, v.Value))
+		case map[string]any:
+			if opt, val, ok := toggleStringFields(v); ok {
+				parts = append(parts, toggleStringArg(opt, val))
+				continue
+			}
+			parts = append(parts, fmt.Sprint(v))
 		default:
 			parts = append(parts, fmt.Sprint(v))
 		}
 	}
 	return "(" + strings.Join(parts, ", ") + ")"
+}
+
+// toggleStringArg renders a toggle string as the listing shows it.
+func toggleStringArg(option, value string) string {
+	return option + ":" + strconv.Quote(value)
+}
+
+// toggleStringFields reads a toggle string that has been through the stage
+// file, where JSON decoding leaves it as a map rather than a core.ToggleString.
+func toggleStringFields(m map[string]any) (option, value string, ok bool) {
+	if len(m) != 2 {
+		return "", "", false
+	}
+	option, ok = m["option"].(string)
+	if !ok {
+		return "", "", false
+	}
+	value, ok = m["string"].(string)
+	return option, value, ok
 }
 
 // parseIndexes reads the step numbers a command was given.
@@ -237,13 +278,18 @@ func parseIndexes(args []string) ([]int, error) {
 	return idx, nil
 }
 
-// showStage prints the staged recipe.
+// showStage prints the staged recipe. An unusable --ansi is reported before
+// anything is printed, so the listing is never half-written.
 func showStage(cmd *cobra.Command) error {
+	color, err := wantANSI(cmd)
+	if err != nil {
+		return err
+	}
 	r, err := loadStagedRecipe()
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprint(cmd.OutOrStdout(), formatStage(r))
+	_, err = fmt.Fprint(cmd.OutOrStdout(), formatStage(r, color))
 	return err
 }
 
@@ -312,9 +358,12 @@ func addStageCommands(recipeCmd *cobra.Command) {
 	showCmd := &cobra.Command{
 		Use:   "show",
 		Short: "Show the staged recipe, numbered",
-		Args:  cobra.NoArgs,
-		RunE:  func(cmd *cobra.Command, _ []string) error { return showStage(cmd) },
+		Long: "List the staged steps in order. Each carries [X] when it runs or [ ] when\n" +
+			"it is disabled, and (breakpoint) where a bake stops early.",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error { return showStage(cmd) },
 	}
+	addANSIFlag(showCmd)
 
 	clearCmd := &cobra.Command{
 		Use:   "clear",
@@ -323,5 +372,5 @@ func addStageCommands(recipeCmd *cobra.Command) {
 		RunE:  func(_ *cobra.Command, _ []string) error { return stageClear() },
 	}
 
-	recipeCmd.AddCommand(addCmd, rmCmd, moveCmd, toggleCmd, showCmd, clearCmd)
+	recipeCmd.AddCommand(addCmd, rmCmd, moveCmd, toggleCmd, showCmd, clearCmd, newLoadCmd())
 }

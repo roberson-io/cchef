@@ -32,7 +32,8 @@ func resetOpFlagState() {
 func execRoot(t *testing.T, args ...string) string {
 	t.Helper()
 	resetIOFlags()
-	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+	resetRecipeSourceFlags()
+	flagConvertTo = ""
 	flagListJSON = false
 	resetOpFlagState()
 
@@ -52,7 +53,8 @@ func execRoot(t *testing.T, args ...string) string {
 func execRootErr(t *testing.T, args ...string) error {
 	t.Helper()
 	resetIOFlags()
-	flagRecipeExpr, flagRecipeFile, flagConvertTo = "", "", ""
+	resetRecipeSourceFlags()
+	flagConvertTo = ""
 	flagListJSON = false
 	resetOpFlagState()
 
@@ -220,4 +222,24 @@ func TestExecuteRecipeConvertJSONAutoDetect(t *testing.T) {
 	if !strings.Contains(got, "To_Hex(") {
 		t.Fatalf("expected Chef output, got: %s", got)
 	}
+}
+
+// execRootStdin runs the root command with the given text on stdin, returning
+// its combined output and any error. The other helpers hard-code an empty
+// stdin, which is what most cases want; this one is for `-` file arguments.
+func execRootStdin(t *testing.T, stdin string, args ...string) (string, error) {
+	t.Helper()
+	resetIOFlags()
+	resetRecipeSourceFlags()
+	flagConvertTo = ""
+	flagListJSON = false
+	resetOpFlagState()
+
+	var buf bytes.Buffer
+	rootCmd.SetOut(&buf)
+	rootCmd.SetErr(&buf)
+	rootCmd.SetIn(strings.NewReader(stdin))
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	return buf.String(), err
 }

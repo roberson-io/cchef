@@ -167,48 +167,102 @@ func TestStageFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 	r, _ := loadStagedRecipe()
-	out := formatStage(r)
-	if !strings.Contains(out, "0  To Base64") {
+	out := formatStage(r, false)
+	if !strings.Contains(out, "0  [X] To Base64") {
 		t.Errorf("listing lacks an indexed first step:\n%s", out)
 	}
-	if !strings.Contains(out, "disabled") {
+	if !strings.Contains(out, "1  [ ] To Hex") {
 		t.Errorf("listing does not mark the disabled step:\n%s", out)
 	}
-	if got := formatStage(nil); !strings.Contains(got, "empty") {
+	if got := formatStage(nil, false); !strings.Contains(got, "empty") {
 		t.Errorf("empty listing = %q", got)
 	}
 	// Every listing ends with a newline so the shell prompt starts on a fresh
 	// line (an unterminated line shows as a stray "%" under zsh).
-	if got := formatStage(nil); !strings.HasSuffix(got, "\n") {
+	if got := formatStage(nil, false); !strings.HasSuffix(got, "\n") {
 		t.Errorf("empty listing does not end with a newline: %q", got)
 	}
-	if got := formatStage(r); !strings.HasSuffix(got, "\n") {
+	if got := formatStage(r, false); !strings.HasSuffix(got, "\n") {
 		t.Errorf("listing does not end with a newline: %q", got)
 	}
 }
 
-// TestBakeUsesStagedRecipe checks the payoff: with nothing given on the command
-// line, bake runs whatever is staged.
+// TestStageFormatMarkers pins the exact listing. The recipe is a literal so the
+// expected text does not depend on any operation's default arguments.
+func TestStageFormatMarkers(t *testing.T) {
+	r := core.Recipe{
+		{Op: "To Base64", Args: []any{"A-Za-z0-9+/="}},
+		{Op: "To Hex", Args: []any{"Colon"}, Disabled: true},
+	}
+	want := "0  [X] To Base64 (\"A-Za-z0-9+/=\")\n" +
+		"1  [ ] To Hex (\"Colon\")\n"
+	got := formatStage(r, false)
+	if got != want {
+		t.Errorf("formatStage =\n%q\nwant\n%q", got, want)
+	}
+	if strings.Contains(got, "\x1b[") {
+		t.Errorf("uncolored listing carries escape sequences: %q", got)
+	}
+}
+
+// TestStageFormatColor covers the colored markers. Color is an addition to the
+// ASCII markers, never a replacement: the marker text is identical either way.
+func TestStageFormatColor(t *testing.T) {
+	r := core.Recipe{
+		{Op: "To Base64"},
+		{Op: "To Hex", Disabled: true},
+	}
+	got := formatStage(r, true)
+	for _, want := range []string{"\x1b[32m[X]\x1b[0m", "\x1b[31m[ ]\x1b[0m"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("colored listing = %q, missing %q", got, want)
+		}
+	}
+	// The operation name and arguments stay plain, so they can be copied out.
+	if strings.Contains(got, "\x1b[32mTo Base64") {
+		t.Errorf("color should apply to the marker only: %q", got)
+	}
+}
+
+// TestStageFormatBreakpoint covers a breakpoint, which halts a bake early. It is
+// staged and honored, so the listing has to say it is there.
+func TestStageFormatBreakpoint(t *testing.T) {
+	r := core.Recipe{{Op: "ROT13", Breakpoint: true}}
+	got := formatStage(r, false)
+	if !strings.Contains(got, "(breakpoint)") {
+		t.Errorf("listing = %q, want it to mark the breakpoint", got)
+	}
+	if !strings.Contains(got, "[X]") {
+		t.Errorf("a step with a breakpoint still runs: %q", got)
+	}
+	if colored := formatStage(r, true); !strings.Contains(colored, "\x1b[33m(breakpoint)\x1b[0m") {
+		t.Errorf("colored listing = %q, want a yellow breakpoint", colored)
+	}
+}
+
+// TestBakeUsesStagedRecipe checks the payoff end to end: with no recipe on the
+// command line, bake runs whatever is staged.
 func TestBakeUsesStagedRecipe(t *testing.T) {
 	stageIn(t)
 	if err := stageAdd("to-base64", -1); err != nil {
 		t.Fatal(err)
 	}
-	text, err := rawRecipeText()
+	out, err := execRootCapture(t, "bake", "hello")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("bake: %v", err)
 	}
-	if !strings.Contains(text, "To Base64") && !strings.Contains(text, "To_Base64") {
-		t.Errorf("bake did not fall back to the staged recipe: %q", text)
+	if strings.TrimSpace(out) != "aGVsbG8=" {
+		t.Errorf("bake with a staged recipe = %q, want aGVsbG8=", out)
 	}
 }
 
-// TestRawRecipeTextEmptyStage keeps the original error when there is no recipe
-// anywhere, rather than silently baking nothing.
-func TestRawRecipeTextEmptyStage(t *testing.T) {
+// TestBakeEmptyStage reports that there is no recipe rather than silently
+// baking nothing.
+func TestBakeEmptyStage(t *testing.T) {
 	stageIn(t)
-	if _, err := rawRecipeText(); err == nil {
-		t.Error("expected an error when no recipe is given or staged")
+	out, err := execRootCapture(t, "bake", "hello")
+	if err == nil {
+		t.Fatalf("expected an error when no recipe is given or staged, got %q", out)
 	}
 }
 
@@ -269,6 +323,35 @@ func TestFormatStageArgTypes(t *testing.T) {
 	}
 }
 
+// TestFormatStageArgsToggleStringFromJSON covers a toggle string as it comes
+// back from the stage file. The stage is always written as JSON, so a saved
+// recipe reloads its toggle strings as maps rather than core.ToggleString, and
+// they must still render as Option:"Value".
+func TestFormatStageArgsToggleStringFromJSON(t *testing.T) {
+	fromJSON := map[string]any{"option": "Hex", "string": "ff"}
+	if got, want := formatStageArgs([]any{fromJSON}), `(Hex:"ff")`; got != want {
+		t.Errorf("formatStageArgs = %q, want %q", got, want)
+	}
+	// An empty value is still a toggle string, not an absent one.
+	empty := map[string]any{"option": "Hex", "string": ""}
+	if got, want := formatStageArgs([]any{empty}), `(Hex:"")`; got != want {
+		t.Errorf("empty toggle string = %q, want %q", got, want)
+	}
+	// Maps that are not toggle strings keep the generic rendering. A stage file
+	// is editable by hand, so the fields can be the right names but the wrong
+	// types, or missing entirely.
+	for name, m := range map[string]map[string]any{
+		"wrong keys":       {"other": "thing"},
+		"option not text":  {"option": 5, "string": "ff"},
+		"value not text":   {"option": "Hex", "string": 5},
+		"too many entries": {"option": "Hex", "string": "ff", "extra": true},
+	} {
+		if got := formatStageArgs([]any{m}); !strings.HasPrefix(got, "(map[") {
+			t.Errorf("%s: formatStageArgs = %q, want the generic rendering", name, got)
+		}
+	}
+}
+
 // TestStageCommands drives the subcommands as a user would, so their wiring
 // (argument parsing, the --at flag, and what show prints) is covered too.
 func TestStageCommands(t *testing.T) {
@@ -299,7 +382,7 @@ func TestStageCommands(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out, "0  ROT13") || !strings.Contains(out, "(disabled)") {
+	if !strings.Contains(out, "0  [X] ROT13") || !strings.Contains(out, "[ ]") {
 		t.Errorf("show printed:\n%s", out)
 	}
 
@@ -324,5 +407,66 @@ func TestStageCommands(t *testing.T) {
 	out, err = run("show")
 	if err != nil || !strings.Contains(out, "empty") {
 		t.Errorf("after clear: %q, %v", out, err)
+	}
+}
+
+// TestStageShowANSI covers the --ansi flag on show end to end. The flag has to
+// be registered on the command itself: wantANSI reads a package global that has
+// no usable value until some command declares the flag.
+func TestStageShowANSI(t *testing.T) {
+	stageIn(t)
+	if err := stageAdd("to-base64", -1); err != nil {
+		t.Fatal(err)
+	}
+
+	out, err := execRootCapture(t, "recipe", "show", "--ansi", "always")
+	if err != nil {
+		t.Fatalf("show --ansi always: %v", err)
+	}
+	if !strings.Contains(out, "\x1b[32m[X]") {
+		t.Errorf("--ansi always printed no color: %q", out)
+	}
+
+	// Captured output is not a terminal, so auto resolves to no color.
+	out, err = execRootCapture(t, "recipe", "show")
+	if err != nil {
+		t.Fatalf("show: %v", err)
+	}
+	if strings.Contains(out, "\x1b[") {
+		t.Errorf("show into a buffer printed color: %q", out)
+	}
+	if !strings.Contains(out, "[X]") {
+		t.Errorf("markers should not depend on color: %q", out)
+	}
+
+	if err := execRootErr(t, "recipe", "show", "--ansi", "maybe"); err == nil {
+		t.Error("expected an unusable --ansi to be refused")
+	}
+	flagANSI = ansiAuto
+}
+
+// TestStageShowCorruptFile checks that a stage file edited into something that
+// is not a recipe is reported rather than printed as an empty listing.
+func TestStageShowCorruptFile(t *testing.T) {
+	path := stageIn(t)
+	if err := os.WriteFile(path, []byte("}not a recipe{"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := execRootErr(t, "recipe", "show"); err == nil {
+		t.Error("expected a corrupt stage file to be refused")
+	}
+}
+
+// TestStageAddRejectsUnknownInExpression covers a recipe expression naming an
+// operation cchef does not have. A bare name is already refused; an expression
+// has to be too, or the step is staged and fails only when the recipe is run.
+func TestStageAddRejectsUnknownInExpression(t *testing.T) {
+	stageIn(t)
+	if err := stageAdd("To_Hex()No_Such_Op()", -1); err == nil {
+		t.Fatal("expected an unknown operation inside an expression to be refused")
+	}
+	r, _ := loadStagedRecipe()
+	if len(r) != 0 {
+		t.Errorf("a refused add should stage nothing, got %+v", r)
 	}
 }

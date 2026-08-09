@@ -268,3 +268,14 @@ func TestANSIFromHLJSCoversEveryClass(t *testing.T) {
 		t.Error("highlighted Go source produced no color")
 	}
 }
+
+// TestANSIWrap covers both branches of the color helper: with color off the
+// string is returned untouched, so no escape sequence reaches a plain terminal.
+func TestANSIWrap(t *testing.T) {
+	if got, want := ansiWrap(true, ansiGreen, "[X]"), "\x1b[32m[X]\x1b[0m"; got != want {
+		t.Errorf("ansiWrap(true) = %q, want %q", got, want)
+	}
+	if got, want := ansiWrap(false, ansiGreen, "[X]"), "[X]"; got != want {
+		t.Errorf("ansiWrap(false) = %q, want %q", got, want)
+	}
+}

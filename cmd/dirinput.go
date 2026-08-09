@@ -18,6 +18,13 @@ import (
 // With --in-dir it fans the recipe out over the files in a directory (one run
 // per file); otherwise it runs once over the single resolved input.
 func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error {
+	return runRecipeIOWithInput(cmd, posArgs, recipe, nil)
+}
+
+// runRecipeIOWithInput is runRecipeIO with the input to fall back on when the
+// command line names none — the input a share URL carried. An explicit input
+// still wins, and --in-dir ignores it, since the directory names the input.
+func runRecipeIOWithInput(cmd *cobra.Command, posArgs []string, recipe core.Recipe, fallback []byte) error {
 	fileList := recipeFileListOutput(recipe)
 	// Resolved up front so an unusable --color value is reported before the
 	// recipe runs, whatever the recipe is.
@@ -36,7 +43,7 @@ func runRecipeIO(cmd *cobra.Command, posArgs []string, recipe core.Recipe) error
 		return runRecipeDir(cmd, recipe, color && flagOutDir == "")
 	}
 
-	in, err := resolveInput(cmd, posArgs)
+	in, err := resolveInputOr(cmd, posArgs, fallback)
 	if err != nil {
 		return err
 	}

@@ -89,8 +89,11 @@ Write output as a
 URI.
 .TP
 .B \-\-ansi \fIauto|always|never\fR
-Render highlighted output as ANSI color for a terminal (default
+Use ANSI color when writing to a terminal (default
 .BR auto ).
+Applies to highlighted output and to the
+.B recipe show
+listing.
 .TP
 .BR \-h ", " \-\-help
 Help for a command.
@@ -116,16 +119,30 @@ Run one with
 .I recipe
 or
 .B \-r
-.IR file ,
-convert between the formats with
+.IR file
+.RB ( \-r " " \-
+reads it from standard input), convert between the formats with
 .BR "cchef recipe convert" ,
 or turn it into a CyberChef share URL with
 .BR "cchef url" .
+.PP
+.B \-\-from\-url
+reads the recipe back out of a CyberChef share URL, so a link can be run
+directly. Nothing is fetched: the recipe travels in the link. A link that
+carries an input uses it when the command line names none. Only one of
+.BR \-e ", " \-r " and " \-\-from\-url
+may be given.
 .PP
 A recipe can also be staged interactively with
 .B cchef recipe add
 and edited with
 .BR show ", " rm ", " move ", " toggle " and " clear .
+.B cchef recipe load
+replaces the whole staged recipe with one read from
+.BR \-e ", " \-r " or " \-\-from\-url ,
+and
+.B cchef recipe convert
+prints the staged recipe back out in either format.
 The staged recipe lives in
 .B .cchef\-recipe.json
 in the working directory;
@@ -143,9 +160,17 @@ Run a whole recipe against the input.
 Print a CyberChef share URL for a recipe and optional input.
 .TP
 .B recipe
-Stage and edit a recipe step by step; also
+Stage and edit a recipe step by step;
+.B recipe load
+replaces the staged recipe and
 .B recipe convert
-between JSON and Chef formats.
+converts between JSON and Chef formats.
+.B recipe show
+marks each step
+.RB \(dq [X] \(dq
+when it runs or
+.RB \(dq [\ ] \(dq
+when it is disabled.
 .TP
 .B version
 Print version information.

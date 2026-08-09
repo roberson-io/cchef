@@ -30,6 +30,29 @@ const (
 	ansiNever  = "never"
 )
 
+// SGR codes from the basic 16, which every terminal renders.
+const (
+	ansiGreen  = "32"
+	ansiRed    = "31"
+	ansiYellow = "33"
+)
+
+// addANSIFlag registers --ansi on a command whose output can carry color.
+// Registering it is what gives flagANSI a usable value, so a command that reads
+// it through wantANSI has to declare it.
+func addANSIFlag(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&flagANSI, "ansi", ansiAuto,
+		"use ANSI color when writing to a terminal: auto, always or never")
+}
+
+// ansiWrap returns s in the given color, or unchanged when color is off.
+func ansiWrap(color bool, code, s string) string {
+	if !color {
+		return s
+	}
+	return "\x1b[" + code + "m" + s + "\x1b[0m"
+}
+
 // wantANSI reports whether colored output is wanted, erroring on an
 // unrecognised --ansi value. An explicit "always" overrides everything, which
 // is what makes `| less -R` work.
