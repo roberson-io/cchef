@@ -51,3 +51,24 @@ jobs:
         uses: actions/attest-build-provenance@v3
         with:
           subject-path: "dist/*.tar.gz,dist/*.zip,dist/*.deb,dist/*.rpm"
+
+      # pkg.go.dev does not watch the repository for tags. It learns about a
+      # version from index.golang.org, which only lists versions the module
+      # proxy has cached, and the proxy caches a version the first time someone
+      # requests it. Nothing else requests this module, so without these two
+      # calls the published documentation stays on the previous release
+      # indefinitely. Neither needs credentials.
+      #
+      # A failure here leaves a correctly published release with stale docs, so
+      # it must not fail the run; the same two commands can be re-run by hand.
+      - name: Refresh pkg.go.dev
+        continue-on-error: true
+        env:
+          MODULE: github.com/roberson-io/cchef
+          VERSION: ${{ github.ref_name }}
+        run: |
+          curl -fsS "https://proxy.golang.org/${MODULE}/@v/${VERSION}.info"
+          echo
+          curl -fsS -X POST -o /dev/null \
+            -w 'pkg.go.dev fetch: HTTP %{http_code}\n' \
+            "https://pkg.go.dev/fetch/${MODULE}@${VERSION}"
