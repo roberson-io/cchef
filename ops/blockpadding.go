@@ -3,6 +3,7 @@ package ops
 import (
 	"errors"
 	"fmt"
+	"slices"
 )
 
 // blockApplyPadding pads message to a whole number of blockSize-byte blocks for
@@ -65,10 +66,10 @@ func blockRemovePadding(message []byte, padding string, blockSize int) ([]byte, 
 		//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 		return nil, errors.New("Invalid PKCS#5 padding.")
 	case "BIT":
-		for i := len(message) - 1; i >= 0; i-- {
-			if message[i] == 0x80 {
+		for i, m := range slices.Backward(message) {
+			if m == 0x80 {
 				return message[:i], nil
-			} else if message[i] != 0 {
+			} else if m != 0 {
 				//nolint:staticcheck,revive // CyberChef's verbatim OperationError text
 				return nil, errors.New("Invalid BIT padding.")
 			}

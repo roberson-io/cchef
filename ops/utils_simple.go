@@ -2,7 +2,6 @@ package ops
 
 import (
 	"strings"
-	"unicode"
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
@@ -36,10 +35,22 @@ func (SwapCase) Args() []core.ArgDef { return nil }
 func (SwapCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var sb strings.Builder
 	for _, r := range dishText(in) {
-		if r == unicode.ToUpper(r) {
-			sb.WriteRune(unicode.ToLower(r))
+		// CyberChef walks the input a UTF-16 code unit at a time, so a
+		// character outside the basic plane reaches it as two surrogate
+		// halves, neither of which has a case. Such a character comes back
+		// unchanged, where converting the whole rune would swap it.
+		if r > 0xFFFF {
+			sb.WriteRune(r)
+			continue
+		}
+		// Whether a character counts as lower case is decided by its full
+		// upper-case mapping differing from itself, so "ß" counts as lower
+		// case and becomes "SS" even though no single rune upper-cases it.
+		s := string(r)
+		if upper := upperAll.String(s); upper != s {
+			sb.WriteString(upper)
 		} else {
-			sb.WriteRune(unicode.ToUpper(r))
+			sb.WriteString(lowerAll.String(s))
 		}
 	}
 	return core.NewDish(opsutil.TextAsBytes(sb.String()), core.TypeString), nil

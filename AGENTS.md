@@ -210,3 +210,20 @@ new deliberate difference lands.
   Scale Factor ≤ 64, Pixels per row ≤ 2048), `Pseudo-Random Integer Generator`
   (Min and Max Value to ±2^53−1), `To Hexdump` (Width ≤ 65536) and `Wrap`
   (Line Width ≤ 65536).
+
+- **The lodash case conversions split words on code points, not UTF-16 code
+  units.** `To Camel case`, `To Snake case` and `To Kebab case` split a name into
+  words with a pattern transcribed from lodash, which was written against
+  JavaScript strings. There a character outside the basic plane is a surrogate
+  pair, and alternatives in the pattern match such a pair on its own — as a word,
+  and as the base of an emoji sequence — so CyberChef renders `ￍ𐀀` as `ￍ_𐀀`.
+  Here the pattern runs over code points, those alternatives never match, and the
+  character joins the letters beside it. Text inside the basic plane, which is
+  what these operations are used on, is identical.
+
+  Feeding the pattern surrogates does not fix it: regexp2 will not match a lone
+  surrogate, so `[\ud800-\udbff]` never fires however the input is encoded.
+  Closing the gap means restating the pattern's surrogate, Fitzpatrick-modifier
+  and regional-indicator constructs in terms of code points. The rest of the case
+  operations — `To Upper case`, `To Lower case` and `Swap case` — apply Unicode
+  full case mapping and match CyberChef exactly.

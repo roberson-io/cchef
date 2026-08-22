@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/bits"
+	"slices"
 	"strconv"
 
 	"github.com/roberson-io/cchef/core"
@@ -63,8 +64,8 @@ func chachaIntToLE(value uint64, length int) []byte {
 // CyberChef's Utils.byteArrayToInt with byteorder "little".
 func chachaLEToInt(b []byte) uint64 {
 	var v uint64
-	for i := len(b) - 1; i >= 0; i-- {
-		v = v*256 + uint64(b[i])
+	for _, v0 := range slices.Backward(b) {
+		v = v*256 + uint64(v0)
 	}
 	return v
 }

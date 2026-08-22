@@ -2,10 +2,28 @@ package ops
 
 import (
 	"regexp"
-	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
+)
+
+// upperAll and lowerAll apply Unicode full case mapping, where one character
+// may become several ("ß" upper-cases to "SS") and where the result depends on
+// surrounding context (a Greek sigma takes its final form at the end of a
+// word). strings.ToUpper and strings.ToLower implement only the simple
+// one-rune-for-one-rune mapping and would leave those characters alone.
+// JavaScript's toUpperCase and toLowerCase are full mappings, so this is what
+// matching CyberChef requires.
+//
+// The language is explicitly undefined rather than a locale: case conversion
+// here must not depend on where it is run, and locale rules would change the
+// answer for Turkish dotless i among others.
+var (
+	upperAll = cases.Upper(language.Und)
+	lowerAll = cases.Lower(language.Und)
 )
 
 func init() {
@@ -50,7 +68,7 @@ func (ToUpperCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	var re *regexp.Regexp
 	switch scope {
 	case "All":
-		return core.NewDish(opsutil.TextAsBytes(strings.ToUpper(s)), core.TypeString), nil
+		return core.NewDish(opsutil.TextAsBytes(upperAll.String(s)), core.TypeString), nil
 	case "Word":
 		re = reWord
 	case "Sentence":
@@ -61,7 +79,7 @@ func (ToUpperCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		return core.NewDish(opsutil.TextAsBytes(s), core.TypeString), nil
 	}
 
-	out := re.ReplaceAllStringFunc(s, strings.ToUpper)
+	out := re.ReplaceAllStringFunc(s, upperAll.String)
 	return core.NewDish(opsutil.TextAsBytes(out), core.TypeString), nil
 }
 
@@ -84,5 +102,5 @@ func (ToLowerCase) Args() []core.ArgDef { return nil }
 
 // Run lower-cases the input.
 func (ToLowerCase) Run(in *core.Dish, args []any) (*core.Dish, error) {
-	return core.NewDish(opsutil.TextAsBytes(strings.ToLower(dishText(in))), core.TypeString), nil
+	return core.NewDish(opsutil.TextAsBytes(lowerAll.String(dishText(in))), core.TypeString), nil
 }

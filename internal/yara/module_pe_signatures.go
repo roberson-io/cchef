@@ -372,13 +372,11 @@ func readCertificate(cert derElement) (readCertificateResult, bool) {
 
 	sum := sha1.Sum(cert.raw) // #nosec G401 -- the mark is defined as a SHA-1
 	out := readCertificateResult{
-		peCertificate: peCertificate{
-			thumbprint: hex.EncodeToString(sum[:]),
-			// A version counts from nought, so it is said one higher.
-			version: version + 1,
-			issuer:  onelineName(said[2].body),
-			subject: onelineName(said[4].body),
-		},
+		thumbprint: hex.EncodeToString(sum[:]),
+		// A version counts from nought, so it is said one higher.
+		version:   version + 1,
+		issuer:    onelineName(said[2].body),
+		subject:   onelineName(said[4].body),
 		issuerRaw: said[2].raw,
 		serialRaw: trimNumber(said[0].body),
 	}

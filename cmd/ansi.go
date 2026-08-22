@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -80,11 +81,11 @@ func autoANSI(toFile, terminal bool) bool {
 // recipeHighlights reports whether the recipe's last enabled step produces
 // highlighted HTML, which is the only output color applies to.
 func recipeHighlights(recipe core.Recipe) bool {
-	for i := len(recipe) - 1; i >= 0; i-- {
-		if recipe[i].Disabled {
+	for _, r := range slices.Backward(recipe) {
+		if r.Disabled {
 			continue
 		}
-		return recipe[i].Op == "Syntax highlighter"
+		return r.Op == "Syntax highlighter"
 	}
 	return false
 }

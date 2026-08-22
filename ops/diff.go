@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
@@ -431,8 +432,7 @@ func diffFinish(last *diffComponent, oldTokens, newTokens []string, k diffKind) 
 
 	changes := make([]diffChange, 0, len(components))
 	oldPos, newPos := 0, 0
-	for i := len(components) - 1; i >= 0; i-- {
-		c := components[i]
+	for _, c := range slices.Backward(components) {
 		if c.removed {
 			changes = append(changes, diffChange{
 				Text:    k.join(oldTokens[oldPos : oldPos+c.count]),

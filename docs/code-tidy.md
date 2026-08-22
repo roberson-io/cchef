@@ -846,9 +846,12 @@ boundaries, which are upper case, e.g. `thisIsCamelCase`).
 | --- | --- | --- | --- |
 | `--attempt-to-be-context-aware` | boolean | `false` | When set, only identifier-like tokens are converted; quoted strings are left untouched. |
 
-> **Fidelity.** Byte-for-byte identical to lodash across BMP text. lodash's word
-> regex is UTF-16-oriented, so astral characters (emoji, surrogate pairs) may split
-> into words differently — a documented reduced-fidelity edge.
+> **Fidelity.** Byte-for-byte identical to CyberChef for text inside the basic
+> multilingual plane. lodash's word regex is written against UTF-16, where a
+> character outside that plane is a surrogate pair the pattern matches as a word of
+> its own; here the pattern runs over code points, so such a character joins the
+> letters beside it instead. A letter followed by a Linear B or emoji character is
+> therefore two words in CyberChef and one here.
 
 ### Example
 

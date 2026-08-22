@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"slices"
 	"unicode/utf8"
 
 	"github.com/roberson-io/cchef/core"
@@ -84,8 +85,8 @@ func reverseLines(data []byte) []byte {
 	lines = append(lines, data[start:])
 
 	var out []byte
-	for i := len(lines) - 1; i >= 0; i-- {
-		out = append(out, lines[i]...)
+	for _, line := range slices.Backward(lines) {
+		out = append(out, line...)
 		out = append(out, '\n')
 	}
 	if len(out) > len(data) {

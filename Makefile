@@ -5,7 +5,7 @@ BINARY  := cchef
 DIST    := dist
 
 # Pinned so local and CI runs agree (avoids surprise failures on tool bumps).
-GOLANGCI_VERSION := v2.12.2
+GOLANGCI_VERSION := v2.13.1
 GOSEC_VERSION := v2.27.1
 GOVULNCHECK_VERSION := v1.5.0
 GOCYCLO_VERSION := v0.6.0

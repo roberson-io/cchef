@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -235,9 +236,9 @@ func (PRNG) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	case "Integer":
 		// Little-endian interpretation, matching CyberChef.
 		v := new(big.Int)
-		for i := len(b) - 1; i >= 0; i-- {
+		for _, v0 := range slices.Backward(b) {
 			v.Mul(v, big.NewInt(256))
-			v.Add(v, big.NewInt(int64(b[i])))
+			v.Add(v, big.NewInt(int64(v0)))
 		}
 		return core.NewDish([]byte(v.Text(10)), core.TypeString), nil
 	case "Byte array":

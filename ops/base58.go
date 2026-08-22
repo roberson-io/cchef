@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
@@ -83,8 +84,8 @@ func (ToBase58) Run(in *core.Dish, args []any) (*core.Dish, error) {
 	for i := 0; i < zeroPrefix; i++ {
 		out = append(out, alphabet[0])
 	}
-	for i := len(result) - 1; i >= 0; i-- {
-		out = append(out, alphabet[result[i]])
+	for _, r := range slices.Backward(result) {
+		out = append(out, alphabet[r])
 	}
 	return core.NewDish([]byte(string(out)), core.TypeString), nil
 }

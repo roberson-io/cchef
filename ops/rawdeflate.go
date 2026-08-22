@@ -5,6 +5,7 @@ import (
 	"compress/flate"
 	"errors"
 	"io"
+	"slices"
 
 	"github.com/roberson-io/cchef/core"
 )
@@ -240,8 +241,8 @@ func rdfKeyAt(data []byte, position int) uint32 {
 // once a repeat as long as the format allows turns up.
 func rdfLongestMatch(data []byte, position int, list []int32) (length, distance int) {
 	best, bestStart := 0, 0
-	for i := len(list) - 1; i >= 0; i-- {
-		start := int(list[i])
+	for _, l := range slices.Backward(list) {
+		start := int(l)
 		matched := rdfMinMatch
 		if best > rdfMinMatch {
 			if !rdfTailMatches(data, start, position, best) {

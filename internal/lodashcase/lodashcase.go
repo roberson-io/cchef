@@ -14,6 +14,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/dlclark/regexp2"
 )
 
@@ -265,10 +268,16 @@ func buildUnicodeWordPattern() string {
 
 	rsBreak := `[` + rsBreakRange + `]`
 	rsCombo := `[` + rsComboRange + `]`
-	rsDigits := `\d+`
+	// lodash spells the digit class "\d", which in JavaScript is always the ten
+	// ASCII digits; regexp2 follows .NET and reads it as any Unicode decimal
+	// digit, which would split a word at, say, an NKo digit. Spelling out the
+	// range keeps JavaScript's meaning. Inside a character class the "+" is a
+	// literal member rather than a quantifier, exactly as it is in lodash.
+	rsDigits := `[0-9]+`
+	rsDigitsInClass := `0-9+`
 	rsDingbat := `[` + rsDingbatRange + `]`
 	rsLower := `[` + rsLowerRange + `]`
-	rsMisc := `[^` + rsAstralRange + rsBreakRange + rsDigits + rsDingbatRange + rsLowerRange + rsUpperRange + `]`
+	rsMisc := `[^` + rsAstralRange + rsBreakRange + rsDigitsInClass + rsDingbatRange + rsLowerRange + rsUpperRange + `]`
 	rsFitz := `\ud83c[\udffb-\udfff]`
 	rsModifier := `(?:` + rsCombo + `|` + rsFitz + `)`
 	rsNonAstral := `[^` + rsAstralRange + `]`
@@ -283,8 +292,8 @@ func buildUnicodeWordPattern() string {
 	reOptMod := rsModifier + `?`
 	rsOptVar := `[` + rsVarRange + `]?`
 	rsOptJoin := `(?:` + rsZWJ + `(?:` + strings.Join([]string{rsNonAstral, rsRegional, rsSurrPair}, `|`) + `)` + rsOptVar + reOptMod + `)*`
-	rsOrdLower := `\d*(?:1st|2nd|3rd|(?![123])\dth)(?=\b|[A-Z_])`
-	rsOrdUpper := `\d*(?:1ST|2ND|3RD|(?![123])\dTH)(?=\b|[a-z_])`
+	rsOrdLower := `[0-9]*(?:1st|2nd|3rd|(?![123])[0-9]th)(?=\b|[A-Z_])`
+	rsOrdUpper := `[0-9]*(?:1ST|2ND|3RD|(?![123])[0-9]TH)(?=\b|[a-z_])`
 	rsSeq := rsOptVar + reOptMod + rsOptJoin
 	rsEmoji := `(?:` + strings.Join([]string{rsDingbat, rsRegional, rsSurrPair}, `|`) + `)` + rsSeq
 
@@ -348,7 +357,7 @@ func SnakeCase(s string) string {
 		if index != 0 {
 			sep = "_"
 		}
-		return result + sep + strings.ToLower(word)
+		return result + sep + lowerWord.String(word)
 	})
 }
 
@@ -359,20 +368,26 @@ func KebabCase(s string) string {
 		if index != 0 {
 			sep = "-"
 		}
-		return result + sep + strings.ToLower(word)
+		return result + sep + lowerWord.String(word)
 	})
 }
 
 // CamelCase joins the words of s with each after the first capitalised.
 func CamelCase(s string) string {
 	return lodashCompound(s, func(result, word string, index int) string {
-		word = strings.ToLower(word)
+		word = lowerWord.String(word)
 		if index != 0 {
 			word = upperFirst(word)
 		}
 		return result + word
 	})
 }
+
+// lowerWord applies Unicode full case mapping, as JavaScript's toLowerCase
+// does: a Greek sigma takes its final form at the end of a word, and "ß"
+// lower-cases from "ẞ" rather than being left alone. strings.ToLower is the
+// simple one-rune-for-one-rune mapping and gets both wrong.
+var lowerWord = cases.Lower(language.Und)
 
 // upperFirst upper-cases the first code point (lodash.upperFirst).
 func upperFirst(s string) string {

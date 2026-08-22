@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/opsutil"
@@ -124,8 +125,7 @@ func (FromBase45) Run(in *core.Dish, args []any) (*core.Dish, error) {
 		triple := input[i:min(i+3, len(input))]
 		b := 0
 		// Iterate the triple in reverse (matching triple.reverse()).
-		for j := len(triple) - 1; j >= 0; j-- {
-			c := triple[j]
+		for _, c := range slices.Backward(triple) {
 			k, ok := idx[c]
 			if !ok {
 				return nil, fmt.Errorf("character not in alphabet: %q", c)

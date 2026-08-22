@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/roberson-io/cchef/core"
 )
@@ -62,8 +63,8 @@ func (SwapEndianness) Run(in *core.Dish, args []any) (*core.Dish, error) {
 				word = append(word, 0)
 			}
 		}
-		for j := len(word) - 1; j >= 0; j-- {
-			result = append(result, word[j])
+		for _, w := range slices.Backward(word) {
+			result = append(result, w)
 		}
 	}
 

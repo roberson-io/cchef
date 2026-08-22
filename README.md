@@ -63,7 +63,7 @@ Expand-Archive cchef.zip -DestinationPath $env:LOCALAPPDATA\cchef
 
 Then add `%LOCALAPPDATA%\cchef` to your `PATH`.
 
-**With Go** (Go 1.26+; installs no man page or completions):
+**With Go** (Go 1.27+; installs no man page or completions):
 
 ```bash
 go install github.com/roberson-io/cchef@latest

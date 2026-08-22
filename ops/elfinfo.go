@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	"github.com/roberson-io/cchef/core"
@@ -82,8 +83,8 @@ func (c *elfCursor) readInt(n uint64, little bool) (uint64, error) {
 	field := c.data[c.pos : c.pos+n]
 	var val uint64
 	if little {
-		for i := len(field) - 1; i >= 0; i-- {
-			val = val<<8 | uint64(field[i])
+		for _, f := range slices.Backward(field) {
+			val = val<<8 | uint64(f)
 		}
 	} else {
 		for _, b := range field {

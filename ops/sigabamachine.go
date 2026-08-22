@@ -1,6 +1,9 @@
 package ops
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // SIGABA (ECM Mark II) machine.
 
@@ -255,8 +258,8 @@ func (m *sigabaMachine) cipherEncrypt(code int) int {
 // cipherDecrypt passes a letter (character code) right-to-left through the
 // cipher bank.
 func (m *sigabaMachine) cipherDecrypt(code int) int {
-	for i := len(m.cipher) - 1; i >= 0; i-- {
-		code = crCrypt(m.cipher[i], code, false)
+	for _, v := range slices.Backward(m.cipher) {
+		code = crCrypt(v, code, false)
 	}
 	return code
 }

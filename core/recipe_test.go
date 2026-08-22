@@ -107,6 +107,7 @@ type numArgTestOp struct{}
 func (numArgTestOp) Meta() OpMeta {
 	return OpMeta{Name: "Test NumArg", InputType: TypeByteArray, OutputType: TypeByteArray}
 }
+
 func (numArgTestOp) Args() []ArgDef                       { return []ArgDef{{Name: "n", Type: ArgNumber}} }
 func (numArgTestOp) Run(in *Dish, _ []any) (*Dish, error) { return in, nil }
 

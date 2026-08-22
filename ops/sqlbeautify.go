@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -1001,8 +1002,7 @@ func formatSQLComment(text string, l *sqlLayout) {
 }
 
 func (l *sqlLayout) isAtStartOfLine() bool {
-	for i := len(l.items) - 1; i >= 0; i-- {
-		it := l.items[i]
+	for _, it := range slices.Backward(l.items) {
 		if !it.isStr && it.ws == mSingleIndent {
 			continue
 		}
