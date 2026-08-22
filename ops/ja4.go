@@ -34,7 +34,7 @@ func parseJA4Hello(data []byte) (*ja4Hello, error) {
 	if s.ReadInt(1) != 0x16 {
 		return nil, fingerprintError("not handshake data")
 	}
-	s.MoveForwardsBy(2) // record version
+	s.ReadInt(2) // record version
 	recLen := s.ReadInt(2)
 	if s.Length() != recLen+5 {
 		return nil, fingerprintError("incorrect handshake length")
@@ -48,8 +48,8 @@ func parseJA4Hello(data []byte) (*ja4Hello, error) {
 		return nil, fingerprintError("not enough data in handshake message")
 	}
 	h.helloVersion = hs.ReadInt(2)
-	hs.MoveForwardsBy(32)            // random
-	hs.MoveForwardsBy(hs.ReadInt(1)) // session ID
+	hs.GetBytes(32)            // random
+	hs.GetBytes(hs.ReadInt(1)) // session ID
 
 	switch h.handshakeType {
 	case 0x01: // Client Hello
@@ -57,10 +57,10 @@ func parseJA4Hello(data []byte) (*ja4Hello, error) {
 		for cs.HasMore() {
 			h.cipherData = append(h.cipherData, cs.GetBytes(2))
 		}
-		hs.MoveForwardsBy(hs.ReadInt(1)) // compression methods
+		hs.GetBytes(hs.ReadInt(1)) // compression methods
 	case 0x02: // Server Hello
 		h.cipherSuite = hs.GetBytes(2)
-		hs.MoveForwardsBy(1) // compression method
+		hs.GetBytes(1) // compression method
 	default:
 		return nil, fingerprintError("not a known handshake message")
 	}

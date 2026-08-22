@@ -46,3 +46,24 @@ func TestJA3FingerprintErrors(t *testing.T) {
 		t.Fatal("JA3 (bad handshake length): expected an error")
 	}
 }
+
+// TestJA3TruncatedRecordIsAnError covers a record that runs out mid-field.
+// CyberChef skips the record version with Stream.mjs's moveForwardsBy, which
+// throws past the end of the buffer — and JA3 lets that escape, so a two-byte
+// input takes CyberChef down rather than producing an operation error. Here the
+// same condition is an ordinary error, carrying CyberChef's own message.
+func TestJA3TruncatedRecordIsAnError(t *testing.T) {
+	for _, name := range []string{"JA3 Fingerprint", "JA3S Fingerprint"} {
+		for _, in := range []string{"16", "1603"} {
+			t.Run(name+" "+in, func(t *testing.T) {
+				out, err := runOp(t, name, in, "Hex", "Hash digest")
+				if err == nil {
+					t.Fatalf("a truncated record was accepted: %q", out)
+				}
+				if want := "Cannot move to position 3 in stream. Out of bounds."; err.Error() != want {
+					t.Errorf("error = %q, want %q", err, want)
+				}
+			})
+		}
+	}
+}

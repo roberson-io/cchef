@@ -39,6 +39,10 @@ func (JA3SFingerprint) Args() []core.ArgDef {
 
 // Run generates the JA3S fingerprint.
 func (JA3SFingerprint) Run(in *core.Dish, args []any) (*core.Dish, error) {
+	return catchStreamError(func() (*core.Dish, error) { return ja3sRun(in, args) })
+}
+
+func ja3sRun(in *core.Dish, args []any) (*core.Dish, error) {
 	inputFormat := args[0].(string)
 	outputFormat := args[1].(string)
 

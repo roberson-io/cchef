@@ -5,7 +5,10 @@ encode/decode NetBIOS names, encode VarInts, and defang/fang indicators of
 compromise. Fingerprint TLS and SSH clients and servers (JA3/JA3S, JA4/JA4S,
 HASSH), make live HTTP and DNS-over-HTTPS requests, and encode/decode Protobuf.
 
-> Operations are listed alphabetically.
+> Operations are listed alphabetically. Two of them are documented under
+> [Data format](data-format.md), which is where they are chiefly used:
+> [URL Decode](data-format.md#url-decode) and
+> [URL Encode](data-format.md#url-encode).
 >
 > Every string flag has a `--<flag>-file` companion that reads the value from a
 > file, keeping keys and passphrases out of shell history — see
@@ -47,6 +50,8 @@ HASSH), make live HTTP and DNS-over-HTTPS requests, and encode/decode Protobuf.
 | Strip IPv4 header | `strip-ipv4-header` | [IPv4](https://wikipedia.org/wiki/IPv4) |
 | Strip TCP header | `strip-tcp-header` | [TCP](https://wikipedia.org/wiki/Transmission_Control_Protocol) |
 | Strip UDP header | `strip-udp-header` | [UDP](https://wikipedia.org/wiki/User_Datagram_Protocol) |
+| URL Decode | `url-decode` | [Data format](data-format.md#url-decode) |
+| URL Encode | `url-encode` | [Data format](data-format.md#url-encode) |
 | VarInt Decode | `varint-decode` | [Varints](https://developers.google.com/protocol-buffers/docs/encoding#varints) |
 | VarInt Encode | `varint-encode` | [Varints](https://developers.google.com/protocol-buffers/docs/encoding#varints) |
 
@@ -449,6 +454,14 @@ Generates a [JA3](https://engineering.salesforce.com/tls-fingerprinting-with-ja3
 fingerprint from a TLS `ClientHello` — an MD5 of the TLS version, cipher suites,
 extensions, elliptic curves and curve point formats (with GREASE values removed).
 
+**Fidelity.** A record that runs out mid-field is refused rather than crashing.
+CyberChef skips the record version, the client random and the session ID by
+moving the stream, which throws past the end of the buffer — and unlike the
+length checks around it, that throw is not an operation error, so a truncated
+record takes CyberChef down instead of reporting anything. Here it is an
+ordinary error carrying CyberChef's own message, `Cannot move to position 3 in
+stream. Out of bounds.`
+
 **Options**
 
 | Flag | Type | Default | Description |
@@ -483,6 +496,14 @@ is hashed:
 Generates a [JA3S](https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967)
 fingerprint from a TLS `ServerHello` — an MD5 of the TLS version, the single
 selected cipher suite, and the extensions (server extensions are *not* GREASE-filtered).
+
+**Fidelity.** A record that runs out mid-field is refused rather than crashing.
+CyberChef skips the record version, the client random and the session ID by
+moving the stream, which throws past the end of the buffer — and unlike the
+length checks around it, that throw is not an operation error, so a truncated
+record takes CyberChef down instead of reporting anything. Here it is an
+ordinary error carrying CyberChef's own message, `Cannot move to position 3 in
+stream. Out of bounds.`
 
 **Options**
 

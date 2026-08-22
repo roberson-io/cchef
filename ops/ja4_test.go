@@ -120,3 +120,30 @@ func TestJA4Extensions(t *testing.T) {
 		t.Fatalf("got %q %q %q", extLen, sortedRaw, origRaw)
 	}
 }
+
+// TestJA4TruncatedRecordIsAnError covers a record that runs out mid-field.
+// CyberChef reads the fields it skips over rather than moving the stream, and
+// its readers return zero past the end of the buffer instead of throwing, so a
+// short record is caught by the length check that follows.
+func TestJA4TruncatedRecordIsAnError(t *testing.T) {
+	for _, tc := range []struct{ name, want string }{
+		{"JA4 Fingerprint", "data is not a valid TLS Client Hello (QUIC is not yet supported)"},
+		{"JA4Server Fingerprint", "data is not a valid TLS Server Hello (QUIC is not yet supported)"},
+	} {
+		for _, in := range []string{"16", "1603", "160301", "16030100"} {
+			t.Run(tc.name+" "+in, func(t *testing.T) {
+				format := "JA4"
+				if tc.name == "JA4Server Fingerprint" {
+					format = "JA4S"
+				}
+				out, err := runOp(t, tc.name, in, "Hex", format)
+				if err == nil {
+					t.Fatalf("a truncated record was accepted: %q", out)
+				}
+				if err.Error() != tc.want {
+					t.Errorf("error = %q, want %q", err, tc.want)
+				}
+			})
+		}
+	}
+}

@@ -26,6 +26,8 @@ file with `-o` instead.
 | Tar | `tar` | [tar](https://wikipedia.org/wiki/Tar_(computing)) |
 | Untar | `untar` | [tar](https://wikipedia.org/wiki/Tar_(computing)) |
 | Unzip | `unzip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
+| XPRESS Decompress | `xpress-decompress` | [MS-XCA](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/5655f4a3-6ba4-489b-959f-e1f407c52f15) |
+| XPRESS LZ77+Huffman Decompress | `xpress-lz77-huffman-decompress` | [MS-XCA](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/5655f4a3-6ba4-489b-959f-e1f407c52f15) |
 | Zip | `zip` | [ZIP](https://wikipedia.org/wiki/Zip_(file_format)) |
 | Zlib Deflate | `zlib-deflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
 | Zlib Inflate | `zlib-inflate` | [zlib](https://wikipedia.org/wiki/Zlib) |
@@ -770,6 +772,112 @@ Unpacking an encrypted archive, checking each file as it goes:
 
 ```bash
 cchef unzip --in-file secrets.zip --password hunter2 --verify-result --out-dir ./secrets
+```
+
+## XPRESS Decompress
+
+Reads a plain [XPRESS](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/5655f4a3-6ba4-489b-959f-e1f407c52f15) LZ77 stream back into the bytes it was made from —
+the form behind the Windows call `RtlDecompressBuffer` with
+`COMPRESSION_FORMAT_XPRESS`, and what a Remote Desktop or Active Directory
+replication stream carries. It takes no options, and there is no operation to
+write one, here or in CyberChef.
+
+A stream is a run of 32-bit flag groups, each read from bit 31 down. A clear bit
+is a literal byte; a set bit is a match, described by an LE16 word holding the
+offset less one in its top 13 bits and the length less three in its low 3 bits.
+A length of 7 means the real length is written outside the flag stream: first a
+nibble of a byte shared with one other such match, then, if that nibble is 15, a
+raw length as a byte, an LE16, or an LE32. The last flag group is padded with
+set bits, so a match flag with no input behind it is where the data ends.
+
+The two halves of a shared byte serve two separate matches, which need not be
+next to each other — anything between them, literals included, leaves the byte
+waiting for its second half.
+
+### Simple example
+
+```bash
+cchef from-hex --delimiter None -i "0000000047484f53542f2f5245434f5645522064617461207265636f7665727920656e67ffffff07696e652e0a" | cchef xpress-decompress
+```
+
+Output:
+
+```
+GHOST//RECOVER data recovery engine.
+```
+
+### Complex example
+
+A match repeating one byte, spelled with a shared nibble: an offset of 1 and a
+nibble of 13, for 23 more copies of the literal `n`.
+
+```bash
+cchef from-hex --delimiter None -i "ffffff7f6e07000d" | cchef xpress-decompress
+```
+
+Output:
+
+```
+nnnnnnnnnnnnnnnnnnnnnnnn
+```
+
+## XPRESS LZ77+Huffman Decompress
+
+Reads an [XPRESS](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/5655f4a3-6ba4-489b-959f-e1f407c52f15) LZ77+Huffman stream back into the bytes it was made
+from — the form a WIM image and a file compressed by the Windows Overlay Filter
+are stored in. There is no operation to write one, here or in CyberChef.
+
+The stream opens with 256 bytes holding 512 four-bit code lengths, two to the
+byte. Codes are canonical, assigned in order of length and then symbol, and read
+most significant bit first from a run of LE16 words. Symbols below 256 are
+literal bytes and 256 closes the stream; the rest describe a match, with
+`(symbol - 256) >> 4` giving how many offset bits follow and `(symbol - 256) & 15`
+the length.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `--decompressed-size` | number | `4096` | How many bytes the stream produces. |
+
+The format does not record how much it decompresses to, so the size has to come
+from wherever the stream did: a WIM header, or a Windows Overlay Filter chunk
+table. Get it wrong and the stream is refused rather than half-read — too small
+and the output runs past it, too large and the end-of-data marker arrives early.
+
+**Fidelity.** The size is required to be a whole number, where CyberChef leaves
+the argument open and truncates a fractional one. It counts bytes, so a
+fractional value is a typo rather than something to round.
+
+### Simple example
+
+The worked example from MS-XCA section 3.1: 256 bytes of code lengths, then the
+coded stream.
+
+```bash
+cchef from-hex --delimiter Auto -i "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03 00 00 00 00 00 00 05 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 06 00 00 00 00 00 50 66 55 55 66 65 55 45 65 55 55 65 55 05 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 50 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b4 e3 a9 8f 5e e7 62 8e bc 5f ac 28 47 19 40 42 98 aa eb 89 7c da 20 5c 61 96 e4 b6 ff 38 01 00
+00" | cchef xpress-lz77-huffman-decompress --decompressed-size 360
+```
+
+Output:
+
+```
+The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. 
+```
+
+### Complex example
+
+Reading one chunk of a Windows Overlay Filter file, whose chunks decompress to
+32 KiB each:
+
+```bash
+cchef xpress-lz77-huffman-decompress --decompressed-size 32768 --in-file chunk.bin -o recovered.bin
 ```
 
 ## Zip

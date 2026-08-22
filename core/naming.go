@@ -14,7 +14,8 @@ var kebabFold = map[rune]rune{
 // Kebab converts an operation name to a CLI subcommand name: lower-cased, with
 // accented Latin letters folded to ASCII, spaces and separators collapsed to
 // single hyphens, and other punctuation dropped (e.g. "To Base64" -> "to-base64",
-// "Find / Replace" -> "find-replace", "Vigenère Encode" -> "vigenere-encode").
+// "Find / Replace" -> "find-replace", "Vigenère Encode" -> "vigenere-encode",
+// "XPRESS LZ77+Huffman Decompress" -> "xpress-lz77-huffman-decompress").
 func Kebab(name string) string {
 	var sb strings.Builder
 	prevHyphen := false
@@ -26,7 +27,7 @@ func Kebab(name string) string {
 		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
 			sb.WriteRune(r)
 			prevHyphen = false
-		case r == ' ' || r == '-' || r == '_' || r == '/':
+		case r == ' ' || r == '-' || r == '_' || r == '/' || r == '+':
 			if !prevHyphen && sb.Len() > 0 {
 				sb.WriteByte('-')
 				prevHyphen = true

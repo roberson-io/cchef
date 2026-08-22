@@ -8,10 +8,11 @@ Reductions over lists of numbers, and operations over sets.
 | --- | --- | --- |
 | Cartesian Product | `cartesian-product` | [Cartesian product](https://wikipedia.org/wiki/Cartesian_product) |
 | Divide | `divide` | [Division](https://wikipedia.org/wiki/Division_(mathematics)) |
-| Mean | `mean` | [Arithmetic mean](https://wikipedia.org/wiki/Arithmetic_mean) |
 | Extended GCD | `extended-gcd` | [Extended Euclidean algorithm](https://wikipedia.org/wiki/Extended_Euclidean_algorithm) |
+| Mean | `mean` | [Arithmetic mean](https://wikipedia.org/wiki/Arithmetic_mean) |
 | Median | `median` | [Median](https://wikipedia.org/wiki/Median) |
 | MOD | `mod` | [Modulo](https://wikipedia.org/wiki/Modulo) |
+| Modular Exponentiation | `modular-exponentiation` | [Modular exponentiation](https://wikipedia.org/wiki/Modular_exponentiation) |
 | Modular Inverse | `modular-inverse` | [Modular multiplicative inverse](https://wikipedia.org/wiki/Modular_multiplicative_inverse) |
 | Multiply | `multiply` | [Multiplication](https://wikipedia.org/wiki/Multiplication) |
 | Power Set | `power-set` | [Power set](https://wikipedia.org/wiki/Power_set) |

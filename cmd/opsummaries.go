@@ -113,6 +113,8 @@ var opSummaries = map[string]string{
 	"Gzip":                            "Compresses the input into a gzip stream",
 	"Raw Inflate":                     "Reads a raw DEFLATE stream back to the bytes",
 	"Zlib Inflate":                    "Reads a zlib stream back to the original bytes",
+	"XPRESS Decompress":               "Reads a plain XPRESS LZ77 stream back to the bytes",
+	"XPRESS LZ77+Huffman Decompress":  "Reads an XPRESS LZ77+Huffman stream of a known size",
 	"Extract MAC addresses":           "Extracts all MAC addresses from the input",
 	"RAKE":                            "Ranks the key phrases of a document",
 	"Extract domains":                 "Extracts fully qualified domain names",

@@ -9,12 +9,12 @@ guarantees, how the tree is laid out, and how work is verified.
 
 ## Orientation
 
-A curated set of 506 operations is implemented, tested and documented, tracked
-against CyberChef 11.3.0. Those subcommands cover 502 unique CyberChef
+A curated set of 508 operations is implemented, tested and documented, tracked
+against CyberChef 11.3.0. Those subcommands cover 504 unique CyberChef
 operations; the difference is `SHA2`, which cchef also exposes as the
 no-argument `sha224`/`sha256`/`sha384`/`sha512`.
 
-- **506 operations** (`ops/`) — one file per operation, mirroring CyberChef's
+- **508 operations** (`ops/`) — one file per operation, mirroring CyberChef's
   flat `src/core/operations/` directory. Reciprocal pairs (To/From X) share
   one file per algorithm.
 - **Engines** (`internal/`) — parsers, codecs and ported libraries the
@@ -112,7 +112,7 @@ new deliberate difference lands.
 
   An exact match always wins, because `To Morse Code` offers `Dash/Dot`,
   `DASH/DOT` and `dash/dot` and there the casing *is* the setting; it is the
-  only argument in the 506 operations whose choices differ only by case. A
+  only argument in the 508 operations whose choices differ only by case. A
   value matching several choices only by case — `"Dash/DOT"` — is refused,
   where CyberChef renders a casing that was never on offer.
 
@@ -188,10 +188,10 @@ new deliberate difference lands.
   upstream swapped packages — and plain JSON pipes into `jq` and lets
   encode/decode round-trip, which the tests pin. Encoding is unaffected and
   stays byte-identical.
-- **Whole-number arguments are enforced.** CyberChef marks only 14 of its 220
+- **Whole-number arguments are enforced.** CyberChef marks only 14 of its 221
   numeric arguments `integer`, so the rest silently truncate a fractional
   value: `Bit shift right` with an amount of 1.5 runs. cchef declares
-  `Integer` on 138, refusing the value with `Amount must be an integer.` A
+  `Integer` on 142, refusing the value with `Amount must be an integer.` A
   typo on a command line should fail rather than quietly produce a different
   answer, so a shared URL carrying a fractional argument errors here instead
   of running. All 14 that CyberChef marks are among them.

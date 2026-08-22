@@ -14,6 +14,9 @@ func TestKebab(t *testing.T) {
 		"Swap endianness":   "swap-endianness",
 		"Vigenère Encode":   "vigenere-encode",
 		"Vigenère Decode":   "vigenere-decode",
+		// A "+" joins two names, so it reads as a separator rather than as
+		// punctuation to drop.
+		"XPRESS LZ77+Huffman Decompress": "xpress-lz77-huffman-decompress",
 	}
 	for in, want := range cases {
 		if got := Kebab(in); got != want {

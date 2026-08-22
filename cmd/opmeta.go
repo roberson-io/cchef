@@ -604,6 +604,8 @@ var opCategories = map[string][]string{
 	"XML Beautify":                       {catCodeTidy},
 	"XML Minify":                         {catCodeTidy},
 	"XPath expression":                   {catExtractors, catCodeTidy},
+	"XPRESS Decompress":                  {catCompression},
+	"XPRESS LZ77+Huffman Decompress":     {catCompression},
 	"XSalsa20":                           {catEncryptionEncoding},
 	"XTEA Decrypt":                       {catEncryptionEncoding},
 	"XTEA Encrypt":                       {catEncryptionEncoding},

@@ -37,6 +37,21 @@ func TestModularExponentiationFixtures(t *testing.T) {
 	})
 }
 
+// TestModularExponentiationDefaultArgs covers the operation named with no
+// arguments at all, as a recipe may. Only the modulus carries a default, so
+// the base and the exponent have to declare an empty string rather than
+// nothing, or the recipe is refused before the operation ever runs.
+func TestModularExponentiationDefaultArgs(t *testing.T) {
+	op, _ := core.Default.Get("Modular Exponentiation")
+	args, err := core.CoerceArgs(op.Args(), core.DefaultArgs(op.Args()))
+	if err != nil {
+		t.Fatalf("default arguments do not coerce: %v", err)
+	}
+	if _, err = op.Run(core.NewDish([]byte("9"), core.TypeString), args); err == nil {
+		t.Error("a recipe with neither base nor exponent was accepted")
+	}
+}
+
 // TestModularExponentiationSigns covers the values a mathematical treatment
 // would not produce. CyberChef reduces with JavaScript's remainder operator,
 // whose result takes the sign of the dividend, so a negative base gives a

@@ -1,12 +1,39 @@
 package ops
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/roberson-io/cchef/core"
 	"github.com/roberson-io/cchef/internal/bytestream"
 )
+
+// catchStreamError runs fn, returning as an error any attempt to move outside
+// the buffer. Stream.mjs throws there and the readers in internal/bytestream
+// raise in the same places, which keeps the check out of every read; JA3 and
+// JA3S let the throw escape rather than turning it into an operation error, so
+// CyberChef reports a record that runs out mid-field as a crash. Here it is an
+// ordinary error, carrying the message CyberChef throws. Panics of every other
+// kind are left alone.
+func catchStreamError(fn func() (*core.Dish, error)) (out *core.Dish, err error) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+		raised, ok := r.(error)
+		if !ok {
+			panic(r)
+		}
+		if _, ok := errors.AsType[bytestream.StreamError](raised); !ok {
+			panic(r)
+		}
+		out, err = nil, raised
+	}()
+	return fn()
+}
 
 // greaseCipherSuites are the GREASE values (RFC 8701) excluded from JA3/JA3S
 // cipher, extension and curve lists.

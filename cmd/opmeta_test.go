@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"sort"
+	"strings"
 	"testing"
 	"unicode/utf8"
 
@@ -51,6 +52,54 @@ func TestOpCategoriesMatchRegistry(t *testing.T) {
 	for name := range opCategories {
 		if !registered[name] {
 			t.Errorf("opCategories has stale entry %q (no such registered operation)", name)
+		}
+	}
+}
+
+// categoryDocs names the page each category is documented on. An operation in
+// two categories is written up on one of them and cross-referenced from the
+// other, but it is listed in the table on both.
+var categoryDocs = map[string]string{
+	catArithmeticLogic:    "arithmetic-logic.md",
+	catCodeTidy:           "code-tidy.md",
+	catCompression:        "compression.md",
+	catDataFormat:         "data-format.md",
+	catDateTime:           "date-time.md",
+	catEncryptionEncoding: "encryption-encoding.md",
+	catExtractors:         "extractors.md",
+	catFlowControl:        "flow-control.md",
+	catForensics:          "forensics.md",
+	catHashing:            "hashing.md",
+	catLanguage:           "language.md",
+	catMultimedia:         "multimedia.md",
+	catNetworking:         "networking.md",
+	catOther:              "other.md",
+	catPublicKey:          "public-key.md",
+	catUtils:              "utils.md",
+}
+
+// TestDocsTablesListEveryOperation pins each category page's table of
+// operations to the registry. Nothing else fails when an operation is added
+// without its row, and both the row and the page it belongs on are maintained
+// by hand.
+func TestDocsTablesListEveryOperation(t *testing.T) {
+	pages := map[string]string{}
+	for _, op := range core.Default.All() {
+		name := op.Meta().Name
+		for _, cat := range opCategories[name] {
+			file, ok := categoryDocs[cat]
+			if !ok {
+				t.Errorf("category %q has no page in categoryDocs", cat)
+				continue
+			}
+			if _, read := pages[file]; !read {
+				pages[file] = readRepoFile(t, "docs/"+file)
+			}
+			// The row opens with the operation's name and its subcommand; what
+			// follows is a reference link, which varies.
+			if row := "| " + name + " | `" + core.Kebab(name) + "` |"; !strings.Contains(pages[file], row) {
+				t.Errorf("docs/%s has no table row for %q", file, name)
+			}
 		}
 	}
 }

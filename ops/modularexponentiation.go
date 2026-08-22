@@ -39,9 +39,9 @@ func (ModularExponentiation) Meta() core.OpMeta {
 // Args returns the argument definitions.
 func (ModularExponentiation) Args() []core.ArgDef {
 	return []core.ArgDef{
-		{Name: "Base", Type: core.ArgString},
+		{Name: "Base", Type: core.ArgString, Value: ""},
 		{Name: "Modulus", Type: core.ArgString, Value: "1"},
-		{Name: "Exponent", Type: core.ArgString},
+		{Name: "Exponent", Type: core.ArgString, Value: ""},
 	}
 }
 
