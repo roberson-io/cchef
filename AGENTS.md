@@ -9,12 +9,12 @@ guarantees, how the tree is laid out, and how work is verified.
 
 ## Orientation
 
-A curated set of 505 operations is implemented, tested and documented, tracked
-against CyberChef 11.3.0. Those subcommands cover 501 unique CyberChef
+A curated set of 506 operations is implemented, tested and documented, tracked
+against CyberChef 11.3.0. Those subcommands cover 502 unique CyberChef
 operations; the difference is `SHA2`, which cchef also exposes as the
 no-argument `sha224`/`sha256`/`sha384`/`sha512`.
 
-- **505 operations** (`ops/`) — one file per operation, mirroring CyberChef's
+- **506 operations** (`ops/`) — one file per operation, mirroring CyberChef's
   flat `src/core/operations/` directory. Reciprocal pairs (To/From X) share
   one file per algorithm.
 - **Engines** (`internal/`) — parsers, codecs and ported libraries the
@@ -112,7 +112,7 @@ new deliberate difference lands.
 
   An exact match always wins, because `To Morse Code` offers `Dash/Dot`,
   `DASH/DOT` and `dash/dot` and there the casing *is* the setting; it is the
-  only argument in the 505 operations whose choices differ only by case. A
+  only argument in the 506 operations whose choices differ only by case. A
   value matching several choices only by case — `"Dash/DOT"` — is refused,
   where CyberChef renders a casing that was never on offer.
 

@@ -165,7 +165,7 @@ documents every operation's options, examples and reference links:
 
 | Category | Covers |
 | --- | --- |
-| [Arithmetic / Logic](docs/arithmetic-logic.md) | Sum, Subtract, Multiply, Divide, Mean, Median, Standard Deviation, MOD, Extended GCD, Modular Inverse, and the set operations |
+| [Arithmetic / Logic](docs/arithmetic-logic.md) | Sum, Subtract, Multiply, Divide, Mean, Median, Standard Deviation, MOD, Extended GCD, Modular Exponentiation, Modular Inverse, and the set operations |
 | [Code tidy](docs/code-tidy.md) | Beautify and minify for JavaScript, CSS, SQL, XML and JSON; PHP and BSON serialization; JPath, XPath, jq and CSS selectors; case conversion |
 | [Compression](docs/compression.md) | Gzip, Zlib, Raw Deflate, Bzip2, LZMA, LZ4, LZNT1, LZString, Zip and Tar |
 | [Data format](docs/data-format.md) | Base32/45/58/62/64/85/92, Hex, Binary, Octal, Decimal, Charcode, BCD, Float, Hexdump, Braille, Punycode, COBS, MessagePack, CBOR, Avro, YAML, ASN.1, TLV, URL and HTML entity encoding |

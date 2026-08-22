@@ -363,6 +363,7 @@ var opCategories = map[string][]string{
 	"MIME Decoding":                      {catDataFormat},
 	"Microsoft Script Decoder":           {catCodeTidy},
 	"MOD":                                {catArithmeticLogic},
+	"Modular Exponentiation":             {catArithmeticLogic},
 	"Modular Inverse":                    {catArithmeticLogic},
 	"Multiple Bombe":                     {catEncryptionEncoding},
 	"Multiply":                           {catArithmeticLogic},

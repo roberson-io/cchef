@@ -279,6 +279,65 @@ Output:
 0 3 3
 ```
 
+## Modular Exponentiation
+
+Raises a base to an exponent, modulo a modulus — the `base^exponent mod modulus`
+behind Diffie-Hellman and RSA. The squaring loop keeps intermediate values small,
+so a crypto-sized exponent costs nothing.
+
+Any of the three may be decimal, optionally signed, or `0x` hex. The modulus is
+required and must not be zero. **Either** the base **or** the exponent may be
+left blank to take it from the input, but not both: with both blank there is one
+value for two slots, and the operation refuses rather than guessing.
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `--base` | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+| `--modulus` | string | `1` | Must not be zero. |
+| `--exponent` | string | (empty) | Decimal or `0x` hex. Blank takes it from the input. |
+
+> **Note.** Reduction follows CyberChef, which uses JavaScript's remainder
+> operator: the result takes the sign of the base, so a negative base gives a
+> negative residue rather than the one in `[0, modulus)`. A negative exponent
+> returns `1` rather than a modular inverse, because the loop runs only while the
+> exponent is above zero.
+
+### Simple example
+
+```bash
+cchef modular-exponentiation --base 2 --modulus 1000 --exponent 10
+```
+
+Output:
+
+```
+24
+```
+
+### Complex example
+
+Hex arguments, and taking the base from the input:
+
+```bash
+cchef modular-exponentiation --base 0x10 --modulus 1000 --exponent 0x2
+```
+
+Output:
+
+```
+256
+```
+
+```bash
+cchef modular-exponentiation --modulus 1000000007 --exponent 65537 -i 123456789
+```
+
+Output:
+
+```
+560583526
+```
+
 ## Modular Inverse
 
 Finds the number that multiplies with `a` to give one, modulo `m` — the `x` for

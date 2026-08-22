@@ -5,7 +5,7 @@ the "Cyber Swiss Army Knife". Every operation is a subcommand that reads input a
 writes output, so operations chain together through Unix pipes or as a single
 recipe.
 
-> **Scope:** 505 operations, covering every CyberChef operation. Run `cchef list`
+> **Scope:** 506 operations, covering every CyberChef operation. Run `cchef list`
 > to see them grouped by category, each with a one-line summary.
 
 ## Installing / building
@@ -160,7 +160,7 @@ Within each category, operations are listed alphabetically.
 
 | Category | Operations |
 | --- | --- |
-| [Arithmetic / Logic](arithmetic-logic.md) | Cartesian Product, Divide, Extended GCD, MOD, Mean, Median, Modular Inverse, Multiply, Power Set, Set Difference, Set Intersection, Set Union, Standard Deviation, Subtract, Sum, Symmetric Difference |
+| [Arithmetic / Logic](arithmetic-logic.md) | Cartesian Product, Divide, Extended GCD, MOD, Mean, Median, Modular Exponentiation, Modular Inverse, Multiply, Power Set, Set Difference, Set Intersection, Set Union, Standard Deviation, Subtract, Sum, Symmetric Difference |
 | [Code tidy](code-tidy.md) | BSON deserialise, BSON serialise, CSS Beautify, CSS Minify, CSS selector, Diff, From MessagePack, Generic Code Beautify, JavaScript Beautify, JavaScript Minify, JavaScript Parser, JPath expression, Jq, JSON Beautify, JSON Minify, Microsoft Script Decoder, PHP Deserialize, PHP Serialize, Render Markdown, SQL Beautify, SQL Minify, Strip HTML tags, Syntax highlighter, To Camel case, To Kebab case, To MessagePack, To Snake case, XML Beautify, XML Minify, XPath expression |
 | [Compression](compression.md) | Bzip2 Compress, Bzip2 Decompress, Gunzip, Gzip, LZ4 Compress, LZ4 Decompress, LZMA Compress, LZMA Decompress, LZNT1 Decompress, LZString Compress, LZString Decompress, Raw Deflate, Raw Inflate, Tar, Untar, Unzip, Zip, Zlib Deflate, Zlib Inflate |
 | [Data format](data-format.md) | AMF Decode, AMF Encode, Avro to JSON, CBOR Decode, CBOR Encode, CSV to JSON, Caret/M-decode, Decode text, Encode text, Escape Smart Characters, Escape Unicode Characters, From BCD, From Base, From Base32, From Base45, From Base58, From Base62, From Base64, From Base85, From Base92, From Bech32, From Binary, From Braille, From COBS, From Charcode, From Decimal, From Float, From HTML Entity, From Hex, From Hex Content, From Hexdump, From MessagePack, From Modhex, From Octal, From Punycode, From Quoted Printable, Hex to PEM, JSON to CSV, JSON to YAML, MIME Decoding, Normalise Unicode, PEM to Hex, Parse ASN.1 hex string, Parse TLV, Rison Decode, Rison Encode, Show Base64 offsets, Swap endianness, Text Encoding Brute Force, Text-Integer Conversion, To BCD, To Base, To Base32, To Base45, To Base58, To Base62, To Base64, To Base85, To Base92, To Bech32, To Binary, To Braille, To COBS, To Charcode, To Decimal, To Float, To HTML Entity, To Hex, To Hex Content, To Hexdump, To MessagePack, To Modhex, To Octal, To Punycode, To Quoted Printable, URL Decode, URL Encode, Unescape Unicode Characters, YAML to JSON |

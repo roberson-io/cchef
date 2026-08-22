@@ -94,6 +94,7 @@ var opSummaries = map[string]string{
 	"Label":                           "Marks a place in a recipe for a jump to reach",
 	"MOD":                             "Reduces each number in a list by a modulus",
 	"Magic":                           "Works out what data is and how to decode it",
+	"Modular Exponentiation":          "Raises a base to a power, modulo a modulus",
 	"Pseudo-Random Prime Generator":   "Generates a random probable prime of a given size",
 	"Register":                        "Captures data for later steps to use as arguments",
 	"Subsection":                      "Runs the rest of the recipe on the parts that match",
